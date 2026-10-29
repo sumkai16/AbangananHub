@@ -442,6 +442,23 @@ class TenantCheckoutTest extends TestCase
     }
 
     #[DataProvider('surfaces')]
+    public function test_the_rent_checkout_charges_rent_plus_the_late_fee_the_lease_agreed(string $surface): void
+    {
+        $this->fakeCheckoutCreated('cs_checkout_fee');
+        $t = $this->makeTenancy();
+        $reservation = $t['reservation'];
+        $reservation->forceFill(['lease_snapshot' => ['grace_days' => 0, 'late_fee' => ['type' => 'fixed', 'value' => 100]]])->save();
+        $this->makeRecordedPayment($reservation, $t['landlord'], ['billing_period' => '2026-08-01', 'amount' => 5000, 'paid_at' => '2026-08-04 10:00:00']);
+
+        $this->startCheckout($surface, 'rent', $t['tenant'], $reservation);
+
+        $attributes = $this->sentCheckoutAttributes();
+        $this->assertSame(510000, $attributes['line_items'][0]['amount'], 'September: PHP 5,000 rent + PHP 100 late fee.');
+        $this->assertStringContainsString('late fee', $attributes['line_items'][0]['name']);
+        $this->assertSame('5100.00', (string) $this->paymentsOf($reservation)->firstWhere('status', 'Pending')->amount);
+    }
+
+    #[DataProvider('surfaces')]
     public function test_the_rent_checkout_moves_on_to_the_next_month_once_the_oldest_is_settled(string $surface): void
     {
         $this->fakeCheckoutCreated('cs_checkout_sep');

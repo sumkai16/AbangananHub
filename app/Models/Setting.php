@@ -24,17 +24,28 @@ class Setting extends Model
     private const CACHE_KEY = 'settings.rentals.overrides';
 
     public const GROUP_ESCROW = 'Escrow clocks';
+
     public const GROUP_RENT   = 'Rent ledger';
+
+    public const GROUP_PAYMENTS = 'Payments';
 
     /**
      * The whitelist. Nothing outside this map can be stored or edited — the form
      * renders from it and UpdateSettingsRequest validates against it, so an admin
      * cannot set a grace period to -5 or to "banana".
      *
-     * `type` is 'integer' or 'integer_list' (a comma-separated list, stored as text
-     * and cast back on read).
+     * `type` is 'integer', 'integer_list' (a comma-separated list, stored as text
+     * and cast back on read) or 'boolean' (stored as '1' / '0').
      */
     public const DEFINITIONS = [
+        'online_payments_enabled' => [
+            'group' => self::GROUP_PAYMENTS,
+            'label' => 'Online payments (PayMongo)',
+            'help'  => 'On: tenants can pay through PayMongo checkout, deposits are held until move-in, and payouts go through the admin queue. Off: tenants pay the landlord directly by QR and the landlord confirms. Payments already held keep working either way.',
+            'unit'  => 'on / off',
+            'type'  => 'boolean',
+            'rule'  => ['in:0,1'],
+        ],
         'move_in_confirmation_days' => [
             'group' => self::GROUP_ESCROW,
             'label' => 'Move-in confirmation window',
@@ -128,7 +139,7 @@ class Setting extends Model
             return self::query()
                 ->whereIn('key', array_keys(self::DEFINITIONS))
                 ->pluck('value', 'key')
-                ->map(fn($value, $key) => self::cast($key, $value))
+                ->map(fn ($value, $key) => self::cast($key, $value))
                 ->all();
         });
     }
@@ -171,13 +182,21 @@ class Setting extends Model
     /** Render a value for display in the form and in audit metadata. */
     public static function display(string $key, mixed $value): string
     {
+        if (is_bool($value)) {
+            return $value ? 'On' : 'Off';
+        }
+
         return is_array($value) ? implode(', ', $value) : (string) $value;
     }
 
     private static function cast(string $key, ?string $value): mixed
     {
         if (self::DEFINITIONS[$key]['type'] === 'integer_list') {
-            return array_values(array_map('intval', array_filter(array_map('trim', explode(',', (string) $value)), fn($v) => $v !== '')));
+            return array_values(array_map('intval', array_filter(array_map('trim', explode(',', (string) $value)), fn ($v) => $v !== '')));
+        }
+
+        if (self::DEFINITIONS[$key]['type'] === 'boolean') {
+            return (bool) (int) $value;
         }
 
         return (int) $value;
@@ -185,8 +204,10 @@ class Setting extends Model
 
     private static function serialize(string $key, mixed $value): string
     {
-        return self::DEFINITIONS[$key]['type'] === 'integer_list'
-            ? implode(',', array_map('intval', (array) $value))
-            : (string) (int) $value;
+        return match (self::DEFINITIONS[$key]['type']) {
+            'integer_list' => implode(',', array_map('intval', (array) $value)),
+            'boolean' => filter_var($value, FILTER_VALIDATE_BOOLEAN) ? '1' : '0',
+            default => (string) (int) $value,
+        };
     }
 }

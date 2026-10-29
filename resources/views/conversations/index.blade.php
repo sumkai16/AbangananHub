@@ -1,13 +1,19 @@
 @extends(auth()->user()->usesLandlordShell() ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
 
 @section('content')
-    <div class="{{ auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-5 min-h-[calc(100vh-72px)]" x-data="inboxApp()" x-cloak>
+    @php
+        // The landlord's chat pages (Inquiries and Tenants) use the full width as three separate cards
+        // (list, chat, property); the tenant's inbox keeps the single boxed layout.
+        $wide = auth()->user()->usesLandlordShell();
+        $cardClass = 'rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)]';
+    @endphp
+    <div class="{{ $wide ? 'max-w-none' : auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-5 min-h-[calc(100vh-72px)]" x-data="inboxApp()" x-cloak>
 
-        <div class="flex flex-col overflow-hidden rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)]"
+        <div class="flex flex-col {{ $wide ? 'gap-4' : 'overflow-hidden '.$cardClass }}"
             style="height: calc(100vh - 110px); min-height: 560px;">
 
         {{-- Header --}}
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#E2E4EC] p-4 flex-shrink-0">
+        <div class="flex flex-wrap items-center justify-between gap-3 flex-shrink-0 {{ $wide ? 'px-1' : 'border-b border-[#E2E4EC] p-4' }}">
             <div class="flex items-center gap-3.5">
                 <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#060D26]">
                     <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
@@ -65,10 +71,10 @@
         </div>
 
         {{-- Split panel --}}
-        <div class="flex flex-1 overflow-hidden">
+        <div class="flex flex-1 {{ $wide ? 'min-h-0 gap-4' : 'overflow-hidden' }}">
 
             {{-- LEFT: Conversation list --}}
-            <div class="w-full lg:w-[340px] flex-shrink-0 lg:border-r border-[#5B6A8E]/10 flex-col"
+            <div class="w-full lg:w-[340px] flex-shrink-0 flex-col {{ $wide ? 'overflow-hidden '.$cardClass : 'lg:border-r border-[#5B6A8E]/10' }}"
                 :class="activeId ? 'hidden lg:flex' : 'flex'">
 
                 {{-- Box switch: deal chats vs. chats with people already living here --}}
@@ -271,7 +277,7 @@
                     All conversations
                 </button>
                 {{-- Empty state --}}
-                <div x-show="!activeId" class="flex flex-1 items-center justify-center bg-[#F7F8FC] px-6">
+                <div x-show="!activeId" class="flex flex-1 items-center justify-center bg-[#F7F8FC] px-6 {{ $wide ? $cardClass : '' }}">
                     <div class="text-center">
                         <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-[#ECEEF6]">
                             <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.5">
@@ -286,7 +292,7 @@
                 </div>
 
                 {{-- Loading state --}}
-                <div x-show="loading" class="flex-1 flex items-center justify-center">
+                <div x-show="loading" class="flex-1 flex items-center justify-center {{ $wide ? $cardClass : '' }}">
                     <div class="w-6 h-6 border-2 border-[#5B6A8E] border-t-transparent rounded-full animate-spin"></div>
                 </div>
 
@@ -464,7 +470,7 @@
                             .listen('.MessageSent', (e) => {
                                 // Concern cards and their status lines depend on who is
                                 // looking (the buttons differ), so refetch the panel.
-                                if (e.concern_id) { this.refreshPanel(); return; }
+                                if (e.concern_id || e.kind === 'payment_qr') { this.refreshPanel(); return; }
                                 this.appendMessage({
                                     sender_id: e.sender_id,
                                     sender_name: e.sender_name,
@@ -844,6 +850,82 @@
                             window.refreshInboxPanel?.();
                         } catch (e) {
                             this.errors.general = 'Could not send. Check your connection and try again.';
+                        } finally {
+                            this.busy = false;
+                        }
+                    },
+                };
+            }
+
+            // "Share payment QR" sheet (landlord). The browser reads the screenshot and posts only the decoded text.
+            function paymentQrSheet(conversationId, lastShareId = null) {
+                return {
+                    open: false, busy: false, reuseId: lastShareId,
+                    payload: '', preview: '', note: '',
+                    errors: {},
+
+                    close() {
+                        if (this.busy) return;
+                        this.open = false;
+                    },
+
+                    async pick(event) {
+                        const file = (event.target.files || [])[0];
+                        event.target.value = '';
+                        if (!file) return;
+
+                        this.errors = {};
+                        this.payload = '';
+                        if (this.preview) URL.revokeObjectURL(this.preview);
+                        this.preview = URL.createObjectURL(file);
+
+                        try {
+                            const text = await window.readPaymentQr(file);
+                            if (!text) {
+                                this.preview = '';
+                                this.errors.payload = 'No QR code found in that picture. Use a clear, full screenshot of your QR.';
+                                return;
+                            }
+                            this.payload = text;
+                        } catch (e) {
+                            this.preview = '';
+                            this.errors.payload = 'That picture could not be read. Try a screenshot instead of a photo.';
+                        }
+                    },
+
+                    async submit() {
+                        this.errors = {};
+                        if (!this.payload && !this.reuseId) { this.errors.payload = 'Choose a picture of your QR first.'; return; }
+
+                        this.busy = true;
+                        try {
+                            const res = await fetch('/conversations/' + conversationId + '/payment-qr', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                },
+                                body: JSON.stringify(this.reuseId
+                                    ? { reuse_share_id: this.reuseId, note: this.note.trim() || null }
+                                    : { payload: this.payload, note: this.note.trim() || null }),
+                            });
+                            if (res.status === 422) {
+                                const data = await res.json();
+                                for (const [field, msgs] of Object.entries(data.errors || {})) {
+                                    this.errors[field] = msgs[0];
+                                }
+                                return;
+                            }
+                            if (!res.ok) { this.errors.general = 'Could not share. Please try again.'; return; }
+
+                            if (this.preview) URL.revokeObjectURL(this.preview);
+                            this.payload = ''; this.preview = ''; this.note = '';
+                            this.reuseId = lastShareId;
+                            this.open = false;
+                            window.refreshInboxPanel?.();
+                        } catch (e) {
+                            this.errors.general = 'Could not share. Check your connection and try again.';
                         } finally {
                             this.busy = false;
                         }

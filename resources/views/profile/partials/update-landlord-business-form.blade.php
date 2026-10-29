@@ -1,0 +1,132 @@
+{{-- Landlord-only settings: where payouts go and the public business page. Saved by Landlord\ProfileController::update;
+     name, email, contact and bio are the Personal information form above. --}}
+<form action="{{ route('landlord.profile.update') }}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-6">
+    @csrf
+    @method('PATCH')
+    @php $business = $user->rentalBusiness; @endphp
+
+    {{-- Payout details: only while online payments are on, or money is still owed to this landlord. --}}
+    @if($user->showsPayoutTools())
+    <div id="payout" class="scroll-mt-28 rounded-2xl ring-1 ring-[#5B6A8E]/10 shadow-[0_2px_12px_rgba(6,13,38,0.05)] bg-white p-6 sm:p-8" data-animate>
+        <h2 class="text-[15px] font-normal text-[#060D26] mb-1">Payout details</h2>
+        <p class="text-[12px] text-[#5B6A8E] mb-4">Where AbangananHub sends the rent and deposits it collects on your behalf. Both fields are required before you can be paid out.</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label for="gcash_number" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">GCash number</label>
+                <input type="text" id="gcash_number" name="gcash_number" value="{{ old('gcash_number', $user->payoutAccount?->gcash_number) }}"
+                    class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all"
+                    placeholder="09XX XXX XXXX">
+                @error('gcash_number')
+                    <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
+                @enderror
+            </div>
+            <div>
+                <label for="gcash_account_name" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">GCash account name</label>
+                <input type="text" id="gcash_account_name" name="gcash_account_name" value="{{ old('gcash_account_name', $user->payoutAccount?->gcash_account_name) }}"
+                    class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all"
+                    placeholder="Name on the GCash account">
+                @error('gcash_account_name')
+                    <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+    </div>
+
+    @endif
+
+    {{-- Business info --}}
+    <div id="business" class="scroll-mt-28 rounded-2xl ring-1 ring-[#5B6A8E]/10 shadow-[0_2px_12px_rgba(6,13,38,0.05)] bg-white p-6 sm:p-8" data-animate>
+        <h2 class="text-[15px] font-normal text-[#060D26] mb-1">Business information</h2>
+        <p class="text-[12px] text-[#5B6A8E] mb-4">Shown on your public business page and on your listings. Your personal name, photo, email and phone number are not. While you have a live listing the business page is always public.</p>
+
+        {{-- Logo --}}
+        <div x-data="{ preview: null }" class="flex items-center gap-5 mb-5 pb-5 border-b border-[#E2E4EC]">
+            <template x-if="preview">
+                <img :src="preview" alt="Logo preview"
+                    class="w-16 h-16 rounded-xl object-cover border border-[#E2E4EC]">
+            </template>
+            <template x-if="!preview">
+                @if($business && $business->logo_url)
+                    <img loading="lazy" decoding="async" src="{{ $business->logo_url }}" alt="{{ $business->business_name ?? 'Logo' }}"
+                        class="w-16 h-16 rounded-xl object-cover border border-[#E2E4EC]">
+                @else
+                    <div
+                        class="w-16 h-16 rounded-xl bg-[#ECEEF6] border border-[#E2E4EC] flex items-center justify-center">
+                        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#5B6A8E" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+                        </svg>
+                    </div>
+                @endif
+            </template>
+            <div>
+                <label
+                    class="inline-flex items-center gap-2 px-3 py-1.5 border border-[#E2E4EC] rounded-lg text-[12px] font-semibold text-[#060D26] bg-white hover:brightness-95 transition-all cursor-pointer">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                    </svg>
+                    Upload logo
+                    <input type="file" name="logo" accept="image/jpeg,image/png,image/webp" class="hidden"
+                        x-on:change="if ($event.target.files[0]) { preview = URL.createObjectURL($event.target.files[0]) }">
+                </label>
+                <p class="text-[11px] text-[#5B6A8E] mt-1.5">JPG, PNG, or WebP. Max 2MB.</p>
+                @error('logo')
+                    <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+        <div class="mb-4">
+            <label for="business_name" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Business name</label>
+            <input type="text" id="business_name" name="business_name"
+                value="{{ old('business_name', $business->business_name ?? '') }}"
+                class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all"
+                placeholder="e.g. Santos Rentals">
+            @error('business_name')
+                <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Business description</label>
+            <textarea name="business_description" rows="2" maxlength="1000"
+                class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all resize-none"
+                placeholder="Briefly describe your rental business...">{{ old('business_description', $business->description ?? '') }}</textarea>
+            @error('business_description')
+                <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label for="business_contact" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Business contact</label>
+                <input type="text" id="business_contact" name="business_contact"
+                    value="{{ old('business_contact', $business->contact_number ?? '') }}"
+                    class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all"
+                    placeholder="09XX XXX XXXX">
+                @error('business_contact')
+                    <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
+                @enderror
+            </div>
+            <div>
+                <label for="business_address" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Business address</label>
+                <input type="text" id="business_address" name="business_address"
+                    value="{{ old('business_address', $business->business_address ?? '') }}"
+                    class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all"
+                    placeholder="Cebu City, Cebu">
+                @error('business_address')
+                    <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+    </div>
+
+    <div class="flex items-center justify-end">
+        <button type="submit"
+            class="px-5 py-2.5 bg-[#FF8A66] text-[#060D26] rounded-lg text-[13px] font-semibold hover:bg-[#E96F4F] transition-all shadow-sm">
+            Save payout &amp; business details
+        </button>
+    </div>
+</form>

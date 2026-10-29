@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api\Tenant;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ReservationResource;
 use App\Models\Notification;
+use App\Models\PaymentQrShare;
 use App\Models\Reservation;
 use App\Models\TenantDetail;
+use App\Support\Payments;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -38,7 +40,13 @@ class AgreementController extends Controller
             abort(404, 'This unit is no longer available.');
         }
 
-        return response()->json(['data' => new ReservationResource($reservation)]);
+        // Direct payments: when online checkout is off the app shows the landlord's shared QR instead of a pay button.
+        // Claim endpoints are a follow-up (plans/mobile-app.md); this is read-only.
+        return response()->json([
+            'data' => new ReservationResource($reservation),
+            'online_payments_enabled' => Payments::online(),
+            'payment_qr' => PaymentQrShare::latestFor($reservation)?->toApi(),
+        ]);
     }
 
     public function sign(Request $request, Reservation $reservation): JsonResponse

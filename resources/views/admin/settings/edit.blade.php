@@ -36,13 +36,15 @@
         @csrf
         @method('PATCH')
 
-        @foreach($definitions->groupBy('group') as $group => $fields)
+        @foreach($definitions->groupBy('group', preserveKeys: true) as $group => $fields)
             <x-card>
                 <h2 class="text-[15px] font-normal text-[#060D26]">{{ $group }}</h2>
                 <p class="text-[12.5px] text-[#5B6A8E] mt-0.5">
-                    {{ $group === App\Models\Setting::GROUP_ESCROW
-                        ? 'Deadlines that govern turnover, move-in confirmation, and when a deposit is released or escalated.'
-                        : 'When rent falls due, when it reads as overdue, and how reminders repeat.' }}
+                    {{ match ($group) {
+                        App\Models\Setting::GROUP_ESCROW => 'Deadlines that govern turnover, move-in confirmation, and when a deposit is released or escalated.',
+                        App\Models\Setting::GROUP_PAYMENTS => 'How tenants pay. Direct payments are always available; online checkout is the optional extra.',
+                        default => 'When rent falls due, when it reads as overdue, and how reminders repeat.',
+                    } }}
                 </p>
 
                 <div class="mt-5 divide-y divide-[#E2E4EC]">
@@ -68,12 +70,20 @@
                                 <p class="text-[12.5px] text-[#5B6A8E] mt-1 leading-relaxed">{{ $definition['help'] }}</p>
                                 <p class="text-[11.5px] text-[#94A3B8] mt-1">
                                     Default: <span class="font-semibold text-[#5B6A8E]">{{ App\Models\Setting::display($key, $default) }}</span>
-                                    {{ $definition['unit'] }} · clear the field to go back to it
+                                    {{ $definition['unit'] }}@if($definition['type'] !== 'boolean') · clear the field to go back to it @endif
                                 </p>
                             </div>
 
                             <div>
                                 <div class="relative">
+                                    @if($definition['type'] === 'boolean')
+                                        @php $boolValue = $old === null ? ($current ? '1' : '0') : $old; @endphp
+                                        <select name="settings[{{ $key }}]" id="setting-{{ $key }}"
+                                            class="w-full rounded-xl border border-[#E2E4EC] bg-white px-4 py-2.5 text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
+                                            <option value="1" @selected($boolValue === '1')>On</option>
+                                            <option value="0" @selected($boolValue === '0')>Off</option>
+                                        </select>
+                                    @else
                                     <input
                                         @class(['w-full rounded-xl border bg-white pl-4 pr-4 py-2.5 text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] transition-colors',
                                             'border-[#EF4444]' => $errors->has("settings.$key") || $errors->has("settings.$key.*"),
@@ -85,6 +95,7 @@
                                         id="setting-{{ $key }}"
                                         value="{{ $value }}"
                                         placeholder="{{ App\Models\Setting::display($key, $default) }}" />
+                                    @endif
                                 </div>
                                 <p class="text-[11px] text-[#94A3B8] mt-1">{{ $definition['unit'] }}</p>
 

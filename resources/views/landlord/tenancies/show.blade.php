@@ -572,6 +572,13 @@
                     </div>
                 </x-card>
 
+                @php $pendingClaims = $reservation->paymentClaims->where('status', 'Pending')->where('claim_type', 'Monthly'); @endphp
+                @if($pendingClaims->isNotEmpty())
+                    <div class="space-y-3">
+                        @include('payments.partials._claim-review', ['claims' => $pendingClaims, 'tenantName' => $reservation->tenant?->first_name])
+                    </div>
+                @endif
+
                 @if($unpaidPeriods->isNotEmpty())
                     <x-card flush>
                         <div class="px-5 sm:px-6 py-4 border-b border-[#E2E4EC]">
@@ -670,6 +677,9 @@
                                                 fn ($pay) => $pay['can_void'] ? $pay + ['void_action' => route('landlord.payments.void', $pay['id'])] : $pay,
                                                 $detail['payments']
                                             );
+                                            if ($period['late_fee'] > 0) {
+                                                $detail['waive_action'] = route('landlord.tenancies.waiveLateFee', $reservation);
+                                            }
                                         @endphp
                                         <tr class="hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer"
                                             @if($isCollapsed($period, $loop->index)) x-show="moreRows" x-cloak @endif
@@ -682,6 +692,11 @@
                                             </td>
                                             <td class="px-4 py-3.5 text-[13px] text-[#5B6A8E] text-right whitespace-nowrap">
                                                 ₱{{ number_format($period['expected'], 2) }}
+                                                @if($period['late_fee'] > 0)
+                                                    <span class="block text-[11px] text-[#B45309]">incl. ₱{{ number_format($period['late_fee'], 2) }} late fee</span>
+                                                @elseif($period['late_fee_waived'])
+                                                    <span class="block text-[11px] text-[#5B6A8E]">late fee waived</span>
+                                                @endif
                                             </td>
                                             <td class="px-4 py-3.5 text-[13px] font-semibold text-[#060D26] text-right whitespace-nowrap">
                                                 ₱{{ number_format($period['paid'], 2) }}

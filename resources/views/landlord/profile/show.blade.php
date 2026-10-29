@@ -36,7 +36,7 @@
             </x-slot:badges>
             <x-slot:actions>
                 @if($isOwner)
-                    <a href="{{ route('landlord.profile.edit') }}" class="inline-flex h-10 items-center gap-2 px-4 rounded-xl bg-white text-[13px] font-semibold text-[#060D26] hover:brightness-95 transition duration-200">
+                    <a href="{{ route('profile.edit') }}" class="inline-flex h-10 items-center gap-2 px-4 rounded-xl bg-white text-[13px] font-semibold text-[#060D26] hover:brightness-95 transition duration-200">
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                         </svg>
@@ -126,7 +126,7 @@
                             @if($business?->description)
                                 <p class="text-[14px] leading-relaxed text-[#060D26] whitespace-pre-line">{{ $business->description }}</p>
                             @elseif($isOwner)
-                                <p class="text-[14px] text-[#5B6A8E]">No description yet. <a href="{{ route('landlord.profile.edit') }}" class="font-semibold text-[#B35A3D] hover:underline">Tell tenants about your rentals.</a></p>
+                                <p class="text-[14px] text-[#5B6A8E]">No description yet. <a href="{{ route('profile.edit') }}#business" class="font-semibold text-[#B35A3D] hover:underline">Tell tenants about your rentals.</a></p>
                             @else
                                 <p class="text-[14px] text-[#5B6A8E]">This landlord has not added a description.</p>
                             @endif
@@ -164,7 +164,7 @@
                                     </div>
                                 </div>
                             @elseif($isOwner)
-                                <p class="text-[14px] text-[#5B6A8E]">No business details yet. <a href="{{ route('landlord.profile.edit') }}" class="font-semibold text-[#B35A3D] hover:underline">Add them</a> to show tenants who you rent as.</p>
+                                <p class="text-[14px] text-[#5B6A8E]">No business details yet. <a href="{{ route('profile.edit') }}#business" class="font-semibold text-[#B35A3D] hover:underline">Add them</a> to show tenants who you rent as.</p>
                             @else
                                 <p class="text-[14px] text-[#5B6A8E]">No business details yet.</p>
                             @endif
@@ -207,6 +207,7 @@
                                 <dd class="mt-1 text-[14px] font-semibold text-[#060D26]">{{ $visibilityTitle }}</dd>
                                 <p class="text-[12px] text-[#5B6A8E]">{{ $visibilitySub }}</p>
                             </div>
+                            @if($user->showsPayoutTools())
                             <div class="min-w-0">
                                 <dt class="text-[12px] font-semibold text-[#5B6A8E]">Payout (GCash)</dt>
                                 @if($hasPayout)
@@ -214,9 +215,10 @@
                                     <p class="text-[12px] text-[#5B6A8E] truncate">{{ $user->payoutAccount->gcash_account_name }}</p>
                                 @else
                                     <dd class="mt-1 text-[14px] font-semibold text-[#B45309]">Not set</dd>
-                                    <p class="text-[12px] text-[#5B6A8E]"><a href="{{ route('landlord.profile.edit') }}" class="font-semibold text-[#B35A3D] hover:underline">Add GCash details</a> to get paid</p>
+                                    <p class="text-[12px] text-[#5B6A8E]"><a href="{{ route('profile.edit') }}#payout" class="font-semibold text-[#B35A3D] hover:underline">Add GCash details</a> to get paid</p>
                                 @endif
                             </div>
+                            @endif
                         @endif
                     </dl>
                     </x-card>

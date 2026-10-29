@@ -7,6 +7,7 @@ use App\Models\Message;
 use App\Models\Notification;
 use App\Models\Reservation;
 use App\Models\TenantConcern;
+use App\Models\UnitMedia;
 use App\Services\ImageUploader;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
@@ -272,6 +273,37 @@ class TenantConcernsTest extends TestCase
             ->assertDontSee('Report a concern');
     }
 
+    public function test_the_landlord_chat_shows_the_property_the_tenant_stays_at_with_its_photo(): void
+    {
+        ['tenant' => $tenant, 'landlord' => $landlord, 'reservation' => $reservation] = $this->makeTenancy();
+        $thread = $this->threadOf($reservation);
+        UnitMedia::create([
+            'unit_id' => $reservation->unit_id, 'media_type' => 'Image', 'media_url' => 'https://img.test/room.jpg',
+        ]);
+        $ajax = ['X-Requested-With' => 'XMLHttpRequest'];
+
+        $this->actingAs($landlord)->get(route('conversations.show', $thread), $ajax)
+            ->assertOk()
+            ->assertSee('Currently staying at')
+            ->assertSee($reservation->property->title)
+            ->assertSee($reservation->unit->unit_label)
+            ->assertSee('https://img.test/room.jpg', false)
+            ->assertSee('Monthly rent')
+            ->assertSee('Rent status')
+            ->assertSee('Nothing to fix right now.');
+
+        $this->report($tenant, $thread, ['category' => 'Pests', 'description' => 'Ants in the kitchen.'])->assertCreated();
+        $this->actingAs($landlord)->get(route('conversations.show', $thread), $ajax)
+            ->assertSee('Ants in the kitchen.')
+            ->assertDontSee('Nothing to fix right now.');
+
+        $this->actingAs($tenant)->get(route('conversations.show', $thread), $ajax)
+            ->assertOk()
+            ->assertDontSee('Currently staying at');
+
+        $this->actingAs($landlord)->get(route('conversations.index', ['box' => 'tenancy']))->assertOk();
+    }
+
     public function test_the_inquiry_panel_is_unchanged_and_the_inbox_shows_the_box_switch(): void
     {
         ['tenant' => $tenant, 'landlord' => $landlord, 'reservation' => $reservation] = $this->makeTenancy();
@@ -292,6 +324,50 @@ class TenantConcernsTest extends TestCase
         // A tenant with no tenancy chat never sees the switch.
         $this->actingAs($this->makeTenant())->get(route('conversations.index'))
             ->assertOk()->assertDontSee('My home');
+    }
+
+    public function test_the_landlord_chat_can_remind_a_tenant_who_owes_rent(): void
+    {
+        ['tenant' => $tenant, 'landlord' => $landlord, 'reservation' => $reservation] = $this->makeTenancy();
+        $thread = $this->threadOf($reservation);
+        $reservation->forceFill(['target_move_in_date' => now()->subMonths(2)->startOfMonth()])->save();
+        $ajax = ['X-Requested-With' => 'XMLHttpRequest'];
+
+        $this->actingAs($landlord)->get(route('conversations.show', $thread), $ajax)
+            ->assertOk()->assertSee('Remind about rent');
+        $this->actingAs($tenant)->get(route('conversations.show', $thread), $ajax)
+            ->assertOk()->assertDontSee('Remind about rent');
+
+        $before = Notification::where('user_id', $tenant->user_id)->count();
+        $this->actingAs($landlord)->postJson(route('landlord.tenancies.remind', $reservation))
+            ->assertOk()->assertJson(['ok' => true]);
+        $this->assertGreaterThan($before, Notification::where('user_id', $tenant->user_id)->count());
+
+        $tenant->forceFill(['is_walk_in' => true])->save();
+        $this->actingAs($landlord)->postJson(route('landlord.tenancies.remind', $reservation))
+            ->assertStatus(422)->assertJson(['ok' => false]);
+    }
+
+    public function test_the_landlord_inquiry_chat_shows_the_property_card_and_the_tenant_does_not(): void
+    {
+        ['tenant' => $tenant, 'landlord' => $landlord, 'reservation' => $reservation] = $this->makeTenancy();
+        $inquiry = Conversation::create([
+            'tenant_id' => $tenant->user_id, 'landlord_id' => $landlord->user_id,
+            'property_id' => $reservation->property_id, 'unit_id' => $reservation->unit_id, 'type' => Conversation::TYPE_INQUIRY,
+        ]);
+        $ajax = ['X-Requested-With' => 'XMLHttpRequest'];
+
+        $this->actingAs($landlord)->get(route('conversations.show', $inquiry), $ajax)
+            ->assertOk()
+            ->assertSee('Inquiring about')
+            ->assertSee($reservation->property->title)
+            ->assertSee('Monthly rent');
+
+        $this->actingAs($tenant)->get(route('conversations.show', $inquiry), $ajax)
+            ->assertOk()
+            ->assertDontSee('Inquiring about');
+
+        $this->actingAs($landlord)->get(route('conversations.index', ['active' => $inquiry->conversation_id]))->assertOk();
     }
 
     public function test_the_landlords_tenant_list_links_to_the_chat_with_the_open_count(): void
