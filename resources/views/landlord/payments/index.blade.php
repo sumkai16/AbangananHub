@@ -179,7 +179,7 @@
         </div>
 
         {{-- Filter bar --}}
-        {{-- Bare on the page: the inputs already have borders, and a card
+        {{-- Bare on the page, same as Units: the inputs already have borders, and a card
              around them stacked a third container above the table card. --}}
         <form method="GET" action="{{ route('landlord.payments.index') }}" class="mb-5">
             @if($view === 'calendar')
@@ -196,7 +196,7 @@
                     <input type="text" name="search" value="{{ request('search') }}"
                         placeholder="Search tenants by name or email..." aria-label="Search tenants by name or email"
                         x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                        class="w-full h-11 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#5B6A8E]/25 bg-white text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all duration-200">
+                        class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
                 </div>
 
                 <div class="filter-row flex flex-wrap items-center gap-2.5">
@@ -206,24 +206,15 @@
                             $paymentPropertyOptions = ['' => 'All Properties'] + $properties->pluck('title', 'property_id')->all();
                         @endphp
                         <x-styled-select name="property" id="filter-property" :options="$paymentPropertyOptions"
-                            :selected="(string) ($propertyId ?? '')"
-                            class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13.5px] text-[#060D26] max-w-[200px]" />
+                            :selected="(string) ($propertyId ?? '')" autosubmit
+                            class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26] max-w-[200px]" />
                     </div>
 
                     <div>
                         <label for="filter-status" class="sr-only">Filter by payment status</label>
-                        <x-styled-select name="status" id="filter-status" :options="$filters" :selected="$statusFilter"
-                            class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13.5px] text-[#060D26]" />
+                        <x-styled-select name="status" id="filter-status" :options="$filters" :selected="$statusFilter" autosubmit
+                            class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26]" />
                     </div>
-
-                    <button type="submit"
-                        class="h-11 px-5 rounded-xl border border-[#060D26] bg-white text-[#060D26] text-[13.5px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 inline-flex items-center gap-1.5 cursor-pointer">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-                        </svg>
-                        Filter
-                    </button>
 
                     @if(request()->hasAny(['search', 'property']) || $statusFilter !== 'all')
                         <a href="{{ route('landlord.payments.index') }}"

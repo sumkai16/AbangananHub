@@ -12,10 +12,10 @@
             },
             agreementOpen: false,
             agreementAction: '',
-            agreementTerms: '',
-            openAgreement(action, terms) {
+            agreementChatUrl: '',
+            openAgreement(action, chatUrl) {
                 this.agreementAction = action;
-                this.agreementTerms = terms || '';
+                this.agreementChatUrl = chatUrl || '';
                 this.agreementOpen = true;
             },
             rateOpen: false,
@@ -74,7 +74,7 @@
 
         {{-- Search + filters --}}
         <form method="GET" action="{{ route('landlord.reservations.index') }}"
-            class="bg-white rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-3 mb-4 flex flex-col lg:flex-row gap-2.5">
+            class="mb-6 flex flex-col lg:flex-row lg:items-center gap-3">
             @if($status !== 'all')
                 <input type="hidden" name="status" value="{{ $status }}">
             @endif
@@ -138,10 +138,20 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2.5">
+                    <button type="submit"
+                        class="h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 inline-flex items-center gap-1.5">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                        </svg>
+                        Filter
+                    </button>
                     @if(request()->hasAny(['search', 'property', 'from', 'to']))
                         <a href="{{ route('landlord.reservations.index', $status === 'all' ? [] : ['status' => $status]) }}"
-                            class="h-10 px-3 inline-flex items-center rounded-xl text-[13px] font-semibold text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#F7F8FC] transition-all duration-200">
+                            class="h-11 px-4 rounded-xl border border-[#5B6A8E]/25 text-[13.5px] text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 inline-flex items-center gap-1.5">
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                            </svg>
                             Clear
                         </a>
                     @endif
@@ -377,7 +387,7 @@
                                                 </form>
                                             @elseif($reservation->rental_status === 'Under Negotiation')
                                                 <button type="button"
-                                                    @click="openAgreement('{{ route('landlord.reservations.advanceAgreement', $reservation) }}', @js($reservation->property?->default_lease_terms))"
+                                                    @click="openAgreement('{{ route('landlord.reservations.advanceAgreement', $reservation) }}', @js($reservation->conversation_id ? route('conversations.index', ['active' => $reservation->conversation_id]) : null))"
                                                     class="h-8 px-3 rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200 whitespace-nowrap">
                                                     Send agreement
                                                 </button>
@@ -589,7 +599,7 @@
                                     </form>
                                 @elseif($reservation->rental_status === 'Under Negotiation')
                                     <button type="button"
-                                        @click="openAgreement('{{ route('landlord.reservations.advanceAgreement', $reservation) }}', @js($reservation->property?->default_lease_terms))"
+                                        @click="openAgreement('{{ route('landlord.reservations.advanceAgreement', $reservation) }}', @js($reservation->conversation_id ? route('conversations.index', ['active' => $reservation->conversation_id]) : null))"
                                         class="h-8 px-3 rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200 whitespace-nowrap">
                                         Send agreement
                                     </button>
@@ -960,14 +970,21 @@
                     <form :action="agreementAction" method="POST">
                         @csrf @method('PATCH')
                         <div class="p-3 bg-[#ECEEF6] rounded-xl border border-[#FF8A66]/20">
-                            <x-agreement-terms-field id="agreement_terms_modal" x-model="agreementTerms" />
-                            <label class="flex items-start gap-2.5 cursor-pointer group mb-3">
-                                <input type="checkbox" name="accept_tc" required
-                                    class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66] focus:ring-offset-0 transition">
-                                <span class="text-xs text-[#060D26] leading-relaxed">
-                                    <x-payment-consent role="landlord" />
-                                </span>
-                            </label>
+                            <p class="mb-3 text-xs leading-relaxed text-[#5B6A8E]">
+                                Sends your lease template, or the standard lease if you have not written one.
+                                <a x-show="agreementChatUrl" :href="agreementChatUrl" class="font-bold text-[#060D26] underline underline-offset-2">Edit the lease for this tenant in the chat</a>
+                            </p>
+                            @if(\App\Support\LandlordTerms::needed(auth()->user()))
+                                <label class="flex items-start gap-2.5 cursor-pointer group mb-3">
+                                    <input type="checkbox" name="accept_tc" required
+                                        class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66] focus:ring-offset-0 transition">
+                                    <span class="text-xs text-[#060D26] leading-relaxed">
+                                        <x-payment-consent role="landlord" />
+                                    </span>
+                                </label>
+                            @else
+                                <p class="mb-3 text-xs text-[#5B6A8E]">You accepted the payment terms on {{ auth()->user()->landlord_terms_accepted_at->format('M j, Y') }}.</p>
+                            @endif
                             <button type="submit"
                                 class="w-full h-9 rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200">
                                 Confirm &amp; send agreement

@@ -15,8 +15,8 @@
     $openConcerns = $conversation->concerns->whereIn('status', ['Open', 'In Progress'])->count();
     $since = ($reservation?->tenant_confirmed_move_in_at ?? $reservation?->target_move_in_date)?->format('M j, Y');
     $endedOn = $reservation?->target_move_out_date;
-    // The landlord's Tenants page shows the chat and the stayed property as two separate cards.
-    $sheet = $isLandlord && auth()->user()->usesLandlordShell();
+    // Both sides see the chat and the stayed property as two separate cards.
+    $sheet = true;
     $stay = $conversation->property;
     $rent = $sheet && $reservation ? \App\Services\RentLedger::for($reservation)->summary() : null;
     $rentLabel = match ($rent['paymentStatus'] ?? null) {
@@ -27,7 +27,7 @@
         default => ['Not due yet', 'text-[#5B6A8E]'],
     };
     $tenantUser = $conversation->tenant;
-    $canRemind = $sheet && ! $ended && $tenantUser && ! $tenantUser->is_walk_in && $tenantUser->account_status === 'active'
+    $canRemind = $isLandlord && ! $ended && $tenantUser && ! $tenantUser->is_walk_in && $tenantUser->account_status === 'active'
         && ($rent['outstanding'] ?? 0) > 0;
     $unresolved = $conversation->concerns->whereIn('status', ['Open', 'In Progress'])->sortByDesc('created_at');
     $stayPhoto = $conversation->unit?->media->firstWhere('media_type', 'Image')?->media_url
@@ -162,7 +162,7 @@
                     @endif
                 @endif
                 @if($since)
-                    <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Tenant since</dt><dd class="font-semibold text-[#060D26]">{{ $since }}</dd></div>
+                    <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">{{ $isLandlord ? 'Tenant since' : 'Living here since' }}</dt><dd class="font-semibold text-[#060D26]">{{ $since }}</dd></div>
                 @endif
                 @if($ended && $endedOn)
                     <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Ended</dt><dd class="font-semibold text-[#060D26]">{{ $endedOn->format('M j, Y') }}</dd></div>

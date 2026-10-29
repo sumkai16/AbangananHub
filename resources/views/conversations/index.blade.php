@@ -2,19 +2,19 @@
 
 @section('content')
     @php
-        // The landlord's chat pages (Inquiries and Tenants) use the full width as three separate cards
-        // (list, chat, property); the tenant's inbox keeps the single boxed layout.
-        $wide = auth()->user()->usesLandlordShell();
+        // Landlord and tenant share one layout: the full width as three separate cards
+        // (list, chat, property). The landlord's page is the reference.
+        $wide = true;
         $cardClass = 'rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)]';
     @endphp
     <div class="{{ $wide ? 'max-w-none' : auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-5 min-h-[calc(100vh-72px)]" x-data="inboxApp()" x-cloak>
 
         <div class="flex flex-col {{ $wide ? 'gap-4' : 'overflow-hidden '.$cardClass }}"
-            style="height: calc(100vh - 110px); min-height: 560px;">
+            style="height: calc(100vh - 110px); height: calc(100dvh - 110px); min-height: 560px;">
 
         {{-- Header (the landlord shell shows the title in its mobile top bar instead) --}}
         @push('mobile-title')<x-page-icon class="!h-7 !w-7 !rounded-lg" path="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /><span class="truncate text-[15px] font-semibold tracking-tight text-[#060D26]">{{ $box === 'tenancy' ? ($isLandlord ? 'Tenants' : 'My home') : ($isLandlord ? 'Inquiries' : 'Messages') }}</span>@endpush
-        <div class="flex items-center justify-between gap-3 flex-shrink-0 {{ $wide ? 'px-1' : 'border-b border-[#E2E4EC] p-4' }} {{ $isLandlord && $landlordProperties->isNotEmpty() ? '' : 'page-header-bare' }}">
+        <div class="flex items-center justify-between gap-3 flex-shrink-0 px-1 {{ auth()->user()->usesLandlordShell() ? '' : 'max-sm:hidden' }} {{ $isLandlord && $landlordProperties->isNotEmpty() ? '' : 'page-header-bare' }}">
             <div class="page-header-title flex items-center gap-3 sm:gap-3.5 min-w-0">
                 <div class="flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-[#060D26]">
                     <svg fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2" class="w-4 h-4 sm:w-[19px] sm:h-[19px]">
