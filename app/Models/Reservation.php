@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Events\MessageSent;
+use App\Services\TenancyDocuments;
+use App\Support\LeaseTemplates;
 use App\Support\LeaseTerms;
 use App\Support\Payments;
 use Illuminate\Broadcasting\BroadcastException;
@@ -508,6 +510,11 @@ class Reservation extends Model
         return $this->hasMany(LateFeeWaiver::class, 'reservation_id', 'reservation_id');
     }
 
+    public function documents()
+    {
+        return $this->hasMany(TenancyDocument::class, 'reservation_id', 'reservation_id');
+    }
+
     public function paymentClaims()
     {
         return $this->hasMany(PaymentClaim::class, 'reservation_id', 'reservation_id');
@@ -721,6 +728,12 @@ class Reservation extends Model
      * target date); and only then the date the reservation was made, which is
      * the inquiry day and would bill months before anyone lived there.
      */
+    /** The agreed start is today or earlier (or never set), so a confirmed payment can also start the tenancy. */
+    public function moveInDateReached(): bool
+    {
+        return ($this->tenancyStartDate()?->startOfDay()->lte(today())) ?? true;
+    }
+
     public function tenancyStartDate(): ?Carbon
     {
         $start = $this->target_move_in_date ?? $this->tenant_confirmed_move_in_at ?? $this->reservation_date;
@@ -796,7 +809,7 @@ class Reservation extends Model
         return $this->save();
     }
 
-    public function advanceToPendingAgreement(?string $terms = null): bool
+    public function advanceToPendingAgreement(?string $terms = null, ?string $body = null): bool
     {
         if ($this->rental_status !== 'Under Negotiation') {
             return false;
@@ -811,15 +824,28 @@ class Reservation extends Model
 
         // Freeze the lease the tenant is about to sign. Done here, not at
         // the call sites, so every path that issues the agreement does it.
-        $this->lease_snapshot = LeaseTerms::snapshot($this);
+        // The lease template for this unit (else the property's, else the standard clauses); $body is an edit for
+        // this one tenant and wins over the template's wording.
+        $this->lease_snapshot = LeaseTerms::snapshot($this, body: $body, template: LeaseTemplates::forReservation($this));
         $this->rental_status = 'Pending Rental Agreement';
 
-        return $this->save();
+        $saved = $this->save();
+
+        // The documents the lease asks for become rows the tenant fills in; none asked, none created.
+        if ($saved) {
+            TenancyDocuments::requestFor($this);
+        }
+
+        return $saved;
     }
 
     public function signAgreement(string $ip): bool
     {
         if ($this->rental_status !== 'Pending Rental Agreement') {
+            return false;
+        }
+        // Here, not in a controller, so the web form and the mobile API cannot disagree.
+        if (TenancyDocuments::blocksSigning($this)) {
             return false;
         }
         $this->rental_status = 'Rental Agreement Signed';

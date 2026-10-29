@@ -483,3 +483,21 @@ html.dark :where([type="checkbox"], [type="radio"]) { background-color: #1A2448;
 .fv-bars i { width: 28px; height: 4px; border-radius: 999px; background: rgba(148, 163, 184, 0.3); transition: background-color 150ms; }
 .fv-bars i.on { background: var(--fv-c); }
 .fv-strength-label { color: var(--fv-c); font-weight: 600; }
+
+/* ── Lease editor and the lease body it writes ─────────────────────────────── */
+.lease-prose { font-size: 13.5px; line-height: 1.65; color: #060D26; }
+.lease-prose h3 { font-size: 17px; font-weight: 600; margin: 1.5rem 0 .4rem; }
+.lease-prose h3:first-child { margin-top: 0; }
+.lease-prose p { margin: .5rem 0; }
+.lease-prose ul { list-style: disc; padding-left: 1.25rem; margin: .5rem 0; }
+.lease-prose ol { list-style: decimal; padding-left: 1.25rem; margin: .5rem 0; }
+.lease-prose li > p { margin: 0; }
+.lease-prose strong { font-weight: 700; }
+.lease-prose em { font-style: italic; }
+.lease-prose u { text-decoration: underline; }
+.ProseMirror.lease-prose { outline: none; min-height: 50vh; }
+.lease-field { display: inline-block; padding: 0 .4rem; margin: 0 .1rem; border-radius: .375rem; border: 1px solid #E2E4EC; background: #ECEEF6; color: #060D26; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.lease-field::before { content: "["; opacity: .5; }
+.lease-field::after { content: "]"; opacity: .5; }
+.ProseMirror-selectednode.lease-field { outline: 2px solid #FF8A66; }
+@media print { .lease-prose h3 { break-after: avoid; } }

@@ -40,5 +40,11 @@
             class="inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] font-bold text-sm transition">
             {{ isset($returnRoute) ? 'Back to Rent Ledger' : 'Back to Agreement' }}
         </a>
+        @if(! isset($returnRoute) && $reservation->conversation_id)
+            <a href="{{ route('conversations.index', ['active' => $reservation->conversation_id]) }}"
+                class="mt-3 inline-flex items-center justify-center px-6 py-2.5 rounded-xl border border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] font-bold text-sm transition">
+                Back to chat
+            </a>
+        @endif
     </div>
 @endsection

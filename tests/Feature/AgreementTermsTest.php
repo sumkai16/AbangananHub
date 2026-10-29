@@ -167,16 +167,14 @@ class AgreementTermsTest extends TestCase
         $this->assertEquals(['type' => 'fixed', 'value' => 150], $snapshot['late_fee']);
     }
 
-    public function test_the_send_agreement_form_is_prefilled_with_the_property_terms(): void
+    public function test_the_reservations_modal_points_to_the_chat_editor_for_the_lease_wording(): void
     {
-        $this->property->update(['default_lease_terms' => 'No visitors after nine in the evening.']);
         $this->negotiatingReservation();
 
         $this->actingAs($this->landlord)
             ->get(route('landlord.reservations.index'))
             ->assertOk()
-            ->assertSee('name="agreement_terms_notes"', false)
-            ->assertSee('No visitors after nine in the evening.');
+            ->assertSee('Edit the lease for this tenant in the chat');
     }
 
     public function test_the_prefilled_terms_land_on_the_lease_the_tenant_signs(): void

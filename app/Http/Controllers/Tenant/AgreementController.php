@@ -39,17 +39,21 @@ class AgreementController extends Controller
     {
         Gate::authorize('sign', $reservation);
 
+        // Documents the lease asked for must be uploaded first. Reservation::signAgreement() refuses too (so the
+        // mobile API is covered); this gives the tenant the reason.
+        if ($missing = \App\Services\TenancyDocuments::missing($reservation)->pluck('label')->all()) {
+            return back()->with('error', 'Upload these first: '.implode(', ', $missing).'.');
+        }
+
         // The landlord needs a person to call and an ID reference on file before the tenancy starts. Asked once:
         // a tenant who already filled them in (Account Settings, an earlier agreement) is not asked again.
         $needsDetails = ! TenantDetail::completeFor($request->user());
 
         $validated = $request->validate([
             'agree' => 'accepted',
-            'accept_tc' => 'accepted',
             ...($needsDetails ? TenantDetail::rules(true) : []),
         ], [
-            'agree.accepted' => 'You must agree to the rental agreement terms.',
-            'accept_tc.accepted' => 'You must accept the platform terms and conditions.',
+            'agree.accepted' => 'You must agree to the rental agreement and the payment terms.',
             ...TenantDetail::messages(),
         ]);
 
