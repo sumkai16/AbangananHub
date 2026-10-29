@@ -7,6 +7,8 @@ use App\Models\Notification;
 use App\Models\Property;
 use App\Models\Reservation;
 use App\Models\ViewingRequest;
+use App\Support\LandlordTerms;
+use App\Support\LeaseTerms;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -183,20 +185,101 @@ class ReservationController extends Controller
 
         $request->validate([
             'agreement_terms_notes' => 'nullable|string|max:2000',
-            'accept_tc' => 'accepted',
-        ], [
-            'accept_tc.accepted' => 'You must accept the terms and conditions to proceed.',
-        ]);
+            'lease_body' => 'nullable|string|max:40000',
+            ...$this->termsRules($request),
+        ], $this->termsMessages());
 
-        if (!$reservation->advanceToPendingAgreement($request->agreement_terms_notes)) {
+        $terms = $request->exists('agreement_terms_notes')
+            ? $request->input('agreement_terms_notes')
+            : $reservation->property?->default_lease_terms;
+
+        if (!$reservation->advanceToPendingAgreement($terms, $request->input('lease_body'))) {
             return back()->withErrors(['reservation' => 'This reservation cannot move to Pending Rental Agreement right now.']);
         }
 
-        $reservation->update(['landlord_tc_accepted_at' => now()]);
+        $this->recordTermsAcceptance($request, $reservation);
 
         $reservation->postSystemMessage(Auth::user()->name . ' sent the rental agreement.');
 
         return back()->with('success', 'Agreement sent to tenant.');
+    }
+
+    /**
+     * Accept the inquiry and send the agreement in one step, using the property's default lease terms.
+     * The landlord who wants to talk first still uses advanceToNegotiation.
+     */
+    public function acceptAndSendAgreement(Request $request, Reservation $reservation)
+    {
+        Gate::authorize('advanceStatus', $reservation);
+
+        $request->validate([
+            'agreement_terms_notes' => 'nullable|string|max:2000',
+            'lease_body' => 'nullable|string|max:40000',
+            ...$this->termsRules($request),
+        ], $this->termsMessages());
+
+        // Terms edited in the panel win; an untouched panel posts the property's defaults back unchanged.
+        $terms = $request->exists('agreement_terms_notes')
+            ? $request->input('agreement_terms_notes')
+            : $reservation->property?->default_lease_terms;
+
+        $body = $request->input('lease_body');
+
+        $sent = DB::transaction(function () use ($reservation, $terms, $body) {
+            $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();
+
+            return $locked->advanceToNegotiation()
+                && $locked->advanceToPendingAgreement($terms, $body)
+                ? $locked
+                : null;
+        });
+
+        if (! $sent) {
+            return back()->withErrors(['reservation' => 'This inquiry cannot be accepted right now.']);
+        }
+
+        $this->recordTermsAcceptance($request, $sent);
+
+        $name = Auth::user()->name;
+        $sent->postSystemMessage($name . ' accepted the inquiry and started negotiation.');
+        $sent->postSystemMessage($name . ' sent the rental agreement.');
+
+        return back()->with('success', 'Inquiry accepted and agreement sent to tenant.');
+    }
+
+    /**
+     * What the tenant would see for a lease the landlord is editing: the locked key terms plus the body with
+     * merge fields filled in. Nothing is saved.
+     */
+    public function previewLease(Request $request, Reservation $reservation)
+    {
+        Gate::authorize('advanceStatus', $reservation);
+
+        $data = $request->validate(['lease_body' => 'required|string|max:40000']);
+
+        $terms = LeaseTerms::snapshot($reservation, body: $data['lease_body'], template: \App\Support\LeaseTemplates::forReservation($reservation));
+
+        return response()->json(['html' => view('leases._document', ['terms' => $terms])->render()]);
+    }
+
+    /** The checkbox is only required until the landlord has accepted the terms for the current payment route. */
+    private function termsRules(Request $request): array
+    {
+        return LandlordTerms::needed($request->user()) ? ['accept_tc' => 'accepted'] : [];
+    }
+
+    private function termsMessages(): array
+    {
+        return ['accept_tc.accepted' => 'You must accept the terms and conditions to proceed.'];
+    }
+
+    private function recordTermsAcceptance(Request $request, Reservation $reservation): void
+    {
+        if (LandlordTerms::needed($request->user())) {
+            LandlordTerms::record($request->user());
+        }
+
+        $reservation->update(['landlord_tc_accepted_at' => now()]);
     }
 
     /**

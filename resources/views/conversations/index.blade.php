@@ -2,33 +2,34 @@
 
 @section('content')
     @php
-        // The landlord's chat pages (Inquiries and Tenants) use the full width as three separate cards
-        // (list, chat, property); the tenant's inbox keeps the single boxed layout.
-        $wide = auth()->user()->usesLandlordShell();
+        // Landlord and tenant share one layout: the full width as three separate cards
+        // (list, chat, property). The landlord's page is the reference.
+        $wide = true;
         $cardClass = 'rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)]';
     @endphp
     <div class="{{ $wide ? 'max-w-none' : auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-5 min-h-[calc(100vh-72px)]" x-data="inboxApp()" x-cloak>
 
         <div class="flex flex-col {{ $wide ? 'gap-4' : 'overflow-hidden '.$cardClass }}"
-            style="height: calc(100vh - 110px); min-height: 560px;">
+            style="height: calc(100vh - 110px); height: calc(100dvh - 110px); min-height: 560px;">
 
-        {{-- Header --}}
-        <div class="flex flex-wrap items-center justify-between gap-3 flex-shrink-0 {{ $wide ? 'px-1' : 'border-b border-[#E2E4EC] p-4' }}">
-            <div class="flex items-center gap-3.5">
-                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#060D26]">
-                    <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+        {{-- Header (the landlord shell shows the title in its mobile top bar instead) --}}
+        @push('mobile-title')<x-page-icon class="!h-7 !w-7 !rounded-lg" path="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /><span class="truncate text-[15px] font-semibold tracking-tight text-[#060D26]">{{ $box === 'tenancy' ? ($isLandlord ? 'Tenants' : 'My home') : ($isLandlord ? 'Inquiries' : 'Messages') }}</span>@endpush
+        <div class="flex items-center justify-between gap-3 flex-shrink-0 px-1 {{ auth()->user()->usesLandlordShell() ? '' : 'max-sm:hidden' }} {{ $isLandlord && $landlordProperties->isNotEmpty() ? '' : 'page-header-bare' }}">
+            <div class="page-header-title flex items-center gap-3 sm:gap-3.5 min-w-0">
+                <div class="flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-[#060D26]">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2" class="w-4 h-4 sm:w-[19px] sm:h-[19px]">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-semibold tracking-tight text-[#060D26]">
+                    <h1 class="text-xl sm:text-2xl font-semibold tracking-tight text-[#060D26]">
                         @if($box === 'tenancy')
                             {{ $isLandlord ? 'Tenants' : 'My home' }}
                         @else
                             {{ $isLandlord ? 'Inquiries' : 'Messages' }}
                         @endif
                     </h1>
-                    <p class="mt-0.5 text-sm text-[#5B6A8E]">
+                    <p class="mt-0.5 hidden text-sm text-[#5B6A8E] sm:block">
                         @if($box === 'tenancy')
                             {{ $isLandlord ? 'Chat with the people living in your properties and track their concerns.' : 'Chat with your landlord and report anything that needs fixing.' }}
                         @else
@@ -41,12 +42,12 @@
             @if($isLandlord && $landlordProperties->isNotEmpty())
                 <div class="relative" x-data="{ filterOpen: false }">
                     <button @click="filterOpen = !filterOpen" type="button"
-                        class="flex h-10 items-center gap-2 rounded-xl border border-[#E2E4EC] bg-white px-4 text-[13px] font-medium text-[#060D26] transition-colors duration-200 hover:border-[#060D26]/40 hover:bg-[#F7F8FC] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40">
+                        class="flex h-9 sm:h-10 max-w-[10.5rem] sm:max-w-none items-center gap-2 rounded-xl border border-[#E2E4EC] bg-white px-4 text-[13px] font-medium text-[#060D26] transition-colors duration-200 hover:border-[#060D26]/40 hover:bg-[#F7F8FC] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
                         </svg>
-                        {{ $propertyId ? $landlordProperties->firstWhere('property_id', $propertyId)?->title ?? 'All Properties' : 'All Properties' }}
+                        <span class="truncate">{{ $propertyId ? $landlordProperties->firstWhere('property_id', $propertyId)?->title ?? 'All Properties' : 'All Properties' }}</span>
                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                         </svg>

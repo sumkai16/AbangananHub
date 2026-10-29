@@ -3,13 +3,7 @@
 @section('page-title', 'Payment Receipt')
 
 @section('content')
-    @php
-        $tenant = $reservation->tenant;
-        $method = $payment->payment_method;
-        $businessName = $business->business_name ?? (auth()->user()->name ?? 'AbangananHub Landlord');
-    @endphp
-
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-16">
+    <div class="print-sheet max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-16">
 
         {{-- Toolbar — hidden when printing --}}
         <div class="flex items-center justify-between gap-3 mb-5 print:hidden">
@@ -30,86 +24,6 @@
             </button>
         </div>
 
-        <x-card>
-            {{-- Letterhead --}}
-            <div class="flex items-start justify-between gap-4 pb-5 border-b border-[#E2E4EC]">
-                <div>
-                    <p class="text-[11px] font-bold uppercase tracking-widest text-[#94A3B8] mb-1">Payment received</p>
-                    <h1 class="text-2xl font-normal text-[#060D26]">{{ $businessName }}</h1>
-                </div>
-                <div class="text-right">
-                    <p class="text-[12px] text-[#5B6A8E]">Receipt no.</p>
-                    <p class="text-[15px] font-bold text-[#060D26]">#{{ str_pad($payment->payment_id, 6, '0', STR_PAD_LEFT) }}</p>
-                </div>
-            </div>
-
-            {{-- Parties --}}
-            <div class="grid sm:grid-cols-2 gap-6 py-5 border-b border-[#E2E4EC]">
-                <div>
-                    <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">Received from</p>
-                    <p class="text-[15px] font-bold text-[#060D26]">
-                        {{ trim(($tenant->first_name ?? '') . ' ' . ($tenant->last_name ?? '')) ?: 'Tenant' }}
-                    </p>
-                    @if($tenant->contact_number)
-                        <p class="text-[13px] text-[#5B6A8E] mt-0.5">{{ $tenant->contact_number }}</p>
-                    @endif
-                    @if($tenant->email)
-                        <p class="text-[13px] text-[#5B6A8E]">{{ $tenant->email }}</p>
-                    @endif
-                </div>
-                <div class="sm:text-right">
-                    <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">For</p>
-                    <p class="text-[15px] font-bold text-[#060D26]">{{ $reservation->unit->unit_label ?? 'Unit' }}</p>
-                    <p class="text-[13px] text-[#5B6A8E] mt-0.5">{{ $reservation->property->title ?? '' }}</p>
-                </div>
-            </div>
-
-            {{-- Line --}}
-            <div class="py-5 border-b border-[#E2E4EC]">
-                <div class="flex items-center justify-between gap-4 mb-3">
-                    <div>
-                        <p class="text-[14px] font-semibold text-[#060D26]">
-                            {{ $payment->payment_type }}{{ $payment->payment_type === 'Monthly' ? ' rent' : '' }}
-                        </p>
-                        @if($payment->billing_period)
-                            <p class="text-[12.5px] text-[#5B6A8E]">For {{ $payment->billing_period->format('F Y') }}</p>
-                        @endif
-                    </div>
-                    <p class="text-[16px] font-bold text-[#060D26]">₱{{ number_format((float) $payment->amount, 2) }}</p>
-                </div>
-
-                <dl class="grid grid-cols-2 gap-y-2 gap-x-4 text-[13px] mt-4">
-                    <dt class="text-[#5B6A8E]">Date received</dt>
-                    <dd class="text-right font-medium text-[#060D26]">{{ optional($payment->paid_at)->format('M d, Y') ?? '—' }}</dd>
-
-                    <dt class="text-[#5B6A8E]">Method</dt>
-                    <dd class="text-right font-medium text-[#060D26]">{{ $method }}</dd>
-
-                    @if($payment->reference_no)
-                        <dt class="text-[#5B6A8E]">Reference no.</dt>
-                        <dd class="text-right font-medium text-[#060D26]">{{ $payment->reference_no }}</dd>
-                    @endif
-                </dl>
-            </div>
-
-            {{-- Total --}}
-            <div class="flex items-center justify-between gap-4 py-5">
-                <p class="text-[13px] font-bold uppercase tracking-wider text-[#94A3B8]">Total received</p>
-                <p class="text-2xl font-extrabold text-[#B35A3D]">₱{{ number_format((float) $payment->amount, 2) }}</p>
-            </div>
-
-            @if($payment->payment_notes)
-                <div class="pt-4 border-t border-[#E2E4EC]">
-                    <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1.5">Notes</p>
-                    <p class="text-[12.5px] text-[#5B6A8E] leading-relaxed">{{ $payment->payment_notes }}</p>
-                </div>
-            @endif
-
-            <p class="mt-6 text-[11px] text-[#94A3B8] leading-relaxed">
-                Recorded by {{ $payment->recorder?->name ?? 'the landlord' }} on {{ $payment->created_at->format('M d, Y') }}.
-                This is a landlord-issued acknowledgement of a payment collected directly and is not processed or held by
-                AbangananHub.
-            </p>
-        </x-card>
+        @include('payments._receipt-document')
     </div>
 @endsection

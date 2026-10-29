@@ -9,6 +9,7 @@
         "php": "^8.4",
         "bacon/bacon-qr-code": "^3.0",
         "cloudinary-labs/cloudinary-laravel": "^3.0",
+        "ezyang/htmlpurifier": "^4.19",
         "laravel/framework": "^12.0",
         "laravel/reverb": "^1.0",
         "laravel/sanctum": "^4.3",

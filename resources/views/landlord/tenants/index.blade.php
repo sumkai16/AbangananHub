@@ -38,7 +38,7 @@
 
         {{-- Stat cards — the last two double as filters: click one to jump
              straight to the tenants it's counting. --}}
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+        <div class="stat-chips grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
             @php
                 $statusSub = match(request('status')) {
                     'active'   => 'Currently occupying units',
@@ -89,8 +89,7 @@
         @endif
 
         {{-- Filter bar --}}
-        <form method="GET" action="{{ route('landlord.tenants.index') }}"
-            class="bg-white rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-4 mb-5">
+        <form method="GET" action="{{ route('landlord.tenants.index') }}" class="mb-6">
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
                 <div class="relative flex-1 min-w-[200px]">
                     <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" width="15" height="15" fill="none"
@@ -103,7 +102,7 @@
                         class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
                 </div>
 
-                <div class="flex flex-wrap items-center gap-2.5">
+                <div class="filter-row flex flex-wrap items-center gap-2.5">
                     @php
                         $tenantsPropertyOptions = ['' => 'All Properties'] + $properties->pluck('title', 'property_id')->all();
                     @endphp
@@ -485,6 +484,9 @@
                                                         <span class="absolute -right-1 -top-1 min-w-[16px] rounded-full bg-[#FF8A66] px-1 text-center text-[10px] font-bold leading-4 text-[#060D26]">{{ $reservation->open_concerns_count }}</span>
                                                     @endif
                                                 </a>
+                                            @else
+                                                {{-- Keeps the Manage button in the same column on rows with no chat. --}}
+                                                <span class="h-9 w-9 shrink-0" aria-hidden="true"></span>
                                             @endif
                                         </div>
                                     </td>

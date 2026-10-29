@@ -37,8 +37,11 @@
         default => $rentalStatus,
     };
 
+    // Asked once per payment route; afterwards sending an agreement is a single click.
+    $needsLandlordTc = $isLandlord && \App\Support\LandlordTerms::needed(auth()->user());
+
     // The landlord's page shows the chat and the property as two separate cards.
-    $sheet = $isLandlord && auth()->user()->usesLandlordShell() && $conversation->property;
+    $sheet = (bool) $conversation->property;
     $sheetPhoto = $conversation->unit?->media->firstWhere('media_type', 'Image')?->media_url
         ?? $conversation->property?->media->firstWhere('media_type', 'Image')?->media_url;
 @endphp
@@ -179,19 +182,34 @@
             {{-- LANDLORD --}}
             @if($isLandlord)
                 @if($rentalStatus === 'Inquiry')
-                    <div class="flex items-center gap-2">
-                        <form action="{{ route('landlord.reservations.advanceNegotiation', $reservation) }}" method="POST" class="flex-1">
-                            @csrf @method('PATCH')
-                            <button type="submit" class="w-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-1.5">
+                    {{-- Accept and send the agreement in one step; the property's default lease terms are used. --}}
+                    <form action="{{ route('landlord.reservations.acceptAndSend', $reservation) }}" method="POST">
+                        @csrf @method('PATCH')
+                        @include('landlord.partials._lease-editor', ['reservation' => $reservation])
+                        @if($needsLandlordTc)
+                            <label class="mb-2 flex items-start gap-2.5 cursor-pointer">
+                                <input type="checkbox" name="accept_tc" required
+                                    class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66] focus:ring-offset-0 transition">
+                                <span class="text-[11px] text-[#060D26] leading-relaxed"><x-payment-consent role="landlord" /></span>
+                            </label>
+                        @endif
+                        <div class="flex items-center gap-2">
+                            <button type="submit" class="flex-1 bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-1.5">
                                 <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                                Accept &amp; negotiate
+                                Accept &amp; send agreement
                             </button>
-                        </form>
-                        <button type="button" @click="showReject = !showReject"
-                            class="px-4 py-2 border border-[#EF4444] text-[#EF4444] text-[12px] font-semibold rounded-xl hover:bg-[#EF4444]/5 cursor-pointer transition-all duration-200">
-                            Reject
+                            <button type="button" @click="showReject = !showReject"
+                                class="px-4 py-2 border border-[#EF4444] text-[#EF4444] text-[12px] font-semibold rounded-xl hover:bg-[#EF4444]/5 cursor-pointer transition-all duration-200">
+                                Reject
+                            </button>
+                        </div>
+                    </form>
+                    <form action="{{ route('landlord.reservations.advanceNegotiation', $reservation) }}" method="POST" class="mt-2">
+                        @csrf @method('PATCH')
+                        <button type="submit" class="w-full border border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-[12px] font-semibold py-2 rounded-xl cursor-pointer transition-colors duration-200">
+                            Accept &amp; negotiate first <span class="font-medium text-[#5B6A8E]">&middot; talk before sending</span>
                         </button>
-                    </div>
+                    </form>
                     <div x-show="showReject" x-cloak class="mt-2">
                         <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST" class="flex gap-2">
                             @csrf @method('PATCH')
@@ -217,14 +235,18 @@
                         <form action="{{ route('landlord.reservations.advanceAgreement', $reservation) }}" method="POST">
                             @csrf @method('PATCH')
                             <div class="p-3 bg-[#ECEEF6] rounded-xl border border-[#FF8A66]/20">
-                                <x-agreement-terms-field id="agreement_terms_{{ $reservation->reservation_id }}" :value="old('agreement_terms_notes', $conversation->property->default_lease_terms)" />
-                                <label class="flex items-start gap-2.5 cursor-pointer group mb-3">
-                                    <input type="checkbox" name="accept_tc" required
-                                        class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66] focus:ring-offset-0 transition">
-                                    <span class="text-[11px] text-[#060D26] leading-relaxed">
-                                        <x-payment-consent role="landlord" />
-                                    </span>
-                                </label>
+                                @include('landlord.partials._lease-editor', ['reservation' => $reservation])
+                                @if($needsLandlordTc)
+                                    <label class="flex items-start gap-2.5 cursor-pointer group mb-3">
+                                        <input type="checkbox" name="accept_tc" required
+                                            class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66] focus:ring-offset-0 transition">
+                                        <span class="text-[11px] text-[#060D26] leading-relaxed">
+                                            <x-payment-consent role="landlord" />
+                                        </span>
+                                    </label>
+                                @else
+                                    <p class="mb-3 text-[11px] text-[#5B6A8E]">You accepted the payment terms on {{ auth()->user()->landlord_terms_accepted_at->format('M j, Y') }}.</p>
+                                @endif
                                 <button type="submit"
                                     class="w-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold py-2 rounded-lg cursor-pointer transition-all duration-200">
                                     Confirm &amp; send agreement
@@ -300,6 +322,38 @@
 
             {{-- TENANT --}}
             @if($isTenant)
+                {{-- While waiting for the landlord, ask for what signing needs so the agreement takes seconds. --}}
+                @if(in_array($rentalStatus, ['Inquiry', 'Under Negotiation'], true))
+                    @php
+                        $signMissing = \App\Models\TenantDetail::missingFor(auth()->user()->tenantDetail);
+                        $signTotal = 4;
+                        $signDone = $signTotal - count($signMissing);
+                    @endphp
+                    @php
+                        // What the landlord will ask for before signing (from the unit's lease), so the tenant can get it ready.
+                        $willAsk = collect(\App\Support\RequiredDocuments::forSnapshot(\App\Support\LeaseTemplates::forReservation($reservation)?->required_documents))->pluck('label');
+                    @endphp
+                    @if($willAsk->isNotEmpty())
+                        <div class="mb-3 rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] p-3">
+                            <p class="text-[12px] font-bold text-[#060D26]">Have these ready to upload</p>
+                            <p class="mt-0.5 text-[11.5px] text-[#5B6A8E]">{{ $willAsk->implode(', ') }}. You upload them on the agreement, before signing. Only the landlord sees them.</p>
+                        </div>
+                    @endif
+                    @if($signMissing)
+                        <div x-data="{ hidden: false }" x-show="!hidden" class="mb-3 rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] p-3">
+                            <p class="text-[12px] font-bold text-[#060D26]">Get ready to sign faster</p>
+                            <p class="mt-0.5 text-[11.5px] text-[#5B6A8E]">Still needed: {{ implode(', ', $signMissing) }}. Only the landlord of this property sees these, and your ID number is stored encrypted.</p>
+                            <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-[#E2E4EC]"><div class="h-full bg-[#FF8A66]" style="width: {{ $signDone / $signTotal * 100 }}%"></div></div>
+                            <div class="mt-2.5 flex gap-2">
+                                <a href="{{ route('profile.edit') }}#emergency-contact"
+                                    class="flex-1 rounded-lg bg-[#FF8A66] py-2 text-center text-[12px] font-bold text-[#060D26] transition-colors hover:bg-[#E96F4F]">Add details &middot; about 1 minute</a>
+                                <button type="button" @click="hidden = true"
+                                    class="rounded-lg border border-[#E2E4EC] bg-white px-3 py-2 text-[12px] font-semibold text-[#060D26] transition-colors hover:bg-[#F7F8FC]">Skip for now</button>
+                            </div>
+                        </div>
+                    @endif
+                @endif
+
                 @if($rentalStatus === 'Inquiry')
                     <div class="flex items-center gap-2">
                         <p class="flex-1 text-[12px] text-[#5B6A8E] font-medium text-center py-1">Waiting for the landlord to respond</p>
@@ -332,10 +386,8 @@
 
                 @elseif($rentalStatus === 'Pending Rental Agreement')
                     <div class="flex items-center gap-2">
-                        {{-- New tab: signing is a long read-and-confirm task, and
-                             losing the live chat thread (and its websocket) to
-                             navigate away mid-negotiation is the wrong trade. --}}
-                        <a href="{{ route('agreements.show', $reservation) }}" target="_blank" rel="noopener"
+                        {{-- Same tab: a second tab left two copies of the chat open. The agreement page links back to this chat. --}}
+                        <a href="{{ route('agreements.show', $reservation) }}"
                             class="flex-1 bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-1.5">
                             <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
                             View &amp; sign agreement
@@ -372,7 +424,7 @@
                                 <p class="text-[12px] font-bold text-[#060D26]">Payment held by AbangananHub</p>
                                 <p class="text-[11px] text-[#5B6A8E]">Confirm move-in to release &#8369;{{ number_format($heldPayment->amount, 2) }} to the landlord.</p>
                             </div>
-                            <a href="{{ route('agreements.show', $reservation) }}" target="_blank" rel="noopener"
+                            <a href="{{ route('agreements.show', $reservation) }}"
                                 class="shrink-0 bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold px-4 py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center gap-1.5">
                                 Confirm move-in
                                 <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="opacity-60">
@@ -383,7 +435,7 @@
                     @elseif($pendingPayment)
                         <p class="text-[12px] text-[#5B6A8E] font-medium text-center py-1">Your payment is processing — this updates automatically once it clears.</p>
                     @elseif($reservation->move_in_paid_at)
-                        <a href="{{ route('agreements.show', $reservation) }}" target="_blank" rel="noopener"
+                        <a href="{{ route('agreements.show', $reservation) }}"
                             class="w-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-1.5">
                             Payment confirmed — confirm move-in
                         </a>
@@ -393,13 +445,13 @@
                             <p class="text-[12px] text-[#5B6A8E] font-medium text-center py-1">Waiting for your landlord to confirm your payment of &#8369;{{ number_format($waitingClaim->amount, 2) }}.</p>
                         @else
                             {{-- The QR is already in this chat. One tap opens the "I've paid" form on the agreement page. --}}
-                            <a href="{{ route('agreements.show', ['reservation' => $reservation, 'pay' => 1]) }}#pay" target="_blank" rel="noopener"
+                            <a href="{{ route('agreements.show', ['reservation' => $reservation, 'pay' => 1]) }}#pay"
                                 class="w-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-1.5">
                                 I&rsquo;ve paid
                             </a>
                         @endif
                     @else
-                        <a href="{{ route('agreements.show', $reservation) }}" target="_blank" rel="noopener"
+                        <a href="{{ route('agreements.show', $reservation) }}"
                             class="w-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-1.5">
                             <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/></svg>
                             Proceed to payment
@@ -636,6 +688,16 @@
                 @endif
             </dl>
         </div>
+        @if($reservation && in_array($rentalStatus, ['Pending Rental Agreement', 'Rental Agreement Signed'], true))
+            @include('conversations.partials._move-in-checklist', [
+                'reservation' => $reservation,
+                'paid' => $reservation->move_in_paid_at !== null || (bool) $hasSettledPayment,
+                'isLandlord' => $isLandlord,
+            ])
+        @endif
+        @if($reservation && $isLandlord)
+            @include('landlord.partials._tenancy-documents', ['reservation' => $reservation])
+        @endif
         @if($reservation?->remarks)
             <div class="border-t border-[#E2E4EC] pt-3">
                 <p class="text-[10px] font-bold uppercase tracking-wider text-[#5B6A8E]">Original message</p>

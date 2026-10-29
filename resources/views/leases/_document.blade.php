@@ -23,6 +23,21 @@
 @endphp
 
 <div class="text-[#060D26]">
+    {{-- Cover page, printed only: on screen the page around the document already says what this is. --}}
+    <div class="hidden print:flex print:min-h-[85vh] print:flex-col print:items-center print:justify-center print:text-center print:break-after-page">
+        <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[#5B6A8E]">Lease agreement</p>
+        <p class="mt-4 text-[26px] font-semibold leading-tight text-[#060D26]">{{ $terms['property']['title'] ?? '' }}</p>
+        @if ($terms['unit'])
+            <p class="mt-1 text-[15px] text-[#060D26]">{{ $terms['unit'] }}</p>
+        @endif
+        <p class="mt-1 text-[13px] text-[#5B6A8E]">{{ $terms['property']['address'] ?? '' }}</p>
+        <div class="mt-10 grid grid-cols-2 gap-10 text-left">
+            <div><p class="text-[10px] font-bold uppercase tracking-wider text-[#5B6A8E]">Tenant</p><p class="mt-1 text-[15px] font-semibold">{{ $tenantName }}</p></div>
+            <div><p class="text-[10px] font-bold uppercase tracking-wider text-[#5B6A8E]">Landlord</p><p class="mt-1 text-[15px] font-semibold">{{ $landlordName }}</p></div>
+        </div>
+        <p class="mt-12 text-[11.5px] text-[#5B6A8E]">Reference {{ $terms['reference'] }} &middot; issued {{ \Illuminate\Support\Carbon::parse($terms['issued_at'])->format('F j, Y') }}</p>
+    </div>
+
     {{-- Parties — plain, not a card: this prints, and boxed UI chrome (rounded
          corners, fill) reads as an app screenshot, not a contract. Same
          bordered-column treatment as the Signatures block further down. --}}
@@ -46,6 +61,10 @@
         <strong>{{ $tenantName }}</strong> ("Tenant") for the rental of the premises described below.
     </p>
 
+    @if (! empty($terms['welcome']))
+        <p class="mt-4 whitespace-pre-line rounded-xl bg-[#F7F8FC] px-4 py-3 {{ $body }} print:bg-transparent print:px-0">{{ $terms['welcome'] }}</p>
+    @endif
+
     {{-- Key terms at a glance --}}
     <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mt-6 mb-1.5">Summary of key terms</p>
     <dl class="divide-y divide-[#E2E4EC] border-y border-[#E2E4EC]">
@@ -66,6 +85,27 @@
         @endforeach
     </dl>
 
+    @if (! empty($terms['body']))
+        {{-- The landlord's own wording. The summary above stays system-made, so it always matches what the ledger charges. --}}
+        @php
+            $lateFee = $terms['late_fee'] ?? null;
+        @endphp
+        @if ($lateFee || ! empty($terms['grace_days']))
+            <p class="{{ $body }} mt-3">
+                <strong>Late rent:</strong>
+                @if ($lateFee)
+                    paid in full within {{ (int) ($terms['grace_days'] ?? 0) }} {{ \Illuminate\Support\Str::plural('day', (int) ($terms['grace_days'] ?? 0)) }} of the due date is on time; after that a one-time fee of
+                    {{ $lateFee['type'] === 'percent' ? rtrim(rtrim(number_format($lateFee['value'], 2), '0'), '.') . '% of the monthly rent' : $peso($lateFee['value']) }} applies for that month.
+                @else
+                    rent paid within {{ (int) $terms['grace_days'] }} {{ \Illuminate\Support\Str::plural('day', (int) $terms['grace_days']) }} of the due date is on time. No late fee applies.
+                @endif
+            </p>
+        @endif
+        <p class="mt-3 text-[11.5px] italic leading-relaxed text-[#5B6A8E]">If the text below conflicts with the summary of key terms above, the summary applies.</p>
+        <div class="lease-prose mt-2 {{ $body }}">{!! \App\Support\LeaseBody::clean($terms['body']) !!}</div>
+        {{-- The listing's rules plus the policy's sections, always listed by the system, never typed into the body. --}}
+        @include('leases._house-rules', ['terms' => $terms, 'heading' => $heading, 'body' => $body, 'title' => 'House rules'])
+    @else
     <h3 class="{{ $heading }}">{{ ++$n }}. Premises and use</h3>
     <p class="{{ $body }}">
         The Landlord rents to the Tenant {{ $terms['unit'] ? 'the unit "' . $terms['unit'] . '" at' : '' }}
@@ -133,14 +173,8 @@
         @endif
     </p>
 
-    @if (! empty($terms['house_rules']))
-        <h3 class="{{ $heading }}">{{ ++$n }}. House rules</h3>
-        <p class="{{ $body }}">The Tenant, their household and guests follow these rules:</p>
-        <ul class="mt-1.5 list-disc pl-5 space-y-0.5 {{ $body }}">
-            @foreach ($terms['house_rules'] as $rule)
-                <li>{{ $rule }}</li>
-            @endforeach
-        </ul>
+    @if (! empty($terms['house_rule_sections']) || ! empty($terms['house_rules']))
+        @include('leases._house-rules', ['terms' => $terms, 'heading' => $heading, 'body' => $body, 'title' => (++$n).'. House rules'])
     @endif
 
     <h3 class="{{ $heading }}">{{ ++$n }}. Care and repairs</h3>
@@ -167,6 +201,8 @@
     <p class="{{ $body }}">
         This document is the whole agreement between the parties. Changes are valid only if made in writing and accepted by both.
     </p>
+
+    @endif
 
     <p class="text-[11.5px] text-[#5B6A8E] leading-relaxed mt-6 pt-4 border-t border-[#E2E4EC]">
         AbangananHub provides this lease as a template and record-keeping tool between Landlord and Tenant. It is not a party to,

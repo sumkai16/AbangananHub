@@ -24,16 +24,17 @@
          max-w-3xl reading measure it has always had; the rail fills what used
          to be dead margin, and carries the signing controls so they are on
          screen from the moment the page loads instead of below the fold. --}}
-    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-72px)]">
+    <x-print-document>
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-72px)] print:max-w-none print:mx-0 print:p-0 print:min-h-0">
 
         {{-- Page chrome — never printed --}}
         <div class="flex items-center justify-between gap-3 mb-6 print:hidden">
-            <a href="{{ route('reservations.index') }}"
+            <a href="{{ $reservation->conversation_id ? route('conversations.index', ['active' => $reservation->conversation_id]) : route('reservations.index') }}"
                 class="inline-flex items-center text-sm font-semibold text-[#5B6A8E] hover:text-[#060D26] transition-colors group">
                 <svg class="w-4 h-4 mr-2 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
-                Back to Reservations
+                {{ $reservation->conversation_id ? 'Back to chat' : 'Back to Reservations' }}
             </a>
 
             <button type="button" onclick="window.print()"
@@ -48,7 +49,7 @@
         {{-- Page header — bare on the background per DESIGN.md §6b --}}
         <div class="mb-6">
             <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1.5">
-                <h1 class="text-2xl font-semibold text-[#060D26] tracking-tight">Lease Agreement</h1>
+                <h1 class="text-xl sm:text-2xl font-semibold text-[#060D26] tracking-tight">Lease Agreement</h1>
                 <p class="text-[11px] font-bold text-[#5B6A8E] tracking-wider tabular-nums border border-[#E2E4EC] rounded-full px-2.5 py-1">{{ $agreementRef }}</p>
             </div>
             <p class="text-sm text-[#5B6A8E] mt-1 print:hidden">Please read the terms below carefully before signing.</p>
@@ -142,6 +143,7 @@
             </div>
 
             <div>
+                @include('agreements._required-documents', ['reservation' => $reservation])
                 @if($reservation->rental_status === 'Pending Rental Agreement')
                     <form action="{{ route('agreements.sign', $reservation) }}" method="POST"
                         class="rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5">
@@ -163,20 +165,10 @@
                                 class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66] focus:ring-offset-0 transition">
                             <span class="text-[13px] text-[#060D26] leading-relaxed">
                                 I have read and agree to the terms of this Rental Agreement.
-                            </span>
-                        </label>
-                        @error('agree')
-                            <p class="text-[11px] font-semibold text-[#EF4444] -mt-2 mb-4 ml-7">{{ $message }}</p>
-                        @enderror
-
-                        <label for="accept_tc" class="flex items-start gap-3 mb-4 cursor-pointer">
-                            <input type="checkbox" name="accept_tc" id="accept_tc" required
-                                class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66] focus:ring-offset-0 transition">
-                            <span class="text-[13px] text-[#060D26] leading-relaxed">
                                 <x-payment-consent role="tenant" />
                             </span>
                         </label>
-                        @error('accept_tc')
+                        @error('agree')
                             <p class="text-[11px] font-semibold text-[#EF4444] -mt-2 mb-4 ml-7">{{ $message }}</p>
                         @enderror
 
@@ -209,10 +201,14 @@
                             </fieldset>
                         @endif
 
-                        <button type="submit"
-                            class="w-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] font-bold text-sm py-3 rounded-xl shadow-sm cursor-pointer transition-all duration-200">
+                        @php $stillNeeded = \App\Services\TenancyDocuments::missing($reservation); @endphp
+                        <button type="submit" @disabled($stillNeeded->isNotEmpty())
+                            class="w-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] font-bold text-sm py-3 rounded-xl shadow-sm cursor-pointer transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[#FF8A66]">
                             Sign Agreement
                         </button>
+                        @if($stillNeeded->isNotEmpty())
+                            <p class="mt-2 text-center text-[12px] font-semibold text-[#8A5A00]">Upload {{ $stillNeeded->count() }} more {{ \Illuminate\Support\Str::plural('document', $stillNeeded->count()) }} above to sign.</p>
+                        @endif
                     </form>
 
                 @elseif($reservation->isAgreementSigned())
@@ -449,6 +445,7 @@
             {{ $agreementRef }} &middot; Generated {{ now()->format('F j, Y \a\t g:i A') }} &middot; AbangananHub
         </p>
     </div>
+    </x-print-document>
 
     @if($processingPayment)
         @push('scripts')

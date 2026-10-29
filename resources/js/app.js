@@ -3,6 +3,7 @@ import './echo';
 import './field-validation';
 import { aiSearch, aiSearchBox } from './ai-search';
 import propertyCard from './property-card';
+import { leaseEditor } from './lease-editor-alpine';
 import Alpine from 'alpinejs';
 
 window.Alpine = Alpine;
@@ -10,6 +11,7 @@ window.Alpine = Alpine;
 Alpine.data('aiSearch', aiSearch);
 Alpine.data('aiSearchBox', aiSearchBox);
 Alpine.data('propertyCard', propertyCard);
+Alpine.data('leaseEditor', leaseEditor);
 
 Alpine.start();
 

@@ -26,7 +26,7 @@
         @endif
 
         {{-- Summary cards --}}
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div class="stat-chips grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             <x-stat-card label="Total" :value="$counts['all']">
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">

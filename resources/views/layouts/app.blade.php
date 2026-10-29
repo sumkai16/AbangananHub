@@ -25,7 +25,7 @@
     <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#FF8A66] focus:text-[#060D26] focus:font-semibold">Skip to main content</a>
 
     <header id="site-header" x-data="{ mobileNavOpen: false }"
-        class="bg-white border-b border-[#E2E4EC] sticky top-0 z-[100] transition-all duration-300">
+        class="print:hidden bg-white border-b border-[#E2E4EC] sticky top-0 z-[100] transition-all duration-300">
 
         {{-- 1. Nav Row --}}
         @php
@@ -537,7 +537,7 @@
          (@section('sticky_search')) so search + filters stay put on desktop while only the listings scroll. z-[60] keeps the search
          pill's dropdowns above the listings but under the sticky header (z-[100]). --}}
     @if(($searchBar ?? true) && !View::hasSection('hide_search'))
-        <div id="header-search-expanded" class="{{ View::hasSection('sticky_search') ? 'relative lg:sticky lg:top-[64px]' : 'relative' }} z-[60] bg-white border-b border-[#E2E4EC]">
+        <div id="header-search-expanded" class="print:hidden {{ View::hasSection('sticky_search') ? 'relative lg:sticky lg:top-[64px]' : 'relative' }} z-[60] bg-white border-b border-[#E2E4EC]">
             <div class="bg-[#060D26]">
                 <div id="browse-search-pill" class="max-w-[1400px] mx-auto flex justify-center px-4 sm:px-6 py-5">
                     <x-ai-search-box variant="header" />
@@ -555,7 +555,7 @@
         @yield('content')
     </main>
 
-    <footer class="bg-[#060D26] mt-auto">
+    <footer class="print:hidden bg-[#060D26] mt-auto">
         <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-8">
 
             {{-- Logo --}}

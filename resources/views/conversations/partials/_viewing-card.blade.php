@@ -133,15 +133,114 @@
         <x-picker-modal show="picking"
             :title="$open ? 'Suggest a different viewing time' : 'Schedule a viewing'"
             :subtitle="$them . ' confirms it before it\'s set. Viewing hours: ' . $hours . '.'">
-            @include('viewings._slot-form', [
-                'action'      => $open ? route('viewings.reschedule', $open) : route('viewings.store', $reservation),
-                'value'       => $open?->scheduled_at,
-                'landlordId'  => $reservation->property->landlord_id,
-                'heading'     => $isLandlord ? 'When can they view the unit?' : 'When do you want to view the unit?',
-                'submitLabel' => $open ? 'Send new time' : 'Request viewing',
-                'closeExpr'   => 'picking = false',
-                'noteId'      => $open ? null : 'viewing_note_' . $reservation->reservation_id,
-            ])
+            @if ($isLandlord)
+                @include('viewings._slot-form', [
+                    'action'      => $open ? route('viewings.reschedule', $open) : route('viewings.store', $reservation),
+                    'value'       => $open?->scheduled_at,
+                    'landlordId'  => $reservation->property->landlord_id,
+                    'heading'     => $isLandlord ? 'When can they view the unit?' : 'When do you want to view the unit?',
+                    'submitLabel' => $open ? 'Send new time' : 'Request viewing',
+                    'closeExpr'   => 'picking = false',
+                    'noteId'      => $open ? null : 'viewing_note_' . $reservation->reservation_id,
+                ])
+            @else
+                {{-- Tenant: day tabs + open-time chips, loaded when the picker first opens. The calendar form
+                     stays behind "Pick another time" for anyone who wants a day outside the first few. --}}
+                <div x-data="{
+                        days: [], day: 0, at: null, loaded: false, loading: false, fallback: false, failed: false,
+                        async load() {
+                            if (this.loaded || this.loading) return;
+                            this.loading = true;
+                            try {
+                                const r = await fetch(@js(route('viewings.slots', $reservation)), { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+                                if (!r.ok) throw new Error();
+                                this.days = (await r.json()).days;
+                                this.loaded = true;
+                                if (!this.days.length) this.fallback = true;
+                            } catch (e) {
+                                this.failed = true;
+                                this.fallback = true;
+                            }
+                            this.loading = false;
+                        },
+                        get slots() { return this.days[this.day]?.slots ?? []; },
+                        get picked() {
+                            for (const d of this.days) for (const s of d.slots) if (s.at === this.at) return d.label + ' at ' + s.label;
+                            return null;
+                        },
+                    }" x-effect="if (picking) load()">
+
+                    <div x-show="!fallback" class="p-5 sm:p-6">
+                        <p class="text-[13px] font-bold text-[#060D26]">When do you want to view the unit?</p>
+
+                        <p x-show="loading" class="mt-4 text-[12.5px] text-[#5B6A8E]">Finding open times…</p>
+
+                        <div x-show="loaded && days.length" x-cloak>
+                            <div class="mt-3 flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Day">
+                                <template x-for="(d, i) in days" :key="d.date">
+                                    <button type="button" role="tab" :aria-selected="day === i" @click="day = i; at = null"
+                                        class="shrink-0 rounded-xl border px-3 py-2 text-[12px] font-bold leading-tight cursor-pointer transition-colors"
+                                        :class="day === i ? 'border-[#060D26] bg-[#060D26] text-white' : 'border-[#E2E4EC] bg-white text-[#060D26] hover:bg-[#ECEEF6]'">
+                                        <span x-text="d.label"></span>
+                                    </button>
+                                </template>
+                            </div>
+
+                            <div class="mt-3 grid grid-cols-3 sm:grid-cols-5 gap-2" role="listbox" aria-label="Time">
+                                <template x-for="s in slots" :key="s.at">
+                                    <button type="button" role="option" :disabled="!s.open" :aria-selected="at === s.at" @click="at = s.at"
+                                        class="rounded-xl border px-2 py-2.5 text-[12.5px] font-semibold transition-colors"
+                                        :class="at === s.at ? 'border-[#FF8A66] bg-[#FF8A66]/10 font-bold ring-2 ring-[#FF8A66]/25 text-[#060D26] cursor-pointer'
+                                            : (s.open ? 'border-[#E2E4EC] bg-white text-[#060D26] hover:bg-[#ECEEF6] cursor-pointer' : 'border-[#E2E4EC] bg-[#F7F8FC] text-[#A3ADC5] line-through cursor-not-allowed')"
+                                        x-text="s.label"></button>
+                                </template>
+                            </div>
+
+                            <form action="{{ $open ? route('viewings.reschedule', $open) : route('viewings.store', $reservation) }}" method="POST" class="mt-4 flex flex-col gap-3">
+                                @csrf
+                                <input type="hidden" name="scheduled_at" :value="at">
+                                @unless ($open)
+                                    <div>
+                                        <label for="viewing_note_chips_{{ $reservation->reservation_id }}" class="block text-[11px] font-bold uppercase tracking-[0.11em] text-[#5B6A8E] mb-1.5">Note for the landlord (optional)</label>
+                                        <input id="viewing_note_chips_{{ $reservation->reservation_id }}" name="note" maxlength="500" placeholder="e.g. I'll bring my sister"
+                                            class="w-full h-11 rounded-xl border border-[#E2E4EC] bg-white px-3 text-[13px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] outline-none">
+                                    </div>
+                                @endunless
+                                <button type="submit" :disabled="!at"
+                                    class="w-full rounded-xl bg-[#FF8A66] px-5 py-3 text-[14px] font-bold text-[#060D26] hover:bg-[#E96F4F] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all duration-200">
+                                    <span x-text="picked ? '{{ $open ? 'Send' : 'Request' }} ' + picked : '{{ $open ? 'Pick a new time' : 'Pick a time' }}'"></span>
+                                </button>
+                            </form>
+
+                            <p class="mt-3 text-[11.5px] text-[#5B6A8E]">Based on {{ $them }}'s viewing hours. Struck-through times are taken.</p>
+                        </div>
+
+                        <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1">
+                            <button type="button" x-show="loaded && days.length" x-cloak @click="fallback = true"
+                                class="text-[12px] font-bold text-[#060D26] underline underline-offset-2 cursor-pointer">Pick another time</button>
+                            <button type="button" @click="picking = false"
+                                class="text-[12px] font-semibold text-[#5B6A8E] hover:text-[#060D26] cursor-pointer">Cancel</button>
+                        </div>
+                    </div>
+
+                    <div x-show="fallback" x-cloak>
+                        <p x-show="failed" class="px-5 sm:px-6 pt-4 text-[12px] text-[#B45309]">We couldn't load open times. Pick a date below instead.</p>
+                        <p x-show="loaded && !days.length" class="px-5 sm:px-6 pt-4 text-[12px] text-[#B45309]">No open times in the next few days. Pick a date below instead.</p>
+                @include('viewings._slot-form', [
+                    'action'      => $open ? route('viewings.reschedule', $open) : route('viewings.store', $reservation),
+                    'value'       => $open?->scheduled_at,
+                    'landlordId'  => $reservation->property->landlord_id,
+                    'heading'     => $isLandlord ? 'When can they view the unit?' : 'When do you want to view the unit?',
+                    'submitLabel' => $open ? 'Send new time' : 'Request viewing',
+                    'closeExpr'   => 'picking = false',
+                    'noteId'      => $open ? null : 'viewing_note_' . $reservation->reservation_id,
+                ])
+                        <div x-show="loaded && days.length" class="px-5 sm:px-6 pb-4">
+                            <button type="button" @click="fallback = false" class="text-[12px] font-bold text-[#060D26] underline underline-offset-2 cursor-pointer">Back to open times</button>
+                        </div>
+                    </div>
+                </div>
+            @endif
         </x-picker-modal>
     @endif
 </div>

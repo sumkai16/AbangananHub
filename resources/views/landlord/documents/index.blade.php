@@ -1,6 +1,8 @@
 @extends('layouts.landlord')
 
 @section('content')
+    @push('mobile-title')<x-page-icon class="!h-7 !w-7 !rounded-lg" path="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /><span class="truncate text-[15px] font-semibold tracking-tight text-[#060D26]">Verification Documents</span>@endpush
+
 <div x-data="{ uploadOpen: false }" @keydown.escape.window="uploadOpen = false">
 
 <div class="max-w-[880px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16">
@@ -19,12 +21,12 @@
     </div>
 
     {{-- Header --}}
-    <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+    <div class="flex flex-wrap items-start justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div class="flex items-center gap-3.5">
-            <x-page-icon path="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+            <x-page-icon path="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" class="page-header-title" />
             <div>
-                <h1 class="text-2xl font-normal text-[#060D26] leading-tight">Verification Documents</h1>
-                <p class="text-sm text-[#5B6A8E] mt-1 max-w-lg">Proof of ownership, tax declaration, and permits for this property. These are only ever seen by admins — never shown to renters.</p>
+                <h1 class="page-header-title text-xl sm:text-2xl font-normal text-[#060D26] leading-tight">Verification Documents</h1>
+                <p class="text-xs sm:text-sm text-[#5B6A8E] mt-1 max-w-lg line-clamp-2 sm:line-clamp-none">Proof of ownership, tax declaration, and permits for this property. These are only ever seen by admins — never shown to renters.</p>
             </div>
         </div>
 

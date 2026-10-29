@@ -28,6 +28,10 @@ erDiagram
     users ||--o{ properties : "landlord_id"
     users ||--o{ users : "created_by_landlord_id (walk-in)"
     properties ||--o{ property_units : "property_id"
+    users ||--o{ lease_templates : "landlord_id"
+    lease_templates ||--o{ properties : "lease_template_id"
+    lease_templates ||--o{ property_units : "lease_template_id"
+    reservations ||--o{ tenancy_documents : "reservation_id"
     properties ||--o{ property_documents : "property_id"
     properties ||--o{ property_media : "property_id"
     property_units ||--o{ unit_media : "unit_id"
@@ -84,6 +88,8 @@ A person. Tenants, landlords and admins are all rows here; the role lives in `us
 | account_status | enum('active','suspended','inactive') | NN, = 'active' | index | |
 | is_walk_in | boolean | NN, = 0 | | Landlord-entered tenant; drives the **Walk-in** pill everywhere |
 | created_by_landlord_id | bigint unsigned | null | FK → users, set null | Scopes `User::walkInTenants()` |
+| landlord_terms_accepted_at | timestamp | null | | When the landlord accepted the money-handling terms; asked once per payment route (`App\Support\LandlordTerms`) |
+| landlord_terms_payment_mode | varchar(10) | null | | `online` or `direct`: the route the acceptance covered. A change of route asks again |
 | remember_token | varchar(100) | null | | |
 | created_at | timestamp | null | | |
 | updated_at | timestamp | null | | |
@@ -212,6 +218,7 @@ A listing (building or house). Price, occupancy and availability live on its uni
 | description | text | NN | | |
 | house_rules | json | null | | Flat list of strings: preset labels from `PropertyPolicies::HOUSE_RULES`, then custom lines. Cast to array; every unit inherits it |
 | default_lease_terms | text | null | | Landlord's standard extra terms, private (never on the listing or in an API resource). Prefills "Additional terms" when an agreement is sent; the agreed text is frozen per reservation in `agreement_terms_notes`. Editing it does not send an approved listing back to review |
+| lease_template_id | bigint unsigned | null | FK → lease_templates, set null | The lease this property sends (`App\Support\LeaseTemplates`). Null = the standard lease. A unit's own template wins |
 | rent_grace_days | tinyint unsigned | null | | Days after the due date before rent counts as late. null = platform default (`rentals.rent_overdue_grace_days`). A default only: frozen into the lease snapshot as `grace_days` |
 | late_fee_type | enum('percent','fixed') | null | | null = no late fee. Frozen into the lease snapshot as `late_fee` |
 | late_fee_value | decimal(10,2) | null | | Percent of monthly rent (0.01 to 100) or a peso amount, per `late_fee_type` |
@@ -272,6 +279,7 @@ The atomic rentable thing: a room, bedspace or whole apartment.
 |---|---|---|---|---|
 | unit_id | bigint unsigned | NN | PK | |
 | property_id | bigint unsigned | NN | FK → properties, cascade | Index `property_units_bookable_index` |
+| lease_template_id | bigint unsigned | null | FK → lease_templates, set null | This unit's own lease; null = the property's |
 | unit_label | varchar(255) | NN | | e.g. "Room A", "Bed 3" |
 | floor | varchar(50) | null | | |
 | bedrooms | tinyint unsigned | null | | |
@@ -293,6 +301,53 @@ Rules:
 - A change to `availability_status` from any path is logged to `occupancy_activities` by `PropertyUnitObserver`.
 - `furnishing_status` null means "not answered", not "unfurnished".
 - Validation of `security_deposit` on edit uses `array_key_exists`, so omitting the field leaves the value alone.
+
+### lease_templates
+A landlord's named leases, assigned to properties and units on the Leases page (plans/lease-templates-page.md). A sent lease is frozen in `reservations.lease_snapshot`; editing or deleting a template never changes it.
+
+| Column | Type | Null / default | Keys | Notes |
+|---|---|---|---|---|
+| lease_template_id | bigint unsigned | NN | PK | |
+| landlord_id | bigint unsigned | NN | FK → users, cascade | |
+| name | varchar(100) | NN | | Only the landlord sees it |
+| version | int unsigned | NN, = 1 | | Goes up when the wording or a rule changes (`LeaseTemplate::saveWithVersion`), not on a rename. Sent leases record it in `lease_snapshot.template.version` |
+| welcome_message | text | null | | Plain text shown after the parties; frozen as `lease_snapshot.welcome` |
+| body | longtext | null | | Sanitized HTML with merge fields (`App\Support\LeaseBody::clean`). Null = the standard clauses |
+| rent_grace_days | tinyint unsigned | null | | Null = the property's, then the platform default |
+| late_fee_type | varchar(10) | null | | `none` (explicitly no fee), `fixed`, `percent`; null = the property's rule |
+| late_fee_value | decimal(8,2) | null | | Set only for `fixed` / `percent` |
+| notice_days | smallint unsigned | null | | Null = `rentals.lease_notice_days` |
+| house_rule_sections | json | null | | The policy's own house rules as titled sections, `[{"title":"Visitors","rules":["..."]}]` (`App\Support\HouseRules`). Printed after the property's listed rules, never replacing them. Frozen into `lease_snapshot.house_rule_sections` (the listing's rules first, as "Property rules") |
+| required_documents | json | null | | Documents the tenant must upload before signing: `[{"key":"valid_id"},{"key":"other","label":"..."}]` (`App\Support\RequiredDocuments`). Frozen into `lease_snapshot.required_documents` when sent |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+### tenancy_documents
+What a lease asked the tenant to upload before signing, and the file they uploaded (plans/required-tenant-documents.md). One row per requirement per reservation, created when the agreement is sent. Files are on the private disk and served only through `tenancy-documents.file`, to the tenant and the property's landlord (admins cannot open them).
+
+| Column | Type | Null / default | Keys | Notes |
+|---|---|---|---|---|
+| tenancy_document_id | bigint unsigned | NN | PK | |
+| reservation_id | bigint unsigned | NN | FK → reservations, cascade | UNIQUE with `doc_key` |
+| doc_key | varchar(40) | NN | | A `RequiredDocuments::TYPES` key, or `other_1` to `other_5` |
+| label | varchar(100) | NN | | Copied from the sent lease |
+| status | enum('Requested','Pending','Approved','Rejected','Waived') | NN, = 'Requested' | | `Requested` = nothing uploaded; `Pending` = waiting for the landlord. `Requested` and `Rejected` block signing |
+| file_path | varchar(255) | null | | Private disk, random name. Null until uploaded and again after the purge |
+| file_name | varchar(255) | null | | The tenant's original filename, for display |
+| mime | varchar(100) | null | | |
+| size | int unsigned | null | | Bytes |
+| rejection_reason | text | null | | |
+| uploaded_at | timestamp | null | | |
+| reviewed_by | bigint unsigned | null | FK → users, set null | |
+| reviewed_at | timestamp | null | | |
+| purge_after | date | null | | Set when the reservation ends: today if it was never signed, else +30 days. Index |
+| purged_at | timestamp | null | | File deleted by `reservations:purge-tenant-documents`; the row stays as the record |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+Rules:
+- Signing is refused while any row is `Requested` or `Rejected` (`Reservation::signAgreement()`, so web and API agree). Approval never blocks payment or move-in.
+- A landlord opening a file writes `tenancy_document.view` to `audit_logs`.
 
 ### property_media
 Property-level photos and videos. `media_url` is a Cloudinary URL: output as-is, never wrap in `Storage::url()`.

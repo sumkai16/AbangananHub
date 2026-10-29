@@ -5,6 +5,10 @@
 @foreach($claims as $claim)
     @php
         $label = $claim->claim_type === 'MoveIn' ? 'Move-in payment' : 'Rent for '.$claim->billing_period->format('F Y');
+        // A move-in payment on or after the move-in date also starts the tenancy, so it is one button, not two.
+        $andMoveIn = $claim->claim_type === 'MoveIn'
+            && $claim->reservation->rental_status === 'Rental Agreement Signed'
+            && $claim->reservation->moveInDateReached();
     @endphp
     <div class="rounded-2xl border border-[#FF8A66]/40 bg-[#FF8A66]/[0.06] p-4" x-data="{ reject: false }">
         <p class="text-[11px] font-bold uppercase tracking-wider text-[#B35A3D]">Payment to confirm &middot; {{ $label }}</p>
@@ -18,9 +22,10 @@
 
         <div class="mt-3 flex flex-wrap gap-2">
             <form method="POST" action="{{ route('landlord.paymentClaims.confirm', $claim) }}"
-                data-confirm="Confirm this payment?" data-confirm-message="It will count as paid and your tenant is notified. Only confirm after you see the money in your account." data-confirm-button="Confirm payment">
+                data-confirm="{{ $andMoveIn ? 'Confirm payment and move-in?' : 'Confirm this payment?' }}" data-confirm-message="{{ $andMoveIn ? 'It will count as paid, start the tenancy and the rent schedule, and your tenant is notified. Only confirm after you see the money in your account and hand over the keys.' : 'It will count as paid and your tenant is notified. Only confirm after you see the money in your account.' }}" data-confirm-button="{{ $andMoveIn ? 'Confirm & move in' : 'Confirm payment' }}">
                 @csrf
-                <button type="submit" class="h-9 rounded-xl bg-[#FF8A66] px-4 text-[12.5px] font-bold text-[#060D26] hover:bg-[#E96F4F] transition-colors">Confirm payment</button>
+                @if($andMoveIn)<input type="hidden" name="and_move_in" value="1">@endif
+                <button type="submit" class="h-9 rounded-xl bg-[#FF8A66] px-4 text-[12.5px] font-bold text-[#060D26] hover:bg-[#E96F4F] transition-colors">{{ $andMoveIn ? 'Confirm payment & move-in' : 'Confirm payment' }}</button>
             </form>
             <button type="button" @click="reject = !reject" class="h-9 rounded-xl border border-[#EF4444] px-4 text-[12.5px] font-semibold text-[#EF4444] hover:bg-[#EF4444]/5 transition-colors">Not received</button>
         </div>

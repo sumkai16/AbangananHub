@@ -273,7 +273,7 @@ class TenantConcernsTest extends TestCase
             ->assertDontSee('Report a concern');
     }
 
-    public function test_the_landlord_chat_shows_the_property_the_tenant_stays_at_with_its_photo(): void
+    public function test_the_tenancy_chat_shows_the_stayed_property_to_both_sides_with_its_photo(): void
     {
         ['tenant' => $tenant, 'landlord' => $landlord, 'reservation' => $reservation] = $this->makeTenancy();
         $thread = $this->threadOf($reservation);
@@ -299,7 +299,8 @@ class TenantConcernsTest extends TestCase
 
         $this->actingAs($tenant)->get(route('conversations.show', $thread), $ajax)
             ->assertOk()
-            ->assertDontSee('Currently staying at');
+            ->assertSee('Currently staying at')
+            ->assertDontSee('Remind about rent');
 
         $this->actingAs($landlord)->get(route('conversations.index', ['box' => 'tenancy']))->assertOk();
     }
@@ -348,7 +349,7 @@ class TenantConcernsTest extends TestCase
             ->assertStatus(422)->assertJson(['ok' => false]);
     }
 
-    public function test_the_landlord_inquiry_chat_shows_the_property_card_and_the_tenant_does_not(): void
+    public function test_the_inquiry_chat_shows_the_property_card_to_both_sides(): void
     {
         ['tenant' => $tenant, 'landlord' => $landlord, 'reservation' => $reservation] = $this->makeTenancy();
         $inquiry = Conversation::create([
@@ -365,7 +366,8 @@ class TenantConcernsTest extends TestCase
 
         $this->actingAs($tenant)->get(route('conversations.show', $inquiry), $ajax)
             ->assertOk()
-            ->assertDontSee('Inquiring about');
+            ->assertSee('Inquiring about')
+            ->assertSee($reservation->property->title);
 
         $this->actingAs($landlord)->get(route('conversations.index', ['active' => $inquiry->conversation_id]))->assertOk();
     }

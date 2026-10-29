@@ -56,6 +56,11 @@ class PropertyUnit extends Model
         return $this->belongsTo(Property::class, 'property_id', 'property_id');
     }
 
+    public function leaseTemplate()
+    {
+        return $this->belongsTo(LeaseTemplate::class, 'lease_template_id', 'lease_template_id');
+    }
+
     public function scopeMaintenance($query)
     {
         return $query->where('availability_status', 'Maintenance');

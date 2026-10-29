@@ -62,6 +62,7 @@ class AuditLog extends Model
         'review.visibility_change'  => 'Review visibility changed',
         'report.resolve'            => 'Report resolved',
         'settings.update'           => 'System settings updated',
+        'tenancy_document.view'     => 'Tenant document opened',
     ];
 
     protected $fillable = [

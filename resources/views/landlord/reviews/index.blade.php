@@ -16,7 +16,7 @@
         </x-page-header>
 
         {{-- Stat cards --}}
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+        <div class="stat-chips grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
             <x-stat-card label="Total Reviews" :value="$stats['total']" sub="Across all properties">
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
@@ -48,7 +48,7 @@
                 {{-- Filter bar --}}
                 <x-card class="mb-6">
                 <form method="GET" action="{{ route('landlord.reviews.index') }}">
-                    <div class="flex flex-wrap items-center gap-2.5">
+                    <div class="filter-row flex flex-wrap items-center gap-2.5">
                         @php
                             $reviewsPropertyOptions = ['' => 'All Properties'] + $properties->pluck('title', 'property_id')->all();
                             $reviewsRatingOptions = ['' => 'All Ratings'];

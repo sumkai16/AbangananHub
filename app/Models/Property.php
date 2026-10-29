@@ -69,6 +69,11 @@ class Property extends Model
         return $this->belongsTo(User::class, 'landlord_id', 'user_id');
     }
 
+    public function leaseTemplate()
+    {
+        return $this->belongsTo(LeaseTemplate::class, 'lease_template_id', 'lease_template_id');
+    }
+
     public function media()
     {
         return $this->hasMany(PropertyMedia::class, 'property_id', 'property_id');

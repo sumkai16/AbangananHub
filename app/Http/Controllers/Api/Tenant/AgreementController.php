@@ -53,6 +53,10 @@ class AgreementController extends Controller
     {
         Gate::authorize('sign', $reservation);
 
+        if ($missing = \App\Services\TenancyDocuments::missing($reservation)->pluck('label')->all()) {
+            throw ValidationException::withMessages(['documents' => ['Upload these first: '.implode(', ', $missing).'.']]);
+        }
+
         // Same rule as the web form: emergency contact and ID on file before signing, asked once.
         $needsDetails = ! TenantDetail::completeFor($request->user());
 

@@ -1,6 +1,6 @@
 @extends('layouts.landlord')
 
-@section('page-title', 'Rent & Payments')
+@section('page-title', 'Payments')
 
 @section('content')
     @php
@@ -35,6 +35,9 @@
                 'dueOn'        => $oldestUnpaid['due_on'] ?? null,
                 'paid'         => $oldestUnpaid['paid'] ?? 0.0,
                 'monthsLabel'  => $summary['unpaidMonthCount'] > 1 ? $summary['unpaidMonthCount'] . ' months' : null,
+                // Reminders go to an app account, so not walk-ins or inactive users, and only while rent is owed.
+                'canRemind'    => $tenant && ! $tenant->is_walk_in && $tenant->account_status === 'active' && $summary['outstanding'] > 0,
+                'isOverdue'    => $row['paymentStatus'] === 'overdue',
             ];
         });
     @endphp
@@ -42,7 +45,7 @@
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
 
         {{-- Header --}}
-        <x-page-header title="Rent & Payments" subtitle="Rent collection across all occupied units, with the most urgent payments shown first.">
+        <x-page-header title="Payments" subtitle="Rent collection across all occupied units, with the most urgent payments shown first.">
             <x-slot:icon>
                 <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -60,6 +63,20 @@
                         </a>
                     @endforeach
                 </div>
+                @if($totals['overdueCount'] > 0)
+                    <form method="POST" action="{{ route('landlord.payments.remindOverdue') }}" class="shrink-0"
+                        data-confirm="Remind {{ $totals['overdueCount'] }} overdue {{ Str::plural('tenant', $totals['overdueCount']) }}?"
+                        data-confirm-message="Each tenant with an app account gets an in-app notification about their overdue rent. Anyone reminded in the last 24 hours is skipped."
+                        data-confirm-button="Send reminders">
+                        @csrf
+                        @if($propertyId)<input type="hidden" name="property" value="{{ $propertyId }}">@endif
+                        <button type="submit"
+                            class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-sm font-semibold transition-all duration-200 cursor-pointer">
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" /></svg>
+                            Remind overdue ({{ $totals['overdueCount'] }})
+                        </button>
+                    </form>
+                @endif
                 <a href="{{ route('landlord.payments.export', request()->only('property')) }}"
                     class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-sm font-semibold transition-all duration-200 shrink-0 cursor-pointer">
                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -87,16 +104,16 @@
             $segmentTones = ['bg-[#DC2626]', 'bg-[#DC2626]/75', 'bg-[#DC2626]/55', 'bg-[#DC2626]/40', 'bg-[#DC2626]/25'];
             $shortName = fn ($r) => trim(explode(' ', $r['name'])[0] . ' ' . mb_substr(collect(explode(' ', $r['name']))->last(), 0, 1) . '.');
         @endphp
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-3 mb-5">
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3 mb-4 sm:mb-5">
             {{-- This month --}}
-            <section class="lg:col-span-2 rounded-2xl bg-[#060D26] text-white px-5 sm:px-6 py-5 sm:py-6 flex flex-col justify-between gap-6"
+            <section class="lg:col-span-2 rounded-2xl bg-[#060D26] text-white px-3.5 sm:px-6 py-3.5 sm:py-6 flex flex-col justify-between gap-3 sm:gap-6"
                 aria-label="Collected this month">
                 <div>
-                    <p class="text-[12.5px] font-medium text-white/60">Collected this month</p>
-                    <p class="mt-2 text-[34px] sm:text-[38px] font-semibold leading-none tracking-tight tabular-nums">
+                    <p class="text-[11.5px] sm:text-[12.5px] font-medium text-white/60">Collected this month</p>
+                    <p class="mt-1.5 sm:mt-2 text-[20px] sm:text-[38px] font-semibold leading-none tracking-tight tabular-nums">
                         ₱{{ number_format($totals['collectedThisMonth'], 2) }}
                     </p>
-                    <p class="mt-1.5 text-[13px] text-white/60 tabular-nums">of ₱{{ number_format($totals['dueThisMonth'], 2) }} due</p>
+                    <p class="mt-1 sm:mt-1.5 text-[11.5px] sm:text-[13px] text-white/60 tabular-nums">of ₱{{ number_format($totals['dueThisMonth'], 2) }} due</p>
                 </div>
 
                 @if($totals['collectedPercent'] !== null)
@@ -106,9 +123,9 @@
                             aria-valuenow="{{ min(100, $totals['collectedPercent']) }}">
                             <div class="h-full rounded-full bg-[#FF8A66]" style="width: {{ min(100, $totals['collectedPercent']) }}%"></div>
                         </div>
-                        <div class="mt-2.5 flex items-center justify-between text-[12px] text-white/70">
+                        <div class="mt-2 sm:mt-2.5 flex items-center justify-between text-[11.5px] sm:text-[12px] text-white/70">
                             <span><span class="font-semibold text-white">{{ $totals['collectedPercent'] }}%</span> collected</span>
-                            <span>{{ $totals['duePaymentCount'] }} {{ \Illuminate\Support\Str::plural('payment', $totals['duePaymentCount']) }} due</span>
+                            <span class="max-sm:hidden">{{ $totals['duePaymentCount'] }} {{ \Illuminate\Support\Str::plural('payment', $totals['duePaymentCount']) }} due</span>
                         </div>
                     </div>
                 @else
@@ -117,16 +134,16 @@
             </section>
 
             {{-- Who owes --}}
-            <x-card class="lg:col-span-3 !p-5 sm:!p-6 flex flex-col justify-between gap-6">
-                <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
+            <x-card class="lg:col-span-3 !p-3.5 sm:!p-6 flex flex-col justify-between gap-3 sm:gap-6">
+                <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-1.5 sm:gap-y-2">
                     <div>
-                        <p class="text-[12.5px] font-medium text-[#5B6A8E]">Still owed</p>
-                        <p class="mt-2 text-[34px] sm:text-[38px] font-semibold leading-none tracking-tight tabular-nums text-[#060D26]">
+                        <p class="text-[11.5px] sm:text-[12.5px] font-medium text-[#5B6A8E]">Still owed</p>
+                        <p class="mt-1.5 sm:mt-2 text-[20px] sm:text-[38px] font-semibold leading-none tracking-tight tabular-nums text-[#060D26]">
                             ₱{{ number_format($totals['outstanding'], 2) }}
                         </p>
                     </div>
                     @if($totals['overdue'] > 0)
-                        <p class="inline-flex items-center gap-1.5 h-7 px-3 rounded-full border border-[#DC2626]/20 bg-[#EF4444]/[0.06] text-[12px] font-semibold text-[#DC2626]">
+                        <p class="inline-flex items-center gap-1.5 h-6 sm:h-7 px-2 sm:px-3 rounded-full border border-[#DC2626]/20 bg-[#EF4444]/[0.06] text-[11px] sm:text-[12px] font-semibold text-[#DC2626]">
                             <span class="w-1.5 h-1.5 rounded-full bg-[#DC2626]"></span>
                             {{ $totals['overdue'] >= $totals['outstanding'] ? 'All of it overdue' : '₱' . number_format($totals['overdue'], 2) . ' overdue' }}
                         </p>
@@ -144,7 +161,7 @@
                                     style="width: {{ round($r['summary']['outstanding'] / $totals['outstanding'] * 100, 2) }}%"></div>
                             @endforeach
                         </div>
-                        <ul class="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-[12.5px]">
+                        <ul class="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-[12.5px] max-sm:hidden">
                             @foreach($owing->take(3) as $i => $r)
                                 <li class="inline-flex items-center gap-2 min-w-0">
                                     <span class="w-2 h-2 rounded-full shrink-0 {{ $segmentTones[$i] }}"></span>
@@ -162,7 +179,7 @@
         </div>
 
         {{-- Filter bar --}}
-        {{-- Bare on the page: the inputs already have borders, and a card
+        {{-- Bare on the page, same as Units: the inputs already have borders, and a card
              around them stacked a third container above the table card. --}}
         <form method="GET" action="{{ route('landlord.payments.index') }}" class="mb-5">
             @if($view === 'calendar')
@@ -179,34 +196,25 @@
                     <input type="text" name="search" value="{{ request('search') }}"
                         placeholder="Search tenants by name or email..." aria-label="Search tenants by name or email"
                         x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                        class="w-full h-11 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#5B6A8E]/25 bg-white text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all duration-200">
+                        class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
                 </div>
 
-                <div class="flex flex-wrap items-center gap-2.5">
+                <div class="filter-row flex flex-wrap items-center gap-2.5">
                     <div>
                         <label for="filter-property" class="sr-only">Filter by property</label>
                         @php
                             $paymentPropertyOptions = ['' => 'All Properties'] + $properties->pluck('title', 'property_id')->all();
                         @endphp
                         <x-styled-select name="property" id="filter-property" :options="$paymentPropertyOptions"
-                            :selected="(string) ($propertyId ?? '')"
-                            class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13.5px] text-[#060D26] max-w-[200px]" />
+                            :selected="(string) ($propertyId ?? '')" autosubmit
+                            class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26] max-w-[200px]" />
                     </div>
 
                     <div>
                         <label for="filter-status" class="sr-only">Filter by payment status</label>
-                        <x-styled-select name="status" id="filter-status" :options="$filters" :selected="$statusFilter"
-                            class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13.5px] text-[#060D26]" />
+                        <x-styled-select name="status" id="filter-status" :options="$filters" :selected="$statusFilter" autosubmit
+                            class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26]" />
                     </div>
-
-                    <button type="submit"
-                        class="h-11 px-5 rounded-xl border border-[#060D26] bg-white text-[#060D26] text-[13.5px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 inline-flex items-center gap-1.5 cursor-pointer">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-                        </svg>
-                        Filter
-                    </button>
 
                     @if(request()->hasAny(['search', 'property']) || $statusFilter !== 'all')
                         <a href="{{ route('landlord.payments.index') }}"
@@ -323,10 +331,24 @@
                             </div>
                         </div>
 
-                        <a href="{{ route('landlord.tenancies.show', $reservation) }}"
-                            class="mt-3 flex items-center justify-center h-9 rounded-xl border border-[#FF8A66] text-[#B35A3D] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">
-                            Open Ledger
-                        </a>
+                        <div class="mt-3 flex gap-2">
+                            <a href="{{ route('landlord.tenancies.show', $reservation) }}"
+                                class="flex-1 flex items-center justify-center h-10 rounded-xl border border-[#FF8A66] text-[#B35A3D] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">
+                                Open Ledger
+                            </a>
+                            @if($item['canRemind'])
+                                <form method="POST" action="{{ route('landlord.tenancies.remind', $reservation) }}"
+                                    data-confirm="Send {{ $reservation->tenant->first_name }} a rent reminder?"
+                                    data-confirm-message="They get an in-app notification about their {{ $item['isOverdue'] ? 'overdue' : 'upcoming' }} rent."
+                                    data-confirm-button="Send reminder">
+                                    @csrf
+                                    <button type="submit" class="h-10 px-4 flex items-center justify-center gap-1.5 rounded-xl text-[12px] font-semibold cursor-pointer transition-colors duration-200 {{ $item['isOverdue'] ? 'bg-[#FF8A66] text-[#060D26] hover:bg-[#E96F4F]' : 'border border-[#5B6A8E]/30 text-[#060D26] hover:bg-[#ECEEF6]' }}">
+                                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" /></svg>
+                                        Remind
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
                     </x-card>
                 @endforeach
             </div>
@@ -429,11 +451,25 @@
                                         </span>
                                     </td>
                                     <td class="px-5 sm:px-6 py-4 text-right">
-                                        <a href="{{ route('landlord.tenancies.show', $reservation) }}"
-                                            class="inline-flex items-center gap-1 text-[#060D26] text-[12.5px] font-semibold hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer whitespace-nowrap">
-                                            Open ledger
-                                            <span aria-hidden="true">→</span>
-                                        </a>
+                                        <div class="flex items-center justify-end gap-3">
+                                            @if($item['canRemind'])
+                                                <form method="POST" action="{{ route('landlord.tenancies.remind', $reservation) }}"
+                                                    data-confirm="Send {{ $reservation->tenant->first_name }} a rent reminder?"
+                                                    data-confirm-message="They get an in-app notification about their {{ $item['isOverdue'] ? 'overdue' : 'upcoming' }} rent."
+                                                    data-confirm-button="Send reminder">
+                                                    @csrf
+                                                    <button type="submit" title="Send rent reminder" aria-label="Send {{ $reservation->tenant->first_name }} a rent reminder"
+                                                        class="h-9 w-9 flex items-center justify-center rounded-full border transition-colors duration-200 cursor-pointer {{ $item['isOverdue'] ? 'border-[#EF4444]/40 text-[#DC2626] hover:bg-[#EF4444]/[0.06]' : 'border-[#5B6A8E]/30 text-[#060D26] hover:bg-[#ECEEF6]' }}">
+                                                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" /></svg>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                            <a href="{{ route('landlord.tenancies.show', $reservation) }}"
+                                                class="inline-flex items-center gap-1 text-[#060D26] text-[12.5px] font-semibold hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer whitespace-nowrap">
+                                                Open ledger
+                                                <span aria-hidden="true">→</span>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach

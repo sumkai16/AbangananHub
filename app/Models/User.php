@@ -48,6 +48,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_walk_in' => 'boolean',
+            'landlord_terms_accepted_at' => 'datetime',
         ];
     }
 
