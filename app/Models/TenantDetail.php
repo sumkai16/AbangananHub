@@ -95,6 +95,24 @@ class TenantDetail extends Model
     }
 
     /**
+     * What a tenant still has to give before they can sign, as plain labels. Empty when complete. Lets the
+     * sign form and Account Settings say "ID number is missing" instead of showing a wall of red stars.
+     *
+     * @return list<string>
+     */
+    public static function missingFor(?self $detail): array
+    {
+        $required = [
+            'emergency_contact_name' => 'emergency contact name',
+            'emergency_contact_number' => 'emergency contact number',
+            'id_type' => 'ID type',
+            'id_number' => 'ID number',
+        ];
+
+        return array_values(array_filter($required, fn ($label, $field) => ! filled($detail?->{$field}), ARRAY_FILTER_USE_BOTH));
+    }
+
+    /**
      * Writes the validated fields for a user, creating the row on first save. Blank fields are skipped,
      * not saved as null: a walk-in form submitted with the boxes empty (or a client sending only the
      * contact) must never wipe what is already on file. Returns null when there is nothing to store.

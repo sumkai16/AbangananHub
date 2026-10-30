@@ -24,7 +24,7 @@
                 </div>
                 <div class="text-[13px] leading-6 text-[#B45309]">
                     No GCash number on file — AbangananHub can't send you a payout until you add one in
-                    <a href="{{ route('landlord.profile.edit') }}" class="font-semibold underline decoration-2 underline-offset-2">Edit profile</a>.
+                    <a href="{{ route('profile.edit') }}#payout" class="font-semibold underline decoration-2 underline-offset-2">Account Settings</a>.
                 </div>
             </div>
         @endunless

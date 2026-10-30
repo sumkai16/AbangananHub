@@ -151,6 +151,34 @@
                                 <span class="block text-[11px] opacity-60 leading-tight mt-0.5">Login &amp; security</span>
                             </span>
                         </a>
+                        @if($user->usesLandlordShell())
+                            @if($user->showsPayoutTools())
+                            <a href="#payout"
+                                class="sidebar-link relative z-10 group flex items-start gap-2.5 rounded-xl px-3 py-2.5 transition-colors hover:text-[#060D26]"
+                                data-section="payout">
+                                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                                    class="shrink-0 mt-0.5 opacity-60 group-hover:opacity-100">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                                </svg>
+                                <span>
+                                    <span class="block text-sm font-medium leading-tight">Payout details</span>
+                                    <span class="block text-[11px] opacity-60 leading-tight mt-0.5">GCash for payouts</span>
+                                </span>
+                            </a>
+                            @endif
+                            <a href="#business"
+                                class="sidebar-link relative z-10 group flex items-start gap-2.5 rounded-xl px-3 py-2.5 transition-colors hover:text-[#060D26]"
+                                data-section="business">
+                                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                                    class="shrink-0 mt-0.5 opacity-60 group-hover:opacity-100">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" />
+                                </svg>
+                                <span>
+                                    <span class="block text-sm font-medium leading-tight">Business</span>
+                                    <span class="block text-[11px] opacity-60 leading-tight mt-0.5">Public business page</span>
+                                </span>
+                            </a>
+                        @endif
                         @if($user->hasRole('Tenant'))
                             <a href="#emergency-contact"
                                 class="sidebar-link relative z-10 group flex items-start gap-2.5 rounded-xl px-3 py-2.5 transition-colors hover:text-[#060D26]"
@@ -252,6 +280,9 @@
                 <div id="security" class="scroll-mt-28" data-animate>
                     @include('profile.partials.update-password-form')
                 </div>
+                @if($user->usesLandlordShell())
+                    @include('profile.partials.update-landlord-business-form')
+                @endif
                 @if($user->hasRole('Tenant'))
                     <div id="emergency-contact" class="scroll-mt-28" data-animate>
                         @include('profile.partials.update-tenant-details-form')
@@ -279,7 +310,8 @@
     @push('scripts')
         <script>
             (function () {
-                const sections = ['personal-info', 'security', 'emergency-contact', 'danger-zone'];
+                // Whatever links the sidebar shows for this role, in page order, so adding a section never needs a second list.
+                const sections = [...document.querySelectorAll('.sidebar-link')].map(link => link.dataset.section);
                 const indicator = document.getElementById('nav-indicator');
 
                 function setActive(id) {
@@ -299,16 +331,37 @@
                     });
                 }
 
-                window.addEventListener('scroll', () => {
+                // A clicked link stays highlighted even when the page cannot scroll far enough to bring its section
+                // to the top (the last sections sit at the bottom). Real scrolling by the user releases it.
+                let picked = null;
+
+                document.querySelectorAll('.sidebar-link').forEach(link => {
+                    link.addEventListener('click', () => {
+                        picked = link.dataset.section;
+                        setActive(picked);
+                    });
+                });
+                ['wheel', 'touchmove', 'keydown'].forEach(type => {
+                    window.addEventListener(type, () => { picked = null; }, { passive: true });
+                });
+
+                function sync() {
+                    if (picked) return setActive(picked);
+
                     let current = sections[0];
                     sections.forEach(id => {
                         const el = document.getElementById(id);
                         if (el && el.getBoundingClientRect().top <= 140) current = id;
                     });
+                    // At the very bottom the last section may never reach the top, so it would never light up.
+                    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+                        current = sections[sections.length - 1];
+                    }
                     setActive(current);
-                }, { passive: true });
+                }
 
-                setActive('personal-info');
+                window.addEventListener('scroll', sync, { passive: true });
+                sync();
             })();
         </script>
     @endpush

@@ -42,7 +42,7 @@
     <form action="{{ route('reservations.cancel', $reservation) }}" method="POST"
         data-confirm="{{ $isInquiry ? 'Cancel this inquiry?' : 'Cancel this reservation?' }}"
         data-confirm-type="warning"
-        data-confirm-message="This action cannot be undone."
+        data-confirm-message="{{ $reservation->directPaymentNotice('your landlord') ?? 'This action cannot be undone.' }}"
         data-confirm-button="{{ $isInquiry ? 'Cancel inquiry' : 'Cancel reservation' }}"
         data-confirm-cancel="Keep it">
         @csrf @method('PATCH')

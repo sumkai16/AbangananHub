@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Mail\PasswordResetMail;
+use App\Support\Payments;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -344,6 +345,27 @@ class User extends Authenticatable
         $account = $this->payoutAccount;
 
         return $account !== null && filled($account->gcash_number) && filled($account->gcash_account_name);
+    }
+
+    /**
+     * Whether payout screens belong in this landlord's UI: online payments are on, or money is still owed to
+     * them or was paid out before. With online payments off tenants pay the landlord directly and AbangananHub
+     * never asks for GCash details, but a landlord with payout history still needs to see it.
+     */
+    public function showsPayoutTools(): bool
+    {
+        // Memoised on the request, not the model: the layout, the dashboard and the settings page all ask.
+        $attributes = request()->attributes;
+        $key = 'shows_payout_tools:'.$this->user_id;
+
+        if (! $attributes->has($key)) {
+            $attributes->set($key, Payments::online()
+                || Payout::where('landlord_id', $this->user_id)->exists()
+                || Payment::whereHas('reservation.property', fn ($q) => $q->where('landlord_id', $this->user_id))
+                    ->pendingPayout()->exists());
+        }
+
+        return $attributes->get($key);
     }
 
     public function payoutAccount(): HasOne

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\DepositCharge;
 use App\Models\Payment;
 use App\Models\Reservation;
+use App\Support\LeaseTerms;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -49,6 +50,9 @@ class RentLedger
 
     private Collection $depositCharges;
 
+    /** 'Y-m' keys of the months whose late fee the landlord waived. */
+    private Collection $waivedMonths;
+
     public function __construct(private Reservation $reservation)
     {
         // Loaded once and filtered in memory: a tenancy has a handful of
@@ -61,6 +65,12 @@ class RentLedger
         $this->depositCharges = $reservation->relationLoaded('depositCharges')
             ? $reservation->depositCharges
             : $reservation->depositCharges()->get();
+
+        $this->waivedMonths = ($reservation->relationLoaded('lateFeeWaivers')
+            ? $reservation->lateFeeWaivers
+            : $reservation->lateFeeWaivers()->get())
+            ->map(fn ($w) => $w->billing_period->format('Y-m'))
+            ->flip();
     }
 
     public static function for(Reservation $reservation): self
@@ -91,9 +101,11 @@ class RentLedger
             return collect();
         }
 
-        $expected = $this->reservation->monthlyRent();
+        $rent = $this->reservation->monthlyRent();
         $dueDay = $this->reservation->rentDueDay();
-        $grace = (int) config('rentals.rent_overdue_grace_days');
+        // Grace days and the late fee come from the lease's frozen terms, not the live property.
+        $rules = LeaseTerms::rentRules($this->reservation);
+        $grace = $rules['grace_days'];
         $thisMonth = now()->startOfMonth();
         $periods = collect();
 
@@ -102,11 +114,18 @@ class RentLedger
             $paid = (float) $paidPayments->sum(fn (Payment $p) => (float) $p->amount);
             // Safe without overflow handling because rentDueDay() clamps to 28.
             $dueOn = $cursor->copy()->day($dueDay);
+            $feeDue = $this->lateFee($rules['late_fee'], $rent, $paidPayments, $dueOn->copy()->addDays($grace)->endOfDay());
+            $feeWaived = $feeDue > 0 && $this->waivedMonths->has($cursor->format('Y-m'));
+            $lateFee = $feeWaived ? 0.0 : $feeDue;
+            $expected = round($rent + $lateFee, 2);
 
             $periods->push([
                 'period'   => $cursor->copy(),
                 'label'    => $cursor->format('M Y'),
                 'due_on'   => $dueOn,
+                'rent'     => $rent,
+                'late_fee' => $lateFee,
+                'late_fee_waived' => $feeWaived,
                 'expected' => $expected,
                 'paid'     => $paid,
                 'balance'  => round($expected - $paid, 2),
@@ -134,6 +153,10 @@ class RentLedger
         return [
             'label'     => $period['label'],
             'due_on'    => $period['due_on']->format('M d, Y'),
+            'billing_period' => $period['period']->toDateString(),
+            'rent'      => (float) $period['rent'],
+            'late_fee'  => (float) $period['late_fee'],
+            'late_fee_waived' => (bool) $period['late_fee_waived'],
             'expected'  => (float) $period['expected'],
             'paid'      => (float) $period['paid'],
             'balance'   => max(0, (float) $period['balance']),
@@ -326,6 +349,47 @@ class RentLedger
             ->values();
     }
 
+    /**
+     * The month a tenant could pay early: the one right after the last month the ledger shows. It has no
+     * row yet (future debt is never listed), so it is described here in the same shape, owing a full
+     * month's rent. Null while an earlier month is still unsettled (pay that first), or when the lease
+     * has ended or runs out before that month.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function advancePeriod(): ?array
+    {
+        $periods = $this->periods();
+
+        if ($periods->isEmpty() || $this->unsettledPeriods()->isNotEmpty() || $periods->contains(fn ($p) => $p['status'] !== 'paid')) {
+            return null;
+        }
+
+        $next = $periods->last()['period']->copy()->addMonthNoOverflow()->startOfMonth();
+        $moveOut = $this->reservation->target_move_out_date;
+
+        if ($moveOut && $next->greaterThan($moveOut->copy()->startOfMonth())) {
+            return null;
+        }
+
+        $rent = $this->reservation->monthlyRent();
+
+        return [
+            'period' => $next,
+            'label' => $next->format('M Y'),
+            'due_on' => $next->copy()->day($this->reservation->rentDueDay()),
+            'rent' => $rent,
+            'late_fee' => 0.0,
+            'late_fee_waived' => false,
+            'expected' => $rent,
+            'paid' => 0.0,
+            'balance' => $rent,
+            'status' => 'upcoming',
+            'is_future' => true,
+            'payments' => collect(),
+        ];
+    }
+
     // ─── Internals ───────────────────────────────────────────
 
     /**
@@ -463,6 +527,33 @@ class RentLedger
             })
             ->sortBy(fn (Payment $p) => $p->paid_at ?? $p->created_at)
             ->values();
+    }
+
+    /**
+     * The one-time late fee for a month. It applies when the grace deadline has passed and the rent paid on or
+     * before that deadline was less than the rent, so a tenant who pays late still owes it after paying the
+     * rent. No fee rule on the lease (or none agreed, for leases issued before late fees) means no fee.
+     * The fee is a single amount per month, never accruing daily.
+     *
+     * Returns the fee before any waiver; periods() applies the waiver.
+     */
+    private function lateFee(?array $rule, float $rent, Collection $paidPayments, Carbon $deadline): float
+    {
+        if (! $rule || $rent <= 0 || ! $deadline->isPast()) {
+            return 0.0;
+        }
+
+        $paidInTime = (float) $paidPayments
+            ->filter(fn (Payment $p) => ($p->paid_at ?? $p->created_at)->lessThanOrEqualTo($deadline))
+            ->sum(fn (Payment $p) => (float) $p->amount);
+
+        if ($paidInTime >= $rent) {
+            return 0.0;
+        }
+
+        return $rule['type'] === 'percent'
+            ? round($rent * $rule['value'] / 100, 2)
+            : round($rule['value'], 2);
     }
 
     /**

@@ -34,6 +34,7 @@ class Payment extends Model
         'void_reason',
         'void_note',
         'replaces_payment_id',
+        'payment_claim_id',
     ];
 
     protected $casts = [

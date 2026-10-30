@@ -118,6 +118,7 @@
                             <span class="font-medium text-white/65">&middot; {{ $rent['overdueCount'] }} {{ Str::plural('tenant', $rent['overdueCount']) }}</span>
                         </p>
                     @endif
+                    @if(auth()->user()->showsPayoutTools())
                     <a href="{{ route('landlord.payouts.index') }}"
                         class="flex items-center justify-between gap-2 border-t border-white/10 pt-3 text-[13px] text-white/70 hover:text-white transition-colors duration-200">
                         <span>Payout from AbangananHub</span>
@@ -125,6 +126,7 @@
                             {{ $pendingPayout > 0 ? '₱' . number_format($pendingPayout) . ' pending' : 'None pending' }}
                         </span>
                     </a>
+                    @endif
                 </div>
             </div>
 

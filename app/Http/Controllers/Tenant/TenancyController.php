@@ -23,6 +23,7 @@ class TenancyController extends Controller
             'unit.media',
             'payments.recorder',
             'depositCharges',
+            'paymentClaims',
         ]);
 
         $ledger = RentLedger::for($reservation);
@@ -33,6 +34,8 @@ class TenancyController extends Controller
             'otherCharges'   => $ledger->otherCharges(),
             'summary'        => $ledger->summary(),
             'payablePeriod'  => $ledger->unsettledPeriods()->first(),
+            // Nothing due: offer the next month so a tenant can pay ahead (direct payments only).
+            'advancePeriod'  => $ledger->advancePeriod(),
         ]);
     }
 }

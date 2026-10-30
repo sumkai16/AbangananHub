@@ -29,14 +29,37 @@ class LeaseTerms
      */
     public static function for(Reservation $reservation): array
     {
-        return $reservation->lease_snapshot ?: static::snapshot($reservation);
+        if ($reservation->lease_snapshot) {
+            return $reservation->lease_snapshot;
+        }
+
+        // Issued before snapshots existed: render live, but never show rent rules the tenant did not agree to.
+        return static::snapshot($reservation, withRentRules: false);
+    }
+
+    /**
+     * What the ledger charges for late rent on this tenancy: grace days and an optional one-time late fee.
+     * Read from the frozen snapshot only. A reservation with no snapshot (issued before this existed) gets the
+     * platform grace and NO late fee, so a landlord switching a fee on never charges a tenant who never agreed.
+     *
+     * @return array{grace_days:int, late_fee:?array{type:string,value:float}}
+     */
+    public static function rentRules(Reservation $reservation): array
+    {
+        $snapshot = $reservation->lease_snapshot ?: [];
+        $fee = $snapshot['late_fee'] ?? null;
+
+        return [
+            'grace_days' => (int) ($snapshot['grace_days'] ?? config('rentals.rent_overdue_grace_days')),
+            'late_fee'   => is_array($fee) && isset($fee['type'], $fee['value']) ? ['type' => $fee['type'], 'value' => (float) $fee['value']] : null,
+        ];
     }
 
     /**
      * Build the terms from the reservation's current data. Call this at the
      * moment the lease is issued and store the result.
      */
-    public static function snapshot(Reservation $reservation): array
+    public static function snapshot(Reservation $reservation, bool $withRentRules = true): array
     {
         $reservation->loadMissing(['property.landlord', 'unit', 'tenant']);
 
@@ -79,6 +102,10 @@ class LeaseTerms
             ],
             'house_rules' => array_values($property?->house_rules ?? []),
             'notice_days' => (int) config('rentals.lease_notice_days'),
+            'grace_days'  => $withRentRules ? (int) ($property?->rent_grace_days ?? config('rentals.rent_overdue_grace_days')) : null,
+            'late_fee'    => $withRentRules && $property?->late_fee_type && $property->late_fee_value !== null
+                ? ['type' => $property->late_fee_type, 'value' => (float) $property->late_fee_value]
+                : null,
             'extra_terms' => $reservation->agreement_terms_notes,
         ];
     }

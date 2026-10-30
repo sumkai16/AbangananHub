@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Api\Landlord;
 
-use App\Http\Controllers\Concerns\RecordsMoveInPayments;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Landlord\StoreWalkInTenantRequest;
 use App\Http\Resources\ReservationResource;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use App\Models\User;
+use App\Services\MoveInPaymentRecorder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -23,8 +23,6 @@ use Illuminate\Support\Str;
  */
 class WalkInTenantController extends Controller
 {
-    use RecordsMoveInPayments;
-
     public function store(StoreWalkInTenantRequest $request): JsonResponse
     {
         $data = $request->validated();
@@ -82,7 +80,7 @@ class WalkInTenantController extends Controller
             $unit->update(['availability_status' => $status]);
 
             if (! empty($data['initial_amount'])) {
-                $this->recordMoveInPayments($reservation, $unit, $data, $landlordId);
+                MoveInPaymentRecorder::record($reservation, $unit, $data, $landlordId);
             }
 
             return $reservation;

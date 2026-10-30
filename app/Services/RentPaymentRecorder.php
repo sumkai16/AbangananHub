@@ -19,7 +19,7 @@ use Illuminate\Support\Carbon;
 class RentPaymentRecorder
 {
     /**
-     * @param  array{payment_type: string, billing_period?: ?string, amount: numeric-string|float|int, payment_method: string, paid_at: string, reference_no?: ?string, payment_notes?: ?string, replaces_payment_id?: int|string|null}  $data  validated input
+     * @param  array{payment_type: string, billing_period?: ?string, amount: numeric-string|float|int, payment_method: string, paid_at: string, reference_no?: ?string, payment_notes?: ?string, replaces_payment_id?: int|string|null, payment_claim_id?: ?int}  $data  validated input
      * @return int the number of Payment rows written
      */
     public static function record(Reservation $locked, array $data, int $recordedBy): int
@@ -43,6 +43,7 @@ class RentPaymentRecorder
             'payment_notes' => $data['payment_notes'] ?? null,
             'recorded_by' => $recordedBy,
             'replaces_payment_id' => $replaces,
+            'payment_claim_id' => $data['payment_claim_id'] ?? null,
         ];
 
         if ($data['payment_type'] !== 'Monthly') {
