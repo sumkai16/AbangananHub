@@ -26,5 +26,12 @@ Schedule::command('occupancy:snapshot')->dailyAt('23:55')->timezone(config('rent
 // than the nightly escrow run. Idempotent via the rent_reminders guard.
 Schedule::command('reservations:process-rent-reminders')->dailyAt('08:00')->timezone(config('rentals.timezone'));
 
+// Tenant documents (ID photos, clearances) are deleted 30 days after the tenancy ends; the record stays.
+// Same VPS cron as the jobs above (plans/required-tenant-documents.md).
+Schedule::command('reservations:purge-tenant-documents')->dailyAt('03:30');
+
 // AI search logs are kept 30 days (App\Models\AiSearchLog::prunable()).
 Schedule::command('model:prune', ['--model' => [AiSearchLog::class]])->dailyAt('03:00')->timezone(config('rentals.timezone'));
+// Landlord payouts: the immediate job (SendLandlordPayout) does the work as money becomes payable; this sweep
+// polls transfers PayMongo has not confirmed and sends anything still owed (hold over, wallet was short, job missed).
+Schedule::command('payouts:send')->hourly()->withoutOverlapping()->onOneServer()->timezone(config('rentals.timezone'));

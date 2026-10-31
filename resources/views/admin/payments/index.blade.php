@@ -57,7 +57,7 @@
 
     {{-- Tabs --}}
     <div class="flex items-center gap-0.5 border-b border-[#E2E4EC] mb-6 overflow-x-auto">
-        @foreach (['All', 'Held', 'Released', 'Paid', 'Voided', 'Pending'] as $tab)
+        @foreach (['All', 'Held', 'Released', 'Paid', 'Voided', 'Pending', 'Refunded'] as $tab)
             <a href="{{ route('admin.payments.index', ['status' => $tab]) }}"
                 class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
                     {{ $status === $tab ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
@@ -159,6 +159,11 @@
                                             <span class="w-1.5 h-1.5 rounded-full bg-[#94A3B8]"></span>
                                             Processing
                                         </span>
+                                    @elseif ($payment->status === 'Refunded')
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EF4444]/10 text-[11.5px] font-bold text-[#DC2626]">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-[#EF4444]"></span>
+                                            Refunded
+                                        </span>
                                     @else
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E2E4EC] text-[11.5px] font-bold text-[#5B6A8E]">
                                             <span class="w-1.5 h-1.5 rounded-full bg-[#94A3B8]"></span>
@@ -168,6 +173,25 @@
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     @if ($payment->status === 'Held')
+                                        @php
+                                            $group = $heldGroups[$payment->payment_id] ?? collect([$payment]);
+                                            $quote = \App\Services\PaymentRefunds::quote($group);
+                                            $refundDetail = [
+                                                'id' => $payment->payment_id,
+                                                'action' => route('admin.payments.refund', $payment),
+                                                'label' => trim(($tenant->first_name ?? '').' '.($tenant->last_name ?? '')).' · '.($payment->reservation?->property?->title ?? 'Reservation'),
+                                                'rent' => $quote['rent'],
+                                                'fee' => $quote['fee'],
+                                                'rows' => $quote['rows'],
+                                            ];
+                                        @endphp
+                                        <div class="flex flex-wrap items-center justify-end gap-2">
+                                        @if ($payment->recorded_by === null && $quote['paymongo_payment_id'])
+                                            <button type="button" @click="$dispatch('open-refund-payment', {{ \Illuminate\Support\Js::from($refundDetail) }})"
+                                                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-[#EF4444]/30 text-[12px] font-semibold text-[#DC2626] hover:bg-[#EF4444]/[0.06] transition-all duration-200 cursor-pointer">
+                                                Refund tenant
+                                            </button>
+                                        @endif
                                         <form method="POST" action="{{ route('admin.payments.release', $payment) }}"
                                             data-confirm="Release this payment to the landlord?"
                                             data-confirm-type="warning"
@@ -182,6 +206,24 @@
                                                 Release
                                             </button>
                                         </form>
+                                        </div>
+                                    @elseif ($payment->status === 'Refunded')
+                                        <div class="text-[12px] text-[#5B6A8E] leading-snug">
+                                            <p>Refunded {{ $payment->refunded_at?->format('M d, Y') }}</p>
+                                            @if ($payment->refund_status === 'failed')
+                                                <p class="mt-0.5 font-bold text-[#DC2626]">Refund failed. The tenant has not been repaid.</p>
+                                            @elseif ($payment->refund_status === 'processing' && $payment->refund_transfer_link)
+                                                <p class="mt-0.5 text-[#B45309]">Waiting for the tenant to claim it
+                                                    (<a href="{{ $payment->refund_transfer_link }}" target="_blank" rel="noopener noreferrer" class="underline font-semibold">link</a>)</p>
+                                            @elseif (in_array($payment->refund_status, ['pending', 'processing'], true))
+                                                <p class="mt-0.5 text-[#B45309]">PayMongo is still sending it</p>
+                                            @elseif ($payment->refund_status === 'succeeded')
+                                                <p class="mt-0.5 text-[#15803D]">Sent</p>
+                                            @endif
+                                            @if ($payment->refund_includes_fee)
+                                                <p class="mt-0.5">Fee refunded too</p>
+                                            @endif
+                                        </div>
                                     @elseif ($payment->status === 'Released')
                                         <span class="text-[12px] text-[#5B6A8E]">
                                             Released {{ $payment->released_at?->format('M d, Y') }}
@@ -211,6 +253,8 @@
             @endif
         </x-card>
     @endif
+
+    @include('admin.payments.partials.refund-modal')
 
 </div>
 @endsection

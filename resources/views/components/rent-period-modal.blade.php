@@ -125,6 +125,10 @@
                                                 <template x-if="p.reference"><span> · Ref <span x-text="p.reference"></span></span></template>
                                             </p>
                                         </div>
+                                        <a x-show="p.receipt_url" :href="p.receipt_url"
+                                            class="shrink-0 h-8 px-2 inline-flex items-center text-[12.5px] font-semibold text-[#B35A3D] hover:underline">
+                                            Receipt
+                                        </a>
                                         <button type="button" x-show="p.void_action" @click="voidPayment(p)"
                                             class="shrink-0 h-8 px-2 text-[12.5px] font-semibold text-[#5B6A8E] hover:text-[#DC2626] transition-colors duration-200 cursor-pointer">
                                             Void

@@ -92,7 +92,7 @@
                         class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
                 </div>
 
-                <div class="flex flex-wrap items-center gap-2.5">
+                <div class="filter-row flex flex-wrap items-center gap-2.5">
                     @php
                         $unitsPropertyOptions = ['' => 'All Properties'] + $properties->pluck('title', 'property_id')->all();
                         $unitsStatusOptions = ['' => 'All Status', 'Available' => 'Available', 'Reserved' => 'Reserved', 'Occupied' => 'Occupied', 'Maintenance' => 'Maintenance'];
@@ -242,7 +242,7 @@
             @endphp
 
             <div {!! $scopedProperty ? '' : 'x-show="view === \'grid\'"' !!}
-                class="grid grid-cols-1 {{ $scopedProperty ? 'lg:hidden' : 'xl:grid-cols-2 2xl:grid-cols-3' }} gap-4">
+                class="grid grid-cols-1 {{ $scopedProperty ? 'lg:hidden' : 'xl:grid-cols-2 2xl:grid-cols-3' }} gap-2.5 sm:gap-4">
                 @foreach($units as $unit)
                     @php extract($derived[$unit->unit_id]); @endphp
 
@@ -251,7 +251,7 @@
                         class="group flex flex-row rounded-2xl overflow-hidden bg-white ring-1 ring-[#5B6A8E]/10 shadow-[0_2px_12px_rgba(6,13,38,0.05)] hover:shadow-[0_8px_28px_rgba(6,13,38,0.1)] hover:-translate-y-0.5 transition-all duration-300">
 
                         {{-- Photo --}}
-                        <div class="relative w-32 sm:w-44 min-h-[148px] self-stretch overflow-hidden bg-[#ECEEF6] shrink-0">
+                        <div class="relative w-24 sm:w-44 min-h-[104px] sm:min-h-[148px] self-stretch overflow-hidden bg-[#ECEEF6] shrink-0">
                             {{-- Placeholder sits underneath, so a photo that fails to load falls back to it --}}
                             <div class="absolute inset-0 flex flex-col items-center justify-center gap-2">
                                 <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"
@@ -277,7 +277,7 @@
                         </div>
 
                         {{-- Body --}}
-                        <div class="flex flex-col flex-1 min-w-0 p-3.5 gap-2.5">
+                        <div class="flex flex-col flex-1 min-w-0 p-3 sm:p-3.5 gap-1.5 sm:gap-2.5">
                             <div class="min-w-0">
                                 <div class="flex items-start justify-between gap-2">
                                     <p class="text-[15px] font-bold text-[#060D26] leading-snug truncate">{{ $unit->unit_label }}</p>
@@ -307,7 +307,7 @@
                             {{-- Actions --}}
                             <div class="flex items-center gap-1.5 mt-auto">
                                 <button type="button" x-on:click="openModal(@js($unitPayload))"
-                                    class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">
+                                    class="flex-1 h-8 sm:h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">
                                     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
@@ -315,7 +315,7 @@
                                     View
                                 </button>
                                 <a href="{{ route('landlord.properties.units.edit', [$unit->property, $unit]) }}"
-                                    class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full text-[#5B6A8E] text-[12px] font-semibold hover:bg-[#ECEEF6] hover:text-[#B35A3D] transition-colors duration-200">
+                                    class="flex-1 h-8 sm:h-9 flex items-center justify-center gap-1.5 rounded-full text-[#5B6A8E] text-[12px] font-semibold hover:bg-[#ECEEF6] hover:text-[#B35A3D] transition-colors duration-200">
                                     <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931z" />

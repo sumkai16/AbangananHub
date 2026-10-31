@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\ConversationController as AdminConversationController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ListingController;
+use App\Http\Controllers\Admin\PaymentRefundController;
 use App\Http\Controllers\Admin\PropertyCatalogueController;
 use App\Http\Controllers\Admin\PropertyDocumentController as AdminPropertyDocumentController;
 use App\Http\Controllers\Admin\PropertyUnitController as AdminPropertyUnitController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\HandoverController;
 use App\Http\Controllers\Landlord\AnalyticsController;
 use App\Http\Controllers\Landlord\DashboardController;
 use App\Http\Controllers\Landlord\DepositChargeController;
+use App\Http\Controllers\Landlord\LeaseTemplateController;
 use App\Http\Controllers\Landlord\PaymentClaimController;
 use App\Http\Controllers\Landlord\PayoutController;
 use App\Http\Controllers\Landlord\PropertyController as LandlordPropertyController;
@@ -40,6 +42,7 @@ use App\Http\Controllers\PayMongoWebhookController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\TenancyDocumentController;
 use App\Http\Controllers\Tenant\AgreementController;
 use App\Http\Controllers\Tenant\FavoriteController;
 use App\Http\Controllers\Tenant\LeaseController;
@@ -95,10 +98,20 @@ Route::middleware('auth')->group(function () {
     Route::post('/reservations/{reservation}/handover/propose', [HandoverController::class, 'propose'])->name('handover.propose');
     Route::post('/reservations/{reservation}/handover/confirm', [HandoverController::class, 'confirm'])->name('handover.confirm');
 
+    // Documents a lease asks the tenant to upload before signing (plans/required-tenant-documents.md): the tenant
+    // uploads, the landlord reviews, either may open the file. TenancyDocumentPolicy decides who.
+    Route::post('/tenancy-documents/{document}/upload', [TenancyDocumentController::class, 'upload'])->name('tenancy-documents.upload');
+    Route::get('/tenancy-documents/{document}/file', [TenancyDocumentController::class, 'file'])->name('tenancy-documents.file');
+    Route::post('/tenancy-documents/{document}/approve', [TenancyDocumentController::class, 'approve'])->name('tenancy-documents.approve');
+    Route::post('/tenancy-documents/{document}/reject', [TenancyDocumentController::class, 'reject'])->name('tenancy-documents.reject');
+    Route::post('/tenancy-documents/{document}/waive', [TenancyDocumentController::class, 'waive'])->name('tenancy-documents.waive');
+    Route::post('/tenancy-documents/{document}/reopen', [TenancyDocumentController::class, 'reopen'])->name('tenancy-documents.reopen');
+
     // Unit viewings — symmetric like the handover: the tenant requests from
     // the chat, either party reschedules or cancels, the other one confirms.
     // The landlord's Viewings tab posts here too.
     Route::post('/reservations/{reservation}/viewings', [ViewingController::class, 'store'])->name('viewings.store');
+    Route::get('/reservations/{reservation}/viewing-slots', [ViewingController::class, 'slots'])->name('viewings.slots');
     Route::post('/viewings/{viewing}/reschedule', [ViewingController::class, 'reschedule'])->name('viewings.reschedule');
     Route::post('/viewings/{viewing}/confirm', [ViewingController::class, 'confirm'])->name('viewings.confirm');
     Route::post('/viewings/{viewing}/decline', [ViewingController::class, 'decline'])->name('viewings.decline');
@@ -150,6 +163,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/reservations/{reservation}/agreement/sign', [AgreementController::class, 'sign'])->name('agreements.sign');
         Route::post('/reservations/{reservation}/pay', [PaymentController::class, 'createCheckoutSession'])->name('payments.checkout');
         Route::get('/reservations/{reservation}/payment-success', [PaymentController::class, 'success'])->name('payments.success');
+        Route::post('/reservations/{reservation}/payment/continue', [PaymentController::class, 'continueCheckout'])->name('payments.continue');
+        Route::post('/reservations/{reservation}/payment/cancel', [PaymentController::class, 'cancelCheckout'])->name('payments.cancel');
         Route::post('/reservations/{reservation}/confirm-move-in', [AgreementController::class, 'confirmMoveIn'])->name('agreements.confirmMoveIn');
         // confirmMoveIn is a state-changing POST-only action, but a reload/bookmark/
         // back-forward navigation to this URL lands here as GET — send it to the
@@ -163,6 +178,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/tenancy/{reservation}', [TenancyController::class, 'show'])->name('tenancy.show');
         // Read-only lease view — ReservationPolicy::viewLease already authorizes
         // the tenant, same as the landlord; this was the missing route.
+        Route::get('/tenancy/{reservation}/payments/{payment}/receipt', [TenancyController::class, 'receipt'])->name('tenancy.receipt');
         Route::get('/tenancy/{reservation}/lease', [LeaseController::class, 'show'])->name('tenancy.lease');
         Route::get('/tenancy/{reservation}/lease-file', [LeaseController::class, 'file'])->name('tenancy.lease.file');
         Route::post('/tenancy/{reservation}/pay-rent', [PaymentController::class, 'createRentCheckoutSession'])->name('payments.rentCheckout');
@@ -170,6 +186,7 @@ Route::middleware('auth')->group(function () {
         // Paying the landlord directly: report it, or take the report back. The landlord decides.
         Route::post('/reservations/{reservation}/payment-claims', [App\Http\Controllers\Tenant\PaymentClaimController::class, 'store'])->name('paymentClaims.store');
         Route::delete('/payment-claims/{claim}', [App\Http\Controllers\Tenant\PaymentClaimController::class, 'withdraw'])->name('paymentClaims.withdraw');
+        Route::post('/payment-claims/{claim}/dispute', [App\Http\Controllers\Tenant\PaymentClaimController::class, 'dispute'])->name('paymentClaims.dispute');
         Route::get('/tenancy/{reservation}/rent-success', [PaymentController::class, 'rentSuccess'])->name('payments.rent.success');
 
         Route::post('/reviews', [App\Http\Controllers\Tenant\ReviewController::class, 'store'])->name('reviews.store');
@@ -209,6 +226,16 @@ Route::middleware('auth')->group(function () {
         Route::patch('/reservations/{reservation}/reject', [App\Http\Controllers\Landlord\ReservationController::class, 'reject'])->name('reservations.reject');
         Route::patch('/reservations/{reservation}/cancel', [App\Http\Controllers\Landlord\ReservationController::class, 'cancel'])->name('reservations.cancel');
         Route::patch('/reservations/{reservation}/advance-negotiation', [App\Http\Controllers\Landlord\ReservationController::class, 'advanceToNegotiation'])->name('reservations.advanceNegotiation');
+        Route::patch('/reservations/{reservation}/accept-and-send', [App\Http\Controllers\Landlord\ReservationController::class, 'acceptAndSendAgreement'])->name('reservations.acceptAndSend');
+        // Leases page: lease template library and where each template is used (plans/lease-templates-page.md)
+        Route::get('/leases', [LeaseTemplateController::class, 'index'])->name('leases.index');
+        Route::patch('/leases/assign', [LeaseTemplateController::class, 'assign'])->name('lease-templates.assign');
+        Route::post('/leases/templates/preview', [LeaseTemplateController::class, 'preview'])->name('lease-templates.preview');
+        Route::resource('leases/templates', LeaseTemplateController::class)
+            ->only(['create', 'store', 'edit', 'update', 'destroy'])
+            ->parameters(['templates' => 'leaseTemplate'])
+            ->names('lease-templates');
+        Route::post('/reservations/{reservation}/lease-preview', [App\Http\Controllers\Landlord\ReservationController::class, 'previewLease'])->name('reservations.leasePreview');
         Route::patch('/reservations/{reservation}/advance-agreement', [App\Http\Controllers\Landlord\ReservationController::class, 'advanceToPendingAgreement'])->name('reservations.advanceAgreement');
         Route::post('/reservations/{reservation}/turned-over', [App\Http\Controllers\Landlord\ReservationController::class, 'markTurnedOver'])->name('reservations.markTurnedOver');
         // Direct payments: answer a tenant's report, record move-in money by hand, confirm a direct move-in.
@@ -272,6 +299,8 @@ Route::middleware('auth')->group(function () {
 
         // Rent collection
         Route::get('/payments', [App\Http\Controllers\Landlord\PaymentController::class, 'index'])->name('payments.index');
+        Route::post('/payments/remind-overdue', [App\Http\Controllers\Landlord\PaymentController::class, 'remindOverdue'])
+            ->middleware('throttle:3,1')->name('payments.remindOverdue');
         Route::get('/payments/export', [App\Http\Controllers\Landlord\PaymentController::class, 'export'])->name('payments.export');
         Route::post('/tenancies/{reservation}/payments', [App\Http\Controllers\Landlord\PaymentController::class, 'store'])->name('payments.store');
         Route::get('/payments/{payment}/receipt', [App\Http\Controllers\Landlord\PaymentController::class, 'receipt'])->name('payments.receipt');
@@ -367,11 +396,19 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/payments', [App\Http\Controllers\Admin\PaymentController::class, 'index'])->name('payments.index');
         Route::post('/payments/{payment}/release', [App\Http\Controllers\Admin\PaymentController::class, 'release'])->name('payments.release');
+        // Give a held online payment back to the tenant (the other way out of the move-in review queue).
+        Route::post('/payments/{payment}/refund', [PaymentRefundController::class, 'store'])
+            ->middleware('throttle:10,1')->name('payments.refund');
 
         // Landlord payouts — manual GCash transfer queue, see
         // docs/specs/2026-07-26-landlord-payout-design.md
         Route::get('/payouts', [App\Http\Controllers\Admin\PayoutController::class, 'index'])->name('payouts.index');
         Route::post('/payouts/{user}/mark-paid-out', [App\Http\Controllers\Admin\PayoutController::class, 'markPaidOut'])->name('payouts.markPaidOut');
+        Route::post('/payouts/{payout}/retry', [App\Http\Controllers\Admin\PayoutController::class, 'retry'])->name('payouts.retry');
+        Route::post('/payouts/{payout}/check', [App\Http\Controllers\Admin\PayoutController::class, 'check'])->name('payouts.check');
+        Route::post('/payouts/{user}/approve-account', [App\Http\Controllers\Admin\PayoutController::class, 'approveAccount'])->name('payouts.approveAccount');
+        Route::post('/payouts/{user}/pause', [App\Http\Controllers\Admin\PayoutController::class, 'pause'])->name('payouts.pause');
+        Route::post('/payouts/{user}/resume', [App\Http\Controllers\Admin\PayoutController::class, 'resume'])->name('payouts.resume');
 
         // Deposit charges — admin oversight/override of a landlord's claims
         // against a tenant's held security deposit. ReservationPolicy::

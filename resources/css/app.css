@@ -43,6 +43,91 @@ h1, h2, h3, h4, h5, h6 {
     margin: 1in;
 }
 
+/* One-page documents (payment receipts) print on a margin-less page, which is what makes Chrome and Edge
+   drop their own header and footer (date, page title, URL, "1/1"). They print through `.print-sheet`,
+   which supplies the 0.6in margin as padding instead. Multi-page documents (lease, agreement) keep the
+   1in @page margin above, because padding only spaces the first and last page. */
+@page receipt {
+    margin: 0;
+}
+
+@media print {
+    .print-sheet {
+        page: receipt;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0.6in !important;
+        /* Fill the sheet top to bottom on any paper size: the page is margin-less, so 100vh is the page height.
+           The 1px keeps a rounding error from spilling onto a blank second page. */
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+        min-height: calc(100vh - 1px);
+    }
+
+    /* Paper is always light, whatever theme the screen is in. */
+    html.dark body {
+        background-color: #ffffff;
+        color: #060D26;
+    }
+}
+
+/* Multi-page documents (lease, tenant agreement), see components/print-document.blade.php. The page has no
+   margin (so the browser prints no header or footer); the top and bottom margin comes from table spacers
+   that repeat on every page, the sides from padding. On screen the table is plain blocks and the spacers
+   are hidden, so nothing changes. */
+@page doc {
+    margin: 0;
+}
+
+.print-doc-table,
+.print-doc-table > tbody,
+.print-doc-table > tbody > tr,
+.print-doc-table > tbody > tr > td {
+    display: block;
+}
+
+.print-doc-table > thead,
+.print-doc-table > tfoot {
+    display: none;
+}
+
+@media print {
+    .print-doc {
+        page: doc;
+    }
+
+    .print-doc-table {
+        display: table;
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .print-doc-table > thead { display: table-header-group; }
+    .print-doc-table > tfoot { display: table-footer-group; }
+    .print-doc-table > tbody { display: table-row-group; }
+    .print-doc-table > thead > tr,
+    .print-doc-table > tbody > tr,
+    .print-doc-table > tfoot > tr { display: table-row; }
+    .print-doc-table > thead > tr > td,
+    .print-doc-table > tbody > tr > td,
+    .print-doc-table > tfoot > tr > td { display: table-cell; }
+
+    .print-doc-gap { height: 0.7in; }
+    .print-doc-body { padding: 0 0.75in; }
+
+    /* Paper stays light in dark mode (the same opt-out as .paper above, for the whole document). */
+    html.dark :is(.print-doc, .print-doc *).bg-white { background-color: #ffffff; }
+    html.dark :is(.print-doc, .print-doc *).bg-\[\#ECEEF6\] { background-color: #ECEEF6; }
+    html.dark :is(.print-doc, .print-doc *).bg-\[\#F7F8FC\] { background-color: #F7F8FC; }
+    html.dark :is(.print-doc, .print-doc *).text-\[\#060D26\] { color: #060D26; }
+    html.dark :is(.print-doc, .print-doc *).text-\[\#5B6A8E\] { color: #5B6A8E; }
+    html.dark :is(.print-doc, .print-doc *).text-\[\#94A3B8\] { color: #94A3B8; }
+    html.dark :is(.print-doc, .print-doc *).text-\[\#334155\] { color: #334155; }
+    html.dark :is(.print-doc, .print-doc *).text-\[\#B35A3D\] { color: #B35A3D; }
+    html.dark :is(.print-doc, .print-doc *).border-\[\#E2E4EC\] { border-color: #E2E4EC; }
+}
+
 /* Slim, theme-matched scrollbar for dark sidebars (admin/landlord nav) —
    overrides the browser's bulky default arrows/thumb on Chromium + Firefox. */
 .scrollbar-thin {
@@ -153,6 +238,15 @@ html.dark .bg-\[\#FF8A66\] { color: #060D26; }
 html.dark .peer:checked ~ span { color: #060D26; }
 html.dark .to-white { --tw-gradient-to: #111A3A var(--tw-gradient-to-position); }
 html.dark .from-\[\#ECEEF6\] { --tw-gradient-from: #1A2448 var(--tw-gradient-from-position); --tw-gradient-to: rgb(26 36 72 / 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+
+/* A printable document (payment receipt) is paper: it keeps its light palette in dark mode, on screen and in
+   print, instead of taking the remap above. :is() keeps the override above the remap's specificity. */
+html.dark :is(.paper, .paper *).bg-white { background-color: #ffffff; }
+html.dark :is(.paper, .paper *).bg-\[\#ECEEF6\] { background-color: #ECEEF6; }
+html.dark :is(.paper, .paper *).text-\[\#060D26\] { color: #060D26; }
+html.dark :is(.paper, .paper *).text-\[\#5B6A8E\] { color: #5B6A8E; }
+html.dark :is(.paper, .paper *).text-\[\#B35A3D\] { color: #B35A3D; }
+html.dark :is(.paper, .paper *).border-\[\#E2E4EC\] { border-color: #E2E4EC; }
 html.dark .to-\[\#F7F8FC\] { --tw-gradient-to: #111A3A var(--tw-gradient-to-position); }
 html.dark .bg-\[\#FF8A66\] .text-\[\#060D26\] { color: #060D26; }
 
@@ -284,6 +378,58 @@ html.dark :where([type="checkbox"], [type="radio"]) { background-color: #1A2448;
     main, #main { animation: none !important; }
 }
 
+/* The landlord shell's mobile top bar carries the page title (@push('mobile-title')), so the
+   in-page title block (icon, title, subtitle) is dropped below lg and the content starts higher.
+   A header with no actions has nothing left to show and goes entirely. */
+@media (max-width: 1023px) {
+    .landlord-shell .page-header-title,
+    .landlord-shell .page-header-bare { display: none; }
+}
+
+/* Phone: stat cards and strips collapse to a compact grid of small tiles (number over label) that
+   fits the screen with no sideways scroll: four to a row, a fifth wraps. Notes, icons and bars drop;
+   sm and up is unchanged. */
+@media (max-width: 639px) {
+    /* 12-column grid so any count fills its rows evenly: 2, 3, 4 and 6 tiles share one or two even rows,
+       and 5 tiles become three over two. Counted with :nth-last-child so no markup needs to say how many. */
+    .stat-chips, .stat-strip-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: .5rem; background: none; }
+    .stat-chips > *, .stat-strip-grid > * { grid-column: span 4; }
+    :is(.stat-chips, .stat-strip-grid) > :first-child:nth-last-child(1),
+    :is(.stat-chips, .stat-strip-grid) > :first-child:nth-last-child(1) ~ *,
+    :is(.stat-chips, .stat-strip-grid) > :first-child:nth-last-child(2),
+    :is(.stat-chips, .stat-strip-grid) > :first-child:nth-last-child(2) ~ * { grid-column: span 6; }
+    :is(.stat-chips, .stat-strip-grid) > :first-child:nth-last-child(4),
+    :is(.stat-chips, .stat-strip-grid) > :first-child:nth-last-child(4) ~ * { grid-column: span 3; }
+    :is(.stat-chips, .stat-strip-grid) > :first-child:nth-last-child(5) ~ :nth-child(n+4) { grid-column: span 6; }
+    .stat-chips > .stat-card, .stat-strip-cell {
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .2rem;
+        min-width: 0; padding: .5rem .25rem; text-align: center; border-radius: .75rem; box-shadow: none;
+        border: 1px solid #E2E4EC; background: #fff; overflow-wrap: anywhere;
+    }
+    .stat-chips .sc-head { order: 2; margin: 0; justify-content: center; }
+    .stat-chips .sc-label, .stat-strip-cell .ss-label {
+        font-size: 11px; line-height: 1.15; font-weight: 600; white-space: normal; text-transform: none;
+        letter-spacing: 0; justify-content: center; gap: .3rem;
+    }
+    .stat-chips .sc-value, .stat-strip-cell .ss-value {
+        order: 1; margin: 0; font-size: 16px; line-height: 1.1; font-weight: 700; font-variant-numeric: tabular-nums;
+    }
+    .stat-strip-cell .ss-value { order: -1; }
+    /* The status dot sits inline with the text, so a label that wraps stays centred as one block. */
+    .stat-strip-cell .ss-label { display: block; }
+    .stat-strip-cell .ss-label > span { display: inline-block; vertical-align: middle; margin: -.1em .3rem 0 0; }
+    .stat-chips .sc-icon, .stat-chips .sc-bar, .stat-chips .sc-sub, .stat-strip-cell .ss-note { display: none; }
+
+    /* One line: the dropdowns share the width evenly (labels truncate), Filter shrinks to its icon. */
+    .filter-row { flex-wrap: nowrap; }
+    .filter-row > :has(button[aria-haspopup="listbox"]) { flex: 1 1 0; min-width: 0; }
+    .filter-row button[aria-haspopup="listbox"] { width: 100%; max-width: none; padding-left: .75rem; padding-right: 2rem; }
+    .filter-row > button[type="submit"] { flex: none; }
+    .filter-row > button[type="submit"] { font-size: 0; width: 2.75rem; padding: 0; justify-content: center; gap: 0; }
+
+    .stat-strip { background: none; border: 0; box-shadow: none; overflow: visible; }
+}
+
 @layer base {
     a, button, [role="button"], input, select, textarea {
         transition-property: color, background-color, border-color, box-shadow, opacity, scale;
@@ -337,3 +483,21 @@ html.dark :where([type="checkbox"], [type="radio"]) { background-color: #1A2448;
 .fv-bars i { width: 28px; height: 4px; border-radius: 999px; background: rgba(148, 163, 184, 0.3); transition: background-color 150ms; }
 .fv-bars i.on { background: var(--fv-c); }
 .fv-strength-label { color: var(--fv-c); font-weight: 600; }
+
+/* ── Lease editor and the lease body it writes ─────────────────────────────── */
+.lease-prose { font-size: 13.5px; line-height: 1.65; color: #060D26; }
+.lease-prose h3 { font-size: 17px; font-weight: 600; margin: 1.5rem 0 .4rem; }
+.lease-prose h3:first-child { margin-top: 0; }
+.lease-prose p { margin: .5rem 0; }
+.lease-prose ul { list-style: disc; padding-left: 1.25rem; margin: .5rem 0; }
+.lease-prose ol { list-style: decimal; padding-left: 1.25rem; margin: .5rem 0; }
+.lease-prose li > p { margin: 0; }
+.lease-prose strong { font-weight: 700; }
+.lease-prose em { font-style: italic; }
+.lease-prose u { text-decoration: underline; }
+.ProseMirror.lease-prose { outline: none; min-height: 50vh; }
+.lease-field { display: inline-block; padding: 0 .4rem; margin: 0 .1rem; border-radius: .375rem; border: 1px solid #E2E4EC; background: #ECEEF6; color: #060D26; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.lease-field::before { content: "["; opacity: .5; }
+.lease-field::after { content: "]"; opacity: .5; }
+.ProseMirror-selectednode.lease-field { outline: 2px solid #FF8A66; }
+@media print { .lease-prose h3 { break-after: avoid; } }

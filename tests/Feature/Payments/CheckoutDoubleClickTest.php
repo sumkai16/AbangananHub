@@ -54,10 +54,10 @@ class CheckoutDoubleClickTest extends TestCase
 
             return $this->postJson($flow === 'initial'
                 ? "/api/v1/tenant/reservations/{$id}/pay"
-                : "/api/v1/tenant/tenancy/{$id}/pay-rent");
+                : "/api/v1/tenant/tenancy/{$id}/pay-rent", ['accept_terms' => '1']);
         }
 
-        return $this->actingAs($t['tenant'])->post(route($flow === 'initial' ? 'payments.checkout' : 'payments.rentCheckout', $reservation));
+        return $this->actingAs($t['tenant'])->post(route($flow === 'initial' ? 'payments.checkout' : 'payments.rentCheckout', $reservation), ['accept_terms' => '1']);
     }
 
     private function assertRefused($response, string $surface): void
@@ -80,7 +80,7 @@ class CheckoutDoubleClickTest extends TestCase
     #[DataProvider('surfaces')]
     public function test_a_placeholder_without_a_session_id_blocks_a_second_initial_checkout(string $surface): void
     {
-        $t = $this->makeTenancy(['rental_status' => 'Rental Agreement Signed', 'agreed_at' => now(), 'agreed_ip' => '127.0.0.1']);
+        $t = $this->makeOnlineTenancy(['rental_status' => 'Rental Agreement Signed', 'agreed_at' => now(), 'agreed_ip' => '127.0.0.1']);
         $this->makePendingCheckout($t['reservation'], 'x', ['paymongo_checkout_session_id' => null]);
 
         $this->assertRefused($this->start($surface, 'initial', $t), $surface);
@@ -92,7 +92,7 @@ class CheckoutDoubleClickTest extends TestCase
     #[DataProvider('surfaces')]
     public function test_a_placeholder_without_a_session_id_blocks_a_second_rent_checkout(string $surface): void
     {
-        $t = $this->makeTenancy();
+        $t = $this->makeOnlineTenancy();
         $this->makePayment($t['reservation'], [
             'payment_type' => 'Monthly', 'billing_period' => '2026-08-01', 'status' => 'Pending',
             'payment_method' => 'GCash', 'paid_at' => null, 'paymongo_checkout_session_id' => null,
@@ -106,7 +106,7 @@ class CheckoutDoubleClickTest extends TestCase
     #[DataProvider('surfaces')]
     public function test_an_already_settled_initial_payment_is_refused(string $surface): void
     {
-        $t = $this->makeTenancy(['rental_status' => 'Rental Agreement Signed', 'agreed_at' => now(), 'agreed_ip' => '127.0.0.1']);
+        $t = $this->makeOnlineTenancy(['rental_status' => 'Rental Agreement Signed', 'agreed_at' => now(), 'agreed_ip' => '127.0.0.1']);
         $this->makePayment($t['reservation'], ['payment_type' => 'Initial', 'billing_period' => null, 'status' => 'Held', 'payment_method' => 'GCash']);
 
         $this->assertRefused($this->start($surface, 'initial', $t), $surface);
@@ -117,7 +117,7 @@ class CheckoutDoubleClickTest extends TestCase
     #[DataProvider('surfaces')]
     public function test_a_reservation_that_is_not_signed_is_refused(string $surface): void
     {
-        $t = $this->makeTenancy(['rental_status' => 'Pending Rental Agreement']);
+        $t = $this->makeOnlineTenancy(['rental_status' => 'Pending Rental Agreement']);
 
         $this->assertRefused($this->start($surface, 'initial', $t), $surface);
 
@@ -127,7 +127,7 @@ class CheckoutDoubleClickTest extends TestCase
     #[DataProvider('surfaces')]
     public function test_a_first_click_still_opens_exactly_one_session(string $surface): void
     {
-        $t = $this->makeTenancy(['rental_status' => 'Rental Agreement Signed', 'agreed_at' => now(), 'agreed_ip' => '127.0.0.1']);
+        $t = $this->makeOnlineTenancy(['rental_status' => 'Rental Agreement Signed', 'agreed_at' => now(), 'agreed_ip' => '127.0.0.1']);
 
         $response = $this->start($surface, 'initial', $t);
         $surface === 'api' ? $response->assertOk() : $response->assertRedirect('https://checkout.paymongo.test/cs_new');
@@ -138,7 +138,7 @@ class CheckoutDoubleClickTest extends TestCase
 
     public function test_checkout_is_refused_when_another_reservation_on_the_unit_is_signed(): void
     {
-        $t = $this->makeTenancy(['rental_status' => 'Rental Agreement Signed', 'agreed_at' => now(), 'agreed_ip' => '127.0.0.1']);
+        $t = $this->makeOnlineTenancy(['rental_status' => 'Rental Agreement Signed', 'agreed_at' => now(), 'agreed_ip' => '127.0.0.1']);
         $other = $this->makeTenant();
         Reservation::create([
             'tenant_id' => $other->user_id, 'property_id' => $t['reservation']->property_id, 'unit_id' => $t['reservation']->unit_id,

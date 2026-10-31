@@ -64,7 +64,7 @@ class UserSplitTest extends TestCase
         $this->assertTrue($landlord->fresh()->hasPayoutDestination());
 
         $this->actingAs($landlord)
-            ->patch('/landlord/profile', $base + ['gcash_number' => '', 'gcash_account_name' => '']);
+            ->patch('/landlord/profile', $base + ['gcash_number' => '', 'gcash_account_name' => '', 'current_password' => 'password']);
         $this->assertFalse($landlord->fresh()->hasPayoutDestination());
     }
 
@@ -78,6 +78,7 @@ class UserSplitTest extends TestCase
             'first_name'         => $landlord->first_name,
             'last_name'          => $landlord->last_name,
             'gcash_account_name' => 'Lana L.',
+            'current_password'   => 'password',
         ])->assertOk();
 
         $account = $landlord->fresh()->payoutAccount;

@@ -9,6 +9,23 @@ return [
     'online_payments_enabled' => env('ONLINE_PAYMENTS_ENABLED', false),
 
     /*
+     * Whether landlords are paid automatically through PayMongo Send Money (the instant job and the hourly sweep).
+     * Off = manual mode: nothing is sent to PayMongo, what landlords are owed stays owed, and an administrator pays
+     * them by hand and presses "Mark Paid Out". Use it while PayMongo cannot send to GCash yet. Payouts PayMongo is
+     * already processing still finish. Admin-editable in System Settings.
+     */
+    'automatic_payouts_enabled' => env('AUTOMATIC_PAYOUTS_ENABLED', true),
+
+    /*
+     * The fee a tenant pays on top of the rent for paying online (move-in and monthly rent): percent of the
+     * rent plus a fixed amount, in pesos. Both 0 = no fee. Never applied to direct or cash payments, which
+     * cost the platform nothing. Admin-editable in System Settings; frozen on each payment when its checkout
+     * starts (payments.service_fee), so changing it never alters a payment already in flight.
+     */
+    'online_payment_fee_percent' => 0,
+    'online_payment_fee_fixed' => 0,
+
+    /*
      * Version tag for the Terms & Conditions / Privacy Policy. The property page remembers a visitor's
      * "I agree" tick on their device against this value — change it whenever the legal text changes and
      * everyone is asked once more.

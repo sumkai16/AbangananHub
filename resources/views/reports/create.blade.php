@@ -1,30 +1,31 @@
 @extends(auth()->check() && auth()->user()->hasRole('Landlord') ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
 
 @section('content')
-    <div class="min-h-[calc(100vh-72px)] py-10 px-4 sm:px-6 lg:px-8">
+    <div class="min-h-[calc(100vh-72px)] py-4 sm:py-10 px-4 sm:px-6 lg:px-8">
        <div class="max-w-5xl mx-auto">
 
-            {{-- Header --}}
-            <div class="mb-8">
+            {{-- Header (the landlord shell shows the title in its mobile top bar instead) --}}
+            @push('mobile-title')<x-page-icon class="!h-7 !w-7 !rounded-lg" path="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732" /><span class="truncate text-[15px] font-semibold tracking-tight text-[#060D26]">{{ $targetType === 'user' ? 'Report a user' : ($targetType === 'property' ? 'Report a listing' : 'Report a problem') }}</span>@endpush
+            <div class="page-header-title mb-5 sm:mb-8">
                 <div class="flex items-center gap-3.5">
-                    <div class="w-11 h-11 rounded-xl bg-[#060D26] flex items-center justify-center shrink-0">
+                    <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#060D26] flex items-center justify-center shrink-0">
                         @if($targetType === 'user')
-                            <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="1.8">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="1.8" class="w-4 h-4 sm:w-[19px] sm:h-[19px]">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                             </svg>
                         @else
-                            <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="1.8">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="1.8" class="w-4 h-4 sm:w-[19px] sm:h-[19px]">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
                             </svg>
                         @endif
                     </div>
                     <div>
-                        <h1 class="text-2xl font-normal text-[#060D26] leading-tight">
+                        <h1 class="text-xl sm:text-2xl font-normal text-[#060D26] leading-tight">
                             {{ $targetType === 'user' ? 'Report a user' : ($targetType === 'property' ? 'Report a listing' : 'Report a problem') }}
                         </h1>
-                        <p class="mt-1 text-sm text-[#5B6A8E]">
+                        <p class="mt-1 hidden text-sm text-[#5B6A8E] sm:block">
                             {{ $targetType === 'user' ? 'Let us know what this user did wrong.' : ($targetType === 'property' ? 'Let us know what\'s wrong with this listing.' : 'Let us know about a listing or user that violates our community guidelines.') }}
                         </p>
                     </div>
@@ -50,7 +51,7 @@
 
                 {{-- Form --}}
                 <form method="POST" action="{{ route('reports.store') }}"
-                    class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-6 sm:p-8 space-y-6"
+                    class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-4 sm:p-8 space-y-4 sm:space-y-6"
                     x-data="{ targetType: '{{ old('target_type', $targetType ?? 'property') }}' }">
                     @csrf
 
@@ -166,11 +167,15 @@
                         <label class="block text-[12px] font-semibold text-[#060D26] mb-1.5">
                             Reason <span class="text-[#EF4444]">*</span>
                         </label>
-                        @php
-                            $categoryOptions = ['' => 'Select a reason...'] + array_combine($categories, $categories);
-                        @endphp
-                        <x-styled-select name="category" :options="$categoryOptions" :selected="old('category', '')"
-                            class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26]" />
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($categories as $category)
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="category" value="{{ $category }}" class="peer sr-only" required
+                                        @checked(old('category') === $category)>
+                                    <span class="inline-flex h-9 items-center rounded-full border border-[#5B6A8E]/30 bg-white px-3.5 text-[13px] text-[#060D26] transition-colors peer-checked:border-[#060D26] peer-checked:bg-[#060D26] peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-[#FF8A66]/40">{{ $category }}</span>
+                                </label>
+                            @endforeach
+                        </div>
                     </div>
 
                     {{-- Details --}}
@@ -183,17 +188,17 @@
                             class="w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 py-3 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">{{ old('details') }}</textarea>
                     </div>
 
-                    <div class="flex items-center gap-3 pt-2">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 pt-1 sm:pt-2">
                         <button type="submit"
-                            class="h-11 px-6 inline-flex items-center justify-center rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200">
+                            class="w-full sm:w-auto h-11 px-6 inline-flex items-center justify-center rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200">
                             Submit report
                         </button>
-                        <p class="text-[11px] text-[#5B6A8E]">Our team reviews all reports and takes appropriate action.</p>
+                        <p class="text-[11px] text-[#5B6A8E]">Our team reviews all reports and takes appropriate action.<span class="lg:hidden"> Reports are confidential: the person or listing is not told you reported them.</span></p>
                     </div>
                 </form>
 
                 {{-- Side info panel --}}
-                <div class="space-y-4 lg:sticky lg:top-8">
+                <div class="hidden lg:block space-y-4 lg:sticky lg:top-8">
                     <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5">
                         <h2 class="text-[13px] font-normal text-[#060D26] mb-4">What happens next?</h2>
                         <div class="space-y-4">

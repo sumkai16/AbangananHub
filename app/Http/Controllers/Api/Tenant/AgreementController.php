@@ -8,6 +8,7 @@ use App\Models\Notification;
 use App\Models\PaymentQrShare;
 use App\Models\Reservation;
 use App\Models\TenantDetail;
+use App\Services\TenancyDocuments;
 use App\Support\Payments;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -49,6 +50,8 @@ class AgreementController extends Controller
             'data' => new ReservationResource($reservation),
             'needs_tenant_details' => ! TenantDetail::completeFor(request()->user()),
             'online_payments_enabled' => Payments::online(),
+            // This landlord can actually be paid online (GCash on file, no opt-out). When true the tenant chooses online or direct.
+            'online_available' => Payments::onlineFor($reservation),
             'payment_qr' => PaymentQrShare::latestFor($reservation)?->toApi(),
         ]);
     }
@@ -56,6 +59,10 @@ class AgreementController extends Controller
     public function sign(Request $request, Reservation $reservation): JsonResponse
     {
         Gate::authorize('sign', $reservation);
+
+        if ($missing = TenancyDocuments::missing($reservation)->pluck('label')->all()) {
+            throw ValidationException::withMessages(['documents' => ['Upload these first: '.implode(', ', $missing).'.']]);
+        }
 
         // Same rule as the web form: emergency contact and ID on file before signing, asked once.
         $needsDetails = ! TenantDetail::completeFor($request->user());

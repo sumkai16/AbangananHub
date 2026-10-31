@@ -209,6 +209,18 @@
                                 class="w-full px-3.5 py-3 rounded-xl border border-[#E2E4EC] bg-white text-[14px] text-[#060D26] leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/25 focus:border-[#FF8A66] transition-all duration-200">{{ old('default_lease_terms', $property->default_lease_terms) }}</textarea>
                             @error('default_lease_terms')<p class="{{ $error }}">{{ $message }}</p>@enderror
                         </div>
+
+                        <div class="mt-5 border-t border-[#E2E4EC] pt-5">
+                            <p class="{{ $label }}">Policy</p>
+                            <p class="text-[13px] text-[#060D26]">
+                                {{ $property->leaseTemplate?->name ?? 'Standard policy' }}
+                                <span class="text-[#5B6A8E]">&middot; units can use their own.</span>
+                                <a href="{{ route('landlord.leases.index', ['property' => $property->property_id]) }}" class="ml-1 font-semibold text-[#060D26] underline underline-offset-2">Change on the Policies page</a>
+                            </p>
+                            @if($property->leaseTemplate && ($property->leaseTemplate->rent_grace_days !== null || $property->leaseTemplate->late_fee_type !== null))
+                                <p class="mt-1 text-[12px] text-[#B45309]">This policy sets its own rent rules, so the rent rules below apply only to units on another policy.</p>
+                            @endif
+                        </div>
                     </x-form-section>
 
                     <x-form-section title="Rent rules" description="Private to you. Each lease keeps the rules that were in force when it was sent.">

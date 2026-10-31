@@ -1,4 +1,4 @@
-<div class="rounded-2xl border border-[#EF4444]/20 bg-white p-6 sm:p-8">
+<div class="rounded-2xl border border-[#EF4444]/20 bg-white p-4 sm:p-8">
 
     {{-- Section header --}}
     <div class="mb-5 border-b border-[#EF4444]/20 pb-5 flex items-center gap-3">

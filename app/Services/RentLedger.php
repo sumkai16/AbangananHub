@@ -168,6 +168,7 @@ class RentLedger
                 'method'    => $p->payment_method ?: ($p->isManuallyRecorded() ? 'Recorded manually' : 'Online'),
                 'reference' => $p->reference_no,
                 'can_void'  => $p->canBeVoided(),
+                'has_receipt' => $p->hasReceipt(),
             ])->values()->all(),
         ];
     }

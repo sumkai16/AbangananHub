@@ -60,8 +60,8 @@ class RentReminderNotifier
             'payment',
             $this->title(($period['status'] ?? '') === 'overdue'),
             'Your ' . $period['label'] . ' rent (' . $this->amount($period) . ') '
-                . $this->timing($period['due_on'], $today, ($period['status'] ?? 'overdue') === 'overdue') . (Payments::online()
-                    ? '. You can pay it online from your tenancy page, or arrange it with your landlord.'
+                . $this->timing($period['due_on'], $today, ($period['status'] ?? 'overdue') === 'overdue') . (Payments::onlineFor($reservation)
+                    ? '. Pay it online from your tenancy page, or pay your landlord directly and tap "I\'ve paid" there.'
                     : '. Pay your landlord, then tap "I\'ve paid" on your tenancy page so they can confirm it.'),
             route('tenancy.show', $reservation),
         );

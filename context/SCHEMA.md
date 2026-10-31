@@ -28,6 +28,10 @@ erDiagram
     users ||--o{ properties : "landlord_id"
     users ||--o{ users : "created_by_landlord_id (walk-in)"
     properties ||--o{ property_units : "property_id"
+    users ||--o{ lease_templates : "landlord_id"
+    lease_templates ||--o{ properties : "lease_template_id"
+    lease_templates ||--o{ property_units : "lease_template_id"
+    reservations ||--o{ tenancy_documents : "reservation_id"
     properties ||--o{ property_documents : "property_id"
     properties ||--o{ property_media : "property_id"
     property_units ||--o{ unit_media : "unit_id"
@@ -84,6 +88,8 @@ A person. Tenants, landlords and admins are all rows here; the role lives in `us
 | account_status | enum('active','suspended','inactive') | NN, = 'active' | index | |
 | is_walk_in | boolean | NN, = 0 | | Landlord-entered tenant; drives the **Walk-in** pill everywhere |
 | created_by_landlord_id | bigint unsigned | null | FK → users, set null | Scopes `User::walkInTenants()` |
+| landlord_terms_accepted_at | timestamp | null | | When the landlord accepted the money-handling terms; asked once per payment route (`App\Support\LandlordTerms`) |
+| landlord_terms_payment_mode | varchar(10) | null | | `online` or `direct`: the route the acceptance covered. A change of route asks again |
 | remember_token | varchar(100) | null | | |
 | created_at | timestamp | null | | |
 | updated_at | timestamp | null | | |
@@ -113,7 +119,13 @@ A landlord's GCash payout destination. A row exists only while details are set (
 | user_id | bigint unsigned | NN | PK, FK → users, cascade | |
 | gcash_number | varchar(255) | null | | |
 | gcash_account_name | varchar(255) | null | | Name on the account, so an admin can verify before sending |
+| accepts_online | tinyint(1) | NN, = 1 | | False = the landlord opted out of online payments; tenants then see only the direct route. Online is offered only when both GCash fields are filled in and this is true (`Payments::onlineFor()`). Lives on this row, so clearing both GCash fields (which deletes the row) also forgets an opt-out |
+| payouts_hold_until | timestamp | null | | Set to now + 48 h whenever the GCash details change (`LandlordPayouts::holdAfterGcashChange()`); no automatic payout until it passes |
+| paused_at | timestamp | null | | An admin's pause: no automatic payout to this landlord until resumed. Null = not paused |
+| paused_by | bigint unsigned | null | FK → users, set null | The admin who paused |
 | created_at | timestamp | null | | |
+| payout_approved_at | timestamp | null | | An admin looked at this GCash account and agreed money may be sent to it. Cleared whenever the number or name changes (`User::savePayoutAccount`); until set, what the landlord is owed waits (`LandlordPayouts::blockedReason`). Backfilled for landlords an admin had already paid by hand |
+| payout_approved_by | bigint unsigned | null | FK → users, set null | The admin who approved it |
 | updated_at | timestamp | null | | |
 
 ### tenant_details
@@ -212,6 +224,7 @@ A listing (building or house). Price, occupancy and availability live on its uni
 | description | text | NN | | |
 | house_rules | json | null | | Flat list of strings: preset labels from `PropertyPolicies::HOUSE_RULES`, then custom lines. Cast to array; every unit inherits it |
 | default_lease_terms | text | null | | Landlord's standard extra terms, private (never on the listing or in an API resource). Prefills "Additional terms" when an agreement is sent; the agreed text is frozen per reservation in `agreement_terms_notes`. Editing it does not send an approved listing back to review |
+| lease_template_id | bigint unsigned | null | FK → lease_templates, set null | The lease this property sends (`App\Support\LeaseTemplates`). Null = the standard lease. A unit's own template wins |
 | rent_grace_days | tinyint unsigned | null | | Days after the due date before rent counts as late. null = platform default (`rentals.rent_overdue_grace_days`). A default only: frozen into the lease snapshot as `grace_days` |
 | late_fee_type | enum('percent','fixed') | null | | null = no late fee. Frozen into the lease snapshot as `late_fee` |
 | late_fee_value | decimal(10,2) | null | | Percent of monthly rent (0.01 to 100) or a peso amount, per `late_fee_type` |
@@ -272,6 +285,7 @@ The atomic rentable thing: a room, bedspace or whole apartment.
 |---|---|---|---|---|
 | unit_id | bigint unsigned | NN | PK | |
 | property_id | bigint unsigned | NN | FK → properties, cascade | Index `property_units_bookable_index` |
+| lease_template_id | bigint unsigned | null | FK → lease_templates, set null | This unit's own lease; null = the property's |
 | unit_label | varchar(255) | NN | | e.g. "Room A", "Bed 3" |
 | floor | varchar(50) | null | | |
 | bedrooms | tinyint unsigned | null | | |
@@ -293,6 +307,53 @@ Rules:
 - A change to `availability_status` from any path is logged to `occupancy_activities` by `PropertyUnitObserver`.
 - `furnishing_status` null means "not answered", not "unfurnished".
 - Validation of `security_deposit` on edit uses `array_key_exists`, so omitting the field leaves the value alone.
+
+### lease_templates
+A landlord's named leases, assigned to properties and units on the Leases page (plans/lease-templates-page.md). A sent lease is frozen in `reservations.lease_snapshot`; editing or deleting a template never changes it.
+
+| Column | Type | Null / default | Keys | Notes |
+|---|---|---|---|---|
+| lease_template_id | bigint unsigned | NN | PK | |
+| landlord_id | bigint unsigned | NN | FK → users, cascade | |
+| name | varchar(100) | NN | | Only the landlord sees it |
+| version | int unsigned | NN, = 1 | | Goes up when the wording or a rule changes (`LeaseTemplate::saveWithVersion`), not on a rename. Sent leases record it in `lease_snapshot.template.version` |
+| welcome_message | text | null | | Plain text shown after the parties; frozen as `lease_snapshot.welcome` |
+| body | longtext | null | | Sanitized HTML with merge fields (`App\Support\LeaseBody::clean`). Null = the standard clauses |
+| rent_grace_days | tinyint unsigned | null | | Null = the property's, then the platform default |
+| late_fee_type | varchar(10) | null | | `none` (explicitly no fee), `fixed`, `percent`; null = the property's rule |
+| late_fee_value | decimal(8,2) | null | | Set only for `fixed` / `percent` |
+| notice_days | smallint unsigned | null | | Null = `rentals.lease_notice_days` |
+| house_rule_sections | json | null | | The policy's own house rules as titled sections, `[{"title":"Visitors","rules":["..."]}]` (`App\Support\HouseRules`). Printed after the property's listed rules, never replacing them. Frozen into `lease_snapshot.house_rule_sections` (the listing's rules first, as "Property rules") |
+| required_documents | json | null | | Documents the tenant must upload before signing: `[{"key":"valid_id"},{"key":"other","label":"..."}]` (`App\Support\RequiredDocuments`). Frozen into `lease_snapshot.required_documents` when sent |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+### tenancy_documents
+What a lease asked the tenant to upload before signing, and the file they uploaded (plans/required-tenant-documents.md). One row per requirement per reservation, created when the agreement is sent. Files are on the private disk and served only through `tenancy-documents.file`, to the tenant and the property's landlord (admins cannot open them).
+
+| Column | Type | Null / default | Keys | Notes |
+|---|---|---|---|---|
+| tenancy_document_id | bigint unsigned | NN | PK | |
+| reservation_id | bigint unsigned | NN | FK → reservations, cascade | UNIQUE with `doc_key` |
+| doc_key | varchar(40) | NN | | A `RequiredDocuments::TYPES` key, or `other_1` to `other_5` |
+| label | varchar(100) | NN | | Copied from the sent lease |
+| status | enum('Requested','Pending','Approved','Rejected','Waived') | NN, = 'Requested' | | `Requested` = nothing uploaded; `Pending` = waiting for the landlord. `Requested` and `Rejected` block signing |
+| file_path | varchar(255) | null | | Private disk, random name. Null until uploaded and again after the purge |
+| file_name | varchar(255) | null | | The tenant's original filename, for display |
+| mime | varchar(100) | null | | |
+| size | int unsigned | null | | Bytes |
+| rejection_reason | text | null | | |
+| uploaded_at | timestamp | null | | |
+| reviewed_by | bigint unsigned | null | FK → users, set null | |
+| reviewed_at | timestamp | null | | |
+| purge_after | date | null | | Set when the reservation ends: today if it was never signed, else +30 days. Index |
+| purged_at | timestamp | null | | File deleted by `reservations:purge-tenant-documents`; the row stays as the record |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+Rules:
+- Signing is refused while any row is `Requested` or `Rejected` (`Reservation::signAgreement()`, so web and API agree). Approval never blocks payment or move-in.
+- A landlord opening a file writes `tenancy_document.view` to `audit_logs`.
 
 ### property_media
 Property-level photos and videos. `media_url` is a Cloudinary URL: output as-is, never wrap in `Storage::url()`.
@@ -480,8 +541,8 @@ A tenant's "I paid the landlord directly". Not money: nothing reads a claim as a
 | claim_type | enum('MoveIn','Monthly') | NN | | MoveIn = first month + deposit while the agreement is signed |
 | billing_period | date | null | | Required for Monthly (first of the month) |
 | amount | decimal(10,2) | NN | | What the tenant says they paid |
-| payment_method | enum('GCash','Maya','GoTyme','Bank Transfer','Other') | NN | | The app they paid from. Cash is never claimed, the landlord records it |
-| reference_no | varchar(100) | NN | | From the tenant's receipt; the landlord checks it in their own app |
+| payment_method | enum('GCash','Maya','GoTyme','Bank Transfer','Cash','Other') | NN | | The app they paid from, or `Cash` handed over in person (a tenant may report cash so a landlord who never records it leaves a trace) |
+| reference_no | varchar(100) | null | | From the tenant's receipt; the landlord checks it in their own app. Null only for `Cash`. A non-cash reference can be Pending/Confirmed once, platform-wide (case-insensitive) |
 | paid_on | date | NN | | Becomes `paid_at` on the rows, so a late fee is judged by when the tenant paid |
 | note | varchar(500) | null | | |
 | status | enum('Pending','Confirmed','Rejected','Withdrawn') | NN, = 'Pending' | | Pending claims are withdrawn when the reservation ends |
@@ -489,6 +550,8 @@ A tenant's "I paid the landlord directly". Not money: nothing reads a claim as a
 | decided_by | bigint unsigned | null | FK → users, set null | |
 | decided_at | timestamp | null | | |
 | rejection_reason | varchar(255) | null | | Required on reject |
+| disputed_at | timestamp | null | | When the tenant sent a rejected report to an admin (once per claim) |
+| dispute_report_id | bigint unsigned | null | FK → reports, set null | The `reports` row created by the dispute |
 | created_at | timestamp | null | | |
 | updated_at | timestamp | null | | |
 
@@ -550,11 +613,12 @@ One money movement on a tenancy: online escrow, landlord-recorded, or a correcti
 | reservation_id | bigint unsigned | NN | FK → reservations, cascade | Index `(reservation_id, billing_period)` |
 | payment_type | enum('Initial','Monthly','Deposit','Utility','Other') | NN | | |
 | billing_period | date | null | | The month a `Monthly` payment settles; required for `Monthly`, null otherwise |
-| amount | decimal(10,2) | NN | | Serializes as a string; `parseFloat()` client-side |
+| amount | decimal(10,2) | NN | | What the landlord is owed. Serializes as a string; `parseFloat()` client-side |
+| service_fee | decimal(10,2) | NN, = 0 | | The online payment fee the tenant paid on top of `amount`. Not owed to the landlord (payouts sum `amount` only). Set on the `Initial` / `Monthly` row of an online checkout, frozen when the checkout is created; 0 on every other row |
 | payment_method | enum('GCash','QRPh','Cash','Bank Transfer','Maya','GoTyme','Check','Other') | NN | | Escrow uses GCash/QRPh via PayMongo; the rest are landlord-recorded or came from a confirmed payment claim |
-| paymongo_payment_intent_id | varchar(255) | null | UNIQUE | |
-| paymongo_payment_id | varchar(255) | null | | |
-| paymongo_checkout_session_id | varchar(255) | null | UNIQUE | |
+| paymongo_payment_intent_id | varchar(255) | null | index | Shared by every row of one online checkout (`Payment::checkoutGroup()`) |
+| paymongo_payment_id | varchar(255) | null | | The `pay_...` id; the id a refund is made against |
+| paymongo_checkout_session_id | varchar(255) | null | index | One online move-in checkout funds several rows (rent `Initial` + `Deposit`), so this is no longer UNIQUE |
 | status | enum('Pending','Paid','Held','Released','Failed','Refunded','Voided') | NN, = 'Pending' | index `(status, paid_at)` | See rules |
 | paid_at | timestamp | null | | Clock 1 falls back to this when there is no target move-in date |
 | released_at | timestamp | null | | |
@@ -567,6 +631,13 @@ One money movement on a tenancy: online escrow, landlord-recorded, or a correcti
 | void_reason | enum('wrong_amount','wrong_month','wrong_tenancy','duplicate','not_received','other') | null | | |
 | void_note | varchar(255) | null | | Required when `void_reason = 'other'` |
 | replaces_payment_id | bigint unsigned | null | FK → payments, set null | On the *new* row of a "void and correct", pointing back at the voided one |
+| refunded_at | timestamp | null | | An admin refunded this held online payment to the tenant. Written on every row of the checkout group, with `status = 'Refunded'` |
+| refunded_by | bigint unsigned | null | FK → users, set null | The admin who refunded it |
+| refund_reason | varchar(255) | null | | The admin's reason; also sent to PayMongo as the refund note |
+| paymongo_refund_id | varchar(255) | null | index | The `ref_...` id |
+| refund_status | varchar(20) | null | | PayMongo's word: `pending`, `processing`, `succeeded`, `failed`. A QR Ph refund stays `processing` until the tenant claims `refund_transfer_link`; `failed` alerts the admins |
+| refund_transfer_link | varchar(500) | null | | QR Ph only: the link the tenant opens to claim the money (valid 3 days) |
+| refund_includes_fee | tinyint(1) | NN, = 0 | | True when the online payment fee was refunded too (the platform absorbs it) |
 | payment_claim_id | bigint unsigned | null | FK → payment_claims, set null | Set on every row a confirmed claim wrote (never on PayMongo rows) |
 | recorded_by | bigint unsigned | null | FK → users, set null | Null = platform-settled (PayMongo); non-null = landlord-asserted |
 | reference_no | varchar(255) | null | | OR number / GCash reference of a recorded payment |
@@ -583,20 +654,28 @@ Rules:
 - A payment with `payout_owed_at` set can no longer be voided (`Payment::canBeVoided()`).
 
 ### payouts
-One GCash transfer an admin sent to a landlord, covering one or more payments. The GCash details are copied on creation, so the record keeps saying where the money went after the landlord changes accounts. Written by `Admin\PayoutController::markPaidOut()` inside the locked batch.
+One GCash transfer to a landlord, covering one or more payments. Normally sent automatically through PayMongo Send Money (`LandlordPayouts::batch()` then `PaymongoTransfers::send()`); an admin who sent one by hand records it through `Admin\PayoutController::markPaidOut()`, which writes it straight to `Sent`. The GCash details are copied on creation, so the record keeps saying where the money went after the landlord changes accounts.
 
 | Column | Type | Null / default | Key | Note |
 |---|---|---|---|---|
 | payout_id | bigint unsigned | NN | PK | |
 | landlord_id | bigint unsigned | NN | FK → users, cascade | |
-| amount | decimal(10,2) | NN | | Sum of the payments it covers |
+| amount | decimal(10,2) | NN | | Sum of the payments' `amount` it covers; never includes the online payment fee |
+| status | enum('Processing','Sent','Failed') | NN, = 'Sent' | index | Processing = the transfer is created and PayMongo has not confirmed it (or the outcome is unknown). Sent = confirmed. Failed = refused or failed; its payments are unlinked and owed again. Rows from before automatic payouts are Sent |
 | gcash_number | varchar(255) | null | | Snapshot at send time |
 | gcash_account_name | varchar(255) | null | | Snapshot at send time |
-| payout_reference | varchar(255) | null | | GCash transaction reference the admin typed after sending |
-| paid_out_by | bigint unsigned | null | FK → users, set null | The admin who recorded it |
-| paid_out_at | timestamp | NN | | |
+| payout_reference | varchar(255) | null | | The admin's typed GCash reference, or for an automatic payout the bank reference PayMongo reports (else the transfer id) |
+| paymongo_transfer_id | varchar(255) | null | index | The `tr_...` id PayMongo gave the transfer. Null on a manual payout, or when the request got no readable answer |
+| failure_reason | varchar(500) | null | | Why it failed, or "Outcome unknown: ..." while it sits Processing without an answer |
+| resolved_at | timestamp | null | | A Failed payout blocks that landlord's automatic payouts until this is set (an admin's Retry sets it). Set on Sent rows too |
+| paid_out_by | bigint unsigned | null | FK → users, set null | The admin who recorded it by hand; null on automatic payouts |
+| paid_out_at | timestamp | null | | When it was confirmed sent; null while Processing or Failed |
 | created_at | timestamp | null | | |
 | updated_at | timestamp | null | | |
+
+Rules:
+- A payment is **owed** while `payout_owed_at` is set and `payout_id` is null. Linking it to a payout (before the HTTP call) is what stops it being sent twice; a Failed or cancelled payout unlinks it again.
+- A Processing payout with no `paymongo_transfer_id` is never re-sent automatically: PayMongo may have sent it. An admin checks the PayMongo dashboard, then presses Retry.
 
 ## 2. Tables — Chat
 

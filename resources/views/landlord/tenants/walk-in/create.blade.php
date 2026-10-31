@@ -3,6 +3,8 @@
 @section('page-title', 'Add Walk-in Tenant')
 
 @section('content')
+    @push('mobile-title')<span class="truncate text-[15px] font-semibold tracking-tight text-[#060D26]">Add Walk-in Tenant</span>@endpush
+
     @php
         // Properties with their available units, for the visual picker. Only
         // approved, genuinely free units reach here — the controller already
@@ -64,8 +66,8 @@
 
         {{-- Header --}}
         <div class="mb-6">
-            <h1 class="text-2xl font-normal text-[#060D26] leading-tight">Add Walk-in Tenant</h1>
-            <p class="text-sm text-[#5B6A8E] mt-1">
+            <h1 class="page-header-title text-xl sm:text-2xl font-normal text-[#060D26] leading-tight">Add Walk-in Tenant</h1>
+            <p class="text-xs sm:text-sm text-[#5B6A8E] mt-1 line-clamp-2 sm:line-clamp-none">
                 Record a tenant who arranged the rental with you directly — there is no inquiry, agreement or online payment
                 step. If the move-in date is today or earlier the unit is marked occupied straight away; a future date reserves
                 the unit until you confirm the actual move-in.

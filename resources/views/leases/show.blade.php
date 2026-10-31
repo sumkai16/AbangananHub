@@ -18,7 +18,8 @@
         : route('tenancy.show', $reservation);
 @endphp
 
-<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
+<x-print-document>
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10 print:max-w-none print:mx-0 print:p-0">
     <div class="flex items-center justify-between gap-3 mb-5 print:hidden">
         <a href="{{ $backUrl }}" class="inline-flex items-center text-sm font-semibold text-[#5B6A8E] hover:text-[#060D26] transition-colors">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
@@ -33,7 +34,7 @@
 
     <div class="mb-5">
         <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1.5">
-            <h1 class="text-2xl font-semibold text-[#060D26] tracking-tight">Lease Agreement</h1>
+            <h1 class="text-xl sm:text-2xl font-semibold text-[#060D26] tracking-tight">Lease Agreement</h1>
             <p class="text-[11px] font-bold text-[#5B6A8E] tracking-wider tabular-nums border border-[#E2E4EC] rounded-full px-2.5 py-1">{{ $terms['reference'] }}</p>
         </div>
         @unless ($signedOnline)
@@ -83,4 +84,5 @@
         @endif
     </x-card>
 </div>
+</x-print-document>
 @endsection

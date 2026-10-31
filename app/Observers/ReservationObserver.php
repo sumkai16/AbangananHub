@@ -7,6 +7,7 @@ use App\Events\ReservationStatusUpdated;
 use App\Models\Conversation;
 use App\Models\Notification;
 use App\Models\Reservation;
+use App\Services\TenancyDocuments;
 use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Support\Facades\Log;
 
@@ -79,6 +80,7 @@ class ReservationObserver
         ));
 
         $this->cancelViewingsIfEnded($reservation);
+        $this->scheduleDocumentRemovalIfEnded($reservation);
 
         $this->notifyTransition($reservation);
     }
@@ -113,6 +115,14 @@ class ReservationObserver
      * The status change's own notification already tells both parties, so
      * no separate viewing notice.
      */
+    /** Tenant documents are deleted after a tenancy ends (at once if it was never signed). Same hook as above. */
+    private function scheduleDocumentRemovalIfEnded(Reservation $reservation): void
+    {
+        if (in_array($reservation->rental_status, Reservation::TERMINAL_STATUSES, true)) {
+            TenancyDocuments::scheduleRemoval($reservation);
+        }
+    }
+
     private function cancelViewingsIfEnded(Reservation $reservation): void
     {
         if (! in_array($reservation->rental_status, Reservation::TERMINAL_STATUSES, true)) {

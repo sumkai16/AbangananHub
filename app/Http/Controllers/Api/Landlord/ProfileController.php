@@ -8,6 +8,8 @@ use App\Http\Resources\PublicReviewResource;
 use App\Models\PropertyUnit;
 use App\Models\Review;
 use App\Models\User;
+use App\Services\LandlordPayouts;
+use App\Support\GcashNumber;
 use App\Support\NameLock;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -40,8 +42,13 @@ class ProfileController extends Controller
             'first_name'            => ['required', 'string', 'max:255'],
             'last_name'             => ['required', 'string', 'max:255'],
             'contact_number'        => ['nullable', 'string', 'max:20'],
-            'gcash_number'          => ['nullable', 'string', 'max:20'],
+            'gcash_number'          => ['nullable', 'string', 'max:20', function ($attribute, $value, $fail) {
+                if (filled($value) && GcashNumber::normalize($value) === null) {
+                    $fail(GcashNumber::MESSAGE);
+                }
+            }],
             'gcash_account_name'    => ['nullable', 'string', 'max:255'],
+            'accepts_online'        => ['nullable', 'boolean'],
             'bio'                   => ['nullable', 'string', 'max:1000'],
             'profile_picture'       => ['nullable', 'image', 'max:2048'],
             'business_name'         => ['nullable', 'string', 'max:255'],
@@ -68,10 +75,23 @@ class ProfileController extends Controller
 
         // A key left out of the request keeps its stored value, like every other field above.
         $payout = $user->payoutAccount;
-        $user->savePayoutAccount(
-            array_key_exists('gcash_number', $validated) ? $validated['gcash_number'] : $payout?->gcash_number,
-            array_key_exists('gcash_account_name', $validated) ? $validated['gcash_account_name'] : $payout?->gcash_account_name,
-        );
+        // A typed number is read into 09XXXXXXXXX, so "+63 917 123 4567" and "0917 123 4567" are the same account.
+        $number = array_key_exists('gcash_number', $validated)
+            ? (filled($validated['gcash_number']) ? GcashNumber::normalize($validated['gcash_number']) : $validated['gcash_number'])
+            : $payout?->gcash_number;
+        $name = array_key_exists('gcash_account_name', $validated) ? $validated['gcash_account_name'] : $payout?->gcash_account_name;
+
+        // Changing where the money goes needs the password, so a stolen token cannot redirect payouts.
+        if (LandlordPayouts::changesDestination($user, $number, $name)) {
+            $request->validate(['current_password' => ['required', 'current_password:sanctum']]);
+        }
+
+        $user->savePayoutAccount($number, $name);
+
+        // Only changes when the request carries the choice; saved after the GCash details because it lives on that row.
+        if (isset($validated['accepts_online'])) {
+            $user->setAcceptsOnlinePayments((bool) $validated['accepts_online']);
+        }
 
         $businessData = array_filter([
             'business_name'    => $validated['business_name'] ?? null,

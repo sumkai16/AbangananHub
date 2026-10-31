@@ -924,7 +924,7 @@
             </div>
 
             {{-- ── Side column ────────────────────────────────── --}}
-            <div class="space-y-5">
+            <x-sticky-rail class="space-y-5">
 
                 {{-- Unit + rent terms (tenant facts live in the profile card above) --}}
                 <x-card>
@@ -1046,7 +1046,7 @@
                         </p>
                     </x-card>
                 @endif
-            </div>
+            </x-sticky-rail>
         </div>
     </div>
 

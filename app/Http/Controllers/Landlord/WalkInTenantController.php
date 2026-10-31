@@ -10,6 +10,7 @@ use App\Models\Reservation;
 use App\Models\TenantDetail;
 use App\Models\User;
 use App\Services\MoveInPaymentRecorder;
+use App\Support\LeaseTemplates;
 use App\Support\LeaseTerms;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -187,7 +188,7 @@ class WalkInTenantController extends Controller
             // The lease this tenancy runs on, frozen now (it needs the new
             // row's id for its reference), plus the signed copy if attached.
             $reservation->update([
-                'lease_snapshot'    => LeaseTerms::snapshot($reservation),
+                'lease_snapshot'    => LeaseTerms::snapshot($reservation, template: LeaseTemplates::forReservation($reservation)),
                 'lease_file_path'   => $leasePath,
                 'lease_file_name'   => $leasePath ? $leaseName : null,
                 'lease_uploaded_at' => $leasePath ? now() : null,

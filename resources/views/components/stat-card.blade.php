@@ -14,23 +14,23 @@
 @endphp
 
 <{{ $tag }} @if($href) href="{{ $href }}" @endif
-    class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-4 {{ $href ? 'block transition-all duration-200 hover:shadow-lg' : '' }} {{ $attributes->get('class') }}">
-    <div class="flex items-center justify-between gap-2 mb-3">
+    class="stat-card bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-4 {{ $href ? 'block transition-all duration-200 hover:shadow-lg' : '' }} {{ $attributes->get('class') }}">
+    <div class="sc-head flex items-center justify-between gap-2 mb-3">
         {{-- min-w-0 + <wbr> after "/": a long unbroken label ("Cancelled/Rejected") pushed the icon out of the card on a 360-375px phone. --}}
-        <span class="min-w-0 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">{!! str_replace('/', '/<wbr>', e($label)) !!}</span>
+        <span class="sc-label min-w-0 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">{!! str_replace('/', '/<wbr>', e($label)) !!}</span>
         @isset($icon)
-            <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background-color: {{ $iconBg }};">
+            <div class="sc-icon w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background-color: {{ $iconBg }};">
                 {{ $icon }}
             </div>
         @endisset
     </div>
-    <span class="text-2xl font-extrabold" style="color: {{ $valueColor }};">{{ $value }}</span>
+    <span class="sc-value text-2xl font-extrabold" style="color: {{ $valueColor }};">{{ $value }}</span>
     @if($percent !== null)
-        <div class="w-full h-1.5 rounded-full bg-[#E2E4EC] mt-2.5 overflow-hidden">
+        <div class="sc-bar w-full h-1.5 rounded-full bg-[#E2E4EC] mt-2.5 overflow-hidden">
             <div class="h-full rounded-full transition-all duration-300" style="width: {{ $percent }}%; background-color: {{ $barColor ?? $valueColor }};"></div>
         </div>
     @endif
     @if($sub)
-        <p class="text-[11px] text-[#5B6A8E] {{ $percent !== null ? 'mt-1.5' : 'mt-1' }}">{{ $sub }}</p>
+        <p class="sc-sub text-[11px] text-[#5B6A8E] {{ $percent !== null ? 'mt-1.5' : 'mt-1' }}">{{ $sub }}</p>
     @endif
 </{{ $tag }}>
