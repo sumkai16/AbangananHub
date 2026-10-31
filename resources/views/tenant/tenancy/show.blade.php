@@ -110,7 +110,7 @@
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                         </svg>
-                        View lease
+                        View rental agreement
                     </button>
                     @if($canReview)
                         <a href="{{ route('properties.show', $reservation->property) }}#reviews"
@@ -520,7 +520,7 @@
         <div class="flex flex-col max-h-[85vh]">
             <div class="flex items-start justify-between gap-3 px-6 pt-6 pb-4 border-b border-[#E2E4EC] shrink-0">
                 <div>
-                    <h2 class="text-lg font-semibold text-[#060D26]">Lease Agreement</h2>
+                    <h2 class="text-lg font-semibold text-[#060D26]">Rental Agreement</h2>
                     <p class="mt-1 text-[11px] font-bold text-[#5B6A8E] tracking-wider tabular-nums">{{ $terms['reference'] }}</p>
                 </div>
                 <button type="button" x-on:click="$dispatch('close')" aria-label="Close"

@@ -180,7 +180,7 @@
                 {{-- Lease timeline --}}
                 <div class="p-5 sm:p-6">
                     <div class="flex items-baseline justify-between gap-3">
-                        <h2 class="text-[12px] font-bold uppercase tracking-wide text-[#5B6A8E]">Lease</h2>
+                        <h2 class="text-[12px] font-bold uppercase tracking-wide text-[#5B6A8E]">Contract</h2>
                         <p class="text-[12px] text-[#5B6A8E]">
                             {{ $reservation->duration_of_stay ?? 'Term not recorded' }} &middot; rent due day {{ $summary['dueDay'] }}
                         </p>
@@ -198,7 +198,7 @@
                     </div>
 
                     @if($leaseTotal > 0)
-                        <div class="mt-3 h-2 w-full rounded-full bg-[#ECEEF6] overflow-hidden" role="progressbar" aria-valuemin="0" aria-valuemax="{{ $leaseTotal }}" aria-valuenow="{{ $leaseMonth }}" aria-label="Lease progress">
+                        <div class="mt-3 h-2 w-full rounded-full bg-[#ECEEF6] overflow-hidden" role="progressbar" aria-valuemin="0" aria-valuemax="{{ $leaseTotal }}" aria-valuenow="{{ $leaseMonth }}" aria-label="Contract progress">
                             <div class="h-full rounded-full bg-[#FF8A66]" style="width: {{ round($leaseMonth / $leaseTotal * 100) }}%"></div>
                         </div>
                         <p class="mt-1.5 text-[12px] text-[#5B6A8E]">
@@ -221,7 +221,7 @@
                         x-data="{ uploading: {{ $errors->has('lease_file') ? 'true' : 'false' }}, viewingLease: false }">
                         <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
                             @if ($leaseStatus === 'missing')
-                                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#FBBF24]/15 text-[#B45309]">Lease missing</span>
+                                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#FBBF24]/15 text-[#B45309]">Agreement missing</span>
                             @else
                                 <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#22C55E]/10 text-[#15803D]">Signed</span>
                             @endif
@@ -231,7 +231,7 @@
                                 @elseif ($leaseStatus === 'signed_online')
                                     Signed online by the tenant {{ $reservation->agreed_at->format('M j, Y') }}.
                                 @else
-                                    Print the lease, have both of you sign it, then upload the signed copy here.
+                                    Print the agreement, have both of you sign it, then upload the signed copy here.
                                 @endif
                             </p>
                         </div>
@@ -239,7 +239,7 @@
                         <div class="mt-3 sm:mt-0 flex flex-wrap items-center gap-2">
                             <button type="button" @click="viewingLease = true"
                                 class="h-11 sm:h-9 px-4 sm:px-3.5 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26] text-[12.5px] font-semibold hover:bg-[#F7F8FC] hover:border-[#060D26]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] inline-flex items-center justify-center cursor-pointer transition-colors duration-200">
-                                {{ $leaseStatus === 'missing' ? 'View & print lease' : 'View lease' }}
+                                {{ $leaseStatus === 'missing' ? 'View & print agreement' : 'View agreement' }}
                             </button>
                             @if ($reservation->lease_file_path)
                                 <a href="{{ route('landlord.leases.file', $reservation) }}" target="_blank" rel="noopener"
@@ -269,7 +269,7 @@
                             </button>
                         </form>
 
-                    <x-picker-modal show="viewingLease" title="Lease Agreement" :subtitle="$leaseTerms['reference']">
+                    <x-picker-modal show="viewingLease" title="Rental Agreement" :subtitle="$leaseTerms['reference']">
                         <div class="max-h-[70vh] overflow-y-auto p-5 sm:p-6">
                             @include('leases._document', ['terms' => $leaseTerms])
 

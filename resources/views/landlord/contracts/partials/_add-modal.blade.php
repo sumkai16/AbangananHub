@@ -67,7 +67,7 @@
                 <div class="flex items-start justify-between gap-4 px-6 pt-6 pb-4">
                     <div>
                         <h2 id="add-contract-title" class="text-[17px] font-normal text-[#060D26]">Add contract</h2>
-                        <p class="text-[12.5px] text-[#5B6A8E] mt-0.5">A lease you agreed with a tenant on your list. The unit is reserved until they move in.</p>
+                        <p class="text-[12.5px] text-[#5B6A8E] mt-0.5">A contract you agreed with a tenant on your list. The unit is reserved until they move in.</p>
                     </div>
                     <button type="button" @click="close()" aria-label="Close"
                         class="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-[#5B6A8E] hover:bg-[#F7F8FC] hover:text-[#060D26] transition-colors duration-200 cursor-pointer">
@@ -152,7 +152,7 @@
                     </div>
 
                     <div class="grid gap-3">
-                        <p class="{{ $section }}">Signed lease</p>
+                        <p class="{{ $section }}">Signed agreement</p>
                         <div class="flex gap-2">
                             <label class="flex-1 flex items-center gap-2 rounded-xl border border-[#E2E4EC] px-3 py-2.5 text-[13px] cursor-pointer" :class="leaseMode === 'later' && 'border-[#FF8A66] bg-[#ECEEF6]'">
                                 <input type="radio" name="lease_mode" value="later" x-model="leaseMode" class="text-[#060D26] focus:ring-[#FF8A66]"> Upload later

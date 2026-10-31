@@ -26,9 +26,13 @@
     // Default: the month after the current end, or this month when the end has already passed.
     $afterEnd = $reservation->target_move_out_date?->copy()->addDay()->startOfMonth();
     $renewDefaultMonth = ($afterEnd && $afterEnd->gte(now()->startOfMonth()) ? $afterEnd : now())->format('Y-m');
+    $canRate = in_array($reservation->rental_status, ['Occupied', 'Completed'], true) && ! $reservation->tenantRating;
 @endphp
 
-<div x-data="{ renewing: false, uploading: false }">
+<div x-data="{ renewing: false, uploading: false, rating: @js($canRate && ($startRating ?? false)), stars: 0, hovered: 0, count: 0,
+        rate(on) { this.renewing = false; this.rating = on; this.$nextTick(() => this.$root.closest('.overflow-y-auto')?.scrollTo(0, 0)); } }">
+
+<div x-show="!rating">
 
 <div class="px-6 pt-6 pb-5 border-b border-[#E2E4EC] pr-14">
     <p class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">{{ $reference ?? 'Contract' }}</p>
@@ -42,7 +46,7 @@
 
 <div class="px-6 py-5 grid gap-6">
     <section aria-labelledby="contract-lease">
-        <h3 id="contract-lease" class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E] mb-1">Lease</h3>
+        <h3 id="contract-lease" class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E] mb-1">Rental agreement</h3>
         <dl>
             <div class="{{ $row }}"><dt class="{{ $dt }}">Unit</dt><dd class="{{ $dd }}">{{ $reservation->property->title }} · {{ $reservation->unit->unit_label ?? 'No unit' }}</dd></div>
             <div class="{{ $row }}"><dt class="{{ $dt }}">Move-in</dt><dd class="{{ $dd }}">{{ $fmt($reservation->target_move_in_date) }}</dd></div>
@@ -70,7 +74,7 @@
         <div class="rounded-2xl border border-[#E2E4EC] bg-[#F7F8FC] p-4 grid gap-3">
             <div class="flex flex-wrap items-center gap-2">
                 @if($leaseStatus === 'missing')
-                    <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#FBBF24]/15 text-[#B45309]">Lease missing</span>
+                    <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#FBBF24]/15 text-[#B45309]">Agreement missing</span>
                 @else
                     <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#22C55E]/10 text-[#15803D]">Signed</span>
                 @endif
@@ -80,14 +84,14 @@
                     @elseif($leaseStatus === 'signed_online')
                         Signed online by the tenant {{ $reservation->agreed_at->format('M j, Y') }}.
                     @else
-                        Print the lease, have both of you sign it, then upload the signed copy.
+                        Print the agreement, have both of you sign it, then upload the signed copy.
                     @endif
                 </p>
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
                 <a href="{{ route('landlord.leases.show', $reservation) }}" target="_blank" rel="noopener" class="{{ $ghostBtn }} bg-white">
-                    {{ $leaseStatus === 'missing' ? 'View & print lease' : 'View lease' }}
+                    {{ $leaseStatus === 'missing' ? 'View & print agreement' : 'View agreement' }}
                 </a>
                 @if($reservation->lease_file_path)
                     <a href="{{ route('landlord.leases.file', $reservation) }}" target="_blank" rel="noopener" class="{{ $ghostBtn }} bg-white">Open signed copy</a>
@@ -146,7 +150,7 @@
         @if($reservation->tenantRating)
             <span class="inline-flex items-center gap-1 h-10 px-3 rounded-full bg-[#22C55E]/[0.07] text-[#15803D] text-[13px] font-semibold">Rated {{ $reservation->tenantRating->rating }}/5</span>
         @else
-            <a href="{{ route('landlord.reservations.rateTenant', $reservation) }}" class="{{ $ghostBtn }}">Rate tenant</a>
+            <button type="button" @click="rate(true)" class="{{ $ghostBtn }} cursor-pointer">Rate tenant</button>
         @endif
     @endif
 
@@ -210,6 +214,60 @@
         <div class="flex justify-end gap-2">
             <button type="button" @click="renewing = false" class="{{ $ghostBtn }}">Cancel</button>
             <button type="submit" class="{{ $ctaBtn }}">Save renewal</button>
+        </div>
+    </form>
+@endif
+
+</div>
+
+@if($canRate)
+    {{-- Rate tenant: replaces the contract view inside the same modal; Back returns to it. --}}
+    <form x-show="rating" x-cloak method="POST" action="{{ route('landlord.reservations.rateTenant.store', $reservation) }}">
+        @csrf
+        <div class="px-6 pt-6 pb-5 border-b border-[#E2E4EC] pr-14">
+            <button type="button" @click="rate(false)"
+                class="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#5B6A8E] hover:text-[#060D26] transition-colors duration-200 cursor-pointer">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
+                Back to contract
+            </button>
+            <h2 class="mt-2 text-[18px] font-normal text-[#060D26]">Rate {{ $tenant->first_name }} {{ $tenant->last_name }}</h2>
+            <p class="mt-1 text-[12.5px] text-[#5B6A8E]">{{ $reservation->property->title }} · {{ $reservation->unit->unit_label ?? 'No unit' }}. Other landlords see this when {{ $tenant->first_name }} applies.</p>
+        </div>
+
+        <div class="px-6 py-5 grid gap-5">
+            <fieldset>
+                <legend class="text-[12px] font-semibold text-[#060D26] mb-2">Rating</legend>
+                <div class="flex items-center gap-1" @mouseleave="hovered = 0">
+                    @for($i = 1; $i <= 5; $i++)
+                        <button type="button" @click="stars = {{ $i }}" @mouseenter="hovered = {{ $i }}"
+                            :aria-pressed="stars === {{ $i }}" aria-label="{{ $i }} {{ $i === 1 ? 'star' : 'stars' }}"
+                            class="w-11 h-11 -ml-1.5 first:ml-0 flex items-center justify-center rounded-lg cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40">
+                            <svg width="30" height="30" viewBox="0 0 24 24" stroke-width="1.5"
+                                :fill="(hovered || stars) >= {{ $i }} ? '#FBBF24' : 'none'"
+                                :stroke="(hovered || stars) >= {{ $i }} ? '#FBBF24' : '#C5CADB'">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.563.563 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5z" />
+                            </svg>
+                        </button>
+                    @endfor
+                    <span class="ml-2 text-[13px] font-semibold text-[#060D26] tabular-nums" x-show="stars > 0" x-text="stars + '/5'"></span>
+                </div>
+                <input type="hidden" name="rating" :value="stars">
+            </fieldset>
+
+            <div>
+                <label for="rate_comment_{{ $reservation->reservation_id }}" class="block text-[12px] font-semibold text-[#060D26] mb-1.5">
+                    Comment <span class="font-normal text-[#5B6A8E]">(optional)</span>
+                </label>
+                <textarea id="rate_comment_{{ $reservation->reservation_id }}" name="comment" rows="4" maxlength="1000"
+                    @input="count = $el.value.length" placeholder="How was it renting to this tenant?"
+                    class="w-full rounded-xl border border-[#5B6A8E]/30 bg-white px-3.5 py-3 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E]/60 focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 resize-none"></textarea>
+                <p class="mt-1 text-right text-[11px] text-[#5B6A8E] tabular-nums"><span x-text="count"></span>/1000</p>
+            </div>
+        </div>
+
+        <div class="px-6 pb-6 flex items-center justify-end gap-2">
+            <button type="button" @click="rate(false)" class="{{ $ghostBtn }} cursor-pointer">Cancel</button>
+            <button type="submit" :disabled="stars === 0" class="{{ $ctaBtn }} disabled:opacity-40 disabled:cursor-not-allowed">Submit rating</button>
         </div>
     </form>
 @endif

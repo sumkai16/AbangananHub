@@ -119,6 +119,8 @@ class ContractController extends Controller
             'reservation' => $reservation,
             'code' => $code,
             'showTenantDetails' => Gate::allows('viewTenantDetails', $reservation),
+            // ?rate=1 opens the modal on its rating form (the "Rate your tenant" notification, or a failed submit).
+            'startRating' => request()->boolean('rate'),
         ]);
     }
 
@@ -160,8 +162,8 @@ class ContractController extends Controller
                 Notification::notify(
                     $locked->tenant_id,
                     'reservation',
-                    'Your lease was renewed',
-                    'Your lease now runs until '.$renewal->new_move_out_date->format('M j, Y').'. Rent from '
+                    'Your contract was renewed',
+                    'Your contract now runs until '.$renewal->new_move_out_date->format('M j, Y').'. Rent from '
                         .$renewal->rent_effective_from->format('F Y').' is ₱'.number_format((float) $renewal->new_monthly_rent, 2).'.',
                     route('tenancy.show', $locked),
                 );

@@ -2,6 +2,17 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Oct 31 2026 — Rate tenant is a step in the contract modal, not a page (branch `emman`)
+- **Rate tenant** in the contract modal (`landlord/contracts/partials/_details`) swaps the modal body to a rating form (stars, optional comment, Back to contract / Cancel / Submit rating). `landlord/tenant-ratings/create.blade.php` is deleted.
+- The old URL `landlord.reservations.rateTenant` stays, because "Rate your tenant" notifications link to it: it now redirects to `contracts.index?open={id}&rate=1`, and `ContractController::show` opens the modal on the rating form (`startRating`). A failed submit returns the same way with the error in the flash modal (session field errors would be lost, as with Renew and the lease upload).
+- Tests: 3 new in `ReservationsPipelineTest`. **Not verified in a browser.**
+
+## Oct 31 2026 — "Lease" removed from the UI: contract vs rental agreement (branch `emman`)
+Why: "lease" meant both the arrangement and the paper, next to "Contract" and the "Rental Agreement" statuses. Rule in DESIGN.md §6t: **contract** = the arrangement, **rental agreement** = the paper. Plan: `plans/contract-vs-rental-agreement-wording.md`. UI text only: no class, route, column or API change.
+- Paper: "Lease Agreement" → "Rental Agreement" (print page, tenant e-sign page, tenant modal, landlord picker), "Lease missing" → "Agreement missing", "View & print lease" → "View & print agreement", "Signed lease" → "Signed agreement", "Standard lease terms" → "Standard agreement terms", the upload validation messages. The document body (`leases/_document`) says "this agreement"; older signed copies render with the new wording, same meaning.
+- Arrangement: Contracts subtitle, Add contract hint, the contract page's timeline heading ("Contract"), the renewal notification ("Your contract was renewed"), the move-out date error, the invite email and accept-invite page ("your contract and rent"), the Reservations link ("Moved-in tenants are on Contracts").
+- Tests updated: `ContractsPageTest`, `LeaseTest`, `ContractRenewalTest`. **Not verified in a browser.**
+
 ## Oct 31 2026 — "Moved in" tab on the Reservations page (branch `emman`)
 Why: a tested reservation reached Occupied and vanished from the page (by design of the pipeline-only rewrite below), which read as a bug. New `history` stage in `Landlord\ReservationController::STAGES` / `applyStage()` lists Reserved, Occupied, Completed and signed-and-paid requests; rows are read-only (Details + Chat). **Not verified in a browser.**
 ## Oct 31 2026 — Reservations page shows the request pipeline only (branch `emman`)

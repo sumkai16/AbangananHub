@@ -42,7 +42,7 @@
     </div>
 
     <p class="{{ $body }}">
-        This Lease Agreement is made between <strong>{{ $landlordName }}</strong> ("Landlord") and
+        This Rental Agreement is made between <strong>{{ $landlordName }}</strong> ("Landlord") and
         <strong>{{ $tenantName }}</strong> ("Tenant") for the rental of the premises described below.
     </p>
 
@@ -83,9 +83,9 @@
     <h3 class="{{ $heading }}">{{ ++$n }}. Term</h3>
     <p class="{{ $body }}">
         @if ($terms['start'])
-            This lease starts on {{ $date($terms['start']) }}
+            This agreement starts on {{ $date($terms['start']) }}
         @else
-            This lease starts on the Tenant's move-in date
+            This agreement starts on the Tenant's move-in date
         @endif
         @if ($terms['end'])
             and ends on {{ $date($terms['end']) }}, unless ended earlier as set out below or renewed in writing.
@@ -119,7 +119,7 @@
             The Landlord returns it within 30 days after the Tenant moves out, less any deductions, which the Landlord lists in writing.
             The deposit may not be used as the last month's rent without the Landlord's written agreement.
         @else
-            No security deposit is required under this lease.
+            No security deposit is required under this agreement.
         @endif
     </p>
 
@@ -159,8 +159,8 @@
 
     <h3 class="{{ $heading }}">{{ ++$n }}. Ending the tenancy</h3>
     <p class="{{ $body }}">
-        Either party may end this lease by giving at least {{ $terms['notice_days'] }} days' written notice, including by message on AbangananHub.
-        The Landlord may end it sooner if the Tenant fails to pay rent or seriously breaks this lease, as allowed by law.
+        Either party may end this agreement by giving at least {{ $terms['notice_days'] }} days' written notice, including by message on AbangananHub.
+        The Landlord may end it sooner if the Tenant fails to pay rent or seriously breaks this agreement, as allowed by law.
         On moving out, the Tenant returns the premises and all keys in the condition received, apart from normal wear and tear.
     </p>
 
@@ -175,7 +175,7 @@
     </p>
 
     <p class="text-[11.5px] text-[#5B6A8E] leading-relaxed mt-6 pt-4 border-t border-[#E2E4EC]">
-        AbangananHub provides this lease as a template and record-keeping tool between Landlord and Tenant. It is not a party to,
+        AbangananHub provides this agreement as a template and record-keeping tool between Landlord and Tenant. It is not a party to,
         nor liable for, the terms herein, and this template is not legal advice. Reference {{ $terms['reference'] }}
         · issued {{ \Illuminate\Support\Carbon::parse($terms['issued_at'])->format('F j, Y') }}.
     </p>

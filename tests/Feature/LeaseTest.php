@@ -104,7 +104,7 @@ class LeaseTest extends TestCase
         $reservation->update(['rental_status' => 'Pending Rental Agreement']);
         $this->assertNull($reservation->fresh()->lease_snapshot);
 
-        $this->actingAs($this->tenant)->get(route('agreements.show', $reservation))->assertOk()->assertSee('Lease Agreement');
+        $this->actingAs($this->tenant)->get(route('agreements.show', $reservation))->assertOk()->assertSee('Rental Agreement');
         $this->actingAs($this->landlord)->get(route('landlord.leases.show', $reservation))->assertOk();
     }
 
@@ -132,7 +132,7 @@ class LeaseTest extends TestCase
         $reservation = $this->latestWalkIn();
         $this->assertSame('missing', $reservation->leaseStatus());
 
-        $this->actingAs($this->landlord)->get(route('landlord.tenancies.show', $reservation))->assertOk()->assertSee('Lease missing');
+        $this->actingAs($this->landlord)->get(route('landlord.tenancies.show', $reservation))->assertOk()->assertSee('Agreement missing');
         $this->actingAs($this->landlord)->get(route('landlord.leases.show', $reservation))->assertOk()->assertSee('signature over printed name');
 
         $this->actingAs($this->landlord)->post(route('landlord.leases.upload', $reservation), [

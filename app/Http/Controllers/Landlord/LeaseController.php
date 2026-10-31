@@ -46,9 +46,9 @@ class LeaseController extends Controller
         $validator = Validator::make($request->all(), [
             'lease_file' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
         ], [
-            'lease_file.required' => 'Choose the signed lease file to upload.',
-            'lease_file.mimes'    => 'Upload the signed lease as a PDF, JPG or PNG.',
-            'lease_file.max'      => 'The lease file must be 10 MB or smaller.',
+            'lease_file.required' => 'Choose the signed agreement file to upload.',
+            'lease_file.mimes'    => 'Upload the signed agreement as a PDF, JPG or PNG.',
+            'lease_file.max'      => 'The agreement file must be 10 MB or smaller.',
         ]);
 
         if ($validator->fails()) {
@@ -89,7 +89,7 @@ class LeaseController extends Controller
         }
 
         return ($fromContracts ? $backToModal() : back())
-            ->with('success', $oldPath ? 'Signed lease replaced.' : 'Signed lease uploaded.');
+            ->with('success', $oldPath ? 'Signed agreement replaced.' : 'Signed agreement uploaded.');
     }
 
     public function file(Reservation $reservation)

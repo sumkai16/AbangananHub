@@ -191,7 +191,7 @@ class ContractsPageTest extends TestCase
         $this->actingAs($landlord)->get(route('landlord.contracts.show', $contract))
             ->assertOk()
             ->assertSee('Documents')
-            ->assertSee('Lease missing')
+            ->assertSee('Agreement missing')
             ->assertSee('Upload signed copy')
             ->assertSee(route('landlord.leases.show', $contract), false)
             ->assertSee(route('landlord.leases.upload', $contract), false)
@@ -229,7 +229,7 @@ class ContractsPageTest extends TestCase
             'from' => 'contracts',
             'lease_file' => UploadedFile::fake()->create('notes.txt', 5, 'text/plain'),
         ])->assertRedirect(route('landlord.contracts.index', ['open' => $contract->reservation_id]))
-            ->assertSessionHas('error', 'Upload the signed lease as a PDF, JPG or PNG.');
+            ->assertSessionHas('error', 'Upload the signed agreement as a PDF, JPG or PNG.');
 
         $this->assertNull($contract->fresh()->lease_file_path);
     }
