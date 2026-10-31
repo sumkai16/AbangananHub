@@ -52,14 +52,14 @@ class DirectPaymentSafetyTest extends TestCase
     private function qrClaim(array $overrides = []): array
     {
         return $overrides + [
-            'claim_type' => 'MoveIn', 'amount' => 10000, 'payment_method' => 'GCash',
+            'accept_terms' => '1', 'claim_type' => 'MoveIn', 'amount' => 10000, 'payment_method' => 'GCash',
             'reference_no' => 'GC123456', 'paid_on' => '2026-10-13',
         ];
     }
 
     private function cashClaim(array $overrides = []): array
     {
-        return $overrides + ['claim_type' => 'MoveIn', 'amount' => 10000, 'payment_method' => 'Cash', 'paid_on' => '2026-10-13'];
+        return $overrides + ['accept_terms' => '1', 'claim_type' => 'MoveIn', 'amount' => 10000, 'payment_method' => 'Cash', 'paid_on' => '2026-10-13'];
     }
 
     // ─── cash can be reported ───────────────────────────────────
@@ -318,5 +318,108 @@ class DirectPaymentSafetyTest extends TestCase
         $this->delete(route('paymentClaims.withdraw', PaymentClaim::firstOrFail()));
 
         $this->get(route('agreements.show', $reservation))->assertOk()->assertSee('Pay cash')->assertSee('Stay safe when paying');
+    }
+
+    // ─── the tick-box ───────────────────────────────────────────
+
+    public function test_a_report_without_the_tick_box_is_refused_for_qr_and_cash(): void
+    {
+        ['tenant' => $tenant, 'reservation' => $reservation] = $this->signedReservation();
+
+        $this->actingAs($tenant)->post(route('paymentClaims.store', $reservation), $this->qrClaim(['accept_terms' => null]))
+            ->assertSessionHasErrors('accept_terms');
+        $this->post(route('paymentClaims.store', $reservation), $this->cashClaim(['accept_terms' => null]))
+            ->assertSessionHasErrors('accept_terms');
+
+        $this->assertSame(0, PaymentClaim::count());
+    }
+
+    public function test_agreeing_is_written_to_the_audit_log_with_the_route(): void
+    {
+        ['tenant' => $tenant, 'reservation' => $reservation] = $this->signedReservation();
+
+        $this->actingAs($tenant)->post(route('paymentClaims.store', $reservation), $this->cashClaim());
+
+        $row = \App\Models\AuditLog::where('action', 'payment.terms_accepted')->latest('log_id')->first();
+        $this->assertNotNull($row);
+        $this->assertSame('cash', $row->metadata['route']);
+        $this->assertSame($tenant->user_id, $row->actor_id);
+    }
+
+    public function test_the_pay_forms_carry_the_agree_box_with_route_wording(): void
+    {
+        ['tenant' => $tenant, 'reservation' => $reservation] = $this->signedReservation();
+
+        $this->actingAs($tenant)->get(route('agreements.show', $reservation))
+            ->assertOk()
+            ->assertSee('name="accept_terms"', false)
+            ->assertSee('a QR that', false)
+            ->assertSee('I handed this cash to', false)
+            ->assertSee('Read the Terms');
+    }
+
+    // ─── the redesigned agreement page ──────────────────────────
+
+    public function test_the_agreement_page_leads_with_calm_key_terms_and_a_progress_bar(): void
+    {
+        ['tenant' => $tenant, 'reservation' => $reservation] = $this->signedReservation();
+        $reservation->update(['target_move_in_date' => '2026-11-07', 'move_out_date' => '2027-05-07']);
+
+        $html = $this->actingAs($tenant)->get(route('agreements.show', $reservation))->assertOk()->getContent();
+
+        $this->assertStringContainsString('Key terms', $html);
+        $this->assertStringContainsString('Due every 15th of the month', $html);
+        $this->assertStringContainsString('aria-label="Progress"', $html);
+        // The pay step is current for a signed agreement with nothing paid.
+        $this->assertMatchesRegularExpression('/aria-current="step"[^>]*>.*?Pay/s', $html);
+        // The old at-a-glance label is gone, and the print-only summary table is still in the document.
+        $this->assertStringNotContainsString('At a glance', $html);
+        $this->assertStringContainsString('Summary of key terms', $html);
+    }
+
+    public function test_lease_clauses_collapse_on_screen_but_print_in_full(): void
+    {
+        ['tenant' => $tenant, 'reservation' => $reservation] = $this->signedReservation();
+
+        $html = $this->actingAs($tenant)->get(route('agreements.show', $reservation))->assertOk()->getContent();
+
+        // Eight standard clauses as rows you can open, the first one open, and an Expand all button.
+        $this->assertSame(8, substr_count($html, '<details data-clause'));
+        $this->assertSame(1, preg_match_all('/<details data-clause[^>]*\sopen\b/', $html));
+        $this->assertStringContainsString('Expand all', $html);
+        // A one-line gist shows while a clause is closed.
+        $this->assertStringContainsString('due every 15th', $html);
+        // Print: a closed row prints nothing, so every clause is also in the page as a plain print-only copy.
+        $this->assertSame(2, substr_count($html, '. Ending the tenancy</'));
+        $this->assertSame(2, substr_count($html, 'This document is the whole agreement between the parties.'));
+    }
+
+    public function test_other_pages_show_the_lease_as_plain_clauses(): void
+    {
+        ['tenant' => $tenant, 'reservation' => $reservation] = $this->signedReservation();
+        $reservation->update(['rental_status' => 'Occupied']);
+
+        $html = $this->actingAs($tenant)->get(route('tenancy.show', $reservation))->assertOk()->getContent();
+
+        $this->assertStringNotContainsString('<details data-clause', $html);
+        // Same words as before: numbered 1 to 8 as headings with paragraph text, no bullets.
+        $this->assertStringContainsString('1. Premises and use</h3>', $html);
+        $this->assertStringContainsString('8. Whole agreement</h3>', $html);
+        $this->assertStringNotContainsString('<li class="pl-1">', $html);
+    }
+
+    public function test_lease_clauses_are_numbered_in_order_and_read_as_bullets(): void
+    {
+        ['tenant' => $tenant, 'reservation' => $reservation] = $this->signedReservation();
+
+        $html = $this->actingAs($tenant)->get(route('agreements.show', $reservation))->assertOk()->getContent();
+
+        // 1, 2, 3 ... 8, with no gaps (a counter bumped twice once gave 1, 3, 5 ...).
+        preg_match_all('/<span class="block text-\[16\.5px\] font-semibold text-\[#060D26\]">(\d+)\. /', $html, $m);
+        $this->assertSame(range(1, 8), array_map('intval', $m[1]));
+
+        // Longer clauses are bullet lists; the same sentences are still in the print copy as one paragraph.
+        $this->assertStringContainsString('<li class="pl-1">The Tenant makes no alterations without the Landlord&#039;s written consent.</li>', $html);
+        $this->assertStringContainsString('The Tenant keeps the premises clean and in good condition and reports any damage or needed repair promptly. The Landlord handles repairs', $html);
     }
 }

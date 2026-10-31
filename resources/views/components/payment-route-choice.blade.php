@@ -37,7 +37,7 @@
         || old('claim_type') === $type
         || ($isMoveIn && request()->boolean('pay')));
     // A checkout that came back with an error ('payment', and no report form input) reopens the online side so the message is seen.
-    $startOnline = ! $startDirect && $errors->has('payment');
+    $startOnline = ! $startDirect && ($errors->has('payment') || $errors->has('accept_terms'));
     $anchor = $isMoveIn ? 'choose-pay' : 'choose-pay-'.$periodKey->format('Y-m');
 @endphp
 <div id="{{ $anchor }}" class="scroll-mt-24 space-y-3" x-data="{ route: @js($startCash ? 'cash' : ($startDirect ? 'direct' : ($startOnline && $online ? 'online' : ($online ? null : 'direct')))), cashForm: @js($startCash && $errors->any()) }">
@@ -57,34 +57,57 @@
     @if($pendingClaim)
         @include('payments.partials._claim-status', ['pending' => $pendingClaim, 'rejected' => null, 'landlordName' => $landlordName])
     @else
-    <div class="grid gap-3 {{ $online ? 'sm:grid-cols-3' : 'sm:grid-cols-2' }}" role="group" aria-label="Payment method">
+    {{-- Online on: two cards, "online" (protected, held) or "directly" (no fee, no protection), and the QR / cash
+         choice sits inside "directly" so the tenant never sees two QR options. Online off: QR and cash side by side. --}}
+    <div class="grid gap-3 sm:grid-cols-2" role="group" aria-label="Payment method">
         @if($online)
             <button type="button" @click="route = 'online'" :aria-pressed="route === 'online'"
                 :class="route === 'online' ? 'border-[#FF8A66] bg-[#FF8A66]/[0.07]' : 'border-[#E2E4EC] bg-white hover:bg-[#F7F8FC]'"
                 class="min-h-[44px] rounded-2xl border p-4 text-left transition-colors">
                 <span class="block text-[14px] font-bold text-[#060D26]">Pay online</span>
                 <span class="mt-0.5 block text-[12px] leading-relaxed text-[#5B6A8E]">
-                    GCash or QR Ph on PayMongo. {{ $isMoveIn ? 'AbangananHub holds it until you confirm move-in.' : 'Your ledger updates right away.' }}
+                    GCash or QR Ph on PayMongo. {{ $isMoveIn ? 'AbangananHub holds it until you confirm move-in, so you are protected.' : 'Your ledger updates right away.' }}
+                </span>
+            </button>
+            <button type="button" @click="route = (route === 'cash' ? 'cash' : 'direct')" :aria-pressed="route === 'direct' || route === 'cash'"
+                :class="route === 'direct' || route === 'cash' ? 'border-[#FF8A66] bg-[#FF8A66]/[0.07]' : 'border-[#E2E4EC] bg-white hover:bg-[#F7F8FC]'"
+                class="min-h-[44px] rounded-2xl border p-4 text-left transition-colors">
+                <span class="block text-[14px] font-bold text-[#060D26]">Pay {{ $landlordName }} directly</span>
+                <span class="mt-0.5 block text-[12px] leading-relaxed text-[#5B6A8E]">
+                    {{ $landlordName }}&rsquo;s own QR or cash. No fee, but it goes straight to them; AbangananHub doesn&rsquo;t hold or refund it.
+                </span>
+            </button>
+        @else
+            <button type="button" @click="route = 'direct'" :aria-pressed="route === 'direct'"
+                :class="route === 'direct' ? 'border-[#FF8A66] bg-[#FF8A66]/[0.07]' : 'border-[#E2E4EC] bg-white hover:bg-[#F7F8FC]'"
+                class="min-h-[44px] rounded-2xl border p-4 text-left transition-colors">
+                <span class="block text-[14px] font-bold text-[#060D26]">Pay {{ $landlordName }} by QR</span>
+                <span class="mt-0.5 block text-[12px] leading-relaxed text-[#5B6A8E]">
+                    Their own QR, then tell us you paid. It goes straight to them; AbangananHub doesn&rsquo;t hold or refund it.
+                </span>
+            </button>
+            <button type="button" @click="route = 'cash'" :aria-pressed="route === 'cash'"
+                :class="route === 'cash' ? 'border-[#FF8A66] bg-[#FF8A66]/[0.07]' : 'border-[#E2E4EC] bg-white hover:bg-[#F7F8FC]'"
+                class="min-h-[44px] rounded-2xl border p-4 text-left transition-colors">
+                <span class="block text-[14px] font-bold text-[#060D26]">Pay cash</span>
+                <span class="mt-0.5 block text-[12px] leading-relaxed text-[#5B6A8E]">
+                    Hand it to {{ $landlordName }} in person. They record it here, and you are told when they do.
                 </span>
             </button>
         @endif
-        <button type="button" @click="route = 'direct'" :aria-pressed="route === 'direct'"
-            :class="route === 'direct' ? 'border-[#FF8A66] bg-[#FF8A66]/[0.07]' : 'border-[#E2E4EC] bg-white hover:bg-[#F7F8FC]'"
-            class="min-h-[44px] rounded-2xl border p-4 text-left transition-colors">
-            <span class="block text-[14px] font-bold text-[#060D26]">Pay {{ $landlordName }} by QR</span>
-            <span class="mt-0.5 block text-[12px] leading-relaxed text-[#5B6A8E]">
-                Their own QR, then tell us you paid. It goes straight to them; AbangananHub doesn&rsquo;t hold or refund it.
-            </span>
-        </button>
-        <button type="button" @click="route = 'cash'" :aria-pressed="route === 'cash'"
-            :class="route === 'cash' ? 'border-[#FF8A66] bg-[#FF8A66]/[0.07]' : 'border-[#E2E4EC] bg-white hover:bg-[#F7F8FC]'"
-            class="min-h-[44px] rounded-2xl border p-4 text-left transition-colors">
-            <span class="block text-[14px] font-bold text-[#060D26]">Pay cash</span>
-            <span class="mt-0.5 block text-[12px] leading-relaxed text-[#5B6A8E]">
-                Hand it to {{ $landlordName }} in person. They record it here, and you are told when they do.
-            </span>
-        </button>
     </div>
+
+    @if($online)
+        <div x-show="route === 'direct' || route === 'cash'" x-cloak role="group" aria-label="How to pay {{ $landlordName }} directly"
+            class="flex rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] p-1 text-[13px] font-bold">
+            <button type="button" @click="route = 'direct'" :aria-pressed="route === 'direct'"
+                :class="route === 'direct' ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E]'"
+                class="min-h-[40px] flex-1 rounded-lg px-3 transition-colors">{{ $landlordName }}&rsquo;s QR</button>
+            <button type="button" @click="route = 'cash'" :aria-pressed="route === 'cash'"
+                :class="route === 'cash' ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E]'"
+                class="min-h-[40px] flex-1 rounded-lg px-3 transition-colors">Cash</button>
+        </div>
+    @endif
 
     <div x-show="route === 'direct' || route === 'cash'" x-cloak>
         <x-payment-safety-tips :landlord-name="$landlordName" />
@@ -93,7 +116,7 @@
     {{-- Online: the PayMongo checkout. One payment covers the rent, the deposit (move-in only) and the online fee. --}}
     @if($online)
     <div x-show="route === 'online'" x-cloak>
-        <form action="{{ $checkoutUrl }}" method="POST" class="rounded-2xl border border-[#E2E4EC] bg-white p-4 sm:p-5">
+        <form action="{{ $checkoutUrl }}" method="POST" class="rounded-2xl border border-[#E2E4EC] bg-white p-4 sm:p-5" x-data="{ agreed: {{ old('accept_terms') ? 'true' : 'false' }} }">
             @csrf
             @if($errors->has('payment'))
                 <div role="alert" class="mb-3 rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/10 px-4 py-3 text-[13px] font-semibold text-[#B91C1C]">
@@ -113,8 +136,9 @@
             @if($fee > 0)
                 <p class="mt-2 text-[12px] leading-relaxed text-[#5B6A8E]">The fee covers the cost of paying online. Paying {{ $landlordName }} directly has no fee.</p>
             @endif
-            <button type="submit"
-                class="mt-4 h-11 w-full rounded-xl bg-[#FF8A66] px-5 text-sm font-bold text-[#060D26] shadow-sm transition-all duration-200 hover:bg-[#E96F4F]">
+            <div class="mt-3"><x-payment-agree route="online" :landlord-name="$landlordName" :move-in="$isMoveIn" :fee="$fee" :id="'agree-online-'.$anchor" /></div>
+            <button type="submit" :disabled="!agreed"
+                class="mt-4 h-11 w-full rounded-xl bg-[#FF8A66] px-5 text-sm font-bold text-[#060D26] shadow-sm transition-all duration-200 hover:bg-[#E96F4F] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[#FF8A66]">
                 Pay &#8369;{{ number_format($onlineTotal, 2) }} online
             </button>
             <x-payment-test-notice class="mt-3" />
@@ -153,7 +177,7 @@
                     class="mt-2 h-11 w-full rounded-xl border border-[#E2E4EC] bg-white text-[14px] font-bold text-[#060D26] transition-colors hover:bg-[#F7F8FC]">
                     I&rsquo;ve handed over the cash
                 </button>
-                <form x-show="cashForm" x-cloak method="POST" action="{{ route('paymentClaims.store', $reservation) }}" class="mt-3 space-y-3 border-t border-[#E2E4EC] pt-3">
+                <form x-show="cashForm" x-cloak method="POST" action="{{ route('paymentClaims.store', $reservation) }}" class="mt-3 space-y-3 border-t border-[#E2E4EC] pt-3" x-data="{ agreed: {{ old('accept_terms') ? 'true' : 'false' }} }">
                     @csrf
                     <input type="hidden" name="claim_type" value="{{ $type }}">
                     <input type="hidden" name="payment_method" value="Cash">
@@ -180,7 +204,8 @@
                         <input id="cash-note-{{ $anchor }}" name="note" maxlength="500" value="{{ old('note') }}"
                             class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5 text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
                     </div>
-                    <button type="submit" class="h-11 w-full rounded-xl bg-[#FF8A66] text-[14px] font-bold text-[#060D26] hover:bg-[#E96F4F] transition-colors">Report cash to {{ $landlordName }}</button>
+                    <x-payment-agree route="cash" :landlord-name="$landlordName" :id="'agree-cash-'.$anchor" />
+                    <button type="submit" :disabled="!agreed" class="h-11 w-full rounded-xl bg-[#FF8A66] text-[14px] font-bold text-[#060D26] hover:bg-[#E96F4F] transition-colors disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[#FF8A66]">Report cash to {{ $landlordName }}</button>
                 </form>
             @endunless
         </div>

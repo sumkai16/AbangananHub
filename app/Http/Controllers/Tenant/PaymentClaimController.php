@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PaymentClaim;
 use App\Models\Reservation;
 use App\Services\PaymentClaims;
+use App\Support\PaymentTerms;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
@@ -16,6 +17,7 @@ class PaymentClaimController extends Controller
     public function store(Request $request, Reservation $reservation)
     {
         Gate::authorize('fileClaim', $reservation);
+        PaymentTerms::require($request);
 
         $data = $request->validate([
             'claim_type' => ['required', Rule::in(PaymentClaim::TYPES)],
@@ -31,6 +33,7 @@ class PaymentClaimController extends Controller
         ]);
 
         PaymentClaims::file($reservation, $request->user(), $data);
+        PaymentTerms::record($reservation, $data['payment_method'] === 'Cash' ? 'cash' : 'qr', $data['claim_type']);
 
         return back()->with('success', 'Sent to your landlord. You will be notified when they confirm it.');
     }

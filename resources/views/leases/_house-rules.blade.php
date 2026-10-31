@@ -7,7 +7,9 @@
     $sections = $terms['house_rule_sections'] ?? null;
 @endphp
 @if (! empty($sections) || ! empty($terms['house_rules']))
-    <h3 class="{{ $heading }}">{{ $title }}</h3>
+    @unless ($hideTitle ?? false)
+        <h3 class="{{ $heading }}">{{ $title }}</h3>
+    @endunless
     <p class="{{ $body }}">The Tenant, their household and guests follow these rules:</p>
     @if (! empty($sections))
         @foreach ($sections as $section)

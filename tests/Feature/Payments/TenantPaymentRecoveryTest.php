@@ -77,7 +77,7 @@ class TenantPaymentRecoveryTest extends TestCase
 
     private function pay(array $t)
     {
-        return $this->actingAs($t['tenant'])->post(route('payments.checkout', $t['reservation']));
+        return $this->actingAs($t['tenant'])->post(route('payments.checkout', $t['reservation']), ['accept_terms' => '1']);
     }
 
     // ─── abandoned checkout ─────────────────────────────────────

@@ -131,7 +131,18 @@ class OnlineRouteChoiceTest extends TestCase
         $t = $this->makeOnlineTenancy();
 
         $this->actingAs($t['tenant'])->get(route('tenancy.show', $t['reservation']))
-            ->assertOk()->assertSee('How do you want to pay')->assertSee('Pay online')->assertSee('Pay cash')->assertSee('Pay your landlord:');
+            ->assertOk()->assertSee('How do you want to pay')->assertSee('Pay online')->assertSee('directly')->assertSee('Cash')->assertSee('Pay your landlord:');
+    }
+
+    public function test_with_online_on_there_are_two_cards_and_no_separate_qr_card(): void
+    {
+        $t = $this->makeOnlineTenancy();
+        $landlord = $t['landlord']->first_name;
+
+        $html = $this->actingAs($t['tenant'])->get(route('tenancy.show', $t['reservation']))->assertOk()->getContent();
+
+        $this->assertStringContainsString("Pay {$landlord} directly", $html);
+        $this->assertStringNotContainsString("Pay {$landlord} by QR", $html);
     }
 
     public function test_the_rent_page_shows_only_the_direct_route_otherwise(): void
@@ -160,5 +171,16 @@ class OnlineRouteChoiceTest extends TestCase
         $this->assertStringContainsString('in cash', $html);
         $this->assertStringContainsString('Hand over the exact amount and ask for a receipt.', $html);
         $this->assertStringContainsString('nothing counts as paid until', $html);
+    }
+
+    public function test_online_checkout_is_refused_without_the_tick_box_and_never_calls_paymongo(): void
+    {
+        \Illuminate\Support\Facades\Http::fake();
+        $t = $this->makeOnlineTenancy(['rental_status' => 'Rental Agreement Signed']);
+
+        $this->actingAs($t['tenant'])->post(route('payments.checkout', $t['reservation']))
+            ->assertSessionHasErrors('accept_terms');
+
+        \Illuminate\Support\Facades\Http::assertNothingSent();
     }
 }

@@ -2,6 +2,17 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 1 2026 — Agreement page redesign, layout 1 (branch `axci`)
+Chosen from five mockups. **Not verified in a browser yet.** Files: `resources/views/agreements/show.blade.php`, `leases/_document.blade.php`, `components/sticky-rail.blade.php`, `payment-route-choice`, `payment-agree`, `payment-safety-tips`.
+- **Header card** with the property, address, reference and a 4-step progress bar (Review lease, Sign, Pay, Move in). Labels collapse to the current step on phones.
+- **Key terms card** replaces the boxed summary: rent big with "due every Nth · deposit", a Starts / length / Ends row, the unit and address, then the parties under one hairline. No boxes inside the card.
+- **The lease** and **Signatures** are their own cards; the rail's At a glance card is now just the monthly rent and deposit line.
+- **Pay choices:** two cards (Pay online / Pay {landlord} directly) with QR and Cash inside "directly"; tick-box with route wording before every pay or report; safety tips collapsed; the right rail is a `<x-sticky-rail>` that pins only while it fits the window.
+- **Shorter lease on screen:** the eight standard clauses are collapsible rows (title and a one-line gist when closed, full text when open). The first clause starts open and an **Expand all / Collapse all** button sits in the card header. A closed `<details>` prints nothing, so `<x-lease-clause>` also renders a print-only plain copy: the printed lease always has every clause in full. Clause sentences are bullets on screen and one paragraph in print and on other pages, from one `items` list per clause (`<x-lease-clause :items>`), so the wording cannot drift. Fixed a numbering bug found in testing (the counter was bumped twice, giving 1, 3, 5). A landlord's own wording (one block) is not collapsed. Only the agreement page passes `$screenSummary`; the tenant rent page and landlord lease page still show plain clauses.
+- Print is unchanged: `_document` takes `$screenSummary`, which hides its parties and summary table on screen only. The landlord lease page and tenant tenancy page do not pass it.
+- Text sizes raised for readability (labels 14px, values 16.5-17px, lease text 15px).
+- Manual test: tenant at Signed, desktop and 375px: header and progress bar, key terms (dates row, parties), rail pins and unpins, Print / Save PDF still shows cover, parties and summary table once each.
+
 ## Oct 31 2026 — Direct payments: scam protection (branch `axci`)
 Plan: `plans/direct-payment-scam-protection.md` (has the numbered browser test guide). Direct payments (QR, cash) can't be made scam-proof since AbangananHub never holds the money; this leaves a record on both sides and a route to an admin.
 - **Cash can be reported.** The cash panel has **I've handed over the cash** (amount, date, note, no reference). Same claim flow: `PaymentClaim::METHODS` gains `Cash`, `reference_no` is nullable, the landlord sees "handed you ₱X in cash" and confirms or rejects (`_claim-review`). Web only.

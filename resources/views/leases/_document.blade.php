@@ -18,8 +18,11 @@
     $tenantName = $terms['tenant']['name'] ?: 'the Tenant';
     $utilities = $terms['utilities'] ?? ['included' => [], 'not_included' => [], 'separately_metered' => null];
     $n = 0;
+    // The agreement page shows the parties and key terms in its own cards, so on screen it asks for them to be hidden here
+    // ($screenSummary). They always stay in print, and the other pages that include this document are unaffected.
+    $ss = $screenSummary ?? false;
     $heading = 'text-[17px] font-semibold text-[#060D26] mt-8 mb-2 print:break-after-avoid';
-    $body = 'text-[13.5px] leading-relaxed text-[#060D26]';
+    $body = $ss ? 'text-[15px] leading-relaxed text-[#060D26] print:text-[13.5px]' : 'text-[13.5px] leading-relaxed text-[#060D26]';
 @endphp
 
 <div class="text-[#060D26]">
@@ -41,7 +44,7 @@
     {{-- Parties — plain, not a card: this prints, and boxed UI chrome (rounded
          corners, fill) reads as an app screenshot, not a contract. Same
          bordered-column treatment as the Signatures block further down. --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 pb-5 border-b border-[#E2E4EC]">
+    <div class="{{ $ss ? 'hidden print:grid' : 'grid' }} grid-cols-1 sm:grid-cols-2 gap-4 mb-6 pb-5 border-b border-[#E2E4EC]">
         @foreach (['Landlord' => $terms['landlord'], 'Tenant' => $terms['tenant']] as $role => $p)
             <div @if ($role === 'Tenant') class="sm:border-l sm:border-[#E2E4EC] sm:pl-4" @endif>
                 <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-1">{{ $role }}</p>
@@ -66,6 +69,7 @@
     @endif
 
     {{-- Key terms at a glance --}}
+    <div class="{{ $ss ? 'hidden print:block' : '' }}">
     <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mt-6 mb-1.5">Summary of key terms</p>
     <dl class="divide-y divide-[#E2E4EC] border-y border-[#E2E4EC]">
         @foreach (array_filter([
@@ -84,6 +88,7 @@
             </div>
         @endforeach
     </dl>
+    </div>
 
     @if (! empty($terms['body']))
         {{-- The landlord's own wording. The summary above stays system-made, so it always matches what the ledger charges. --}}
@@ -106,101 +111,99 @@
         {{-- The listing's rules plus the policy's sections, always listed by the system, never typed into the body. --}}
         @include('leases._house-rules', ['terms' => $terms, 'heading' => $heading, 'body' => $body, 'title' => 'House rules'])
     @else
-    <h3 class="{{ $heading }}">{{ ++$n }}. Premises and use</h3>
-    <p class="{{ $body }}">
-        The Landlord rents to the Tenant {{ $terms['unit'] ? 'the unit "' . $terms['unit'] . '" at' : '' }}
-        {{ $terms['property']['title'] }}, {{ $terms['property']['address'] }}.
-        The premises are for residential use only{{ $terms['occupants'] ? ', by no more than ' . $terms['occupants'] . ' ' . \Illuminate\Support\Str::plural('person', $terms['occupants']) : '' }}.
-        The Tenant may not sublet or transfer the premises without the Landlord's written consent.
-    </p>
+    @php
+        $Str = \Illuminate\Support\Str::class;
+        $persons = $terms['occupants'] ? ', by no more than ' . $terms['occupants'] . ' ' . $Str::plural('person', $terms['occupants']) : '';
+        $grace = $terms['grace_days'] ?? null;
+        $lateFee = $terms['late_fee'] ?? null;
+        $hasDeposit = $terms['deposit'] !== null && $terms['deposit'] > 0;
 
-    <h3 class="{{ $heading }}">{{ ++$n }}. Term</h3>
-    <p class="{{ $body }}">
-        @if ($terms['start'])
-            This lease starts on {{ $date($terms['start']) }}
-        @else
-            This lease starts on the Tenant's move-in date
-        @endif
-        @if ($terms['end'])
-            and ends on {{ $date($terms['end']) }}, unless ended earlier as set out below or renewed in writing.
-        @else
-            and continues month to month until either party ends it with notice as set out below.
-        @endif
-    </p>
+        // Each clause is a list of sentences: bullets on the agreement page, one paragraph everywhere else and on paper.
+        $premisesItems = [
+            'The Landlord rents to the Tenant ' . ($terms['unit'] ? 'the unit "' . $terms['unit'] . '" at ' : '') . $terms['property']['title'] . ', ' . $terms['property']['address'] . '.',
+            'The premises are for residential use only' . $persons . '.',
+            "The Tenant may not sublet or transfer the premises without the Landlord's written consent.",
+        ];
+        $termItems = [
+            ($terms['start'] ? 'This lease starts on ' . $date($terms['start']) : "This lease starts on the Tenant's move-in date")
+            . ($terms['end']
+                ? ' and ends on ' . $date($terms['end']) . ', unless ended earlier as set out below or renewed in writing.'
+                : ' and continues month to month until either party ends it with notice as set out below.'),
+        ];
+        $rentItems = ['The Tenant pays ' . $peso($terms['monthly_rent']) . ' per month, due on the ' . $ordinal((int) $terms['due_day']) . ' day of each month.'];
+        if ($lateFee) {
+            $rentItems[] = 'Rent paid in full within ' . (int) $grace . ' ' . $Str::plural('day', (int) $grace) . ' after the due date is on time.';
+            $rentItems[] = 'After that, a one-time late fee of '
+                . ($lateFee['type'] === 'percent' ? rtrim(rtrim(number_format($lateFee['value'], 2), '0'), '.') . '% of the monthly rent (' . $peso(round($terms['monthly_rent'] * $lateFee['value'] / 100, 2)) . ')' : $peso($lateFee['value']))
+                . ' is added for that month. It is charged once per month, not daily, and the Landlord may waive it.';
+        } elseif ($grace) {
+            $rentItems[] = 'Rent paid in full within ' . (int) $grace . ' ' . $Str::plural('day', (int) $grace) . ' after the due date is on time. No late fee is charged.';
+        }
+        $rentItems[] = 'Payments made through AbangananHub or recorded there by the Landlord form the rent ledger for this tenancy.';
+        $depositItems = $hasDeposit ? [
+            'The Tenant pays a security deposit of ' . $peso($terms['deposit']) . '. It covers unpaid rent and damage beyond normal wear and tear.',
+            'The Landlord returns it within 30 days after the Tenant moves out, less any deductions, which the Landlord lists in writing.',
+            "The deposit may not be used as the last month's rent without the Landlord's written agreement.",
+        ] : ['No security deposit is required under this lease.'];
+        $utilityItems = [];
+        if ($utilities['included']) { $utilityItems[] = 'Included in the rent: ' . implode(', ', $utilities['included']) . '.'; }
+        if ($utilities['not_included']) { $utilityItems[] = 'Not included, paid by the Tenant: ' . implode(', ', $utilities['not_included']) . '.'; }
+        if ($utilities['separately_metered']) { $utilityItems[] = 'Utilities are separately metered, and the Tenant pays for their own consumption.'; }
+        if (! $utilities['included'] && ! $utilities['not_included'] && ! $utilities['separately_metered']) {
+            $utilityItems[] = 'Utility charges are as agreed between the parties' . ($terms['extra_terms'] ? ' in the additional terms below' : '') . '.';
+        }
+        $careItems = [
+            'The Tenant keeps the premises clean and in good condition and reports any damage or needed repair promptly.',
+            "The Landlord handles repairs from normal wear and tear and to the building's structure, plumbing and wiring.",
+            'The Tenant pays for damage caused by the Tenant, their household or guests.',
+            "The Tenant makes no alterations without the Landlord's written consent.",
+            'The Landlord gives reasonable notice before entering the premises, except in an emergency.',
+        ];
+        $endingItems = [
+            'Either party may end this lease by giving at least ' . $terms['notice_days'] . " days' written notice, including by message on AbangananHub.",
+            'The Landlord may end it sooner if the Tenant fails to pay rent or seriously breaks this lease, as allowed by law.',
+            'On moving out, the Tenant returns the premises and all keys in the condition received, apart from normal wear and tear.',
+        ];
+        $wholeItems = ['This document is the whole agreement between the parties. Changes are valid only if made in writing and accepted by both.'];
+    @endphp
 
-    <h3 class="{{ $heading }}">{{ ++$n }}. Rent</h3>
-    <p class="{{ $body }}">
-        The Tenant pays {{ $peso($terms['monthly_rent']) }} per month, due on the {{ $ordinal((int) $terms['due_day']) }} day of each month.
-        @php
-            $grace = $terms['grace_days'] ?? null;
-            $lateFee = $terms['late_fee'] ?? null;
-        @endphp
-        @if ($lateFee)
-            Rent paid in full within {{ (int) $grace }} {{ \Illuminate\Support\Str::plural('day', (int) $grace) }} after the due date is on time.
-            After that, a one-time late fee of
-            {{ $lateFee['type'] === 'percent' ? rtrim(rtrim(number_format($lateFee['value'], 2), '0'), '.') . '% of the monthly rent (' . $peso(round($terms['monthly_rent'] * $lateFee['value'] / 100, 2)) . ')' : $peso($lateFee['value']) }}
-            is added for that month. It is charged once per month, not daily, and the Landlord may waive it.
-        @elseif ($grace)
-            Rent paid in full within {{ (int) $grace }} {{ \Illuminate\Support\Str::plural('day', (int) $grace) }} after the due date is on time. No late fee is charged.
-        @endif
-        Payments made through AbangananHub or recorded there by the Landlord form the rent ledger for this tenancy.
-    </p>
+    @php $n++; @endphp
+    <x-lease-clause :n="$n" title="Premises and use" :open="true" :gist="($terms['unit'] ?: 'The unit') . ', residential use only' . ($terms['occupants'] ? ', up to ' . $terms['occupants'] . ' ' . $Str::plural('person', $terms['occupants']) : '')" :items="$premisesItems" :body="$body" :accordion="$ss" :heading="$heading" />
 
-    <h3 class="{{ $heading }}">{{ ++$n }}. Security deposit</h3>
-    <p class="{{ $body }}">
-        @if ($terms['deposit'] !== null && $terms['deposit'] > 0)
-            The Tenant pays a security deposit of {{ $peso($terms['deposit']) }}. It covers unpaid rent and damage beyond normal wear and tear.
-            The Landlord returns it within 30 days after the Tenant moves out, less any deductions, which the Landlord lists in writing.
-            The deposit may not be used as the last month's rent without the Landlord's written agreement.
-        @else
-            No security deposit is required under this lease.
-        @endif
-    </p>
+    @php $n++; @endphp
+    <x-lease-clause :n="$n" title="Term" :gist="$terms['start'] ? $date($terms['start']) . ' to ' . ($terms['end'] ? $date($terms['end']) : 'month to month') : 'Starts on your move-in date'" :items="$termItems" :body="$body" :accordion="$ss" :heading="$heading" />
 
-    <h3 class="{{ $heading }}">{{ ++$n }}. Utilities</h3>
-    <p class="{{ $body }}">
-        @if ($utilities['included'])
-            Included in the rent: {{ implode(', ', $utilities['included']) }}.
-        @endif
-        @if ($utilities['not_included'])
-            Not included, paid by the Tenant: {{ implode(', ', $utilities['not_included']) }}.
-        @endif
-        @if ($utilities['separately_metered'])
-            Utilities are separately metered, and the Tenant pays for their own consumption.
-        @endif
-        @if (! $utilities['included'] && ! $utilities['not_included'] && ! $utilities['separately_metered'])
-            Utility charges are as agreed between the parties{{ $terms['extra_terms'] ? ' in the additional terms below' : '' }}.
-        @endif
-    </p>
+    @php $n++; @endphp
+    <x-lease-clause :n="$n" title="Rent" :gist="$peso($terms['monthly_rent']) . ' due every ' . $ordinal((int) $terms['due_day']) . ($lateFee ? ', late fee after the grace period' : '')" :items="$rentItems" :body="$body" :accordion="$ss" :heading="$heading" />
+
+    @php $n++; @endphp
+    <x-lease-clause :n="$n" title="Security deposit" :gist="$hasDeposit ? $peso($terms['deposit']) . ', returned within 30 days of move-out' : 'None required'" :items="$depositItems" :body="$body" :accordion="$ss" :heading="$heading" />
+
+    @php $n++; @endphp
+    <x-lease-clause :n="$n" title="Utilities" :gist="$utilities['included'] ? 'Included: ' . implode(', ', $utilities['included']) : 'As agreed with the landlord'" :items="$utilityItems" :body="$body" :accordion="$ss" :heading="$heading" />
 
     @if (! empty($terms['house_rule_sections']) || ! empty($terms['house_rules']))
-        @include('leases._house-rules', ['terms' => $terms, 'heading' => $heading, 'body' => $body, 'title' => (++$n).'. House rules'])
+        @php $n++; @endphp
+        <x-lease-clause :n="$n" title="House rules" gist="Rules for you, your household and guests" :accordion="$ss" :heading="$heading">
+            @include('leases._house-rules', ['terms' => $terms, 'heading' => $heading, 'body' => $body, 'title' => 'House rules', 'hideTitle' => true])
+        </x-lease-clause>
     @endif
 
-    <h3 class="{{ $heading }}">{{ ++$n }}. Care and repairs</h3>
-    <p class="{{ $body }}">
-        The Tenant keeps the premises clean and in good condition and reports any damage or needed repair promptly.
-        The Landlord handles repairs from normal wear and tear and to the building's structure, plumbing and wiring.
-        The Tenant pays for damage caused by the Tenant, their household or guests. The Tenant makes no alterations without the Landlord's written consent.
-        The Landlord gives reasonable notice before entering the premises, except in an emergency.
-    </p>
+    @php $n++; @endphp
+    <x-lease-clause :n="$n" title="Care and repairs" gist="You keep it clean and report damage. The landlord repairs wear and tear and the structure" :items="$careItems" :body="$body" :accordion="$ss" :heading="$heading" />
 
-    <h3 class="{{ $heading }}">{{ ++$n }}. Ending the tenancy</h3>
-    <p class="{{ $body }}">
-        Either party may end this lease by giving at least {{ $terms['notice_days'] }} days' written notice, including by message on AbangananHub.
-        The Landlord may end it sooner if the Tenant fails to pay rent or seriously breaks this lease, as allowed by law.
-        On moving out, the Tenant returns the premises and all keys in the condition received, apart from normal wear and tear.
-    </p>
+    @php $n++; @endphp
+    <x-lease-clause :n="$n" title="Ending the tenancy" :gist="$terms['notice_days'] . ' days\' written notice from either side'" :items="$endingItems" :body="$body" :accordion="$ss" :heading="$heading" />
 
     @if ($terms['extra_terms'])
-        <h3 class="{{ $heading }}">{{ ++$n }}. Additional terms</h3>
-        <p class="whitespace-pre-wrap {{ $body }}">{{ $terms['extra_terms'] }}</p>
+        @php $n++; @endphp
+        <x-lease-clause :n="$n" title="Additional terms" gist="Extra terms from the landlord" :accordion="$ss" :heading="$heading">
+            <p class="whitespace-pre-wrap {{ $body }}">{{ $terms['extra_terms'] }}</p>
+        </x-lease-clause>
     @endif
 
-    <h3 class="{{ $heading }}">{{ ++$n }}. Whole agreement</h3>
-    <p class="{{ $body }}">
-        This document is the whole agreement between the parties. Changes are valid only if made in writing and accepted by both.
-    </p>
+    @php $n++; @endphp
+    <x-lease-clause :n="$n" title="Whole agreement" gist="Changes only count if written and accepted by both" :items="$wholeItems" :body="$body" :accordion="$ss" :heading="$heading" />
 
     @endif
 

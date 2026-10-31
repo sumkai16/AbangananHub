@@ -22,7 +22,7 @@ class OnlinePaymentsSwitchTest extends TestCase
         Http::fake();
         ['tenant' => $tenant, 'reservation' => $reservation] = $this->makeTenancy();
 
-        $this->actingAs($tenant)->post(route('payments.rentCheckout', $reservation))
+        $this->actingAs($tenant)->post(route('payments.rentCheckout', $reservation), ['accept_terms' => '1'])
             ->assertSessionHasErrors(['payment' => Payments::OFFLINE_MESSAGE]);
 
         Sanctum::actingAs($tenant);

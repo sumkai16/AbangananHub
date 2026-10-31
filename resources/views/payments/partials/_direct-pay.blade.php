@@ -25,7 +25,7 @@
         ? route('conversations.index', ['active' => $reservation->conversation_id])
         : route('tenancy.chat', $reservation);
 @endphp
-<div id="{{ $isMoveIn ? 'pay' : 'pay-'.$periodKey->format('Y-m') }}" class="scroll-mt-24 rounded-2xl border border-[#E2E4EC] bg-white p-4 sm:p-5" x-data="{ form: {{ $errors->has('payment') || $errors->has('reference_no') || $errors->has('amount') || $errors->has('paid_on') || ($isMoveIn && request()->boolean('pay')) ? 'true' : 'false' }} }">
+<div id="{{ $isMoveIn ? 'pay' : 'pay-'.$periodKey->format('Y-m') }}" class="scroll-mt-24 rounded-2xl border border-[#E2E4EC] bg-white p-4 sm:p-5" x-data="{ form: {{ $errors->has('payment') || $errors->has('reference_no') || $errors->has('amount') || $errors->has('paid_on') || $errors->has('accept_terms') || ($isMoveIn && request()->boolean('pay')) ? 'true' : 'false' }} }">
     <h3 class="text-[15px] font-normal text-[#060D26]">
         {{ $isMoveIn ? 'Pay your landlord to move in' : (($period['is_future'] ?? false) ? 'Pay ahead: '.$period['label'] : 'Pay your landlord: '.$period['label']) }}
     </h3>
@@ -69,7 +69,7 @@
             I&rsquo;ve paid {{ $landlordName }}
         </button>
 
-        <form x-show="form" x-cloak method="POST" action="{{ route('paymentClaims.store', $reservation) }}" class="mt-4 space-y-3">
+        <form x-show="form" x-cloak method="POST" action="{{ route('paymentClaims.store', $reservation) }}" class="mt-4 space-y-3" x-data="{ agreed: {{ old('accept_terms') ? 'true' : 'false' }} }">
             @csrf
             <input type="hidden" name="claim_type" value="{{ $type }}">
             @unless($isMoveIn)
@@ -116,7 +116,8 @@
                     class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5 text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
             </div>
             <p class="text-[11.5px] text-[#5B6A8E]">Paid in cash? Choose <span class="font-bold">Pay cash</span> above instead. There is no reference number to report.</p>
-            <button type="submit" class="h-11 w-full rounded-xl bg-[#FF8A66] text-[14px] font-bold text-[#060D26] hover:bg-[#E96F4F] transition-colors">Send to {{ $landlordName }}</button>
+            <x-payment-agree route="qr" :landlord-name="$landlordName" :id="'agree-qr-'.$type" />
+            <button type="submit" :disabled="!agreed" class="h-11 w-full rounded-xl bg-[#FF8A66] text-[14px] font-bold text-[#060D26] hover:bg-[#E96F4F] transition-colors disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[#FF8A66]">Send to {{ $landlordName }}</button>
         </form>
     @endunless
 </div>

@@ -143,7 +143,7 @@ class BookingShortcutsTest extends TestCase
     private function filedMoveIn(array $parts): \App\Models\PaymentClaim
     {
         return PaymentClaims::file($parts['reservation'], $parts['tenant'], [
-            'claim_type' => 'MoveIn', 'amount' => 10000, 'payment_method' => 'GCash',
+            'accept_terms' => '1', 'claim_type' => 'MoveIn', 'amount' => 10000, 'payment_method' => 'GCash',
             'reference_no' => 'GC123456', 'paid_on' => '2026-10-14',
         ]);
     }

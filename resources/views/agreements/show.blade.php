@@ -19,6 +19,15 @@
         // $online = this landlord can be paid online too, so the tenant chooses; false = direct is the only way.
         $online = \App\Support\Payments::onlineFor($reservation);
         $directPaid = $reservation->move_in_paid_at !== null;
+        // Where the tenant is, for the progress bar: reviewing and signing share the first two steps.
+        $stage = $reservation->isOccupied() ? 4 : (($directPaid || $hasPayment) ? 3 : ($reservation->isAgreementSigned() ? 2 : 1));
+        $stepLabels = ['Review lease', 'Sign', 'Pay', 'Move in'];
+        $startDate = $terms['start'] ? \Illuminate\Support\Carbon::parse($terms['start']) : null;
+        $endDate = $terms['end'] ? \Illuminate\Support\Carbon::parse($terms['end']) : null;
+        $lengthMonths = $startDate && $endDate ? max(1, (int) round($startDate->floatDiffInMonths($endDate))) : null;
+        $premises = trim(($terms['unit'] ? $terms['unit'].' · ' : '').($terms['property']['title'] ?? ''), ' ·');
+        $depositText = $terms['deposit'] !== null && $terms['deposit'] > 0 ? '₱'.number_format($terms['deposit'], 2).' security deposit' : 'No security deposit';
+        $ordinal = fn (int $n) => $n.(in_array($n % 100, [11, 12, 13]) ? 'th' : (['th', 'st', 'nd', 'rd'][$n % 10] ?? 'th'));
     @endphp
 
     {{-- 1200 = 768 document + 400 action rail + gap. The document keeps the
@@ -47,100 +56,142 @@
             </button>
         </div>
 
-        {{-- Page header — bare on the background per DESIGN.md §6b --}}
-        <div class="mb-6">
-            <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1.5">
-                <h1 class="text-xl sm:text-2xl font-semibold text-[#060D26] tracking-tight">Lease Agreement</h1>
-                <p class="text-[11px] font-bold text-[#5B6A8E] tracking-wider tabular-nums border border-[#E2E4EC] rounded-full px-2.5 py-1">{{ $agreementRef }}</p>
+        {{-- Page header: the property, the reference and where the tenant is in the four steps. Never printed: the
+             document carries its own cover page. --}}
+        <x-card class="mb-6 p-5 sm:p-7 print:hidden">
+            <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+                <div class="min-w-0">
+                    <h1 class="text-2xl sm:text-[28px] font-bold text-[#060D26] tracking-tight">Lease Agreement</h1>
+                    <p class="mt-1 text-[14px] text-[#5B6A8E]">{{ $premises }}@if($terms['property']['address'] ?? null) · {{ $terms['property']['address'] }}@endif</p>
+                </div>
+                <p class="text-[12px] font-bold text-[#5B6A8E] tracking-wider tabular-nums border border-[#E2E4EC] rounded-full px-3 py-1">{{ $agreementRef }}</p>
             </div>
-            <p class="text-sm text-[#5B6A8E] mt-1 print:hidden">Please read the terms below carefully before signing.</p>
-        </div>
+            <ol class="mt-6 flex items-center" aria-label="Progress">
+                @foreach($stepLabels as $i => $label)
+                    @php $done = $i + 1 < $stage; $now = $i + 1 === $stage; @endphp
+                    <li class="flex items-center gap-2.5 min-w-0 {{ $loop->last ? '' : 'flex-1' }}" @if($now) aria-current="step" @endif>
+                        <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 text-[12px] font-bold
+                            {{ $done ? 'border-[#16A34A] bg-[#16A34A] text-white' : ($now ? 'border-[#FF8A66] bg-[#FF8A66] text-[#060D26]' : 'border-[#E2E4EC] bg-white text-[#5B6A8E]') }}">
+                            @if($done)
+                                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+                            @else
+                                {{ $i + 1 }}
+                            @endif
+                        </span>
+                        <span class="text-[14px] font-semibold whitespace-nowrap {{ $done || $now ? 'text-[#060D26]' : 'text-[#5B6A8E]' }} {{ $now ? '' : 'hidden sm:inline' }}">{{ $label }}</span>
+                        @unless($loop->last)
+                            <span class="mx-1 h-0.5 flex-1 rounded {{ $done ? 'bg-[#16A34A]' : 'bg-[#E2E4EC]' }}" aria-hidden="true"></span>
+                        @endunless
+                    </li>
+                @endforeach
+            </ol>
+        </x-card>
 
         {{-- print:block — on paper there is no rail, so the document must not
              be squeezed into a grid column that no longer has a sibling. --}}
         <div class="grid lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-8 lg:items-start print:block">
 
-        {{-- flush: the card's default p-5 sm:p-6 would collide with the wider
-             padding this document wants, and with print:p-0. --}}
-        <x-card flush class="p-5 sm:p-8 print:border-none print:shadow-none print:p-0">
-            {{-- ===== The lease — frozen terms, see App\Support\LeaseTerms ===== --}}
-            @include('leases._document', ['terms' => $terms])
+        <div class="space-y-6 min-w-0">
 
-            {{-- ===== Signature block — the evidentiary record ===== --}}
-            @if($reservation->agreed_at || $reservation->landlord_tc_accepted_at)
-                <div class="mt-6 rounded-xl border border-[#E2E4EC] p-5">
-                    <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-3">Signatures</p>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <p class="text-[13px] font-bold text-[#060D26]">{{ $landlord->first_name }} {{ $landlord->last_name }}</p>
-                            <p class="text-[11px] text-[#5B6A8E]">Landlord</p>
-                            @if($reservation->landlord_tc_accepted_at)
-                                <p class="text-[11px] text-[#15803D] font-semibold mt-1.5">
-                                    Accepted {{ $reservation->landlord_tc_accepted_at->format('F j, Y \a\t g:i A') }}
-                                </p>
-                            @else
-                                <p class="text-[11px] text-[#5B6A8E] mt-1.5">Awaiting acceptance</p>
-                            @endif
-                        </div>
-                        <div class="sm:border-l sm:border-[#E2E4EC] sm:pl-4">
-                            <p class="text-[13px] font-bold text-[#060D26]">{{ $tenant->first_name }} {{ $tenant->last_name }}</p>
-                            <p class="text-[11px] text-[#5B6A8E]">Tenant</p>
-                            @if($reservation->agreed_at)
-                                <p class="text-[11px] text-[#15803D] font-semibold mt-1.5">
-                                    Signed {{ $reservation->agreed_at->format('F j, Y \a\t g:i A') }}
-                                </p>
-                                @if($reservation->agreed_ip)
-                                    <p class="text-[10.5px] text-[#5B6A8E] mt-0.5">Recorded from {{ $reservation->agreed_ip }}</p>
-                                @endif
-                            @else
-                                <p class="text-[11px] text-[#5B6A8E] mt-1.5">Not yet signed</p>
-                            @endif
-                        </div>
-                    </div>
+        {{-- ===== Key terms: the eight facts, grouped by meaning (money, dates, place, people) with space and one
+             hairline instead of boxes. Screen only: the printed document has its own summary table. ===== --}}
+        <x-card class="p-5 sm:p-8 print:hidden">
+            <h2 class="mb-6 text-[19px] font-bold tracking-tight text-[#060D26]">Key terms</h2>
+            <div class="space-y-8">
+                <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <p class="text-[32px] font-extrabold leading-none tracking-tight text-[#060D26] tabular-nums">&#8369;{{ number_format($terms['monthly_rent'], 2) }}<span class="ml-1 text-[16px] font-medium tracking-normal text-[#5B6A8E]">/ month</span></p>
+                    <p class="text-[15px] text-[#5B6A8E]">Due every {{ $ordinal((int) $terms['due_day']) }} of the month · {{ $depositText }}</p>
                 </div>
-            @endif
 
+                @if($startDate && $endDate)
+                    <div class="grid grid-cols-[auto_1fr_auto] items-center gap-3 sm:gap-4">
+                        <div><p class="text-[14px] text-[#5B6A8E]">Starts</p><p class="text-[17px] font-bold text-[#060D26]">{{ $startDate->format('F j, Y') }}</p></div>
+                        <div class="flex items-center gap-3 text-[14px] font-semibold text-[#060D26]"><span class="h-0.5 flex-1 rounded bg-[#E2E4EC]"></span><span class="whitespace-nowrap">{{ $lengthMonths }} {{ \Illuminate\Support\Str::plural('month', $lengthMonths) }}</span><span class="h-0.5 flex-1 rounded bg-[#E2E4EC]"></span></div>
+                        <div class="text-right"><p class="text-[14px] text-[#5B6A8E]">Ends</p><p class="text-[17px] font-bold text-[#060D26]">{{ $endDate->format('F j, Y') }}</p></div>
+                    </div>
+                @else
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><p class="text-[14px] text-[#5B6A8E]">Starts</p><p class="text-[17px] font-bold text-[#060D26]">{{ $startDate ? $startDate->format('F j, Y') : 'On your move-in date' }}</p></div>
+                        <div class="text-right"><p class="text-[14px] text-[#5B6A8E]">Ends</p><p class="text-[17px] font-bold text-[#060D26]">{{ $endDate ? $endDate->format('F j, Y') : 'Month-to-month' }}</p></div>
+                    </div>
+                @endif
+
+                <div class="space-y-1">
+                    <p class="text-[17px] font-bold text-[#060D26]">{{ $premises }}</p>
+                    <p class="text-[14px] text-[#5B6A8E]">{{ $terms['property']['address'] ?? '' }}@if($terms['occupants']) · {{ $terms['occupants'] }} {{ \Illuminate\Support\Str::plural('person', $terms['occupants']) }}@endif</p>
+                </div>
+            </div>
+
+            <div class="mt-8 grid grid-cols-1 gap-5 border-t border-[#E2E4EC] pt-6 sm:grid-cols-2 sm:gap-8">
+                @foreach(['Landlord' => $terms['landlord'], 'Tenant' => $terms['tenant']] as $role => $person)
+                    <div class="min-w-0">
+                        <p class="text-[14px] text-[#5B6A8E]">{{ $role }}</p>
+                        <p class="text-[17px] font-bold text-[#060D26]">{{ $person['name'] ?: '—' }}</p>
+                        @if($person['email'])<p class="text-[14px] text-[#5B6A8E] break-words">{{ $person['email'] }}</p>@endif
+                        @if($person['phone'])<p class="text-[14px] text-[#5B6A8E]">{{ $person['phone'] }}</p>@endif
+                    </div>
+                @endforeach
+            </div>
         </x-card>
 
-        {{-- ===== Action rail — never printed ===== --}}
-        <aside class="mt-6 lg:mt-0 lg:sticky lg:top-8 print:hidden">
+        {{-- flush: the card's default p-5 sm:p-6 would collide with the wider
+             padding this document wants, and with print:p-0. --}}
+        <x-card flush class="p-5 sm:p-8 print:border-none print:shadow-none print:p-0" x-data="{ all: false }">
+            {{-- ===== The lease — frozen terms, see App\Support\LeaseTerms ===== --}}
+            <div class="mb-3 flex items-center justify-between gap-3 print:hidden">
+                <h2 class="text-[19px] font-bold tracking-tight text-[#060D26]">The lease</h2>
+                {{-- Clauses are collapsible rows when the lease uses the standard wording; a landlord's own text is one block. --}}
+                @if(empty($terms['body']))
+                    <button type="button" class="inline-flex min-h-[40px] items-center rounded-xl border border-[#E2E4EC] bg-white px-3.5 text-[13px] font-bold text-[#060D26] transition-colors hover:bg-[#F7F8FC]"
+                        @click="all = ! all; $root.querySelectorAll('details[data-clause]').forEach(d => d.open = all)"
+                        :aria-pressed="all" x-text="all ? 'Collapse all' : 'Expand all'">Expand all</button>
+                @endif
+            </div>
+            @include('leases._document', ['terms' => $terms, 'screenSummary' => true])
+        </x-card>
 
-            {{-- What you are committing to, restated so the figures are in
-                 view while the controls are. Reading the document is still the
-                 point; this stops the money being off-screen at the moment of
-                 signing. --}}
+        {{-- ===== Signature block — the evidentiary record ===== --}}
+        @if($reservation->agreed_at || $reservation->landlord_tc_accepted_at)
+            @php $tick = '<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'; @endphp
+            <x-card class="p-5 sm:p-8 print:border-none print:shadow-none print:p-0">
+                <h2 class="mb-5 text-[19px] font-bold tracking-tight text-[#060D26]">Signatures</h2>
+                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-8">
+                    <div>
+                        <p class="text-[14px] text-[#5B6A8E]">Landlord</p>
+                        <p class="text-[17px] font-bold text-[#060D26]">{{ $landlord->first_name }} {{ $landlord->last_name }}</p>
+                        @if($reservation->landlord_tc_accepted_at)
+                            <p class="mt-1 flex items-center gap-1.5 text-[14px] font-semibold text-[#15803D]">{!! $tick !!} Accepted {{ $reservation->landlord_tc_accepted_at->format('F j, Y \a\t g:i A') }}</p>
+                        @else
+                            <p class="mt-1 text-[14px] text-[#5B6A8E]">Awaiting acceptance</p>
+                        @endif
+                    </div>
+                    <div>
+                        <p class="text-[14px] text-[#5B6A8E]">Tenant</p>
+                        <p class="text-[17px] font-bold text-[#060D26]">{{ $tenant->first_name }} {{ $tenant->last_name }}</p>
+                        @if($reservation->agreed_at)
+                            <p class="mt-1 flex items-center gap-1.5 text-[14px] font-semibold text-[#15803D]">{!! $tick !!} Signed {{ $reservation->agreed_at->format('F j, Y \a\t g:i A') }}</p>
+                            @if($reservation->agreed_ip)
+                                <p class="mt-0.5 text-[13px] text-[#5B6A8E]">Recorded from {{ $reservation->agreed_ip }}</p>
+                            @endif
+                        @else
+                            <p class="mt-1 text-[14px] text-[#5B6A8E]">Not yet signed</p>
+                        @endif
+                    </div>
+                </div>
+            </x-card>
+        @endif
+
+        </div>
+
+        {{-- ===== Action rail — never printed ===== --}}
+        <x-sticky-rail class="mt-6 lg:mt-0">
+
+            {{-- What you are committing to, restated so the figures are in view while the controls are. The full
+                 terms are in the Key terms card; this keeps only the money beside the buttons. --}}
             <div class="rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5 mb-4">
-                <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider">At a glance</p>
-                <p class="mt-2 text-2xl font-bold tracking-tight text-[#060D26]">
-                    &#8369;{{ number_format($terms['monthly_rent'], 2) }}
-                    <span class="text-sm font-medium text-[#5B6A8E]">/ month</span>
-                </p>
-                <dl class="mt-4 space-y-2 text-[13px]">
-                    <div class="flex items-baseline justify-between gap-3">
-                        <dt class="text-[#5B6A8E]">Unit</dt>
-                        <dd class="font-medium text-[#060D26] text-right truncate">{{ $terms['unit'] ?? $terms['property']['title'] }}</dd>
-                    </div>
-                    @if($terms['start'])
-                        <div class="flex items-baseline justify-between gap-3">
-                            <dt class="text-[#5B6A8E]">Starts</dt>
-                            <dd class="font-medium text-[#060D26]">{{ \Illuminate\Support\Carbon::parse($terms['start'])->format('M j, Y') }}</dd>
-                        </div>
-                    @endif
-                    <div class="flex items-baseline justify-between gap-3">
-                        <dt class="text-[#5B6A8E]">Ends</dt>
-                        <dd class="font-medium text-[#060D26]">{{ $terms['end'] ? \Illuminate\Support\Carbon::parse($terms['end'])->format('M j, Y') : 'Month-to-month' }}</dd>
-                    </div>
-                    @if($terms['deposit'])
-                        <div class="flex items-baseline justify-between gap-3">
-                            <dt class="text-[#5B6A8E]">Security deposit</dt>
-                            <dd class="font-medium text-[#060D26]">&#8369;{{ number_format($terms['deposit'], 2) }}</dd>
-                        </div>
-                    @endif
-                    <div class="flex items-baseline justify-between gap-3">
-                        <dt class="text-[#5B6A8E]">Reference</dt>
-                        <dd class="font-medium text-[#060D26]">{{ $agreementRef }}</dd>
-                    </div>
-                </dl>
+                <p class="text-[14px] font-medium text-[#5B6A8E]">Monthly rent</p>
+                <p class="mt-1 text-[30px] font-extrabold leading-none tracking-tight text-[#060D26] tabular-nums">&#8369;{{ number_format($terms['monthly_rent'], 2) }}<span class="ml-1 text-[15px] font-medium tracking-normal text-[#5B6A8E]">/ month</span></p>
+                <p class="mt-2 text-[14px] text-[#5B6A8E]">Due every {{ $ordinal((int) $terms['due_day']) }} · {{ $depositText }}</p>
             </div>
 
             <div>
@@ -419,7 +470,7 @@
                     </div>
                 @endif
             </div>
-        </aside>
+        </x-sticky-rail>
 
         </div>{{-- /document + rail --}}
 

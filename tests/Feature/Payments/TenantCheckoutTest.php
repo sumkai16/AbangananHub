@@ -113,7 +113,7 @@ class TenantCheckoutTest extends TestCase
             $this->actingAs($user);
         }
 
-        return $this->post(route($flow === 'initial' ? 'payments.checkout' : 'payments.rentCheckout', $reservation), $data);
+        return $this->post(route($flow === 'initial' ? 'payments.checkout' : 'payments.rentCheckout', $reservation), $data + ['accept_terms' => '1']);
     }
 
     private function assertRefusedWithPaymentError($response, string $surface): void

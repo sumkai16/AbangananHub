@@ -196,7 +196,7 @@ class CheckoutGroupTest extends TestCase
             self::BASE => Http::response(['data' => ['id' => 'cs_new', 'attributes' => ['checkout_url' => 'https://checkout.paymongo.test/cs_new']]], 200),
         ]);
 
-        $this->actingAs($t['tenant'])->post(route('payments.checkout', $t['reservation']))->assertRedirect('https://checkout.paymongo.test/cs_new');
+        $this->actingAs($t['tenant'])->post(route('payments.checkout', $t['reservation']), ['accept_terms' => '1'])->assertRedirect('https://checkout.paymongo.test/cs_new');
 
         $this->assertSame(0, Payment::where('paymongo_checkout_session_id', 'cs_old')->count(), 'Both old rows are gone, not just one.');
         $this->assertSame(2, Payment::where('paymongo_checkout_session_id', 'cs_new')->count());

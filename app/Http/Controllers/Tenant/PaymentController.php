@@ -8,6 +8,7 @@ use App\Models\Payment;
 use App\Models\Reservation;
 use App\Services\PaymongoCheckout;
 use App\Services\RentLedger;
+use App\Support\PaymentTerms;
 use App\Support\Payments;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -16,9 +17,10 @@ class PaymentController extends Controller
 {
     use ReconcilesPaymongoCheckout;
 
-    public function createCheckoutSession(Reservation $reservation)
+    public function createCheckoutSession(Request $request, Reservation $reservation)
     {
         Gate::authorize('sign', $reservation);
+        PaymentTerms::require($request);
 
         if (! Payments::onlineFor($reservation)) {
             return back()->withErrors(['payment' => Payments::OFFLINE_MESSAGE]);
@@ -51,6 +53,8 @@ class PaymentController extends Controller
             cancelUrl: route('agreements.show', $reservation),
             busyMessage: 'A payment session is already in progress.',
         );
+
+        PaymentTerms::record($reservation, 'online', 'MoveIn');
 
         return redirect($checkoutUrl);
     }
@@ -140,9 +144,10 @@ class PaymentController extends Controller
      * there is no handover left to protect once a tenant is already occupying
      * the unit.
      */
-    public function createRentCheckoutSession(Reservation $reservation)
+    public function createRentCheckoutSession(Request $request, Reservation $reservation)
     {
         Gate::authorize('payRent', $reservation);
+        PaymentTerms::require($request);
 
         if (! Payments::onlineFor($reservation)) {
             return back()->withErrors(['payment' => Payments::OFFLINE_MESSAGE]);
@@ -178,6 +183,8 @@ class PaymentController extends Controller
             cancelUrl: route('tenancy.show', $reservation),
             busyMessage: 'A payment session is already in progress, or this tenancy is no longer active.',
         );
+
+        PaymentTerms::record($reservation, 'online', 'Monthly');
 
         return redirect($checkoutUrl);
     }

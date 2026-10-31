@@ -454,7 +454,7 @@
             </div>
 
             {{-- ── Side column ────────────────────────────────── --}}
-            <div class="space-y-5">
+            <x-sticky-rail class="space-y-5">
                 <x-card>
                     <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-4">Unit</p>
 
@@ -488,7 +488,7 @@
                         </p>
                     </x-card>
                 @endunless
-            </div>
+            </x-sticky-rail>
         </div>
     </div>
 
