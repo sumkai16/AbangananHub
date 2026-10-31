@@ -61,7 +61,8 @@ class RentPaymentRecorder
         $rows = RentPaymentAllocator::allocate(
             RentLedger::for($locked)->periods(),
             $startMonth,
-            $locked->monthlyRent(),
+            // Months the ledger has no row for yet owe that month's rent, which a renewal may have changed.
+            fn (Carbon $month) => $locked->rentFor($month),
             (float) $data['amount']
         );
 

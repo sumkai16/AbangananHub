@@ -17,7 +17,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 /**
- * One tenancy and its rent ledger, from the landlord's side.
+ * One tenancy from the landlord's side: the contract page and its actions (tenant details, end, reminder, late
+ * fee waiver). Its rent ledger page is LedgerController, under Payments.
  *
  * Serves walk-in and platform tenancies identically: both are an occupied unit
  * with rent falling due every month, and the escrow only ever covered the
@@ -26,36 +27,29 @@ use Illuminate\Support\Facades\Gate;
  */
 class TenancyController extends Controller
 {
+    /**
+     * The contract page: who the tenant is, the lease, their details, the unit, and ending the tenancy. The money
+     * (ledger, payments, deposit charges) is under Payments (LedgerController); this page only shows the balance
+     * and links there.
+     */
     public function show(Reservation $reservation)
     {
         Gate::authorize('viewTenancy', $reservation);
 
-        // Eager-loaded up front: the ledger reads payments, the header reads
-        // the tenant and unit, and Model::preventLazyLoading is on in dev.
+        // Eager-loaded up front: the balance strip reads the ledger summary, the header reads the tenant and
+        // unit, and Model::preventLazyLoading is on in dev.
         $reservation->load([
             'tenant.tenantDetail',
             'property',
             'unit.media',
-            'payments.recorder',
-            'payments.voider',
-            'payments.replacements',
-            'depositCharges.charger',
-            'depositCharges.voider',
+            'payments',
+            'depositCharges',
             'conversation',
-            'paymentClaims',
         ]);
 
-        $ledger = RentLedger::for($reservation);
-
         return view('landlord.tenancies.show', [
-            'reservation'         => $reservation,
-            'ledger'              => $ledger,
-            'periods'             => $ledger->periods(),
-            'otherCharges'        => $ledger->otherCharges(),
-            'summary'             => $ledger->summary(),
-            'unsettledPeriods'    => $ledger->unsettledPeriods(),
-            'monthlyTransactions' => $ledger->monthlyTransactions(),
-            'voidedTransactions'  => $ledger->voidedTransactions(),
+            'reservation' => $reservation,
+            'summary' => RentLedger::for($reservation)->summary(),
         ]);
     }
 

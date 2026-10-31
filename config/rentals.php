@@ -102,6 +102,12 @@ return [
     'lease_notice_days' => 30,
 
     /*
+     * How close to its end date a running contract starts reading "Ends in N days" on the Contracts page,
+     * and the window in which the landlord is offered Renew.
+     */
+    'renewal_window_days' => 60,
+
+    /*
      * Rental statuses in which the tenant may request a viewing: after the
      * landlord accepts the inquiry, up to signing.
      */

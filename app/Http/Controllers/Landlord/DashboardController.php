@@ -154,7 +154,7 @@ class DashboardController extends Controller
                 'meta' => trim(($r->unit?->unit_label ? $r->unit->unit_label . ' · ' : '') . $r->property->title
                     . ($days ? " · {$days} " . ($days === 1 ? 'day' : 'days') . ' overdue' : ' · overdue')),
                 'cta' => 'View ledger',
-                'url' => route('landlord.tenancies.show', $r),
+                'url' => route('landlord.payments.ledger', $r),
             ]);
         }
 
@@ -371,7 +371,7 @@ class DashboardController extends Controller
                     'meta' => $where($r),
                     'timestamp' => $p->paid_at ?? $p->created_at,
                     'url' => in_array($r->rental_status, ['Occupied', 'Completed'], true)
-                        ? route('landlord.tenancies.show', $r)
+                        ? route('landlord.payments.ledger', $r)
                         : route('landlord.payments.index'),
                 ];
             });

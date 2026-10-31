@@ -172,11 +172,11 @@ class DirectPaymentPagesTest extends TestCase
         ])->assertSessionHasNoErrors();
 
         $this->actingAs($tenant)->get(route('tenancy.show', $reservation))->assertOk()->assertSee('GT55');
-        $this->actingAs($landlord)->get(route('landlord.tenancies.show', $reservation))
+        $this->actingAs($landlord)->get(route('landlord.payments.ledger', $reservation))
             ->assertOk()->assertSee('Payment to confirm')->assertSee('GT55');
     }
 
-    public function test_the_landlords_reservation_list_flags_a_report_and_offers_move_in_confirmation(): void
+    public function test_the_reservation_list_flags_a_report_and_a_paid_request_moves_to_contracts(): void
     {
         ['landlord' => $landlord, 'tenant' => $tenant, 'reservation' => $reservation] = $this->signedWithChat();
 
@@ -184,11 +184,15 @@ class DirectPaymentPagesTest extends TestCase
             'claim_type' => 'MoveIn', 'amount' => 10000, 'payment_method' => 'GCash', 'reference_no' => 'GC1', 'paid_on' => '2026-10-13',
         ]);
 
-        $this->actingAs($landlord)->get(route('landlord.reservations.index'))->assertOk()->assertSee('Payment to confirm');
+        $this->actingAs($landlord)->get(route('landlord.reservations.index'))->assertOk()
+            ->assertSee('Payment to confirm')->assertSee('Confirm payment');
 
+        // Once the money is confirmed the lease lives on the Contracts page, where move-in is confirmed.
         $reservation->update(['move_in_paid_at' => now()]);
 
-        $this->actingAs($landlord)->get(route('landlord.reservations.index'))->assertOk()->assertSee('Confirm move-in');
+        $this->actingAs($landlord)->get(route('landlord.reservations.index', ['stage' => 'payment']))->assertOk()
+            ->assertDontSee(route('landlord.paymentClaims.confirm', $reservation->paymentClaims()->first()), false);
+        $this->actingAs($landlord)->get(route('landlord.contracts.show', $reservation))->assertOk()->assertSee('Confirm move-in');
     }
 
     public function test_payout_screens_are_hidden_while_online_payments_are_off_and_return_with_them(): void

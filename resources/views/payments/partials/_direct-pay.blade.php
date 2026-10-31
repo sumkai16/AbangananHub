@@ -11,7 +11,7 @@
     $share = \App\Models\PaymentQrShare::latestFor($reservation);
 
     $defaultAmount = $isMoveIn
-        ? (float) $reservation->monthlyRent() + $reservation->agreedDeposit()
+        ? $reservation->moveInDue()
         : (float) ($period['balance'] ?? 0);
     $periodKey = $isMoveIn ? null : $period['period']->copy()->startOfMonth();
 
@@ -32,7 +32,9 @@
 
     @if($isMoveIn)
         <dl class="mt-3 space-y-1 text-[13px]">
-            <div class="flex justify-between"><dt class="text-[#5B6A8E]">First month&rsquo;s rent</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($reservation->monthlyRent(), 2) }}</dd></div>
+            @if($reservation->advanceMonths() > 0)
+                <div class="flex justify-between"><dt class="text-[#5B6A8E]">{{ $reservation->advanceMonths() === 1 ? 'First month’s rent' : $reservation->advanceMonths().' months’ rent in advance' }}</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($reservation->advanceMonths() * $reservation->monthlyRent(), 2) }}</dd></div>
+            @endif
             @if($reservation->agreedDeposit() > 0)
                 <div class="flex justify-between"><dt class="text-[#5B6A8E]">Security deposit</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($reservation->agreedDeposit(), 2) }}</dd></div>
             @endif

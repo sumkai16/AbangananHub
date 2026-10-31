@@ -41,6 +41,8 @@ erDiagram
     reservations ||--o{ deposit_charges : "reservation_id"
     reservations ||--o{ rent_reminders : "reservation_id"
     reservations ||--o{ late_fee_waivers : "reservation_id"
+    reservations ||--o{ lease_renewals : "reservation_id"
+    users ||--o{ landlord_tenants : "landlord_id, tenant_id"
     reservations ||--o{ payment_claims : "reservation_id"
     payment_claims ||--o{ payments : "payment_claim_id"
     conversations ||--o{ payment_qr_shares : "conversation_id"
@@ -467,6 +469,36 @@ A landlord dropping the late fee on one month. The ledger gives a waived month `
 | billing_period | date | NN | | First of the month |
 | waived_by | bigint unsigned | null | FK → users, set null | |
 | reason | varchar(255) | null | | |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+### landlord_tenants
+A landlord's own tenant list (the Tenants page), so a tenant can exist before any contract. Status is not stored: Active = a `Rental Agreement Signed` / `Reserved` / `Occupied` reservation on this landlord's property, Former = only `Completed`, otherwise Pending (`LandlordTenant::statusFrom()`). `ReservationObserver` adds a row when a reservation reaches one of the Active statuses. See `plans/landlord-tenants-contracts-direct-payments.md`.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| landlord_tenant_id | bigint unsigned | NN | PK | |
+| landlord_id | bigint unsigned | NN | FK → users, cascade | UNIQUE `(landlord_id, tenant_id)` |
+| tenant_id | bigint unsigned | NN | FK → users, cascade | |
+| tenant_number | int unsigned | NN | | UNIQUE `(landlord_id, tenant_number)`; shown as `TN-0001` |
+| archived_at | timestamp | null | | "Deleted" from the list while history exists |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+**Rules**
+- Numbering is per landlord, highest + 1; the unique index is the guard against two adds racing (`LandlordTenant::ensureFor()` retries).
+
+### lease_renewals
+A contract extended by its landlord. Only the new values are kept; the previous end date and rent are the reservation's own, or the renewal before.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| lease_renewal_id | bigint unsigned | NN | PK | |
+| reservation_id | bigint unsigned | NN | FK → reservations, cascade | INDEX `(reservation_id, rent_effective_from)` |
+| new_move_out_date | date | NN | | |
+| new_monthly_rent | decimal(10,2) | NN | | |
+| rent_effective_from | date | NN | | First of a month; earlier months keep their rent |
+| renewed_by | bigint unsigned | null | FK → users, set null | |
 | created_at | timestamp | null | | |
 | updated_at | timestamp | null | | |
 

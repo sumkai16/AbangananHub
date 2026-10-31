@@ -101,7 +101,6 @@ class RentLedger
             return collect();
         }
 
-        $rent = $this->reservation->monthlyRent();
         $dueDay = $this->reservation->rentDueDay();
         // Grace days and the late fee come from the lease's frozen terms, not the live property.
         $rules = LeaseTerms::rentRules($this->reservation);
@@ -110,6 +109,8 @@ class RentLedger
         $periods = collect();
 
         while ($cursor->lessThanOrEqualTo($last)) {
+            // Per month, not once: a renewal can change the rent from a given month on.
+            $rent = $this->reservation->rentFor($cursor);
             $paidPayments = $this->monthlyPaymentsFor($cursor);
             $paid = (float) $paidPayments->sum(fn (Payment $p) => (float) $p->amount);
             // Safe without overflow handling because rentDueDay() clamps to 28.
@@ -259,7 +260,7 @@ class RentLedger
         $prepaidThrough = $prepaid->last()['period'] ?? null;
 
         return [
-            'monthlyRent'      => $this->reservation->monthlyRent(),
+            'monthlyRent'      => $this->reservation->currentRent(),
             'dueDay'           => $this->reservation->rentDueDay(),
             'periodCount'      => $periods->count(),
             'collected'        => round($monthlyCollected + $otherCollected, 2),
@@ -372,7 +373,7 @@ class RentLedger
             return null;
         }
 
-        $rent = $this->reservation->monthlyRent();
+        $rent = $this->reservation->rentFor($next);
 
         return [
             'period' => $next,

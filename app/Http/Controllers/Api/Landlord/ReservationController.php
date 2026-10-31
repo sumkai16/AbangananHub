@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Landlord\SendAgreementRequest;
 use App\Http\Resources\ReservationResource;
 use App\Models\Notification;
 use App\Models\Reservation;
@@ -66,15 +67,10 @@ class ReservationController extends Controller
         return response()->json(['data' => new ReservationResource($reservation->fresh())]);
     }
 
-    public function advanceToPendingAgreement(Request $request, Reservation $reservation): JsonResponse
+    /** Same final terms as the web form (SendAgreementRequest); all optional so older app builds keep working. */
+    public function advanceToPendingAgreement(SendAgreementRequest $request, Reservation $reservation): JsonResponse
     {
-        Gate::authorize('advanceStatus', $reservation);
-
-        $request->validate([
-            'agreement_terms_notes' => 'nullable|string|max:2000',
-        ]);
-
-        if (! $reservation->advanceToPendingAgreement($request->agreement_terms_notes)) {
+        if (! $reservation->advanceToPendingAgreement($request->validated())) {
             throw ValidationException::withMessages(['reservation' => ['This reservation cannot move to Pending Rental Agreement right now.']]);
         }
 

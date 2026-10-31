@@ -24,11 +24,11 @@ class TenantRatingController extends Controller
         // ends — requiring 'Occupied' exactly closed the window the instant
         // Reservation::endTenancy() flipped the status to 'Completed'.
         if (! in_array($reservation->rental_status, ['Occupied', 'Completed'], true)) {
-            return redirect()->route('landlord.reservations.index')->with('error', 'You can only rate tenants for occupied or completed rentals.');
+            return redirect()->route('landlord.contracts.index', ['open' => $reservation->reservation_id])->with('error', 'You can only rate tenants for occupied or completed rentals.');
         }
 
         if ($reservation->tenantRating) {
-            return redirect()->route('landlord.reservations.index')->with('error', 'You have already rated this tenant for this reservation.');
+            return redirect()->route('landlord.contracts.index', ['open' => $reservation->reservation_id])->with('error', 'You have already rated this tenant for this reservation.');
         }
 
         $reservation->load('tenant', 'unit');
@@ -49,11 +49,11 @@ class TenantRatingController extends Controller
         // ends — requiring 'Occupied' exactly closed the window the instant
         // Reservation::endTenancy() flipped the status to 'Completed'.
         if (! in_array($reservation->rental_status, ['Occupied', 'Completed'], true)) {
-            return redirect()->route('landlord.reservations.index')->with('error', 'You can only rate tenants for occupied or completed rentals.');
+            return redirect()->route('landlord.contracts.index', ['open' => $reservation->reservation_id])->with('error', 'You can only rate tenants for occupied or completed rentals.');
         }
 
         if ($reservation->tenantRating) {
-            return redirect()->route('landlord.reservations.index')->with('error', 'You have already rated this tenant for this reservation.');
+            return redirect()->route('landlord.contracts.index', ['open' => $reservation->reservation_id])->with('error', 'You have already rated this tenant for this reservation.');
         }
 
         $validated = $request->validate([
@@ -69,6 +69,6 @@ class TenantRatingController extends Controller
             'comment' => $validated['comment'] ?? null,
         ]);
 
-        return redirect()->route('landlord.reservations.index')->with('success', 'Tenant rated successfully.');
+        return redirect()->route('landlord.contracts.index', ['open' => $reservation->reservation_id])->with('success', 'Tenant rated successfully.');
     }
 }

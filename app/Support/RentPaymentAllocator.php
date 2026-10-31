@@ -37,14 +37,15 @@ class RentPaymentAllocator
      *                               balance of 0 and are skipped; a part-paid month, past or future,
      *                               takes only what it still owes.
      * @param  Carbon  $startMonth  The month the landlord selected in the form, start-of-month.
-     * @param  float  $monthlyRent  Full rent for any month the ledger has no row for yet.
+     * @param  float|callable(Carbon): float  $monthlyRent  Full rent for any month the ledger has no row for yet;
+     *                                                      a callable when a renewal changes the rent by month.
      * @param  float  $amount  The amount being recorded.
      * @return array<int, array{billing_period: Carbon, amount: float}>
      */
     public static function allocate(
         Collection $periods,
         Carbon $startMonth,
-        float $monthlyRent,
+        float|callable $monthlyRent,
         float $amount,
     ): array {
         $remaining = round(max(0.0, $amount), 2);
@@ -64,7 +65,8 @@ class RentPaymentAllocator
         $cursor = $startMonth->copy();
 
         for ($month = 0; $month < self::MAX_ADVANCE_MONTHS && $remaining > 0.0; $month++) {
-            $due = $balances->get($cursor->format('Y-m'), $monthlyRent);
+            $due = $balances->get($cursor->format('Y-m'))
+                ?? (is_callable($monthlyRent) ? (float) $monthlyRent($cursor->copy()) : $monthlyRent);
             $slice = round(min($remaining, $due), 2);
 
             if ($slice > 0.0) {

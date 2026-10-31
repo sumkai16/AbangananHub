@@ -148,19 +148,23 @@
                                                     selectedUnit: @js($defaultUnitId),
                                                     msg: @js(old('message', '')),
 
-                                                    // Contacting a landlord is one action now, not two — see
-                                                    // DESIGN.md for why the old Inquiry/Reserve toggle was
-                                                    // removed. A move-in date and duration are optional either
-                                                    // way; duration_months is posted alongside the date and the
-                                                    // server derives target_move_out_date from the pair
-                                                    // (StoreReservationRequest::prepareForValidation).
+                                                    // The inquiry asks when they want to move in (required), when they expect to leave
+                                                    // (optional, at least a month later) and how many will live there
+                                                    // (StoreReservationRequest). The landlord sets the final terms in the agreement.
                                                     moveIn: @js(old('target_move_in_date', '')),
-                                                    durationMonths: @js(old('duration_months', '')),
+                                                    moveOut: @js(old('target_move_out_date', '')),
+                                                    occupants: @js(old('occupants_count', 1)),
+                                                    get minMoveOut() {
+                                                        if (!this.moveIn) return null;
+                                                        const d = new Date(this.moveIn + 'T00:00:00');
+                                                        d.setMonth(d.getMonth() + 1);
+                                                        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                                                    },
                                                     minMoveIn: @js(now()->toDateString()),
                                                     maxMoveIn: @js(now()->addYear()->toDateString()),
 
                                                     get canSubmit() {
-                                                        return !!this.selected;
+                                                        return !!this.selected && !!this.moveIn && Number(this.occupants) >= 1;
                                                     },
 
                                                     descExpanded: false,
@@ -1516,17 +1520,12 @@
                                 @csrf
                                 <input type="hidden" name="unit_id" :value="selected ? selected.id : ''">
 
-                                {{-- Both optional — a tenant still deciding hasn't
-                                     necessarily settled on a move-in date. Naming one
-                                     (plus a duration) signals firmer intent to the
-                                     landlord without forcing a two-mode form to get
-                                     there; the server derives target_move_out_date
-                                     from the pair (StoreReservationRequest). --}}
+                                {{-- Move-in and occupants are required; move-out is optional (a tenant may not know yet).
+                                     The landlord sets the final dates in the agreement (StoreReservationRequest). --}}
                                 <div class="grid grid-cols-2 gap-3 items-start">
                                     <div>
                                         <label for="target_move_in_date"
-                                            class="block text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-1">Move
-                                            In <span class="normal-case tracking-normal font-semibold">· optional</span></label>
+                                            class="block text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-1">Move in</label>
                                         <x-date-picker name="target_move_in_date" id="target_move_in_date"
                                             placeholder="Move-in date"
                                             x-model="moveIn"
@@ -1537,18 +1536,29 @@
                                     </div>
 
                                     <div>
-                                        <label for="duration_months"
-                                            class="block text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-1">Stay
-                                            length</label>
-                                        <x-styled-select name="duration_months"
-                                            :options="['' => 'Open-ended', '1' => '1 month', '3' => '3 months', '6' => '6 months', '12' => '12 months']"
-                                            placeholder="Open-ended"
-                                            x-model="durationMonths"
-                                            class="h-11 w-full rounded-xl border border-[#E2E4EC] px-3.5 text-[14px] font-medium text-[#060D26] bg-white" />
-                                        @error('duration_months')
+                                        <label for="target_move_out_date"
+                                            class="block text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-1">Move out
+                                            <span class="normal-case tracking-normal font-semibold">· optional</span></label>
+                                        <x-date-picker name="target_move_out_date" id="target_move_out_date"
+                                            placeholder="Not sure yet"
+                                            x-model="moveOut"
+                                            min-expr="minMoveOut" disabled-expr="!moveIn" />
+                                        @error('target_move_out_date')
                                             <p class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
                                         @enderror
                                     </div>
+                                </div>
+
+                                <div>
+                                    <label for="occupants_count"
+                                        class="block text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-1">Occupants</label>
+                                    <input type="number" name="occupants_count" id="occupants_count" x-model="occupants"
+                                        min="1" :max="selected?.occupancy || 20" required inputmode="numeric"
+                                        class="h-11 w-full rounded-xl border border-[#E2E4EC] px-3.5 text-[14px] font-medium text-[#060D26] bg-white focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none">
+                                    <p class="mt-1 text-[11px] text-[#5B6A8E]" x-show="selected?.occupancy" x-text="'This unit allows up to ' + selected?.occupancy + (selected?.occupancy == 1 ? ' person.' : ' people.')"></p>
+                                    @error('occupants_count')
+                                        <p class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
+                                    @enderror
                                 </div>
 
                                 {{-- Deposit is optional per-unit since Sept 2026 (see
@@ -1748,7 +1758,7 @@
 
                                         <div class="grid grid-cols-2 gap-2.5">
                                             <div>
-                                                <label for="m_move_in" class="block text-[11px] font-bold text-[#5B6A8E] mb-1">Move in <span class="font-semibold">(Optional)</span></label>
+                                                <label for="m_move_in" class="block text-[11px] font-bold text-[#5B6A8E] mb-1">Move in</label>
                                                 <x-date-picker name="target_move_in_date" id="m_move_in"
                                                     placeholder="Move-in date"
                                                     x-model="moveIn"
@@ -1758,16 +1768,25 @@
                                                 @enderror
                                             </div>
                                             <div>
-                                                <label for="m_duration_months" class="block text-[11px] font-bold text-[#5B6A8E] mb-1">Stay length</label>
-                                                <x-styled-select name="duration_months"
-                                                    :options="['' => 'Open-ended', '1' => '1 month', '3' => '3 months', '6' => '6 months', '12' => '12 months']"
-                                                    placeholder="Open-ended"
-                                                    x-model="durationMonths"
-                                                    class="h-11 w-full rounded-xl border border-[#E2E4EC] px-3.5 text-[14px] font-medium text-[#060D26] bg-white" />
-                                                @error('duration_months')
+                                                <label for="m_move_out" class="block text-[11px] font-bold text-[#5B6A8E] mb-1">Move out <span class="font-semibold">(Optional)</span></label>
+                                                <x-date-picker name="target_move_out_date" id="m_move_out"
+                                                    placeholder="Not sure yet"
+                                                    x-model="moveOut"
+                                                    min-expr="minMoveOut" disabled-expr="!moveIn" />
+                                                @error('target_move_out_date')
                                                     <p class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
                                                 @enderror
                                             </div>
+                                        </div>
+                                        <div>
+                                            <label for="m_occupants" class="block text-[11px] font-bold text-[#5B6A8E] mb-1">Occupants</label>
+                                            <input type="number" name="occupants_count" id="m_occupants" x-model="occupants"
+                                                min="1" :max="selected?.occupancy || 20" required inputmode="numeric"
+                                                class="h-11 w-full rounded-xl border border-[#E2E4EC] px-3.5 text-[14px] font-medium text-[#060D26] bg-white focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none">
+                                            <p class="mt-1 text-[11px] text-[#5B6A8E]" x-show="selected?.occupancy" x-text="'This unit allows up to ' + selected?.occupancy + (selected?.occupancy == 1 ? ' person.' : ' people.')"></p>
+                                            @error('occupants_count')
+                                                <p class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
+                                            @enderror
                                         </div>
 
                                         {{-- Deposit is optional per-unit since Sept 2026 — the

@@ -13,12 +13,12 @@
 
         {{-- Toolbar — hidden when printing --}}
         <div class="flex items-center justify-between gap-3 mb-5 print:hidden">
-            <a href="{{ route('landlord.tenancies.show', $reservation) }}"
+            <a href="{{ route('landlord.payments.ledger', $reservation) }}"
                 class="inline-flex items-center gap-2 h-10 px-4 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] text-sm font-semibold hover:bg-[#F7F8FC] transition-all duration-200 cursor-pointer">
                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
                 </svg>
-                Back to tenancy
+                Back to ledger
             </a>
             <button type="button" onclick="window.print()"
                 class="inline-flex items-center gap-2 h-10 px-5 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">

@@ -20,8 +20,10 @@ use App\Http\Controllers\Auth\WebviewLoginController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\HandoverController;
 use App\Http\Controllers\Landlord\AnalyticsController;
+use App\Http\Controllers\Landlord\ContractController;
 use App\Http\Controllers\Landlord\DashboardController;
 use App\Http\Controllers\Landlord\DepositChargeController;
+use App\Http\Controllers\Landlord\LedgerController;
 use App\Http\Controllers\Landlord\PaymentClaimController;
 use App\Http\Controllers\Landlord\PayoutController;
 use App\Http\Controllers\Landlord\PropertyController as LandlordPropertyController;
@@ -32,7 +34,6 @@ use App\Http\Controllers\Landlord\ReviewController;
 use App\Http\Controllers\Landlord\TenantController;
 use App\Http\Controllers\Landlord\TenantRatingController;
 use App\Http\Controllers\Landlord\UnitIndexController;
-use App\Http\Controllers\Landlord\WalkInTenantController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaymentQrShareController;
@@ -245,13 +246,23 @@ Route::middleware('auth')->group(function () {
 
         // Tenants
         Route::get('/tenants', [TenantController::class, 'index'])->name('tenants.index');
+        // Contracts: every lease on the landlord's properties, online and added by hand.
+        Route::get('/contracts', [ContractController::class, 'index'])->name('contracts.index');
+        Route::post('/contracts', [ContractController::class, 'store'])->name('contracts.store');
+        Route::get('/contracts/{reservation}', [ContractController::class, 'show'])->name('contracts.show');
+        Route::post('/contracts/{reservation}/renew', [ContractController::class, 'renew'])->name('contracts.renew');
         Route::get('/tenants/export', [TenantController::class, 'export'])->name('tenants.export');
 
-        // Walk-in tenants — tenancies agreed offline and recorded after the
-        // fact. Registered before any /tenants/{param} route so the literal
-        // segments can't be swallowed by a wildcard.
-        Route::get('/tenants/walk-in/create', [WalkInTenantController::class, 'create'])->name('tenants.walkIn.create');
-        Route::post('/tenants/walk-in', [WalkInTenantController::class, 'store'])->name('tenants.walkIn.store');
+        // The old walk-in wizard was replaced by Add Tenant + Add contract (Oct 2026). Old links land on Add contract.
+        // Registered before /tenants/{landlordTenant} so the literal segments can't be swallowed by the wildcard.
+        Route::redirect('/tenants/walk-in/create', '/landlord/contracts?new=1');
+
+        // The tenant list: add, view, edit, invite, remove.
+        Route::post('/tenants', [TenantController::class, 'store'])->name('tenants.store');
+        Route::get('/tenants/{landlordTenant}', [TenantController::class, 'show'])->name('tenants.show');
+        Route::patch('/tenants/{landlordTenant}', [TenantController::class, 'update'])->name('tenants.update');
+        Route::delete('/tenants/{landlordTenant}', [TenantController::class, 'destroy'])->name('tenants.destroy');
+        Route::post('/tenants/{landlordTenant}/invite', [TenantController::class, 'invite'])->middleware('throttle:6,1')->name('tenants.invite');
 
         // A single tenancy and its rent ledger. Serves walk-in and platform
         // tenancies alike — the escrow only ever covered the initial payment.
@@ -271,6 +282,8 @@ Route::middleware('auth')->group(function () {
         // Rent collection
         Route::get('/payments', [App\Http\Controllers\Landlord\PaymentController::class, 'index'])->name('payments.index');
         Route::get('/payments/export', [App\Http\Controllers\Landlord\PaymentController::class, 'export'])->name('payments.export');
+        // One tenancy's rent ledger: the money side of a contract, under Payments.
+        Route::get('/payments/ledger/{reservation}', [LedgerController::class, 'show'])->name('payments.ledger');
         Route::post('/tenancies/{reservation}/payments', [App\Http\Controllers\Landlord\PaymentController::class, 'store'])->name('payments.store');
         Route::get('/payments/{payment}/receipt', [App\Http\Controllers\Landlord\PaymentController::class, 'receipt'])->name('payments.receipt');
         // Strikes a recorded payment from the ledger without deleting it — POST,
