@@ -347,10 +347,10 @@ class TenantCheckoutTest extends TestCase
     // ─── (3) amount correctness: initial checkout ───────────────
 
     #[DataProvider('surfaces')]
-    public function test_the_initial_checkout_asks_paymongo_for_the_agreed_rent_in_centavos(string $surface): void
+    public function test_the_initial_checkout_asks_paymongo_for_the_full_move_in_amount_in_centavos(string $surface): void
     {
         $this->fakeCheckoutCreated('cs_checkout_initial');
-        // The rent charged is the one agreed in the lease (agreed_monthly_rent), not the unit's live price.
+        // The move-in amount is the agreed rent (agreed_monthly_rent, not the unit's live price) for one advance month, plus the deposit.
         $t = $this->signedTenancy(['agreed_monthly_rent' => 7500.50], ['security_deposit' => 9000]);
         $reservation = $t['reservation'];
 
@@ -361,7 +361,7 @@ class TenantCheckoutTest extends TestCase
 
         $attributes = $this->sentCheckoutAttributes();
         $this->assertCount(1, $attributes['line_items']);
-        $this->assertSame(750050, $attributes['line_items'][0]['amount'], 'PHP 7,500.50 is 750,050 centavos.');
+        $this->assertSame(1650050, $attributes['line_items'][0]['amount'], 'PHP 7,500.50 rent + PHP 9,000 deposit is 1,650,050 centavos.');
         $this->assertSame('PHP', $attributes['line_items'][0]['currency']);
         $this->assertSame(1, $attributes['line_items'][0]['quantity']);
         $this->assertSame(['gcash', 'qrph'], $attributes['payment_method_types']);
@@ -374,7 +374,7 @@ class TenantCheckoutTest extends TestCase
         $this->assertSame('cs_checkout_initial', $payment->paymongo_checkout_session_id);
         $this->assertSame('Initial', $payment->payment_type);
         $this->assertNull($payment->billing_period);
-        $this->assertSame('7500.50', (string) $payment->amount);
+        $this->assertSame('16500.50', (string) $payment->amount);
         $this->assertSame('Pending', $payment->status);
         $this->assertSame('GCash', $payment->payment_method);
         $this->assertNull($payment->paid_at, 'Starting a checkout must not mark anything paid.');
@@ -384,13 +384,13 @@ class TenantCheckoutTest extends TestCase
     public function test_a_unit_price_edited_after_signing_does_not_change_what_the_tenant_is_charged(string $surface): void
     {
         $this->fakeCheckoutCreated('cs_checkout_frozen');
-        // Agreed rent is the fixture's 5,000; the landlord then raises the unit to 9,999.
+        // Agreed rent is the fixture's 5,000 (deposit 5,000); the landlord then raises the unit to 9,999.
         $t = $this->signedTenancy(unit: ['rental_fee' => 9999]);
 
         $this->startCheckout($surface, 'initial', $t['tenant'], $t['reservation']);
 
-        $this->assertSame(500000, $this->sentCheckoutAttributes()['line_items'][0]['amount'], 'The tenant pays what they signed, PHP 5,000.');
-        $this->assertSame('5000.00', (string) $this->paymentsOf($t['reservation'])->first()->amount);
+        $this->assertSame(1000000, $this->sentCheckoutAttributes()['line_items'][0]['amount'], 'The tenant pays what they signed: PHP 5,000 rent + PHP 5,000 deposit.');
+        $this->assertSame('10000.00', (string) $this->paymentsOf($t['reservation'])->first()->amount);
     }
 
     #[DataProvider('surfaces')]
@@ -401,8 +401,8 @@ class TenantCheckoutTest extends TestCase
 
         $this->startCheckout($surface, 'initial', $t['tenant'], $t['reservation']);
 
-        $this->assertSame(51205, $this->sentCheckoutAttributes()['line_items'][0]['amount']);
-        $this->assertSame('512.05', (string) $this->paymentsOf($t['reservation'])->first()->amount);
+        $this->assertSame(551205, $this->sentCheckoutAttributes()['line_items'][0]['amount']);
+        $this->assertSame('5512.05', (string) $this->paymentsOf($t['reservation'])->first()->amount);
     }
 
     // ─── (3) amount correctness: rent checkout ──────────────────

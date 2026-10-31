@@ -1003,6 +1003,20 @@ class Reservation extends Model
         return round($this->advanceMonths() * $this->monthlyRent() + $this->agreedDeposit(), 2);
     }
 
+    /**
+     * What moveInDue() is made of, in words: "₱10,000.00 rent (2 months) + ₱5,000.00 deposit". Shown on the
+     * PayMongo checkout and next to every Pay button, so the tenant sees why the number is more than one rent.
+     */
+    public function moveInBreakdown(): string
+    {
+        $months = $this->advanceMonths();
+        $text = '₱'.number_format($months * $this->monthlyRent(), 2).' rent ('.$months.' '.($months === 1 ? 'month' : 'months').')';
+
+        return $this->agreedDeposit() > 0
+            ? $text.' + ₱'.number_format($this->agreedDeposit(), 2).' deposit'
+            : $text;
+    }
+
     public function signAgreement(string $ip): bool
     {
         if ($this->rental_status !== 'Pending Rental Agreement') {

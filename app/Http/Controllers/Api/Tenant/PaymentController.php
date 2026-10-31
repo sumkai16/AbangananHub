@@ -72,7 +72,7 @@ class PaymentController extends Controller
             return Payment::create([
                 'reservation_id' => $locked->reservation_id,
                 'payment_type'   => 'Initial',
-                'amount'         => $locked->monthlyRent(),
+                'amount'         => $locked->moveInDue(),
                 'payment_method' => 'GCash',
                 'status'         => 'Pending',
             ]);
@@ -82,7 +82,7 @@ class PaymentController extends Controller
             throw ValidationException::withMessages(['payment' => ['A payment session is already in progress.']]);
         }
 
-        $amount = Payment::toCentavos($reservation->monthlyRent());
+        $amount = Payment::toCentavos($reservation->moveInDue()); // The full move-in amount (advance + deposit)
 
         $response = Http::withBasicAuth(config('services.paymongo.secret_key'), '')
             ->post('https://api.paymongo.com/v1/checkout_sessions', [
@@ -91,11 +91,11 @@ class PaymentController extends Controller
                         'send_email_receipt'  => false,
                         'show_description'    => true,
                         'show_line_items'     => true,
-                        'description'         => 'Initial rental payment for '.$reservation->unit->unit_name,
+                        'description'         => 'Move-in payment for '.$reservation->unit->unit_name.': '.$reservation->moveInBreakdown(),
                         'line_items'          => [[
                             'currency' => 'PHP',
                             'amount'   => $amount,
-                            'name'     => $reservation->unit->unit_name.' — Initial Payment',
+                            'name'     => $reservation->unit->unit_name.' — Move-in payment',
                             'quantity' => 1,
                         ]],
                         'payment_method_types' => ['gcash', 'qrph'],

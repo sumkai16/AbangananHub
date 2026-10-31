@@ -537,14 +537,14 @@
                                 </div>
                                 @if($summaryDeposit > 0)
                                     <div class="flex items-center justify-between text-[#5B6A8E]">
-                                        <span>Security deposit (paid to landlord)</span>
+                                        <span>Security deposit{{ \App\Support\Payments::online() ? '' : ' (paid to landlord)' }}</span>
                                         <span class="font-semibold text-[#060D26]">&#8369;{{ number_format($summaryDeposit) }}</span>
                                     </div>
                                 @endif
                                 <div class="flex items-center justify-between pt-1 border-t border-[#E2E4EC]">
                                     @if(\App\Support\Payments::online())
-                                    <span class="font-bold text-[#060D26]">Paid online (first month)</span>
-                                    <span class="font-bold text-[#060D26]">&#8369;{{ number_format($summaryRent) }}</span>
+                                    <span class="font-bold text-[#060D26]">Paid online to reserve (held until move-in)</span>
+                                    <span class="font-bold text-[#060D26]">&#8369;{{ number_format($summaryRent + $summaryDeposit) }}</span>
                                     @else
                                     <span class="font-bold text-[#060D26]">Paid to the landlord at move-in</span>
                                     <span class="font-bold text-[#060D26]">&#8369;{{ number_format($summaryRent + $summaryDeposit) }}</span>

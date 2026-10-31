@@ -261,9 +261,9 @@
                             @endif
                             <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] p-4 flex flex-wrap items-center justify-between gap-4">
                                 <div class="min-w-0">
-                                    <p class="text-sm font-bold text-[#060D26]">Initial Payment</p>
+                                    <p class="text-sm font-bold text-[#060D26]">Move-in payment · &#8369;{{ number_format($reservation->moveInDue(), 2) }}</p>
                                     <p class="text-xs text-[#5B6A8E] mt-0.5">
-                                        &#8369;{{ number_format($reservation->monthlyRent(), 2) }} via GCash — you will be redirected to complete payment.
+                                        {{ $reservation->moveInBreakdown() }}. Held by AbangananHub until you confirm move-in. You will be redirected to GCash or QR Ph to pay.
                                     </p>
                                 </div>
                                 <button type="submit"
