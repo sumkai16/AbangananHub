@@ -161,6 +161,8 @@ class DashboardController extends Controller
         // Signed agreement, deposit held, keys not yet handed over — Clock 1.
         $handovers = Reservation::whereIn('property_id', $propertyIds)
             ->where('rental_status', 'Rental Agreement Signed')
+            // Only money paid online and held: an unsigned-for or directly-paid move-in has no handover clock.
+            ->whereHas('payments', fn ($p) => $p->where('status', 'Held'))
             ->whereNull('keys_turned_over_at')
             ->whereNull('move_in_disputed_at')
             ->with(['property:property_id,title', 'unit:unit_id,unit_label'])

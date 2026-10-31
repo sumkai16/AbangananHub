@@ -387,7 +387,7 @@ One tenant's inquiry-to-tenancy record on one unit. `rental_status` walks Inquir
 | landlord_tc_accepted_at | timestamp | null | | |
 | tenant_tc_accepted_at | timestamp | null | | |
 | tenant_confirmed_move_in_at | timestamp | null | | Only a genuine tenant confirmation writes this |
-| move_in_paid_at | timestamp | null | | Move-in money paid straight to the landlord and settled (a confirmed claim, or the landlord recorded it). `hasSettledInitialPayment()` reads it; set while status is `Rental Agreement Signed`, before either party confirms move-in |
+| move_in_paid_at | timestamp | null | | Move-in money paid straight to the landlord and settled (a confirmed claim, or the landlord recorded it). Means "paid directly" only: for "settled by either channel" use `moveInSettled()` / `scopeMoveInSettled()`, which also count an online Initial payment Held/Paid/Released. Set while status is `Rental Agreement Signed`, before either party confirms move-in |
 | keys_turned_over_at | timestamp | null | | The clock switch: null = Clock 1, set = Clock 2 |
 | move_in_deadline_at | timestamp | null | index with `move_in_disputed_at` | Whichever clock is active; null = no clock |
 | move_in_disputed_at | timestamp | null | | Non-null = frozen in the admin queue |

@@ -140,8 +140,25 @@
     </section>
 </div>
 
+{{-- Paid online through PayMongo and still held until move-in (see Reservation::moveInSettled()). One-line @php: this file already uses that form, and Blade cannot mix it with a block. --}}
+@php($held = $reservation->rental_status === 'Rental Agreement Signed' ? $reservation->payments->firstWhere('status', 'Held') : null)
+
+@if($held)
+    <div class="mx-6 mb-4 rounded-2xl border border-[#E2E4EC] bg-[#F7F8FC] p-4">
+        <p class="text-[13px] font-semibold text-[#060D26]">₱{{ number_format((float) $held->amount, 2) }} paid online · held by AbangananHub</p>
+        <p class="mt-1 text-[12.5px] text-[#5B6A8E]">
+            @if($reservation->keys_turned_over_at)
+                Keys handed over {{ $reservation->keys_turned_over_at->format('M j') }}. It is released to you when {{ $tenant->first_name }} confirms move-in{{ $reservation->move_in_deadline_at ? ', or automatically on '.$reservation->move_in_deadline_at->format('M j') : '' }}.
+            @else
+                Released to you when {{ $tenant->first_name }} confirms move-in. Hand over the keys, then mark them turned over so the confirmation clock starts.
+            @endif
+        </p>
+    </div>
+@endif
+
 <div class="px-6 pb-6 flex flex-wrap items-center justify-end gap-2">
-    @if(in_array($reservation->rental_status, ['Occupied', 'Completed', 'Reserved'], true))
+    @if(in_array($reservation->rental_status, ['Occupied', 'Completed', 'Reserved'], true)
+        || ($reservation->rental_status === 'Rental Agreement Signed' && $reservation->moveInSettled()))
         <a href="{{ route('landlord.payments.ledger', $reservation) }}" class="{{ $ghostBtn }}">Open ledger</a>
     @endif
 
@@ -166,7 +183,21 @@
             @csrf
             <button type="submit" class="{{ $ctaBtn }}">Confirm move-in</button>
         </form>
-    @elseif($reservation->rental_status === 'Rental Agreement Signed' && $reservation->move_in_paid_at)
+    @elseif($held)
+        {{-- Escrow: the tenant's confirmation (or the deadline job, or an admin) releases the money, not this modal. --}}
+        @if($reservation->conversation_id)
+            <a href="{{ route('conversations.index', ['active' => $reservation->conversation_id]) }}" class="{{ $ghostBtn }}">Open chat</a>
+        @endif
+        @if(! $reservation->keys_turned_over_at && ! $reservation->move_in_disputed_at)
+            <form method="POST" action="{{ route('landlord.reservations.markTurnedOver', $reservation) }}"
+                data-confirm="Mark the keys as turned over?"
+                data-confirm-message="{{ $tenant->first_name }} gets {{ config('rentals.move_in_confirmation_days') }} days to confirm move-in. After that the payment is released to you automatically."
+                data-confirm-button="Keys turned over">
+                @csrf
+                <button type="submit" class="{{ $ctaBtn }}">Mark keys turned over</button>
+            </form>
+        @endif
+    @elseif($reservation->rental_status === 'Rental Agreement Signed' && $reservation->moveInSettled())
         <form method="POST" action="{{ route('landlord.reservations.confirmDirectMoveIn', $reservation) }}"
             data-confirm="Confirm move-in?" data-confirm-message="The unit will be marked Occupied and rent starts." data-confirm-button="Confirm move-in">
             @csrf

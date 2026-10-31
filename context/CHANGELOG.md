@@ -2,6 +2,15 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Oct 31 2026 — axci merged; online (PayMongo) reservation payments work in the pipeline (branch `emman`)
+Plan: `plans/axci-merge-online-reservation-payments.md`. No migrations. **Not verified in a browser.**
+- **Merge of `origin/axci`:** phone layouts and "Remind overdue" on Payments come in; emman's Tenants, Contracts, Payments (ledger links) and Reservations win. The walk-in wizard and rate-tenant page stay deleted.
+- **One "settled" check** (`Reservation::moveInSettled()` / `scopeMoveInSettled()`): paid directly or paid online. Used by the stage tabs, the unit hold, `contractStatus()`, `requestStage()` ("Paid online"), `markOccupied()` and the move-in policies. Money an admin released before the keys were handed over can now be moved in (it used to be stuck).
+- **Paying online reserves the unit** (webhook and return-page poll call `holdUnit()`); both checkouts refuse a unit another tenant holds, before calling PayMongo.
+- **The checkout charges `moveInDue()`** (advance months + deposit), described with `moveInBreakdown()`. `RentLedger::platformInitialSplit()` splits the one escrow row on read: advance months, then the deposit ("Deposit held"). Old one-month rows read as before. Tenant text: the Pay box, and the inquiry summary on the listing and in chat.
+- **Contract modal:** an online-paid contract shows "₱X paid online · held by AbangananHub", Open ledger, Open chat and **Mark keys turned over** (then "Keys handed over … released automatically on …"). The dashboard's "Turn over the keys" task lists only reservations with money held.
+- Tests: `OnlineReservationPipelineTest` (10), `RentLedgerInitialTest` (+2), `TenantCheckoutTest` amounts updated. The direct-pay suites are unchanged and green.
+
 ## Oct 31 2026 — Rate tenant is a step in the contract modal, not a page (branch `emman`)
 - **Rate tenant** in the contract modal (`landlord/contracts/partials/_details`) swaps the modal body to a rating form (stars, optional comment, Back to contract / Cancel / Submit rating). `landlord/tenant-ratings/create.blade.php` is deleted.
 - The old URL `landlord.reservations.rateTenant` stays, because "Rate your tenant" notifications link to it: it now redirects to `contracts.index?open={id}&rate=1`, and `ContractController::show` opens the modal on the rating form (`startRating`). A failed submit returns the same way with the error in the flash modal (session field errors would be lost, as with Renew and the lease upload).

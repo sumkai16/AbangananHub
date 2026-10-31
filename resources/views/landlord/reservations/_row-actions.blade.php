@@ -56,7 +56,7 @@
         <button type="submit" class="{{ $quiet }}">Reject</button>
     </form>
 @elseif(in_array($status, ['Pending Rental Agreement', 'Rental Agreement Signed'], true) && ($blocked = $reservation->cancellationBlockedReason()))
-    {{-- Money held through the (switched-off) online checkout: say why there is no Cancel instead of a button that only fails. --}}
+    {{-- Money held through the online checkout (PayMongo): say why there is no Cancel instead of a button that only fails. --}}
     <p class="basis-full max-w-[280px] text-[11.5px] leading-snug text-[#5B6A8E]">{{ $blocked }}</p>
 @elseif(in_array($status, ['Pending Rental Agreement', 'Rental Agreement Signed'], true))
     <form action="{{ route('landlord.reservations.cancel', $reservation) }}" method="POST"

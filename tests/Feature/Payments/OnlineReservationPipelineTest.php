@@ -149,6 +149,39 @@ class OnlineReservationPipelineTest extends TestCase
         $this->assertSame(0, $competitor->payments()->count());
     }
 
+    public function test_the_contract_modal_shows_the_held_money_and_the_keys_step(): void
+    {
+        $this->payOnline();
+        $name = $this->t['tenant']->first_name;
+
+        $this->actingAs($this->t['landlord'])->get(route('landlord.contracts.show', $this->signed()))
+            ->assertOk()
+            ->assertSee('paid online · held by AbangananHub')
+            ->assertSee('Mark keys turned over')
+            ->assertSee(route('landlord.payments.ledger', $this->signed()), false)
+            ->assertDontSee("Waiting for {$name}'s move-in payment", false)
+            ->assertDontSee(route('landlord.reservations.confirmDirectMoveIn', $this->signed()), false);
+
+        $this->actingAs($this->t['landlord'])->post(route('landlord.reservations.markTurnedOver', $this->signed()))
+            ->assertSessionHas('success');
+
+        $this->actingAs($this->t['landlord'])->get(route('landlord.contracts.show', $this->signed()))
+            ->assertOk()->assertSee('Keys handed over')->assertDontSee('Mark keys turned over');
+    }
+
+    public function test_the_dashboard_asks_for_the_keys_only_when_money_is_held(): void
+    {
+        $name = $this->t['tenant']->first_name;
+
+        $this->actingAs($this->t['landlord'])->get(route('landlord.dashboard'))
+            ->assertOk()->assertDontSee("Turn over the keys to {$name}");
+
+        $this->payOnline();
+
+        $this->actingAs($this->t['landlord'])->get(route('landlord.dashboard'))
+            ->assertOk()->assertSee("Turn over the keys to {$name}");
+    }
+
     public function test_money_released_before_the_keys_can_still_be_moved_in(): void
     {
         // An admin release before the keys were handed over leaves the reservation Signed with nothing Held.
