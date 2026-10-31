@@ -2,6 +2,16 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 1 2026 — `origin/axci` merged into `joseph`; tenant and landlord phone pass (branch `joseph`)
+`axci` was the newest branch (policies page, editable lease wording, tenant documents, online + direct payments, refunds, automatic payouts). Merged, then kept our earlier safety fixes on top of its new payment code.
+- **Merge keeps:** unit exclusivity (`advanceToPendingAgreement` locks the unit row and refuses a second holder), the under-lock checks in `openCheckout` (status, already paid, unit held, any Pending row blocks), the admin payout total pin (`LandlordPayouts::batch(..., $expectedTotal)`), `payouts:send` on the Manila timezone, business-time wording on reminders.
+- **Tenant payment clarity:** chat progress bar reaches "Paid" after a direct payment; reservations list says "Waiting for landlord" / "Confirm move-in" instead of inviting a second payment (`Reservation::tenantNextStep()`); "deposit" wording in held-payment messages is now "payment"; claim notifications for ended reservations go to the reservations list (`Reservation::tenantAgreementUrl()`); reminders say "I've paid" and only say overdue when the ledger does.
+- **Tenant pay and sign screens:** disabled pay buttons say "Tick the box above to continue"; bigger tick-box; selected pay card has a ring; calm info boxes instead of red; Key terms dates stack at 375px; rent card in the side column hidden on phones; 16px inputs; fields stack; 40px taps; refund claim is a button.
+- **Landlord phone pass (money actions):** Confirm payment / Not received / Reject, viewing actions and Confirm move-in are 44px on phones; reject form stacks; search boxes, QR note, payout/business form and documents inputs are 16px on phones so iOS stops zooming.
+- **Not done (found):** tenant documents upload hints and dark-mode pills; lease editor on phones (toolbar scroll hint, clipped buttons, unsaved prompt, dark background); `w-4.5` icons; thin `font-normal` titles; payouts gradient; GCash approval chip; earlier deferred tenant items.
+- **Needs a browser check:** everything above (judged from markup). Plan: `plans/tenant-merged-pages-design-pass.md`.
+- **Machine only:** 6 tests fail here (QR library not installed, PHP `intl` off); they pass in CI. Needs PHP 8.4 + `composer install`.
+
 ## Oct 28 2026 — Public footer reworked for phones (branch `joseph`)
 The footer in `layouts/app.blade.php` (shown on every tenant and public page) looked off at 375px. Markup and classes only; no behaviour or routes changed.
 - **Balanced link groups.** Five groups in a 2-column grid left one alone on the last row. A lone last group now spans both columns on phones (`max-sm:[&>*:last-child:nth-child(odd)]:col-span-2`), so the grid stays even whether a guest sees 3 groups or a signed-in user sees 5.
