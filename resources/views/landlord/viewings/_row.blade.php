@@ -61,33 +61,33 @@
                 @if ($awaitingMe)
                     <form action="{{ route('viewings.confirm', $viewing) }}" method="POST">
                         @csrf
-                        <button type="submit" class="h-9 px-4 rounded-lg bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12.5px] font-bold cursor-pointer transition-all duration-200">Approve</button>
+                        <button type="submit" class="h-11 lg:h-9 px-4 rounded-lg bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12.5px] font-bold cursor-pointer transition-all duration-200">Approve</button>
                     </form>
-                    <button type="button" @click="picking = true" class="h-9 px-3.5 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26] text-[12.5px] font-semibold hover:bg-[#F7F8FC] cursor-pointer transition-colors">Suggest another time</button>
-                    <button type="button" @click="declining = !declining" class="h-9 px-3 rounded-lg text-[#DC2626] text-[12.5px] font-semibold hover:bg-[#EF4444]/5 cursor-pointer transition-colors">Decline</button>
+                    <button type="button" @click="picking = true" class="h-11 lg:h-9 px-3.5 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26] text-[12.5px] font-semibold hover:bg-[#F7F8FC] cursor-pointer transition-colors">Suggest another time</button>
+                    <button type="button" @click="declining = !declining" class="h-11 lg:h-9 px-3 rounded-lg text-[#DC2626] text-[12.5px] font-semibold hover:bg-[#EF4444]/5 cursor-pointer transition-colors">Decline</button>
                 @elseif ($offline)
-                    <button type="button" @click="editing = true" class="h-9 px-3.5 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26] text-[12.5px] font-semibold hover:bg-[#F7F8FC] cursor-pointer transition-colors">Edit / reschedule</button>
+                    <button type="button" @click="editing = true" class="h-11 lg:h-9 px-3.5 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26] text-[12.5px] font-semibold hover:bg-[#F7F8FC] cursor-pointer transition-colors">Edit / reschedule</button>
                     <form action="{{ route('landlord.viewings.destroy', $viewing) }}" method="POST"
                         data-confirm="Cancel this viewing?" data-confirm-type="danger"
                         data-confirm-message="{{ $viewing->visitorName() }}'s viewing on {{ $viewing->scheduled_at->format('M j \a\t g A') }} will be removed from your calendar. Let them know yourself — they don't have an account."
                         data-confirm-button="Cancel viewing" data-confirm-cancel="Keep it">
                         @csrf @method('DELETE')
-                        <button type="submit" class="h-9 px-3 rounded-lg text-[#DC2626] text-[12.5px] font-semibold hover:bg-[#EF4444]/5 cursor-pointer transition-colors">Cancel</button>
+                        <button type="submit" class="h-11 lg:h-9 px-3 rounded-lg text-[#DC2626] text-[12.5px] font-semibold hover:bg-[#EF4444]/5 cursor-pointer transition-colors">Cancel</button>
                     </form>
                 @else
-                    <button type="button" @click="picking = true" class="h-9 px-3.5 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26] text-[12.5px] font-semibold hover:bg-[#F7F8FC] cursor-pointer transition-colors">Reschedule</button>
+                    <button type="button" @click="picking = true" class="h-11 lg:h-9 px-3.5 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26] text-[12.5px] font-semibold hover:bg-[#F7F8FC] cursor-pointer transition-colors">Reschedule</button>
                     <form action="{{ route('viewings.cancel', $viewing) }}" method="POST"
                         data-confirm="Cancel this viewing?" data-confirm-type="danger"
                         data-confirm-message="{{ $viewing->visitorName() }} will be told the viewing is off."
                         data-confirm-button="Cancel viewing" data-confirm-cancel="Keep it">
                         @csrf
-                        <button type="submit" class="h-9 px-3 rounded-lg text-[#DC2626] text-[12.5px] font-semibold hover:bg-[#EF4444]/5 cursor-pointer transition-colors">Cancel</button>
+                        <button type="submit" class="h-11 lg:h-9 px-3 rounded-lg text-[#DC2626] text-[12.5px] font-semibold hover:bg-[#EF4444]/5 cursor-pointer transition-colors">Cancel</button>
                     </form>
                 @endif
 
                 @if (! $offline && $viewing->reservation?->conversation_id)
                     <a href="{{ route('conversations.index', ['active' => $viewing->reservation->conversation_id]) }}"
-                        class="h-9 px-3 rounded-lg inline-flex items-center text-[#060D26] text-[12.5px] font-semibold hover:bg-[#ECEEF6] transition-colors">Open chat</a>
+                        class="h-11 lg:h-9 px-3 rounded-lg inline-flex items-center text-[#060D26] text-[12.5px] font-semibold hover:bg-[#ECEEF6] transition-colors">Open chat</a>
                 @endif
             </div>
 
@@ -96,8 +96,8 @@
                     @csrf
                     <label for="decline_{{ $viewing->viewing_id }}" class="sr-only">Reason (optional)</label>
                     <input id="decline_{{ $viewing->viewing_id }}" name="decline_reason" maxlength="255" placeholder="Reason (optional)"
-                        class="flex-1 min-w-0 h-9 text-[12.5px] border border-[#E2E4EC] rounded-lg px-3 text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]/10 outline-none">
-                    <button type="submit" class="h-9 bg-[#EF4444] hover:brightness-95 text-white text-[12.5px] font-bold px-4 rounded-lg cursor-pointer transition-all duration-200">Decline</button>
+                        class="flex-1 min-w-0 h-11 lg:h-9 text-[16px] sm:text-[12.5px] border border-[#E2E4EC] rounded-lg px-3 text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]/10 outline-none">
+                    <button type="submit" class="h-11 lg:h-9 bg-[#EF4444] hover:brightness-95 text-white text-[12.5px] font-bold px-4 rounded-lg cursor-pointer transition-all duration-200">Decline</button>
                 </form>
             @endif
         @endif

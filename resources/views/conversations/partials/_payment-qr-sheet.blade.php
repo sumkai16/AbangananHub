@@ -60,7 +60,7 @@
             <div class="mb-5">
                 <label for="payment-qr-note" class="mb-2 block text-[12px] font-semibold text-[#060D26]">Note <span class="font-normal text-[#5B6A8E]">(optional)</span></label>
                 <input id="payment-qr-note" x-model="note" maxlength="300" placeholder="e.g. Please pay on or before the 5th."
-                    class="w-full rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] px-3.5 py-2.5 text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20">
+                    class="w-full rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] px-3.5 py-2.5 text-[16px] sm:text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20">
                 <p x-show="errors.note" x-text="errors.note" class="mt-1.5 text-[12px] text-[#EF4444]"></p>
             </div>
 

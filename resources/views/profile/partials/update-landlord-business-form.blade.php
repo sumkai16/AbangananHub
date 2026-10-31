@@ -49,7 +49,7 @@
         <div x-show="changing || @js($errors->has('current_password'))" x-cloak class="mt-4">
             <label for="current_password" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Your password</label>
             <input type="password" id="current_password" name="current_password" autocomplete="current-password"
-                class="w-full sm:max-w-sm px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
+                class="w-full sm:max-w-sm px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[16px] sm:text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
             <p class="mt-1 text-[12px] text-[#5B6A8E]">Needed to change your GCash details. Payouts to you pause for 48 hours afterwards as a safety check, and we email you.</p>
             @error('current_password')
                 <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
@@ -131,7 +131,7 @@
         <div class="mb-4">
             <label class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Business description</label>
             <textarea name="business_description" rows="2" maxlength="1000"
-                class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all resize-none"
+                class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[16px] sm:text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all resize-none"
                 placeholder="Briefly describe your rental business...">{{ old('business_description', $business->description ?? '') }}</textarea>
             @error('business_description')
                 <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>

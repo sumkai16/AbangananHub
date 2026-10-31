@@ -140,11 +140,11 @@
                                     </div>
                                     <div class="min-w-[120px]">
                                         <label class="block text-xs font-medium text-[#5B6A8E] mb-1">Doc. no.</label>
-                                        <input type="text" name="document_number" maxlength="100" class="w-full text-sm border border-[#E2E4EC] rounded-lg px-3 py-2 bg-white">
+                                        <input type="text" name="document_number" maxlength="100" class="w-full text-[16px] sm:text-sm border border-[#E2E4EC] rounded-lg px-3 py-2 bg-white">
                                     </div>
                                     <div class="min-w-[140px]">
                                         <label class="block text-xs font-medium text-[#5B6A8E] mb-1">Expiry</label>
-                                        <input type="date" name="expiry_date" class="w-full text-sm border border-[#E2E4EC] rounded-lg px-3 py-2 bg-white">
+                                        <input type="date" name="expiry_date" class="w-full text-[16px] sm:text-sm border border-[#E2E4EC] rounded-lg px-3 py-2 bg-white">
                                     </div>
                                     <button type="submit" class="h-9 px-4 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200">
                                         Upload
@@ -291,11 +291,11 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-[#5B6A8E] mb-1">Document no. (optional)</label>
-                <input type="text" name="document_number" maxlength="100" class="w-full text-sm border border-[#E2E4EC] rounded-lg px-3 py-2.5">
+                <input type="text" name="document_number" maxlength="100" class="w-full text-[16px] sm:text-sm border border-[#E2E4EC] rounded-lg px-3 py-2.5">
             </div>
             <div>
                 <label class="block text-xs font-medium text-[#5B6A8E] mb-1">Expiry date (optional)</label>
-                <input type="date" name="expiry_date" class="w-full text-sm border border-[#E2E4EC] rounded-lg px-3 py-2.5">
+                <input type="date" name="expiry_date" class="w-full text-[16px] sm:text-sm border border-[#E2E4EC] rounded-lg px-3 py-2.5">
             </div>
 
             <div class="pt-2 flex gap-2">
