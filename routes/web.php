@@ -160,6 +160,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/reservations/{reservation}/agreement/sign', [AgreementController::class, 'sign'])->name('agreements.sign');
         Route::post('/reservations/{reservation}/pay', [PaymentController::class, 'createCheckoutSession'])->name('payments.checkout');
         Route::get('/reservations/{reservation}/payment-success', [PaymentController::class, 'success'])->name('payments.success');
+        Route::post('/reservations/{reservation}/payment/continue', [PaymentController::class, 'continueCheckout'])->name('payments.continue');
+        Route::post('/reservations/{reservation}/payment/cancel', [PaymentController::class, 'cancelCheckout'])->name('payments.cancel');
         Route::post('/reservations/{reservation}/confirm-move-in', [AgreementController::class, 'confirmMoveIn'])->name('agreements.confirmMoveIn');
         // confirmMoveIn is a state-changing POST-only action, but a reload/bookmark/
         // back-forward navigation to this URL lands here as GET — send it to the
@@ -181,6 +183,7 @@ Route::middleware('auth')->group(function () {
         // Paying the landlord directly: report it, or take the report back. The landlord decides.
         Route::post('/reservations/{reservation}/payment-claims', [App\Http\Controllers\Tenant\PaymentClaimController::class, 'store'])->name('paymentClaims.store');
         Route::delete('/payment-claims/{claim}', [App\Http\Controllers\Tenant\PaymentClaimController::class, 'withdraw'])->name('paymentClaims.withdraw');
+        Route::post('/payment-claims/{claim}/dispute', [App\Http\Controllers\Tenant\PaymentClaimController::class, 'dispute'])->name('paymentClaims.dispute');
         Route::get('/tenancy/{reservation}/rent-success', [PaymentController::class, 'rentSuccess'])->name('payments.rent.success');
 
         Route::post('/reviews', [App\Http\Controllers\Tenant\ReviewController::class, 'store'])->name('reviews.store');
@@ -388,11 +391,19 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/payments', [App\Http\Controllers\Admin\PaymentController::class, 'index'])->name('payments.index');
         Route::post('/payments/{payment}/release', [App\Http\Controllers\Admin\PaymentController::class, 'release'])->name('payments.release');
+        // Give a held online payment back to the tenant (the other way out of the move-in review queue).
+        Route::post('/payments/{payment}/refund', [App\Http\Controllers\Admin\PaymentRefundController::class, 'store'])
+            ->middleware('throttle:10,1')->name('payments.refund');
 
         // Landlord payouts — manual GCash transfer queue, see
         // docs/specs/2026-07-26-landlord-payout-design.md
         Route::get('/payouts', [App\Http\Controllers\Admin\PayoutController::class, 'index'])->name('payouts.index');
         Route::post('/payouts/{user}/mark-paid-out', [App\Http\Controllers\Admin\PayoutController::class, 'markPaidOut'])->name('payouts.markPaidOut');
+        Route::post('/payouts/{payout}/retry', [App\Http\Controllers\Admin\PayoutController::class, 'retry'])->name('payouts.retry');
+        Route::post('/payouts/{payout}/check', [App\Http\Controllers\Admin\PayoutController::class, 'check'])->name('payouts.check');
+        Route::post('/payouts/{user}/approve-account', [App\Http\Controllers\Admin\PayoutController::class, 'approveAccount'])->name('payouts.approveAccount');
+        Route::post('/payouts/{user}/pause', [App\Http\Controllers\Admin\PayoutController::class, 'pause'])->name('payouts.pause');
+        Route::post('/payouts/{user}/resume', [App\Http\Controllers\Admin\PayoutController::class, 'resume'])->name('payouts.resume');
 
         // Deposit charges — admin oversight/override of a landlord's claims
         // against a tenant's held security deposit. ReservationPolicy::

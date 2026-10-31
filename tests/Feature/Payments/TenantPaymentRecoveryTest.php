@@ -42,7 +42,7 @@ class TenantPaymentRecoveryTest extends TestCase
     private function signed(): array
     {
         // signAgreement() always stamps these; the agreement page prints them.
-        return $this->makeTenancy(['rental_status' => 'Rental Agreement Signed', 'agreed_at' => now(), 'agreed_ip' => '127.0.0.1']);
+        return $this->makeOnlineTenancy(['rental_status' => 'Rental Agreement Signed', 'agreed_at' => now(), 'agreed_ip' => '127.0.0.1']);
     }
 
     private function abandoned(Reservation $reservation, string $sessionId = 'cs_old', int $minutesAgo = 45): Payment
@@ -168,7 +168,8 @@ class TenantPaymentRecoveryTest extends TestCase
 
         $html = $this->actingAs($t['tenant'])->get(route('agreements.show', $t['reservation']))->assertOk()->getContent();
 
-        $this->assertStringContainsString('Pay Now', $html);
+        $this->assertStringContainsString('How do you want to pay', $html);
+        $this->assertMatchesRegularExpression('/online\s*<\/button>/', $html);
         $this->assertStringContainsString("last payment attempt wasn't completed", $html);
     }
 
@@ -267,7 +268,7 @@ class TenantPaymentRecoveryTest extends TestCase
     public function test_money_landing_on_a_cancelled_reservation_alerts_the_admins(): void
     {
         $admin = $this->makeUserWithRole('Admin');
-        $t = $this->makeTenancy(['rental_status' => 'Cancelled']);
+        $t = $this->makeOnlineTenancy(['rental_status' => 'Cancelled']);
         $payment = $this->makePayment($t['reservation'], ['payment_type' => 'Initial', 'billing_period' => null, 'status' => 'Held', 'payment_method' => 'GCash', 'amount' => 5000]);
 
         $payment->alertAdminsIfStranded();

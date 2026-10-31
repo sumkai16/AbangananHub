@@ -422,7 +422,7 @@
                         <div class="flex items-center gap-2 mt-2">
                             <div class="flex-1 min-w-0">
                                 <p class="text-[12px] font-bold text-[#060D26]">Payment held by AbangananHub</p>
-                                <p class="text-[11px] text-[#5B6A8E]">Confirm move-in to release &#8369;{{ number_format($heldPayment->amount, 2) }} to the landlord.</p>
+                                <p class="text-[11px] text-[#5B6A8E]">Confirm move-in to release &#8369;{{ number_format($reservation->heldTotal(), 2) }} to the landlord.</p>
                             </div>
                             <a href="{{ route('agreements.show', $reservation) }}"
                                 class="shrink-0 bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold px-4 py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center gap-1.5">
@@ -439,7 +439,7 @@
                             class="w-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-1.5">
                             Payment confirmed — confirm move-in
                         </a>
-                    @elseif(! \App\Support\Payments::online())
+                    @elseif(! \App\Support\Payments::onlineFor($reservation) || $reservation->paymentClaims->firstWhere('status', 'Pending'))
                         @php $waitingClaim = $reservation->paymentClaims->firstWhere('status', 'Pending'); @endphp
                         @if($waitingClaim)
                             <p class="text-[12px] text-[#5B6A8E] font-medium text-center py-1">Waiting for your landlord to confirm your payment of &#8369;{{ number_format($waitingClaim->amount, 2) }}.</p>
@@ -587,18 +587,13 @@
                                 </div>
                                 @if($summaryDeposit > 0)
                                     <div class="flex items-center justify-between text-[#5B6A8E]">
-                                        <span>Security deposit (paid to landlord)</span>
+                                        <span>Security deposit</span>
                                         <span class="font-semibold text-[#060D26]">&#8369;{{ number_format($summaryDeposit) }}</span>
                                     </div>
                                 @endif
                                 <div class="flex items-center justify-between pt-1 border-t border-[#E2E4EC]">
-                                    @if(\App\Support\Payments::online())
-                                    <span class="font-bold text-[#060D26]">Paid online (first month)</span>
-                                    <span class="font-bold text-[#060D26]">&#8369;{{ number_format($summaryRent) }}</span>
-                                    @else
-                                    <span class="font-bold text-[#060D26]">Paid to the landlord at move-in</span>
+                                    <span class="font-bold text-[#060D26]">{{ \App\Support\Payments::online() ? 'Due at move-in' : 'Paid to the landlord at move-in' }}</span>
                                     <span class="font-bold text-[#060D26]">&#8369;{{ number_format($summaryRent + $summaryDeposit) }}</span>
-                                    @endif
                                 </div>
                             </div>
 

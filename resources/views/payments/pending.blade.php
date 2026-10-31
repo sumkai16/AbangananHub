@@ -36,6 +36,20 @@
             </div>
         @endif
 
+        {{-- What this one online payment covered. --}}
+        @if($latestPayment && ($latestPayment->isHeld() || $latestPayment->isPaid()))
+            @php $group = $latestPayment->checkoutGroup(); @endphp
+            <dl class="mb-6 space-y-1.5 rounded-xl border border-[#E2E4EC] bg-white px-4 py-3 text-left text-[13px]">
+                @foreach($group as $row)
+                    <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">{{ $row->payment_type === 'Deposit' ? 'Security deposit' : ($row->payment_type === 'Monthly' ? 'Rent'.($row->billing_period ? ' for '.$row->billing_period->format('F Y') : '') : 'First month’s rent') }}</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($row->amount, 2) }}</dd></div>
+                @endforeach
+                @if($group->sum('service_fee') > 0)
+                    <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Online payment fee</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($group->sum('service_fee'), 2) }}</dd></div>
+                @endif
+                <div class="flex justify-between gap-3 border-t border-[#E2E4EC] pt-1.5"><dt class="font-bold text-[#060D26]">Total paid</dt><dd class="font-bold tabular-nums text-[#060D26]">&#8369;{{ number_format($latestPayment->checkoutTotal(), 2) }}</dd></div>
+            </dl>
+        @endif
+
         <a href="{{ $returnRoute ?? route('agreements.show', $reservation) }}"
             class="inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] font-bold text-sm transition">
             {{ isset($returnRoute) ? 'Back to Rent Ledger' : 'Back to Agreement' }}

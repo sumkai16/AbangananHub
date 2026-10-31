@@ -253,4 +253,85 @@ class PayMongoWebhookTest extends TestCase
         $this->assertSame('Pending', $payment->fresh()->status);
         $this->assertSame(1, Payment::where('paymongo_checkout_session_id', 'cs_failed')->count());
     }
+
+    // ─── live mode and the paid amount ──────────────────────────
+
+    /** A paid event, optionally flagged live and carrying the centavo amount PayMongo took. */
+    private function modeEvent(string $sessionId, bool $live, ?int $paidCentavos = null): string
+    {
+        $event = json_decode($this->paidEvent($sessionId), true);
+        $event['data']['attributes']['livemode'] = $live;
+
+        if ($paidCentavos !== null) {
+            $event['data']['attributes']['data']['attributes']['payments'][0]['attributes']['amount'] = $paidCentavos;
+        }
+
+        return json_encode($event);
+    }
+
+    private function liveSignature(string $body, string $secret = self::SECRET): string
+    {
+        $timestamp = time();
+
+        return "t={$timestamp},te=,li=" . hash_hmac('sha256', $timestamp . '.' . $body, $secret);
+    }
+
+    public function test_a_live_event_signed_in_the_li_field_settles_the_payment(): void
+    {
+        $t = $this->makeTenancy(['rental_status' => 'Rental Agreement Signed']);
+        $payment = $this->makePendingCheckout($t['reservation'], 'cs_live');
+        $body = $this->modeEvent('cs_live', true);
+
+        $this->deliver($body, $this->liveSignature($body))->assertOk();
+
+        $this->assertSame('Held', $payment->fresh()->status);
+    }
+
+    public function test_a_live_event_carrying_only_a_test_signature_is_refused(): void
+    {
+        $t = $this->makeTenancy(['rental_status' => 'Rental Agreement Signed']);
+        $payment = $this->makePendingCheckout($t['reservation'], 'cs_live_te');
+        $body = $this->modeEvent('cs_live_te', true);
+
+        $this->deliver($body, $this->signature($body))->assertForbidden();
+
+        $this->assertSame('Pending', $payment->fresh()->status);
+    }
+
+    public function test_a_test_event_carrying_only_a_live_signature_is_refused(): void
+    {
+        $t = $this->makeTenancy(['rental_status' => 'Rental Agreement Signed']);
+        $payment = $this->makePendingCheckout($t['reservation'], 'cs_test_li');
+        $body = $this->modeEvent('cs_test_li', false);
+
+        $this->deliver($body, $this->liveSignature($body))->assertForbidden();
+
+        $this->assertSame('Pending', $payment->fresh()->status);
+    }
+
+    public function test_a_payment_for_the_amount_asked_is_settled(): void
+    {
+        $t = $this->makeTenancy(['rental_status' => 'Rental Agreement Signed']);
+        $payment = $this->makePendingCheckout($t['reservation'], 'cs_exact', ['amount' => 5000]);
+        $body = $this->modeEvent('cs_exact', false, 500000);
+
+        $this->deliver($body, $this->signature($body))->assertOk();
+
+        $this->assertSame('Held', $payment->fresh()->status);
+    }
+
+    public function test_a_different_amount_is_left_pending_and_the_admins_are_told_once(): void
+    {
+        $admin = $this->makeUserWithRole('Admin');
+        $t = $this->makeTenancy(['rental_status' => 'Rental Agreement Signed']);
+        $payment = $this->makePendingCheckout($t['reservation'], 'cs_short', ['amount' => 5000]);
+        $body = $this->modeEvent('cs_short', false, 100000);
+
+        $this->deliver($body, $this->signature($body))->assertOk();
+        $this->deliver($body, $this->signature($body))->assertOk();
+
+        $this->assertSame('Pending', $payment->fresh()->status, 'A payment for the wrong amount must not be settled.');
+        $this->assertNull($payment->fresh()->paid_at);
+        $this->assertSame(1, Notification::where('user_id', $admin->user_id)->where('title', 'Online payment amount does not match')->count());
+    }
 }

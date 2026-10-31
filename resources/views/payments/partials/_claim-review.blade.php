@@ -13,16 +13,25 @@
     <div class="rounded-2xl border border-[#FF8A66]/40 bg-[#FF8A66]/[0.06] p-4" x-data="{ reject: false }">
         <p class="text-[11px] font-bold uppercase tracking-wider text-[#B35A3D]">Payment to confirm &middot; {{ $label }}</p>
         <p class="mt-1 text-[13.5px] text-[#060D26]">
-            <span class="font-bold">{{ $tenantName ?? 'Your tenant' }}</span> says they paid
-            <span class="font-bold tabular-nums">&#8369;{{ number_format($claim->amount, 2) }}</span> by {{ $claim->payment_method }}
-            on {{ $claim->paid_on->format('M j') }}.
+            <span class="font-bold">{{ $tenantName ?? 'Your tenant' }}</span>
+            @if($claim->isCash())
+                says they handed you <span class="font-bold tabular-nums">&#8369;{{ number_format($claim->amount, 2) }}</span> in cash
+                on {{ $claim->paid_on->format('M j') }}.
+            @else
+                says they paid <span class="font-bold tabular-nums">&#8369;{{ number_format($claim->amount, 2) }}</span> by {{ $claim->payment_method }}
+                on {{ $claim->paid_on->format('M j') }}.
+            @endif
         </p>
-        <p class="mt-0.5 text-[12.5px] text-[#5B6A8E]">Reference <span class="font-mono font-bold text-[#060D26]">{{ $claim->reference_no }}</span>. Look for it in your {{ $claim->payment_method }} account before you confirm.</p>
+        @if($claim->isCash())
+            <p class="mt-0.5 text-[12.5px] text-[#5B6A8E]">Confirm only if you actually received this cash. If you didn&rsquo;t, press Not received and say why.</p>
+        @else
+            <p class="mt-0.5 text-[12.5px] text-[#5B6A8E]">Reference <span class="font-mono font-bold text-[#060D26]">{{ $claim->reference_no }}</span>. Look for it in your {{ $claim->payment_method }} account before you confirm.</p>
+        @endif
         @if($claim->note)<p class="mt-1 text-[12px] italic text-[#5B6A8E]">&ldquo;{{ $claim->note }}&rdquo;</p>@endif
 
         <div class="mt-3 flex flex-wrap gap-2">
             <form method="POST" action="{{ route('landlord.paymentClaims.confirm', $claim) }}"
-                data-confirm="{{ $andMoveIn ? 'Confirm payment and move-in?' : 'Confirm this payment?' }}" data-confirm-message="{{ $andMoveIn ? 'It will count as paid, start the tenancy and the rent schedule, and your tenant is notified. Only confirm after you see the money in your account and hand over the keys.' : 'It will count as paid and your tenant is notified. Only confirm after you see the money in your account.' }}" data-confirm-button="{{ $andMoveIn ? 'Confirm & move in' : 'Confirm payment' }}">
+                data-confirm="{{ $andMoveIn ? 'Confirm payment and move-in?' : 'Confirm this payment?' }}" data-confirm-message="{{ $andMoveIn ? 'It will count as paid, start the tenancy and the rent schedule, and your tenant is notified. Only confirm after you see the money in your account and hand over the keys.' : ($claim->isCash() ? 'It will count as paid and your tenant is notified. Only confirm if you received the cash.' : 'It will count as paid and your tenant is notified. Only confirm after you see the money in your account.') }}" data-confirm-button="{{ $andMoveIn ? 'Confirm & move in' : 'Confirm payment' }}">
                 @csrf
                 @if($andMoveIn)<input type="hidden" name="and_move_in" value="1">@endif
                 <button type="submit" class="h-9 rounded-xl bg-[#FF8A66] px-4 text-[12.5px] font-bold text-[#060D26] hover:bg-[#E96F4F] transition-colors">{{ $andMoveIn ? 'Confirm payment & move-in' : 'Confirm payment' }}</button>

@@ -45,6 +45,8 @@ class AgreementController extends Controller
         return response()->json([
             'data' => new ReservationResource($reservation),
             'online_payments_enabled' => Payments::online(),
+            // This landlord can actually be paid online (GCash on file, no opt-out). When true the tenant chooses online or direct.
+            'online_available' => Payments::onlineFor($reservation),
             'payment_qr' => PaymentQrShare::latestFor($reservation)?->toApi(),
         ]);
     }

@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Events\PaymentStatusUpdated;
+use App\Jobs\SendLandlordPayout;
 use App\Models\Notification;
 use App\Models\Payment;
 
@@ -42,13 +43,27 @@ class PaymentObserver
 
     public function updated(Payment $payment): void
     {
+        // Money just became payable to the landlord (rent paid, or escrow released): send it now. The hourly
+        // `payouts:send` sweep covers anything this misses. Runs after the commit, like everything here.
+        if ($payment->wasChanged('payout_owed_at') && $payment->payout_owed_at !== null && $payment->getOriginal('payout_owed_at') === null) {
+            $landlordId = $payment->reservation?->property?->landlord_id;
+
+            if ($landlordId) {
+                SendLandlordPayout::dispatch($landlordId);
+            }
+        }
+
         if (! $payment->wasChanged('status')) {
             return;
         }
 
         PaymentStatusUpdated::dispatch($payment);
 
-        if ($payment->getOriginal('status') === 'Pending' && $payment->status === 'Held') {
+        // One online move-in funds several rows (rent, deposit); tell the parties once, for the lead row. Held is only
+        // ever reached from Pending (PaymongoCheckout::settle). getOriginal() cannot be used to check that here: the
+        // settle runs in a transaction, so this runs after the commit, by which time the model's original values have
+        // already been synced to the new ones.
+        if ($payment->status === 'Held' && $payment->payment_type !== 'Deposit') {
             $this->notifyEscrowFunded($payment);
         }
     }
@@ -66,7 +81,8 @@ class PaymentObserver
         }
 
         $unitLabel = $reservation->unit?->unit_label ?? $reservation->property?->title;
-        $amount = '₱' . number_format((float) $payment->amount, 2);
+        // What is held for the tenant: the rent and the deposit of the whole checkout, not the online fee.
+        $amount = '₱' . number_format((float) $payment->checkoutGroup()->sum('amount'), 2);
 
         Notification::notify(
             $reservation->tenant_id,

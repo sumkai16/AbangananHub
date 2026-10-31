@@ -6,12 +6,11 @@ use App\Http\Controllers\Concerns\ReconcilesPaymongoCheckout;
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Models\Reservation;
+use App\Services\PaymongoCheckout;
 use App\Services\RentLedger;
 use App\Support\Payments;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Http;
 
 class PaymentController extends Controller
 {
@@ -21,7 +20,7 @@ class PaymentController extends Controller
     {
         Gate::authorize('sign', $reservation);
 
-        if (! Payments::online()) {
+        if (! Payments::onlineFor($reservation)) {
             return back()->withErrors(['payment' => Payments::OFFLINE_MESSAGE]);
         }
 
@@ -41,75 +40,81 @@ class PaymentController extends Controller
             return back()->withErrors(['payment' => $message]);
         }
 
-        // Lock the reservation row so two concurrent requests (e.g. a double
-        // click) can't both pass the "no pending payment" check before either
-        // has inserted its Payment row.
-        $placeholder = DB::transaction(function () use ($reservation) {
-            $locked = Reservation::whereKey($reservation->reservation_id)->lockForUpdate()->first();
+        [, $checkoutUrl] = $this->openCheckout(
+            $reservation,
+            'Initial',
+            null,
+            (float) $reservation->monthlyRent(),
+            rentLineName: $reservation->unit->unit_name . ' — First month’s rent',
+            description: 'Move-in payment for ' . $reservation->unit->unit_name,
+            successUrl: route('payments.success', $reservation),
+            cancelUrl: route('agreements.show', $reservation),
+            busyMessage: 'A payment session is already in progress.',
+        );
 
-            $existingPending = Payment::where('reservation_id', $locked->reservation_id)
-                ->where('status', 'Pending')
-                ->whereNotNull('paymongo_checkout_session_id')
-                ->exists();
+        return redirect($checkoutUrl);
+    }
 
-            if ($existingPending) {
-                return null;
-            }
+    /**
+     * The tenant closed the PayMongo page and is stuck on "Payment processing": take them back to the same checkout.
+     * A checkout that was in fact paid is settled instead, and one that expired is cleared so they can choose again.
+     */
+    public function continueCheckout(Request $request, Reservation $reservation)
+    {
+        [$type, $payment] = $this->openCheckoutFor($request, $reservation);
 
-            // Placeholder row reserves this reservation for the current
-            // request until it's updated with the PayMongo session id below.
-            return Payment::create([
-                'reservation_id' => $locked->reservation_id,
-                'payment_type' => 'Initial',
-                'amount' => $locked->monthlyRent(),
-                'payment_method' => 'GCash',
-                'status' => 'Pending',
-            ]);
-        });
-
-        if (!$placeholder) {
-            return back()->withErrors(['payment' => 'A payment session is already in progress.']);
+        if (! $payment) {
+            return back()->withErrors(['payment' => 'There is no open payment to continue. You can choose how to pay again.']);
         }
 
-        $amount = Payment::toCentavos($reservation->monthlyRent()); // PayMongo expects cents
+        $reservation->loadMissing('tenant');
 
-        $response = Http::withBasicAuth(config('services.paymongo.secret_key'), '')
-            ->post('https://api.paymongo.com/v1/checkout_sessions', [
-                'data' => [
-                    'attributes' => [
-                        'send_email_receipt' => false,
-                        'show_description' => true,
-                        'show_line_items' => true,
-                        'description' => 'Initial rental payment for ' . $reservation->unit->unit_name,
-                        'line_items' => [
-                            [
-                                'currency' => 'PHP',
-                                'amount' => $amount,
-                                'name' => $reservation->unit->unit_name . ' — Initial Payment',
-                                'quantity' => 1,
-                            ],
-                        ],
-                        'payment_method_types' => ['gcash', 'qrph'],
-                        'success_url' => route('payments.success', $reservation),
-                        'cancel_url' => route('agreements.show', $reservation),
-                    ],
-                ],
-            ]);
-
-        if ($response->failed()) {
-            // Free up the reservation for a retry instead of leaving a dead placeholder behind.
-            $placeholder->delete();
-
-            return back()->withErrors(['payment' => 'Could not create payment session. Please try again.']);
+        if ($this->reconcilePayment($reservation, $payment)->status !== 'Pending') {
+            return redirect()->route($type === 'Initial' ? 'payments.success' : 'payments.rent.success', $reservation);
         }
 
-        $checkoutData = $response->json('data');
+        $session = PaymongoCheckout::session($payment->paymongo_checkout_session_id);
 
-        $placeholder->update([
-            'paymongo_checkout_session_id' => $checkoutData['id'],
-        ]);
+        if ($session === null) {
+            return back()->withErrors(['payment' => 'We could not reach PayMongo just now. Please try again in a moment.']);
+        }
 
-        return redirect($checkoutData['attributes']['checkout_url']);
+        if ($session['status'] === 'active' && filled($session['checkout_url'])) {
+            return redirect()->away($session['checkout_url']);
+        }
+
+        // Expired (or otherwise closed): clear it so the tenant can start fresh.
+        if ($message = $this->abandonCheckout($reservation, $payment)) {
+            return back()->withErrors(['payment' => $message]);
+        }
+
+        return back()->with('warning', 'That payment window has closed. Nothing was charged. Choose how to pay again.');
+    }
+
+    /** The tenant gives up an open online checkout on purpose, to pay another way. */
+    public function cancelCheckout(Request $request, Reservation $reservation)
+    {
+        [, $payment] = $this->openCheckoutFor($request, $reservation);
+
+        if (! $payment) {
+            return back()->with('warning', 'There is no open payment to cancel.');
+        }
+
+        if ($message = $this->abandonCheckout($reservation, $payment)) {
+            return back()->withErrors(['payment' => $message]);
+        }
+
+        return back()->with('success', 'Payment cancelled. Nothing was charged. Choose how to pay again.');
+    }
+
+    /** @return array{string, ?Payment} the payment type asked for (authorized for) and its open checkout, if any */
+    private function openCheckoutFor(Request $request, Reservation $reservation): array
+    {
+        $type = $request->input('type') === 'Monthly' ? 'Monthly' : 'Initial';
+
+        Gate::authorize($type === 'Initial' ? 'sign' : 'payRent', $reservation);
+
+        return [$type, $this->findOpenCheckout($reservation, $type)];
     }
 
     public function success(Reservation $reservation)
@@ -118,7 +123,9 @@ class PaymentController extends Controller
 
         $reservation->load(['unit', 'tenant']);
 
+        // The Initial row is the lead of the checkout; the Deposit row is created after it and must not be shown as the payment.
         $latestPayment = Payment::where('reservation_id', $reservation->reservation_id)
+            ->where('payment_type', 'Initial')
             ->latest('payment_id')
             ->first();
 
@@ -137,7 +144,7 @@ class PaymentController extends Controller
     {
         Gate::authorize('payRent', $reservation);
 
-        if (! Payments::online()) {
+        if (! Payments::onlineFor($reservation)) {
             return back()->withErrors(['payment' => Payments::OFFLINE_MESSAGE]);
         }
 
@@ -160,76 +167,19 @@ class PaymentController extends Controller
             return back()->withErrors(['payment' => $message]);
         }
 
-        $placeholder = DB::transaction(function () use ($reservation, $billingPeriod, $balance) {
-            $locked = Reservation::whereKey($reservation->reservation_id)->lockForUpdate()->first();
+        [, $checkoutUrl] = $this->openCheckout(
+            $reservation,
+            'Monthly',
+            $billingPeriod,
+            $balance,
+            rentLineName: $reservation->unit->unit_name . ' — Rent (' . $period['label'] . ')' . ($period['late_fee'] > 0 ? ' + late fee' : ''),
+            description: $reservation->unit->unit_name . ' — Rent for ' . $period['label'],
+            successUrl: route('payments.rent.success', $reservation),
+            cancelUrl: route('tenancy.show', $reservation),
+            busyMessage: 'A payment session is already in progress, or this tenancy is no longer active.',
+        );
 
-            if ($locked->rental_status !== 'Occupied') {
-                return null;
-            }
-
-            $existingPending = Payment::where('reservation_id', $locked->reservation_id)
-                ->where('payment_type', 'Monthly')
-                ->whereDate('billing_period', $billingPeriod->toDateString())
-                ->where('status', 'Pending')
-                ->whereNotNull('paymongo_checkout_session_id')
-                ->exists();
-
-            if ($existingPending) {
-                return null;
-            }
-
-            return Payment::create([
-                'reservation_id' => $locked->reservation_id,
-                'payment_type' => 'Monthly',
-                'billing_period' => $billingPeriod,
-                'amount' => $balance,
-                'payment_method' => 'GCash',
-                'status' => 'Pending',
-            ]);
-        });
-
-        if (!$placeholder) {
-            return back()->withErrors(['payment' => 'A payment session is already in progress, or this tenancy is no longer active.']);
-        }
-
-        $amount = Payment::toCentavos($balance); // PayMongo expects cents
-
-        $response = Http::withBasicAuth(config('services.paymongo.secret_key'), '')
-            ->post('https://api.paymongo.com/v1/checkout_sessions', [
-                'data' => [
-                    'attributes' => [
-                        'send_email_receipt' => false,
-                        'show_description' => true,
-                        'show_line_items' => true,
-                        'description' => $reservation->unit->unit_name . ' — Rent for ' . $period['label'],
-                        'line_items' => [
-                            [
-                                'currency' => 'PHP',
-                                'amount' => $amount,
-                                'name' => $reservation->unit->unit_name . ' — Rent (' . $period['label'] . ')' . ($period['late_fee'] > 0 ? ' + late fee' : ''),
-                                'quantity' => 1,
-                            ],
-                        ],
-                        'payment_method_types' => ['gcash', 'qrph'],
-                        'success_url' => route('payments.rent.success', $reservation),
-                        'cancel_url' => route('tenancy.show', $reservation),
-                    ],
-                ],
-            ]);
-
-        if ($response->failed()) {
-            $placeholder->delete();
-
-            return back()->withErrors(['payment' => 'Could not create payment session. Please try again.']);
-        }
-
-        $checkoutData = $response->json('data');
-
-        $placeholder->update([
-            'paymongo_checkout_session_id' => $checkoutData['id'],
-        ]);
-
-        return redirect($checkoutData['attributes']['checkout_url']);
+        return redirect($checkoutUrl);
     }
 
     public function rentSuccess(Reservation $reservation)

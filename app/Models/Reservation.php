@@ -119,33 +119,27 @@ class Reservation extends Model
             return false;
         }
 
-        // Locked, not just checked: this row is about to move money.
-        $heldPayment = $this->payments()
+        // Locked, not just checked: these rows are about to move money. An online move-in holds several rows
+        // (rent, deposit) from one checkout; they leave escrow together.
+        $held = $this->payments()
             ->where('status', 'Held')
+            ->orderBy('payment_id')
             ->lockForUpdate()
-            ->first();
+            ->get();
 
-        if (! $heldPayment) {
+        if ($held->isEmpty()) {
             return false;
         }
+
+        $heldPayment = $held->first();
 
         $this->rental_status = 'Occupied';
         $this->tenant_confirmed_move_in_at = now();
         $this->move_in_deadline_at = null;
         $this->save();
 
-        $heldPayment->update([
-            'status'         => 'Released',
-            'released_at'    => now(),
-            // Null = released by the platform, not an admin. release_reason is what
-            // distinguishes a tenant confirming from a timer firing — released_by is
-            // null for both, so it cannot carry that distinction on its own.
-            'released_by'    => null,
-            'release_reason' => 'tenant_confirmed',
-            // The money is now owed to the landlord — see
-            // docs/specs/2026-07-26-landlord-payout-design.md.
-            'payout_owed_at' => now(),
-        ]);
+        // released_by stays null (the platform released it, not an admin); the reason says it was the tenant.
+        $held->each(fn (Payment $p) => $p->markReleased('tenant_confirmed'));
 
         $this->releasedPayment = $heldPayment;
 
@@ -165,14 +159,32 @@ class Reservation extends Model
     public ?Payment $releasedPayment = null;
 
     /**
-     * The single held payment for this reservation, if any.
+     * The lead held payment for this reservation (the rent row of an online move-in), if any. Use heldTotal() for
+     * "how much is held" and heldPayments() when every row matters.
      *
      * Both clocks exist only while money is held — no held payment means
      * nothing to protect and no deadline to run.
      */
     public function heldPayment(): ?Payment
     {
-        return $this->payments()->where('status', 'Held')->first();
+        return $this->payments()->where('status', 'Held')->orderBy('payment_id')->first();
+    }
+
+    /**
+     * Every held row: an online move-in is several (rent, deposit), all from one checkout. Uses the loaded
+     * payments when there are some, so a list of reservations does not query per row.
+     */
+    public function heldPayments(): \Illuminate\Support\Collection
+    {
+        return $this->relationLoaded('payments')
+            ? $this->payments->where('status', 'Held')->sortBy('payment_id')->values()
+            : $this->payments()->where('status', 'Held')->orderBy('payment_id')->get();
+    }
+
+    /** What is in escrow for this reservation: the rent and the deposit, not the online fee (that is not held for anyone). */
+    public function heldTotal(): float
+    {
+        return round((float) $this->heldPayments()->sum('amount'), 2);
     }
 
     /**
@@ -517,7 +529,8 @@ class Reservation extends Model
 
     public function paymentClaims()
     {
-        return $this->hasMany(PaymentClaim::class, 'reservation_id', 'reservation_id');
+        // chaperone: each claim already knows its reservation, so a list of them never lazy-loads it per row.
+        return $this->hasMany(PaymentClaim::class, 'reservation_id', 'reservation_id')->chaperone('reservation');
     }
 
     /**
@@ -927,7 +940,7 @@ class Reservation extends Model
         $held = (float) $payments->where('status', 'Held')->sum('amount');
 
         if ($held > 0) {
-            return 'A payment of ₱'.number_format($held, 2).' is held by AbangananHub for this reservation, so it cannot be cancelled here. Message each other, or use Report a Problem and an administrator will sort it out.';
+            return 'A payment of ₱'.number_format($held, 2).' is held by AbangananHub for this reservation, so it cannot be cancelled here. Message each other, or use Report a Problem: an administrator can refund it to the tenant or release it to the landlord.';
         }
 
         $cutoff = now()->subMinutes((int) config('rentals.checkout_stale_minutes', 30));
@@ -973,7 +986,7 @@ class Reservation extends Model
 
         return match ($this->rental_status) {
             'Pending Rental Agreement' => ['label' => 'Review & sign', 'url' => route('agreements.show', $this)],
-            'Rental Agreement Signed'  => ['label' => $paid ? 'Open agreement' : (Payments::online() ? 'Pay now' : 'Pay your landlord'), 'url' => route('agreements.show', $this)],
+            'Rental Agreement Signed'  => ['label' => $paid ? 'Open agreement' : (Payments::onlineFor($this) ? 'Pay now' : 'Pay your landlord'), 'url' => route('agreements.show', $this)],
             'Occupied'                 => ['label' => 'Rent & payments', 'url' => route('tenancy.show', $this)],
             'Completed'                => ['label' => 'View tenancy', 'url' => route('tenancy.show', $this)],
             default                    => null,

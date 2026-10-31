@@ -179,36 +179,19 @@
                     @endforeach
                 </div>
 
-                {{-- Pay your landlord directly (online payments off) --}}
-                @if($isActive && ! \App\Support\Payments::online() && ($payablePeriod || $advancePeriod))
-                    @include('payments.partials._direct-pay', ['reservation' => $reservation, 'type' => 'Monthly', 'period' => $payablePeriod ?? $advancePeriod])
-                @endif
-
-                {{-- Pay now --}}
-                @if($isActive && $payablePeriod && \App\Support\Payments::online())
-                    <x-card class="!bg-[#ECEEF6] !border-[#FF8A66]/25">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div>
-                                <p class="text-[11px] font-bold text-[#060D26] uppercase tracking-wide mb-1">
-                                    {{ $payablePeriod['status'] === 'overdue' ? 'Overdue' : 'Due' }} — {{ $payablePeriod['label'] }}
-                                </p>
-                                <p class="text-2xl font-extrabold text-[#060D26]">
-                                    ₱{{ number_format(max(0, $payablePeriod['balance']), 2) }}
-                                </p>
-                                <p class="text-[12px] text-[#5B6A8E] mt-1">
-                                    Due on {{ $payablePeriod['due_on']->format('M d, Y') }}. Pay securely via GCash.
-                                </p>
-                            </div>
-                            <form method="POST" action="{{ route('payments.rentCheckout', $reservation) }}" class="shrink-0">
-                                @csrf
-                                <button type="submit"
-                                    class="h-11 px-6 w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
-                                    Pay ₱{{ number_format(max(0, $payablePeriod['balance']), 2) }} now
-                                </button>
-                            </form>
-                        </div>
-                        <x-payment-test-notice class="mt-4" />
-                    </x-card>
+                {{-- Pay rent: online (when this landlord can be paid online), by QR, or in cash. Online pays the earliest
+                     unsettled month; paying a month ahead is QR or cash. --}}
+                @php
+                    // An online rent checkout still open (not yet stale): offer a way back to it instead of the choice.
+                    $openRentCheckout = $reservation->payments->first(fn ($p) => $p->payment_type === 'Monthly' && $p->status === 'Pending'
+                        && $p->paymongo_checkout_session_id && ! $p->isStalePending());
+                @endphp
+                @if($isActive && ($payablePeriod || $advancePeriod))
+                    @if($openRentCheckout)
+                        @include('payments.partials._checkout-processing', ['reservation' => $reservation, 'type' => 'Monthly'])
+                    @else
+                        <x-payment-route-choice :reservation="$reservation" type="Monthly" :period="$payablePeriod ?? $advancePeriod" />
+                    @endif
                 @endif
 
                 {{-- Security deposit — read-only: only the landlord can add or void a charge. --}}

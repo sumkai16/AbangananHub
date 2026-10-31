@@ -1,7 +1,7 @@
 # Move-In Confirmation Window (Escrow Deadlines)
 
 **Date:** 2026-07-22
-**Status:** Phase 1 shipped. Phase 2 (automatic Clock 1 refund) still deferred — see Open risks.
+**Status:** Phase 1 shipped. An admin can now refund a held payment (Oct 31 2026, see the note under *Clock 1*); the *automatic* Clock 1 refund (phase 2) is still deferred — see Open risks.
 
 Two things have drifted from this document since it was written, both deliberate:
 
@@ -85,6 +85,15 @@ existing Payments screen.
 
 **On expiry — phase 2 (deferred):** payment → `Refunded`, reservation →
 `Cancelled`, unit released, automatically.
+
+**Update Oct 31 2026 — the manual refund now exists.** PayMongo does have a Refunds API
+(`POST /v1/refunds`, partial refunds allowed; GCash payments refundable for 180 days, QR Ph for
+30, and a QR Ph refund stays `processing` until the tenant claims a transfer link). The admin
+review queue can now choose **Refund tenant** next to **Release**: `App\Services\PaymentRefunds`
+refunds the whole checkout (rent and deposit are one PayMongo payment), sets the rows to
+`Refunded`, cancels the reservation and frees the unit. What is still deferred is only the
+*automatic* refund at Clock 1 expiry. Test-mode behaviour of refunds for GCash and QR Ph is not
+documented by PayMongo, so the first sandbox refund doubles as the check.
 
 Phase 1 ships first regardless of what PayMongo supports. It needs no refund API,
 it is less code, and it converts to phase 2 by swapping what happens at expiry.
@@ -236,9 +245,10 @@ feature.
 
 ## Open risks
 
-- **Whether PayMongo supports programmatic refunds is unverified.** Phase 2 depends
-  on it entirely. This must be confirmed before phase 2 is planned, and it is the
-  reason phase 1 routes Clock 1 expiries through an admin instead.
+- **PayMongo's Refunds API is confirmed to exist** (see the Oct 31 2026 note under
+  *Clock 1*), and the admin can refund by hand. What stays unverified is how it behaves in
+  test mode and whether a refund can be trusted enough to fire with no human; that is why
+  the automatic phase 2 is still deferred.
 - **Clock 1 refunds would be the highest-consequence automatic action here** — they
   cancel a signed agreement without human review. Phasing defers that risk rather
   than solving it. Before phase 2 ships, revisit whether the automatic path should

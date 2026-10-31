@@ -16,7 +16,8 @@
         $hadAbandonedCheckout = ! $hasPayment && $reservation->payments->contains(fn ($p) => $p->isStalePending());
         $processingPayment = $hasPayment && !$heldPayment && !$reservation->isOccupied();
         // Direct payments: money paid to the landlord and confirmed (or recorded by them) sets move_in_paid_at.
-        $online = \App\Support\Payments::online();
+        // $online = this landlord can be paid online too, so the tenant chooses; false = direct is the only way.
+        $online = \App\Support\Payments::onlineFor($reservation);
         $directPaid = $reservation->move_in_paid_at !== null;
     @endphp
 
@@ -221,7 +222,7 @@
                         <div>
                             <p class="text-sm font-bold text-[#060D26]">Agreement Signed</p>
                             <p class="text-xs text-[#5B6A8E] mt-0.5">
-                                Signed on {{ $reservation->agreed_at->format('F j, Y \a\t g:i A') }}.
+                                Signed{{ $reservation->agreed_at ? ' on '.$reservation->agreed_at->format('F j, Y \a\t g:i A') : '' }}.
                             </p>
                         </div>
                     </div>
@@ -237,38 +238,15 @@
                             </form>
                         </div>
 
-                    @elseif(!$hasPayment && !$online)
-                        <div class="mt-4">
-                            @include('payments.partials._direct-pay', ['reservation' => $reservation, 'type' => 'MoveIn'])
-                        </div>
-
                     @elseif(!$hasPayment)
-                        <form action="{{ route('payments.checkout', $reservation) }}" method="POST" class="mt-4">
-                            @csrf
-                            @if($errors->has('payment'))
-                                <div role="alert" class="mb-3 flex items-start gap-2.5 rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/10 px-4 py-3 text-[13px] font-semibold text-[#B91C1C]">
-                                    <svg class="mt-0.5 h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
-                                    {{ $errors->first('payment') }}
-                                </div>
-                            @elseif($hadAbandonedCheckout)
+                        <div class="mt-4">
+                            @if($hadAbandonedCheckout)
                                 <p class="mb-3 rounded-xl border border-[#FBBF24]/35 bg-[#FBBF24]/10 px-4 py-3 text-[13px] text-[#92600A]">
                                     Your last payment attempt wasn't completed. You can try again below.
                                 </p>
                             @endif
-                            <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] p-4 flex flex-wrap items-center justify-between gap-4">
-                                <div class="min-w-0">
-                                    <p class="text-sm font-bold text-[#060D26]">Initial Payment</p>
-                                    <p class="text-xs text-[#5B6A8E] mt-0.5">
-                                        &#8369;{{ number_format($reservation->monthlyRent(), 2) }} via GCash — you will be redirected to complete payment.
-                                    </p>
-                                </div>
-                                <button type="submit"
-                                    class="shrink-0 px-5 py-2.5 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] font-bold text-sm shadow-sm cursor-pointer transition-all duration-200">
-                                    Pay Now
-                                </button>
-                            </div>
-                            <x-payment-test-notice class="mt-2" />
-                        </form>
+                            <x-payment-route-choice :reservation="$reservation" type="MoveIn" />
+                        </div>
 
                     @elseif($heldPayment)
                         <div class="mt-4 rounded-xl border border-[#FF8A66]/25 bg-[#ECEEF6]/60 p-4">
@@ -281,10 +259,23 @@
                                 <div class="min-w-0">
                                     <p class="text-sm font-bold text-[#060D26]">Payment received &mdash; held by AbangananHub</p>
                                     <p class="text-xs text-[#5B6A8E] mt-0.5">
-                                        Your payment of &#8369;{{ number_format($heldPayment->amount, 2) }} is held until you confirm move-in.
+                                        Your payment of &#8369;{{ number_format($reservation->heldTotal(), 2) }} is held until you confirm move-in.
                                     </p>
                                 </div>
                             </div>
+
+                            {{-- What the one online payment covered: the rent and deposit are held; the fee is not held for anyone. --}}
+                            @php $heldRows = $reservation->heldPayments(); $paidFee = (float) $heldRows->sum('service_fee'); @endphp
+                            @if($heldRows->count() > 1 || $paidFee > 0)
+                                <dl class="mb-4 space-y-1 rounded-lg bg-white/70 px-3 py-2.5 text-[12.5px]">
+                                    @foreach($heldRows as $row)
+                                        <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">{{ $row->payment_type === 'Deposit' ? 'Security deposit' : 'First month’s rent' }}</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($row->amount, 2) }}</dd></div>
+                                    @endforeach
+                                    @if($paidFee > 0)
+                                        <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Online payment fee</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($paidFee, 2) }}</dd></div>
+                                    @endif
+                                </dl>
+                            @endif
 
                             @php
                                 $daysLeft = $reservation->daysUntilMoveInDeadline();
@@ -407,17 +398,8 @@
                         </div>
 
                     @else
-                        <div class="mt-4 rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] p-4 flex items-center gap-3">
-                            <svg class="w-5 h-5 text-[#5B6A8E] shrink-0 animate-spin motion-reduce:animate-none" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                            </svg>
-                            <div>
-                                <p class="text-sm font-bold text-[#060D26]">Payment processing</p>
-                                <p class="text-xs text-[#5B6A8E] mt-0.5">
-                                    Your payment is being confirmed. This page updates automatically once it clears.
-                                </p>
-                            </div>
+                        <div class="mt-4">
+                            @include('payments.partials._checkout-processing', ['reservation' => $reservation, 'type' => 'Initial'])
                         </div>
                     @endif
 

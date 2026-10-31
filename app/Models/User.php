@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Mail\PasswordResetMail;
+use App\Services\LandlordPayouts;
 use App\Support\Payments;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -390,16 +391,52 @@ class User extends Authenticatable
      */
     public function savePayoutAccount(?string $number, ?string $name): void
     {
+        $before = UserPayoutAccount::find($this->user_id);
+        $hadDestination = $before !== null && filled($before->gcash_number) && filled($before->gcash_account_name);
+        $changed = (string) $before?->gcash_number !== (string) $number || (string) $before?->gcash_account_name !== (string) $name;
+
         if (blank($number) && blank($name)) {
             $this->payoutAccount()->delete();
         } else {
             $this->payoutAccount()->updateOrCreate(
                 ['user_id' => $this->user_id],
-                ['gcash_number' => $number, 'gcash_account_name' => $name],
+                // A new destination has to be looked at again before money goes to it.
+                ['gcash_number' => $number, 'gcash_account_name' => $name]
+                    + ($changed ? ['payout_approved_at' => null, 'payout_approved_by' => null] : []),
             );
         }
 
         $this->unsetRelation('payoutAccount');
+        UserPayoutAccount::forgetAcceptsOnline($this->user_id);
+
+        // New money destination: hold payouts for 48 hours and tell the landlord (see LandlordPayouts).
+        if ($changed && filled($number) && filled($name)) {
+            LandlordPayouts::holdAfterGcashChange($this, firstTime: ! $hadDestination);
+
+            LandlordPayouts::alertAdmins(
+                'approve-account-'.$this->user_id,
+                'GCash account to approve',
+                trim($this->first_name.' '.$this->last_name).' set a GCash account. Check it before their first payout.',
+            );
+        }
+    }
+
+    /**
+     * Whether tenants may pay this landlord online: GCash details on file and no opt-out. The opt-out lives
+     * on the payout account row, so it is only stored while details exist (clearing both fields drops it).
+     */
+    public function acceptsOnlinePayments(): bool
+    {
+        return UserPayoutAccount::acceptsOnline($this->user_id);
+    }
+
+    /** Save the "accept online payments" choice. A no-op without payout details: there is no row to hold it. */
+    public function setAcceptsOnlinePayments(bool $accepts): void
+    {
+        $this->payoutAccount()->update(['accepts_online' => $accepts]);
+
+        $this->unsetRelation('payoutAccount');
+        UserPayoutAccount::forgetAcceptsOnline($this->user_id);
     }
 
     // ─── Password Reset ──────────────────────────────────────

@@ -36,6 +36,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'webhooks/paymongo',
         ]);
+
+        // Behind a tunnel or a reverse proxy the browser speaks https to the proxy and the proxy speaks http to
+        // us, so without this every generated link and asset URL comes out as http and the browser blocks them
+        // (an unstyled page). Off unless TRUSTED_PROXIES is set: '*' for a throwaway tunnel on a dev machine,
+        // or the proxy's address(es), comma separated, on a server. Never '*' on a server reachable directly.
+        if ($trusted = env('TRUSTED_PROXIES')) {
+            $middleware->trustProxies(at: $trusted === '*' ? '*' : array_map('trim', explode(',', $trusted)));
+        }
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

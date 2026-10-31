@@ -6,6 +6,7 @@ use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\Payment;
 use App\Models\PaymentClaim;
+use App\Models\Report;
 use App\Models\Reservation;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -66,13 +67,21 @@ class PaymentClaims
                 self::fail('An online payment is still being processed for this. Wait for it to finish, then try again.');
             }
 
-            $alreadyPending = $locked->paymentClaims()->pending()
-                ->where('claim_type', $type)
-                ->when($billingPeriod, fn ($q) => $q->whereDate('billing_period', $billingPeriod))
-                ->exists();
-
-            if ($alreadyPending) {
+            if (self::hasPending($locked, $type, $billingPeriod)) {
                 self::fail('You already reported this payment. Wait for your landlord to confirm it, or withdraw it first.');
+            }
+
+            $isCash = $data['payment_method'] === 'Cash';
+            $reference = $isCash ? null : trim((string) ($data['reference_no'] ?? ''));
+
+            if (! $isCash && $reference === '') {
+                self::fail('Enter the reference number from your payment receipt.');
+            }
+
+            // One receipt, one report. A reference already waiting or already confirmed (on any reservation) is
+            // refused, so a single real payment cannot be reported twice. The message says nothing about whose.
+            if (! $isCash && self::referenceInUse($reference)) {
+                self::fail('That reference number was already reported. Check the number on your receipt.');
             }
 
             $claim = $locked->paymentClaims()->create([
@@ -80,7 +89,7 @@ class PaymentClaims
                 'billing_period' => $billingPeriod,
                 'amount' => round((float) $data['amount'], 2),
                 'payment_method' => $data['payment_method'],
-                'reference_no' => trim($data['reference_no']),
+                'reference_no' => $reference,
                 'paid_on' => $data['paid_on'],
                 'note' => $data['note'] ?? null,
                 'status' => 'Pending',
@@ -94,7 +103,9 @@ class PaymentClaims
                 $locked->property?->landlord_id,
                 'payment',
                 'Payment to confirm',
-                "{$tenantName} says they paid ₱".number_format((float) $claim->amount, 2)." ({$label}) by {$claim->payment_method}, ref {$claim->reference_no}. Check your account, then confirm.",
+                $claim->isCash()
+                    ? "{$tenantName} says they handed you ₱".number_format((float) $claim->amount, 2)." in cash ({$label}). Confirm only if you received it."
+                    : "{$tenantName} says they paid ₱".number_format((float) $claim->amount, 2)." ({$label}) by {$claim->payment_method}, ref {$claim->reference_no}. Check your account, then confirm.",
                 self::decisionLink($locked),
                 $locked->conversation_id,
             );
@@ -203,6 +214,88 @@ class PaymentClaims
 
             return $claim;
         });
+    }
+
+    /**
+     * The tenant sends a report their landlord rejected to an admin. It becomes an ordinary Report against the
+     * landlord, carrying everything the admin needs (amount, method, reference, the landlord's reason), so
+     * nobody has to retype it. Once per claim; the admin decides, the app does not touch the money.
+     */
+    public static function dispute(PaymentClaim $claim, User $tenant): PaymentClaim
+    {
+        return DB::transaction(function () use ($claim, $tenant) {
+            $locked = self::lock($claim->reservation);
+
+            if ($locked->tenant_id !== $tenant->user_id) {
+                abort(403);
+            }
+
+            $claim = PaymentClaim::whereKey($claim->getKey())->lockForUpdate()->firstOrFail();
+
+            if (! $claim->canBeDisputed()) {
+                self::fail($claim->disputed_at
+                    ? 'You already sent this to AbangananHub.'
+                    : 'Only a report your landlord turned down can be sent for review.');
+            }
+
+            $label = $claim->claim_type === 'MoveIn' ? 'move-in payment' : 'rent for '.$claim->billing_period->format('F Y');
+            $how = $claim->isCash() ? 'in cash' : "by {$claim->payment_method}, ref {$claim->reference_no}";
+
+            $report = Report::create([
+                'reporter_id' => $tenant->user_id,
+                'property_id' => $locked->property_id,
+                'reported_user_id' => $locked->property?->landlord_id,
+                'report_reason' => "Payment dispute: Scam or Fraud: tenant says they paid ₱".number_format((float) $claim->amount, 2)
+                    ." ({$label}) {$how} on {$claim->paid_on->format('M j, Y')}; the landlord rejected it: \"{$claim->rejection_reason}\". Reservation #{$locked->reservation_id}.",
+                'report_status' => 'Pending',
+            ]);
+
+            $claim->update(['disputed_at' => now(), 'dispute_report_id' => $report->report_id]);
+
+            AuditLog::record(
+                'payment_claim.dispute',
+                '₱'.number_format((float) $claim->amount, 2).' rejected payment report sent to admin on '.($locked->property?->title ?? 'a property'),
+                $claim,
+                $claim->rejection_reason,
+                ['reservation_id' => $locked->reservation_id, 'report_id' => $report->report_id],
+            );
+
+            Notification::notify(
+                $locked->property?->landlord_id,
+                'payment',
+                'Payment sent for review',
+                ($tenant->first_name ?? 'Your tenant').' disagrees with your rejection of their ₱'.number_format((float) $claim->amount, 2).' payment report and asked AbangananHub to review it.',
+                self::decisionLink($locked),
+                $locked->conversation_id,
+            );
+
+            return $claim;
+        });
+    }
+
+    /**
+     * How a landlord has answered direct-payment reports, for the admin reading a dispute: one disputed
+     * rejection may be a misunderstanding, several is a pattern.
+     *
+     * @return array{confirmed: int, rejected: int, disputed: int}
+     */
+    public static function landlordRecord(int $landlordId): array
+    {
+        $claims = PaymentClaim::whereHas('reservation.property', fn ($q) => $q->where('landlord_id', $landlordId));
+
+        return [
+            'confirmed' => (clone $claims)->where('status', 'Confirmed')->count(),
+            'rejected' => (clone $claims)->where('status', 'Rejected')->count(),
+            'disputed' => (clone $claims)->whereNotNull('disputed_at')->count(),
+        ];
+    }
+
+    /** Whether a non-cash reference is already waiting for, or already behind, a confirmed payment. */
+    private static function referenceInUse(string $reference): bool
+    {
+        return PaymentClaim::whereIn('status', ['Pending', 'Confirmed'])
+            ->whereRaw('UPPER(reference_no) = ?', [strtoupper($reference)])
+            ->exists();
     }
 
     /** The tenant takes their own pending report back (a typo, or they paid another way). */
@@ -318,6 +411,18 @@ class PaymentClaims
         if (! $locked->unit) {
             self::fail('This unit is no longer available.');
         }
+    }
+
+    /**
+     * Whether the tenant has an "I paid" report waiting on the landlord for this move-in or month. A checkout
+     * must not start beside one, or the same rent could be paid twice. Call it on the locked reservation.
+     */
+    public static function hasPending(Reservation $locked, string $type, ?Carbon $billingPeriod = null): bool
+    {
+        return $locked->paymentClaims()->pending()
+            ->where('claim_type', $type)
+            ->when($billingPeriod, fn ($q) => $q->whereDate('billing_period', $billingPeriod))
+            ->exists();
     }
 
     /** A PayMongo checkout the tenant started and may still pay (only possible while online payments are on). */

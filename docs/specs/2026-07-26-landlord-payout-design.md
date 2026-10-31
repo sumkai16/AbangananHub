@@ -1,5 +1,7 @@
 # Landlord Payout Mechanism
 
+> **Superseded in part, Oct 31 2026.** This spec describes the manual transfer (admin sends GCash by hand and types the reference). Payouts are now sent automatically through PayMongo Send Money, with a 48-hour hold after a GCash change; see `plans/online-and-direct-payments.md` (phase 4). The manual "mark paid out" below remains as a fallback.
+
 **Date:** 2026-07-26
 **Status:** Implemented same day. `payout_status`/`paid_out_at`/`paid_out_by`/`payout_reference`
 on `payments`, `gcash_number`/`gcash_account_name` on `users`,

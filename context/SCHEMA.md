@@ -119,7 +119,13 @@ A landlord's GCash payout destination. A row exists only while details are set (
 | user_id | bigint unsigned | NN | PK, FK → users, cascade | |
 | gcash_number | varchar(255) | null | | |
 | gcash_account_name | varchar(255) | null | | Name on the account, so an admin can verify before sending |
+| accepts_online | tinyint(1) | NN, = 1 | | False = the landlord opted out of online payments; tenants then see only the direct route. Online is offered only when both GCash fields are filled in and this is true (`Payments::onlineFor()`). Lives on this row, so clearing both GCash fields (which deletes the row) also forgets an opt-out |
+| payouts_hold_until | timestamp | null | | Set to now + 48 h whenever the GCash details change (`LandlordPayouts::holdAfterGcashChange()`); no automatic payout until it passes |
+| paused_at | timestamp | null | | An admin's pause: no automatic payout to this landlord until resumed. Null = not paused |
+| paused_by | bigint unsigned | null | FK → users, set null | The admin who paused |
 | created_at | timestamp | null | | |
+| payout_approved_at | timestamp | null | | An admin looked at this GCash account and agreed money may be sent to it. Cleared whenever the number or name changes (`User::savePayoutAccount`); until set, what the landlord is owed waits (`LandlordPayouts::blockedReason`). Backfilled for landlords an admin had already paid by hand |
+| payout_approved_by | bigint unsigned | null | FK → users, set null | The admin who approved it |
 | updated_at | timestamp | null | | |
 
 ### tenant_details
@@ -535,8 +541,8 @@ A tenant's "I paid the landlord directly". Not money: nothing reads a claim as a
 | claim_type | enum('MoveIn','Monthly') | NN | | MoveIn = first month + deposit while the agreement is signed |
 | billing_period | date | null | | Required for Monthly (first of the month) |
 | amount | decimal(10,2) | NN | | What the tenant says they paid |
-| payment_method | enum('GCash','Maya','GoTyme','Bank Transfer','Other') | NN | | The app they paid from. Cash is never claimed, the landlord records it |
-| reference_no | varchar(100) | NN | | From the tenant's receipt; the landlord checks it in their own app |
+| payment_method | enum('GCash','Maya','GoTyme','Bank Transfer','Cash','Other') | NN | | The app they paid from, or `Cash` handed over in person (a tenant may report cash so a landlord who never records it leaves a trace) |
+| reference_no | varchar(100) | null | | From the tenant's receipt; the landlord checks it in their own app. Null only for `Cash`. A non-cash reference can be Pending/Confirmed once, platform-wide (case-insensitive) |
 | paid_on | date | NN | | Becomes `paid_at` on the rows, so a late fee is judged by when the tenant paid |
 | note | varchar(500) | null | | |
 | status | enum('Pending','Confirmed','Rejected','Withdrawn') | NN, = 'Pending' | | Pending claims are withdrawn when the reservation ends |
@@ -544,6 +550,8 @@ A tenant's "I paid the landlord directly". Not money: nothing reads a claim as a
 | decided_by | bigint unsigned | null | FK → users, set null | |
 | decided_at | timestamp | null | | |
 | rejection_reason | varchar(255) | null | | Required on reject |
+| disputed_at | timestamp | null | | When the tenant sent a rejected report to an admin (once per claim) |
+| dispute_report_id | bigint unsigned | null | FK → reports, set null | The `reports` row created by the dispute |
 | created_at | timestamp | null | | |
 | updated_at | timestamp | null | | |
 
@@ -605,11 +613,12 @@ One money movement on a tenancy: online escrow, landlord-recorded, or a correcti
 | reservation_id | bigint unsigned | NN | FK → reservations, cascade | Index `(reservation_id, billing_period)` |
 | payment_type | enum('Initial','Monthly','Deposit','Utility','Other') | NN | | |
 | billing_period | date | null | | The month a `Monthly` payment settles; required for `Monthly`, null otherwise |
-| amount | decimal(10,2) | NN | | Serializes as a string; `parseFloat()` client-side |
+| amount | decimal(10,2) | NN | | What the landlord is owed. Serializes as a string; `parseFloat()` client-side |
+| service_fee | decimal(10,2) | NN, = 0 | | The online payment fee the tenant paid on top of `amount`. Not owed to the landlord (payouts sum `amount` only). Set on the `Initial` / `Monthly` row of an online checkout, frozen when the checkout is created; 0 on every other row |
 | payment_method | enum('GCash','QRPh','Cash','Bank Transfer','Maya','GoTyme','Check','Other') | NN | | Escrow uses GCash/QRPh via PayMongo; the rest are landlord-recorded or came from a confirmed payment claim |
-| paymongo_payment_intent_id | varchar(255) | null | UNIQUE | |
-| paymongo_payment_id | varchar(255) | null | | |
-| paymongo_checkout_session_id | varchar(255) | null | UNIQUE | |
+| paymongo_payment_intent_id | varchar(255) | null | index | Shared by every row of one online checkout (`Payment::checkoutGroup()`) |
+| paymongo_payment_id | varchar(255) | null | | The `pay_...` id; the id a refund is made against |
+| paymongo_checkout_session_id | varchar(255) | null | index | One online move-in checkout funds several rows (rent `Initial` + `Deposit`), so this is no longer UNIQUE |
 | status | enum('Pending','Paid','Held','Released','Failed','Refunded','Voided') | NN, = 'Pending' | index `(status, paid_at)` | See rules |
 | paid_at | timestamp | null | | Clock 1 falls back to this when there is no target move-in date |
 | released_at | timestamp | null | | |
@@ -622,6 +631,13 @@ One money movement on a tenancy: online escrow, landlord-recorded, or a correcti
 | void_reason | enum('wrong_amount','wrong_month','wrong_tenancy','duplicate','not_received','other') | null | | |
 | void_note | varchar(255) | null | | Required when `void_reason = 'other'` |
 | replaces_payment_id | bigint unsigned | null | FK → payments, set null | On the *new* row of a "void and correct", pointing back at the voided one |
+| refunded_at | timestamp | null | | An admin refunded this held online payment to the tenant. Written on every row of the checkout group, with `status = 'Refunded'` |
+| refunded_by | bigint unsigned | null | FK → users, set null | The admin who refunded it |
+| refund_reason | varchar(255) | null | | The admin's reason; also sent to PayMongo as the refund note |
+| paymongo_refund_id | varchar(255) | null | index | The `ref_...` id |
+| refund_status | varchar(20) | null | | PayMongo's word: `pending`, `processing`, `succeeded`, `failed`. A QR Ph refund stays `processing` until the tenant claims `refund_transfer_link`; `failed` alerts the admins |
+| refund_transfer_link | varchar(500) | null | | QR Ph only: the link the tenant opens to claim the money (valid 3 days) |
+| refund_includes_fee | tinyint(1) | NN, = 0 | | True when the online payment fee was refunded too (the platform absorbs it) |
 | payment_claim_id | bigint unsigned | null | FK → payment_claims, set null | Set on every row a confirmed claim wrote (never on PayMongo rows) |
 | recorded_by | bigint unsigned | null | FK → users, set null | Null = platform-settled (PayMongo); non-null = landlord-asserted |
 | reference_no | varchar(255) | null | | OR number / GCash reference of a recorded payment |
@@ -638,20 +654,28 @@ Rules:
 - A payment with `payout_owed_at` set can no longer be voided (`Payment::canBeVoided()`).
 
 ### payouts
-One GCash transfer an admin sent to a landlord, covering one or more payments. The GCash details are copied on creation, so the record keeps saying where the money went after the landlord changes accounts. Written by `Admin\PayoutController::markPaidOut()` inside the locked batch.
+One GCash transfer to a landlord, covering one or more payments. Normally sent automatically through PayMongo Send Money (`LandlordPayouts::batch()` then `PaymongoTransfers::send()`); an admin who sent one by hand records it through `Admin\PayoutController::markPaidOut()`, which writes it straight to `Sent`. The GCash details are copied on creation, so the record keeps saying where the money went after the landlord changes accounts.
 
 | Column | Type | Null / default | Key | Note |
 |---|---|---|---|---|
 | payout_id | bigint unsigned | NN | PK | |
 | landlord_id | bigint unsigned | NN | FK → users, cascade | |
-| amount | decimal(10,2) | NN | | Sum of the payments it covers |
+| amount | decimal(10,2) | NN | | Sum of the payments' `amount` it covers; never includes the online payment fee |
+| status | enum('Processing','Sent','Failed') | NN, = 'Sent' | index | Processing = the transfer is created and PayMongo has not confirmed it (or the outcome is unknown). Sent = confirmed. Failed = refused or failed; its payments are unlinked and owed again. Rows from before automatic payouts are Sent |
 | gcash_number | varchar(255) | null | | Snapshot at send time |
 | gcash_account_name | varchar(255) | null | | Snapshot at send time |
-| payout_reference | varchar(255) | null | | GCash transaction reference the admin typed after sending |
-| paid_out_by | bigint unsigned | null | FK → users, set null | The admin who recorded it |
-| paid_out_at | timestamp | NN | | |
+| payout_reference | varchar(255) | null | | The admin's typed GCash reference, or for an automatic payout the bank reference PayMongo reports (else the transfer id) |
+| paymongo_transfer_id | varchar(255) | null | index | The `tr_...` id PayMongo gave the transfer. Null on a manual payout, or when the request got no readable answer |
+| failure_reason | varchar(500) | null | | Why it failed, or "Outcome unknown: ..." while it sits Processing without an answer |
+| resolved_at | timestamp | null | | A Failed payout blocks that landlord's automatic payouts until this is set (an admin's Retry sets it). Set on Sent rows too |
+| paid_out_by | bigint unsigned | null | FK → users, set null | The admin who recorded it by hand; null on automatic payouts |
+| paid_out_at | timestamp | null | | When it was confirmed sent; null while Processing or Failed |
 | created_at | timestamp | null | | |
 | updated_at | timestamp | null | | |
+
+Rules:
+- A payment is **owed** while `payout_owed_at` is set and `payout_id` is null. Linking it to a payout (before the HTTP call) is what stops it being sent twice; a Failed or cancelled payout unlinks it again.
+- A Processing payout with no `paymongo_transfer_id` is never re-sent automatically: PayMongo may have sent it. An admin checks the PayMongo dashboard, then presses Retry.
 
 ## 2. Tables — Chat
 

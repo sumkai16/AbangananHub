@@ -31,3 +31,7 @@ Schedule::command('reservations:purge-tenant-documents')->dailyAt('03:30');
 
 // AI search logs are kept 30 days (App\Models\AiSearchLog::prunable()).
 Schedule::command('model:prune', ['--model' => [AiSearchLog::class]])->dailyAt('03:00');
+
+// Landlord payouts: the immediate job (SendLandlordPayout) does the work as money becomes payable; this sweep
+// polls transfers PayMongo has not confirmed and sends anything still owed (hold over, wallet was short, job missed).
+Schedule::command('payouts:send')->hourly()->withoutOverlapping()->onOneServer();

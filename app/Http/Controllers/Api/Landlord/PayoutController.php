@@ -23,7 +23,7 @@ class PayoutController extends Controller
             fn ($q) => $q->where('landlord_id', $landlordId)
         )->with(['reservation.tenant', 'reservation.property:property_id,title', 'reservation.unit:unit_id,unit_label']);
 
-        $pending = (clone $query)->pendingPayout()
+        $pending = (clone $query)->awaitingPayout()
             ->latest('released_at')
             ->get();
 

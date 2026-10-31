@@ -172,7 +172,8 @@ class RentLedgerInitialTest extends TestCase
         ];
 
         foreach ($cases as $status => $label) {
-            $t = $this->makeTenancy(['rental_status' => $status]);
+            // A landlord with GCash on file, so "Pay now" (online offered) rather than "Pay your landlord".
+            $t = $this->makeOnlineTenancy(['rental_status' => $status]);
 
             $this->assertSame($label, $t['reservation']->tenantNextStep()['label'] ?? null, $status);
         }

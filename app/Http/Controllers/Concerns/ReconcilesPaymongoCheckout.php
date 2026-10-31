@@ -4,9 +4,14 @@ namespace App\Http\Controllers\Concerns;
 
 use App\Models\Payment;
 use App\Models\Reservation;
+use App\Services\PaymentClaims;
 use App\Services\PaymongoCheckout;
+use App\Support\ServiceFee;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 /**
  * PayMongo can't reach localhost, so in local dev the webhook never fires and
@@ -43,37 +48,181 @@ trait ReconcilesPaymongoCheckout
             return $payment;
         }
 
-        $method = Payment::resolvePaymongoMethod(
-            $response->json('data.attributes.payment_method_used')
-                ?? $sessionPayments[0]['attributes']['source']['type'] ?? null
-        ) ?? $payment->payment_method;
-
-        $common = [
-            'payment_method'              => $method,
-            'paymongo_payment_intent_id'  => $response->json('data.attributes.payment_intent.id'),
-            'paymongo_payment_id'         => $sessionPayments[0]['id'] ?? null,
-            'paid_at'                     => now(),
-        ];
-
-        if ($payment->payment_type === 'Monthly') {
-            $payment->update($common + [
-                'status'        => 'Paid',
-                'payout_owed_at' => now(),
-            ]);
-
-            $label = $payment->billing_period?->format('M Y') ?? 'this period';
-            $reservation->postSystemMessage($reservation->tenant->name.' paid rent for '.$label.' online.');
-        } else {
-            $payment->update($common + ['status' => 'Held']);
-
-            $reservation->postSystemMessage(
-                $reservation->tenant->name.' completed the initial payment. Funds are held by AbangananHub.'
-            );
+        // Settle only what we asked for; a different amount stays Pending and the admins are told.
+        if (! PaymongoCheckout::paidAmountMatches($sessionPayments, $payment)) {
+            return $payment;
         }
 
-        $payment->alertAdminsIfStranded();
+        PaymongoCheckout::settle(
+            $payment,
+            $response->json('data.attributes.payment_method_used'),
+            $sessionPayments,
+            $response->json('data.attributes.payment_intent.id'),
+        );
 
         return $payment->fresh();
+    }
+
+    /**
+     * What to tell the tenant when PayMongo refuses to open a checkout, by why. A rejected key is our problem, not
+     * theirs: say so, point them at the ways that still work, and tell the admins once a day so it gets fixed.
+     */
+    private function checkoutFailureMessage(\Illuminate\Http\Client\Response $response): string
+    {
+        if (in_array($response->status(), [401, 403], true)) {
+            \App\Services\LandlordPayouts::alertAdmins(
+                'paymongo-checkout-refused',
+                'Online checkout is failing',
+                'PayMongo refused to open a checkout (HTTP '.$response->status().'). Check PAYMONGO_SECRET_KEY in .env, that it is the key for the mode you are in, and that the server was restarted after changing it.',
+                route('admin.settings.edit'),
+            );
+
+            return 'Online payment is not working right now, and it is not something you did. You can pay '.'your landlord by QR or in cash instead, or try again later. We have been told.';
+        }
+
+        if ($response->status() === 429 || $response->serverError()) {
+            return 'The payment service is busy right now. Please wait a minute and try again.';
+        }
+
+        return 'Could not create payment session. Please try again.';
+    }
+
+    /**
+     * Refuse to start a checkout beside an "I paid" report the landlord has not decided on yet: the tenant
+     * would be paying the same move-in or month twice. Call it inside the lock on the reservation, so a report
+     * filed at the same moment (PaymentClaims::file takes the same lock) is seen by one side or the other.
+     *
+     * @param  string  $claimType  'MoveIn' or 'Monthly'
+     *
+     * @throws ValidationException
+     */
+    protected function assertNoPendingClaim(Reservation $locked, string $claimType, ?Carbon $billingPeriod = null): void
+    {
+        if (PaymentClaims::hasPending($locked, $claimType, $billingPeriod)) {
+            throw ValidationException::withMessages(['payment' => [
+                'You already told your landlord you paid this. Wait for them to confirm it, or withdraw your report first.',
+            ]]);
+        }
+    }
+
+    /**
+     * Open a PayMongo checkout for a move-in (`Initial`) or one month of rent (`Monthly`) and return the payment
+     * rows it will fund plus where to send the tenant. Shared by the four checkout endpoints (web and API, move-in
+     * and rent), so the rows, the fee and the PayMongo call can never differ between them.
+     *
+     * Rows are created Pending together in one locked transaction, so a double click or a report filed at the same
+     * moment cannot slip a second checkout in: the rent row (carrying the online fee, frozen now) and, for a
+     * move-in with a deposit, a `Deposit` row on the same session. They settle, release and refund as one.
+     *
+     * Failures throw a ValidationException on the `payment` key: the web redirects back with it, the API answers 422.
+     *
+     * @param  string  $type  'Initial' or 'Monthly'
+     * @param  float  $rent  what the landlord is owed for the rent line (Monthly: the period balance, late fee included)
+     * @param  string  $busyMessage  shown when another checkout (or an inactive tenancy) blocks this one
+     * @return array{0: Payment, 1: string} the lead (rent) row and PayMongo's checkout URL
+     *
+     * @throws ValidationException
+     */
+    protected function openCheckout(
+        Reservation $reservation,
+        string $type,
+        ?Carbon $billingPeriod,
+        float $rent,
+        string $rentLineName,
+        string $description,
+        string $successUrl,
+        string $cancelUrl,
+        string $busyMessage,
+    ): array {
+        $isMoveIn = $type === 'Initial';
+        $deposit = $isMoveIn ? round((float) $reservation->agreedDeposit(), 2) : 0.0;
+        $fee = ServiceFee::for($rent);
+
+        $rows = DB::transaction(function () use ($reservation, $type, $billingPeriod, $rent, $deposit, $fee, $isMoveIn) {
+            // Lock the reservation row so two concurrent requests (e.g. a double click) can't both pass the
+            // "no pending payment" check before either has inserted its Payment rows.
+            $locked = Reservation::whereKey($reservation->reservation_id)->lockForUpdate()->first();
+
+            if (! $isMoveIn && $locked->rental_status !== 'Occupied') {
+                return null;
+            }
+
+            $this->assertNoPendingClaim($locked, $isMoveIn ? 'MoveIn' : 'Monthly', $billingPeriod);
+
+            $existingPending = Payment::where('reservation_id', $locked->reservation_id)
+                ->where('status', 'Pending')
+                ->whereNotNull('paymongo_checkout_session_id')
+                ->when(! $isMoveIn, fn ($q) => $q->where('payment_type', 'Monthly')->whereDate('billing_period', $billingPeriod->toDateString()))
+                ->exists();
+
+            if ($existingPending) {
+                return null;
+            }
+
+            // Placeholder rows reserve this reservation for the current request until they carry PayMongo's session id.
+            $rows = [Payment::create([
+                'reservation_id' => $locked->reservation_id,
+                'payment_type' => $type,
+                'billing_period' => $billingPeriod,
+                'amount' => $rent,
+                'service_fee' => $fee,
+                'payment_method' => 'GCash',
+                'status' => 'Pending',
+            ])];
+
+            if ($deposit > 0) {
+                $rows[] = Payment::create([
+                    'reservation_id' => $locked->reservation_id,
+                    'payment_type' => 'Deposit',
+                    'amount' => $deposit,
+                    'payment_method' => 'GCash',
+                    'status' => 'Pending',
+                ]);
+            }
+
+            return $rows;
+        });
+
+        if (! $rows) {
+            throw ValidationException::withMessages(['payment' => [$busyMessage]]);
+        }
+
+        $lines = [['name' => $rentLineName, 'amount' => $rent]];
+
+        if ($deposit > 0) {
+            $lines[] = ['name' => $reservation->unit->unit_name.' — Security deposit', 'amount' => $deposit];
+        }
+
+        if ($fee > 0) {
+            $lines[] = ['name' => 'Online payment fee', 'amount' => $fee];
+        }
+
+        $response = PaymongoCheckout::create($reservation, $lines, $description, $successUrl, $cancelUrl);
+
+        if ($response->failed()) {
+            // Say why in the log: the tenant only sees a generic message, and a live account can refuse for reasons
+            // (a payment method not switched on yet, an amount below the minimum) that only PayMongo's answer shows.
+            Log::error('PayMongo could not create a checkout session', [
+                'reservation_id' => $reservation->reservation_id,
+                'status' => $response->status(),
+                'errors' => $response->json('errors') ?? mb_substr($response->body(), 0, 300),
+            ]);
+
+            // Free up the reservation for a retry instead of leaving dead placeholders behind.
+            foreach ($rows as $row) {
+                $row->delete();
+            }
+
+            throw ValidationException::withMessages(['payment' => [$this->checkoutFailureMessage($response)]]);
+        }
+
+        $checkout = $response->json('data');
+
+        foreach ($rows as $row) {
+            $row->update(['paymongo_checkout_session_id' => $checkout['id']]);
+        }
+
+        return [$rows[0], $checkout['attributes']['checkout_url']];
     }
 
     /**
@@ -100,7 +249,9 @@ trait ReconcilesPaymongoCheckout
             ->get()
             ->filter(fn (Payment $p) => $p->isStalePending());
 
-        foreach ($stale as $payment) {
+        // One online move-in is several rows on one session (rent + deposit): look at the checkout once, and clear
+        // all of its rows together. Rows without a session id are each their own dead placeholder.
+        foreach ($stale->unique(fn (Payment $p) => $p->paymongo_checkout_session_id ?? 'row-'.$p->payment_id) as $payment) {
             // The request died after creating the row and before saving the session id: no money is possible.
             if (! $payment->paymongo_checkout_session_id) {
                 $payment->delete();
@@ -108,19 +259,46 @@ trait ReconcilesPaymongoCheckout
                 continue;
             }
 
-            $reservation->loadMissing('tenant');
-
-            if ($this->reconcilePayment($reservation, $payment)->status !== 'Pending') {
-                return 'Your last payment went through after all. Refresh this page to see it.';
+            if ($message = $this->abandonCheckout($reservation, $payment)) {
+                return $message;
             }
-
-            if (! PaymongoCheckout::abandon($payment->paymongo_checkout_session_id)) {
-                return 'We could not confirm that your last payment attempt was cancelled. Please try again in a few minutes.';
-            }
-
-            $payment->delete();
         }
 
         return null;
+    }
+
+    /**
+     * Close one open checkout and drop all of its placeholder rows (rent + deposit share a session). Used for a
+     * checkout gone stale and for a tenant who cancels one on purpose. Fails safe: if it was in fact paid it is
+     * settled and the tenant told; if PayMongo cannot confirm the session is closed, nothing is deleted.
+     *
+     * @return string|null a message when the caller must stop, null when the checkout is gone
+     */
+    protected function abandonCheckout(Reservation $reservation, Payment $payment): ?string
+    {
+        $reservation->loadMissing('tenant');
+
+        if ($this->reconcilePayment($reservation, $payment)->status !== 'Pending') {
+            return 'Your last payment went through after all. Refresh this page to see it.';
+        }
+
+        if (! PaymongoCheckout::abandon($payment->paymongo_checkout_session_id)) {
+            return 'We could not confirm that your last payment attempt was cancelled. Please try again in a few minutes.';
+        }
+
+        Payment::where('paymongo_checkout_session_id', $payment->paymongo_checkout_session_id)->delete();
+
+        return null;
+    }
+
+    /** The checkout this tenant started and has not finished: the newest Pending row of that type with a session. */
+    protected function findOpenCheckout(Reservation $reservation, string $type): ?Payment
+    {
+        return Payment::where('reservation_id', $reservation->getKey())
+            ->where('payment_type', $type)
+            ->where('status', 'Pending')
+            ->whereNotNull('paymongo_checkout_session_id')
+            ->latest('payment_id')
+            ->first();
     }
 }

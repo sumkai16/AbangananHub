@@ -17,6 +17,7 @@ class UserResource extends ApiResource
             // `payoutAccount`; a user nested in a conversation, review or payment never does.
             'gcash_number'           => $this->when($this->resource->relationLoaded('payoutAccount'), fn () => $this->resource->payoutAccount?->gcash_number),
             'gcash_account_name'     => $this->when($this->resource->relationLoaded('payoutAccount'), fn () => $this->resource->payoutAccount?->gcash_account_name),
+            'accepts_online'         => $this->when($this->resource->relationLoaded('payoutAccount'), fn () => $this->resource->payoutAccount?->accepts_online ?? true),
             'profile_picture'        => $this->attr('profile_picture'),
             'account_status'         => $this->attr('account_status'),
             'bio'                    => $this->attr('bio'),

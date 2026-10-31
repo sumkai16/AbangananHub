@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\Payment;
 use App\Models\Reservation;
+use App\Services\PaymentRefunds;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -18,7 +19,8 @@ class PaymentController extends Controller
     // 'Voided' = a landlord struck their own recorded entry — visible here so
     // an admin arbitrating a dispute can see a correction happened, same
     // accountability reason the whole payments log exists.
-    private const STATUSES = ['All', 'Held', 'Released', 'Paid', 'Voided', 'Pending'];
+    // 'Refunded' = an admin gave a held online payment back to the tenant (App\Services\PaymentRefunds).
+    private const STATUSES = ['All', 'Held', 'Released', 'Paid', 'Voided', 'Pending', 'Refunded'];
 
     public function index(Request $request)
     {
@@ -40,6 +42,7 @@ class PaymentController extends Controller
             'Paid' => Payment::where('status', 'Paid')->count(),
             'Voided' => Payment::where('status', 'Voided')->count(),
             'Pending' => Payment::where('status', 'Pending')->count(),
+            'Refunded' => Payment::where('status', 'Refunded')->count(),
         ];
         $counts['All'] = Payment::count();
 
@@ -54,6 +57,8 @@ class PaymentController extends Controller
             'status' => $status,
             'counts' => $counts,
             'sums' => $sums,
+            // What "Refund tenant" would send for each Held row on this page, from one query.
+            'heldGroups' => PaymentRefunds::heldGroups($payments->getCollection()),
         ]);
     }
 
@@ -70,13 +75,17 @@ class PaymentController extends Controller
 
             abort_unless($locked->isHeld(), 409, 'Only held payments can be released.');
 
-            $locked->update([
-                'status' => 'Released',
-                'released_at' => now(),
-                'released_by' => auth()->id(),
-                'release_reason' => 'admin_manual',
-                'payout_owed_at' => now(),
-            ]);
+            // An online move-in is several rows (rent, deposit) funded by one checkout; they are released together,
+            // whichever of them the admin pressed Release on.
+            $group = $locked->paymongo_checkout_session_id
+                ? Payment::where('paymongo_checkout_session_id', $locked->paymongo_checkout_session_id)
+                    ->where('status', 'Held')
+                    ->orderBy('payment_id')
+                    ->lockForUpdate()
+                    ->get()
+                : collect([$locked]);
+
+            $group->each(fn (Payment $p) => $p->markReleased('admin_manual', auth()->id()));
 
             $reservation = $locked->reservation_id
                 ? Reservation::whereKey($locked->reservation_id)->with(['unit', 'property'])->lockForUpdate()->first()
@@ -152,7 +161,8 @@ class PaymentController extends Controller
                 $locked,
                 null,
                 [
-                    'amount'         => $locked->amount,
+                    'amount'         => $group->sum('amount'),
+                    'rows'           => $group->pluck('payment_id')->all(),
                     'reservation_id' => $locked->reservation_id,
                     'ended_lifecycle' => $reservation ? ($reservation->rental_status === 'Occupied') : false,
                 ],
