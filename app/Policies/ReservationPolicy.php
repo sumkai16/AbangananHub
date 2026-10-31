@@ -261,17 +261,20 @@ class ReservationPolicy
     {
         return $this->decidePayment($user, $reservation)
             && $reservation->rental_status === 'Rental Agreement Signed'
-            && $reservation->move_in_paid_at === null;
+            && ! $reservation->moveInSettled();
     }
 
     /**
-     * Either party confirms the move-in once the direct payment is settled. Nothing is held, so nothing
-     * rides on who presses it (the same reasoning as confirmWalkInMoveIn()).
+     * Either party confirms the move-in once the move-in money is settled and nothing is held, so nothing
+     * rides on who presses it (the same reasoning as confirmWalkInMoveIn()). A PayMongo payment still Held is
+     * released by the tenant's own confirmation instead (agreements.confirmMoveIn); one an admin already
+     * released before the keys were handed over is finished here.
      */
     public function confirmDirectMoveIn(User $user, Reservation $reservation): bool
     {
         return $reservation->rental_status === 'Rental Agreement Signed'
-            && $reservation->move_in_paid_at !== null
+            && $reservation->moveInSettled()
+            && ! $reservation->payments()->where('status', 'Held')->exists()
             && ($reservation->tenant_id === $user->user_id
                 || $reservation->property?->landlord_id === $user->user_id);
     }

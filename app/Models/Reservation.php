@@ -536,6 +536,38 @@ class Reservation extends Model
             ->exists();
     }
 
+    /**
+     * hasSettledInitialPayment() without a query when payments are already loaded (list pages). The one
+     * "is the move-in money settled" answer for both channels: paid directly (move_in_paid_at) or paid online
+     * through PayMongo (an Initial payment Held, Paid or Released). move_in_paid_at alone means "paid directly".
+     */
+    public function moveInSettled(): bool
+    {
+        if ($this->move_in_paid_at !== null) {
+            return true;
+        }
+
+        return $this->relationLoaded('payments')
+            ? $this->payments->contains(fn (Payment $p) => $p->payment_type === 'Initial' && in_array($p->status, ['Held', 'Paid', 'Released'], true))
+            : $this->hasSettledInitialPayment();
+    }
+
+    /** The query form of moveInSettled(), for stage tabs and the unit hold. */
+    public function scopeMoveInSettled(Builder $query): Builder
+    {
+        return $query->where(fn ($q) => $q->whereNotNull('move_in_paid_at')
+            ->orWhereHas('payments', fn ($p) => $p->where('payment_type', 'Initial')->whereIn('status', ['Held', 'Paid', 'Released'])));
+    }
+
+    /** True when the move-in money came through a PayMongo checkout (not recorded by the landlord). */
+    public function paidOnline(): bool
+    {
+        $payments = $this->relationLoaded('payments') ? $this->payments : $this->payments()->get();
+
+        return $payments->contains(fn (Payment $p) => $p->payment_type === 'Initial' && ! $p->isManuallyRecorded()
+            && in_array($p->status, ['Held', 'Paid', 'Released'], true));
+    }
+
     public function depositCharges()
     {
         return $this->hasMany(DepositCharge::class, 'reservation_id', 'reservation_id')->orderByDesc('charged_at');
@@ -660,7 +692,7 @@ class Reservation extends Model
     public function contractStatus(): array
     {
         return match ($this->rental_status) {
-            'Rental Agreement Signed' => $this->move_in_paid_at
+            'Rental Agreement Signed' => $this->moveInSettled()
                 ? ['label' => 'Awaiting move-in', 'tone' => 'warn']
                 : ['label' => 'Awaiting payment', 'tone' => 'muted'],
             'Reserved' => ['label' => 'Awaiting move-in', 'tone' => 'warn'],
@@ -913,9 +945,17 @@ class Reservation extends Model
         if ($this->rental_status === 'Rental Agreement Signed') {
             $report = $this->paymentClaims->where('status', 'Pending')->where('claim_type', 'MoveIn')->first();
 
-            return $report
-                ? ['label' => 'Payment reported', 'next' => '₱'.number_format((float) $report->amount, 2).' to confirm', 'tone' => 'warn']
-                : ['label' => 'Signed', 'next' => $tenant.' pays you ₱'.number_format($this->moveInDue(), 2), 'tone' => 'info'];
+            if ($report) {
+                return ['label' => 'Payment reported', 'next' => '₱'.number_format((float) $report->amount, 2).' to confirm', 'tone' => 'warn'];
+            }
+
+            if ($this->moveInSettled()) {
+                return $this->paidOnline()
+                    ? ['label' => 'Paid online', 'next' => 'Held by AbangananHub until move-in', 'tone' => 'info']
+                    : ['label' => 'Paid', 'next' => 'Waiting for move-in', 'tone' => 'info'];
+            }
+
+            return ['label' => 'Signed', 'next' => $tenant.' pays you ₱'.number_format($this->moveInDue(), 2), 'tone' => 'info'];
         }
 
         return match ($this->rental_status) {
@@ -985,7 +1025,9 @@ class Reservation extends Model
      */
     public function markOccupied(bool $byTenant = false): bool
     {
-        if ($this->rental_status !== 'Rental Agreement Signed' || $this->move_in_paid_at === null) {
+        // Settled either way. A PayMongo payment still Held is refused just below (it goes through
+        // confirmMoveIn()); one already released by an admin before the keys were handed over lands here.
+        if ($this->rental_status !== 'Rental Agreement Signed' || ! $this->moveInSettled()) {
             return false;
         }
 
@@ -1087,9 +1129,7 @@ class Reservation extends Model
      */
     public function tenantNextStep(): ?array
     {
-        $paid = $this->move_in_paid_at !== null || ($this->relationLoaded('payments')
-            ? $this->payments->contains(fn ($p) => $p->payment_type === 'Initial' && in_array($p->status, ['Held', 'Paid', 'Released'], true))
-            : $this->hasSettledInitialPayment());
+        $paid = $this->moveInSettled();
 
         return match ($this->rental_status) {
             'Pending Rental Agreement' => ['label' => 'Review & sign', 'url' => route('agreements.show', $this)],
@@ -1166,7 +1206,7 @@ class Reservation extends Model
     public function scopeHoldingUnit(Builder $query): Builder
     {
         return $query->where(fn ($q) => $q->whereIn('rental_status', ['Reserved', 'Occupied'])
-            ->orWhere(fn ($q) => $q->where('rental_status', 'Rental Agreement Signed')->whereNotNull('move_in_paid_at')));
+            ->orWhere(fn ($q) => $q->where('rental_status', 'Rental Agreement Signed')->moveInSettled()));
     }
 
     /** True when another reservation already holds this one's unit (see scopeHoldingUnit). */

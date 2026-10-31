@@ -25,7 +25,8 @@ class ReservationController extends Controller
     /** Narrows a reservation query to one stage tab. */
     public static function applyStage($query, string $stage)
     {
-        $awaitingPayment = fn ($q) => $q->where('rental_status', 'Rental Agreement Signed')->whereNull('move_in_paid_at');
+        // "Paid" covers both channels (Reservation::scopeMoveInSettled): confirmed direct, or paid online through PayMongo.
+        $awaitingPayment = fn ($q) => $q->where('rental_status', 'Rental Agreement Signed')->whereNot(fn ($s) => $s->moveInSettled());
 
         return match ($stage) {
             'new' => $query->where('rental_status', 'Inquiry'),
@@ -35,7 +36,7 @@ class ReservationController extends Controller
             'closed' => $query->whereIn('rental_status', ['Rejected', 'Cancelled']),
             // Past the pipeline (move-in confirmed): read-only record, the lease itself is on Contracts.
             'history' => $query->where(fn ($q) => $q->whereIn('rental_status', ['Reserved', 'Occupied', 'Completed'])
-                ->orWhere(fn ($s) => $s->where('rental_status', 'Rental Agreement Signed')->whereNotNull('move_in_paid_at'))),
+                ->orWhere(fn ($s) => $s->where('rental_status', 'Rental Agreement Signed')->moveInSettled())),
             default => $query->where(fn ($q) => $q->whereIn('rental_status', ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement'])
                 ->orWhere($awaitingPayment)),
         };
