@@ -2,6 +2,8 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Oct 31 2026 — "Moved in" tab on the Reservations page (branch `emman`)
+Why: a tested reservation reached Occupied and vanished from the page (by design of the pipeline-only rewrite below), which read as a bug. New `history` stage in `Landlord\ReservationController::STAGES` / `applyStage()` lists Reserved, Occupied, Completed and signed-and-paid requests; rows are read-only (Details + Chat). **Not verified in a browser.**
 ## Oct 31 2026 — Reservations page shows the request pipeline only (branch `emman`)
 Plan: `plans/reservations-page-pipeline.md`. No migrations or routes. **Not verified in a browser** (375px cards, the strip links, Confirm payment from a row).
 - **Scope:** `landlord/reservations` lists Inquiry, Under Negotiation, Pending Rental Agreement, and Rental Agreement Signed without `move_in_paid_at`. Reserved, Occupied, Completed and signed-and-paid leases are on **Contracts** only. `Landlord\ReservationController::STAGES` + `applyStage()`; the CSV export follows the same stage.

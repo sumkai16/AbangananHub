@@ -20,7 +20,7 @@ class ReservationController extends Controller
      * the first inquiry to a signed agreement whose move-in money the landlord has not confirmed yet. Once it is
      * confirmed the lease is on the Contracts page, so Reserved, Occupied and Completed never show here.
      */
-    public const STAGES = ['open', 'new', 'discussing', 'agreement', 'payment', 'closed'];
+    public const STAGES = ['open', 'new', 'discussing', 'agreement', 'payment', 'closed', 'history'];
 
     /** Narrows a reservation query to one stage tab. */
     public static function applyStage($query, string $stage)
@@ -33,6 +33,9 @@ class ReservationController extends Controller
             'agreement' => $query->where('rental_status', 'Pending Rental Agreement'),
             'payment' => $query->where($awaitingPayment),
             'closed' => $query->whereIn('rental_status', ['Rejected', 'Cancelled']),
+            // Past the pipeline (move-in confirmed): read-only record, the lease itself is on Contracts.
+            'history' => $query->where(fn ($q) => $q->whereIn('rental_status', ['Reserved', 'Occupied', 'Completed'])
+                ->orWhere(fn ($s) => $s->where('rental_status', 'Rental Agreement Signed')->whereNotNull('move_in_paid_at'))),
             default => $query->where(fn ($q) => $q->whereIn('rental_status', ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement'])
                 ->orWhere($awaitingPayment)),
         };

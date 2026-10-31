@@ -164,6 +164,7 @@
                 'agreement' => 'Agreement sent',
                 'payment' => 'Awaiting payment',
                 'closed' => 'Closed',
+                'history' => 'Moved in',
             ] as $key => $label)
                 <a href="{{ route('landlord.reservations.index', array_filter([
                         'stage' => $key === 'open' ? null : $key,
@@ -329,7 +330,7 @@
                 {{-- Table footer: showing text + pagination --}}
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-5 py-3.5 border-t border-[#E2E4EC]">
                     <p class="text-[12px] text-[#5B6A8E]">
-                        Showing {{ $reservations->firstItem() }} to {{ $reservations->lastItem() }} of {{ $reservations->total() }} requests &middot; <a href="{{ route('landlord.contracts.index') }}" class="font-semibold text-[#060D26] hover:underline">Signed and paid requests move to Contracts &rarr;</a>
+                        Showing {{ $reservations->firstItem() }} to {{ $reservations->lastItem() }} of {{ $reservations->total() }} requests &middot; <a href="{{ route('landlord.contracts.index') }}" class="font-semibold text-[#060D26] hover:underline">Leases of moved-in tenants are on Contracts &rarr;</a>
                     </p>
                     @if($reservations->hasPages())
                         <div>
@@ -414,7 +415,7 @@
                 {{-- Card footer: showing text + pagination --}}
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-5">
                     <p class="text-[12px] text-[#5B6A8E]">
-                        Showing {{ $reservations->firstItem() }} to {{ $reservations->lastItem() }} of {{ $reservations->total() }} requests &middot; <a href="{{ route('landlord.contracts.index') }}" class="font-semibold text-[#060D26] hover:underline">Signed and paid requests move to Contracts &rarr;</a>
+                        Showing {{ $reservations->firstItem() }} to {{ $reservations->lastItem() }} of {{ $reservations->total() }} requests &middot; <a href="{{ route('landlord.contracts.index') }}" class="font-semibold text-[#060D26] hover:underline">Leases of moved-in tenants are on Contracts &rarr;</a>
                     </p>
                     @if($reservations->hasPages())
                         <div>
