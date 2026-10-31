@@ -86,7 +86,7 @@
             ];
         @endphp
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 mb-4">
+        <div class="stat-chips grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 mb-4">
             @foreach($cards as $card)
                 @php
                     $deltaSub = $card['delta'] !== null

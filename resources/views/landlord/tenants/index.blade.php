@@ -48,7 +48,7 @@
             </x-slot:actions>
         </x-page-header>
 
-        <div class="grid grid-cols-3 gap-3 mb-4">
+        <div class="stat-chips grid grid-cols-3 gap-3 mb-4">
             <x-stat-card label="Total" :value="$stats['total']" :href="route('landlord.tenants.index')" sub="On your list" />
             <x-stat-card label="Active" :value="$stats['active']" value-color="#15803D" :href="route('landlord.tenants.index', ['status' => 'active'])" sub="Have a contract" />
             <x-stat-card label="Pending" :value="$stats['pending']" value-color="#B45309" :href="route('landlord.tenants.index', ['status' => 'pending'])" sub="No contract yet" />
@@ -62,7 +62,7 @@
                         x-on:input.debounce.400ms="$el.form.requestSubmit()"
                         class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
                 </div>
-                <div class="flex flex-wrap items-center gap-2.5">
+                <div class="filter-row flex flex-wrap items-center gap-2.5">
                     <x-styled-select name="property" :options="$propertyOptions" :selected="(string) request('property', '')" autosubmit
                         class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26] max-w-[220px]" />
                     <x-styled-select name="status" :options="$statusOptions" :selected="(string) request('status', '')" autosubmit

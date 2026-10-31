@@ -281,6 +281,8 @@ Route::middleware('auth')->group(function () {
 
         // Rent collection
         Route::get('/payments', [App\Http\Controllers\Landlord\PaymentController::class, 'index'])->name('payments.index');
+        Route::post('/payments/remind-overdue', [App\Http\Controllers\Landlord\PaymentController::class, 'remindOverdue'])
+            ->middleware('throttle:3,1')->name('payments.remindOverdue');
         Route::get('/payments/export', [App\Http\Controllers\Landlord\PaymentController::class, 'export'])->name('payments.export');
         // One tenancy's rent ledger: the money side of a contract, under Payments.
         Route::get('/payments/ledger/{reservation}', [LedgerController::class, 'show'])->name('payments.ledger');

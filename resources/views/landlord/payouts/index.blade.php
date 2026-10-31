@@ -29,7 +29,7 @@
             </div>
         @endunless
 
-        <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="stat-chips mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <x-stat-card label="Pending payout" :value="'₱' . number_format($pendingTotal, 2)" value-color="#B45309" icon-bg="rgba(251,191,36,0.10)"
                 class="shadow-[0_10px_25px_rgba(6,13,38,0.07)] hover:-translate-y-0.5 transition-all duration-200"
                 sub="Waiting on AbangananHub to send">

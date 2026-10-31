@@ -16,7 +16,7 @@ class PageIconTest extends TestCase
 {
     use CreatesMarketplaceFixtures, DatabaseTransactions;
 
-    private const TILE = 'w-11 h-11 rounded-xl bg-[#060D26]';
+    private const TILE = 'w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#060D26]';
 
     public function test_the_tile_renders_a_path_or_a_custom_svg(): void
     {

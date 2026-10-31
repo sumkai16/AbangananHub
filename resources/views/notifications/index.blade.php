@@ -7,16 +7,16 @@
 <div class="{{ auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-[calc(100vh-72px)]">
 
     {{-- Header --}}
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4 sm:mb-6">
         <div class="flex items-center gap-3.5">
-            <div class="w-11 h-11 rounded-xl bg-[#060D26] flex items-center justify-center shrink-0">
-                <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+            <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#060D26] flex items-center justify-center shrink-0">
+                <svg fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2" class="w-4 h-4 sm:w-[19px] sm:h-[19px]">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                 </svg>
             </div>
             <div>
-                <h1 class="text-2xl font-normal tracking-tight text-[#060D26]">Notifications</h1>
-                <p class="text-sm text-[#5B6A8E] mt-0.5">
+                <h1 class="text-xl sm:text-2xl font-normal tracking-tight text-[#060D26]">Notifications</h1>
+                <p class="text-xs sm:text-sm text-[#5B6A8E] mt-0.5">
                     {{ $unreadCount }} unread notification{{ $unreadCount !== 1 ? 's' : '' }}
                 </p>
             </div>

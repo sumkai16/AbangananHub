@@ -10,6 +10,7 @@ use App\Models\Property;
 use App\Models\Reservation;
 use App\Services\RentLedger;
 use App\Services\RentPaymentRecorder;
+use App\Services\RentReminderNotifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -181,6 +182,76 @@ class PaymentController extends Controller
             'view'         => $view,
             'calendar'    => $calendar,
         ]);
+    }
+
+    /**
+     * "Remind all overdue": one in-app reminder to every tenant who is overdue right now. Same message the
+     * per-row bell and the nightly job send (RentReminderNotifier). Walk-ins and inactive accounts have
+     * nobody to notify, and a tenant who already got a rent reminder for this tenancy in the last 24 hours is
+     * skipped, so a second click cannot nag anyone. The reply says how many went out and why others did not.
+     */
+    public function remindOverdue(Request $request, RentReminderNotifier $notifier)
+    {
+        $data = $request->validate(['property' => ['nullable', 'integer']]);
+        $today = Carbon::today();
+        $sent = 0;
+        $alreadyToday = 0;
+        $noAccount = 0;
+
+        $reservations = Reservation::where('rental_status', 'Occupied')
+            ->whereHas('property', fn ($q) => $q->where('landlord_id', Auth::id()))
+            ->when(! empty($data['property']), fn ($q) => $q->where('property_id', $data['property']))
+            ->with(['tenant', 'property:property_id,title,landlord_id', 'unit:unit_id,unit_label,rental_fee', 'payments', 'depositCharges', 'lateFeeWaivers'])
+            ->get();
+
+        foreach ($reservations as $reservation) {
+            $ledger = RentLedger::for($reservation);
+
+            if ($ledger->summary()['paymentStatus'] !== 'overdue') {
+                continue;
+            }
+
+            $tenant = $reservation->tenant;
+
+            if (! $tenant || $tenant->is_walk_in || $tenant->account_status !== 'active') {
+                $noAccount++;
+
+                continue;
+            }
+
+            $recently = Notification::where('user_id', $tenant->user_id)
+                ->where('link', route('tenancy.show', $reservation))
+                ->whereIn('title', ['Rent overdue', 'Rent due soon'])
+                ->where('created_at', '>=', now()->subDay())
+                ->exists();
+
+            if ($recently) {
+                $alreadyToday++;
+
+                continue;
+            }
+
+            $period = $ledger->periods()->firstWhere(fn ($p) => $p['status'] !== 'paid');
+
+            if ($period && $notifier->sendToTenant($reservation, $period, $today)) {
+                $sent++;
+            }
+        }
+
+        if ($sent === 0 && $alreadyToday === 0 && $noAccount === 0) {
+            return back()->with('warning', 'Nobody is overdue right now.');
+        }
+
+        $notes = array_filter([
+            $alreadyToday ? "{$alreadyToday} already reminded in the last 24 hours" : null,
+            $noAccount ? "{$noAccount} without an app account (walk-ins), remind them in person" : null,
+        ]);
+
+        return back()->with(
+            $sent > 0 ? 'success' : 'warning',
+            ($sent > 0 ? "Reminder sent to {$sent} " . Str::plural('tenant', $sent) . '.' : 'No new reminders were sent.')
+                . ($notes ? ' Skipped: ' . implode('; ', $notes) . '.' : '')
+        );
     }
 
     /** `?month=2026-09` → first of that month; anything else falls back to this month. */

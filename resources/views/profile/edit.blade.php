@@ -22,11 +22,11 @@
         $missing = array_keys(array_filter($checks, fn ($done) => ! $done));
     @endphp
 
-    <div class="{{ auth()->user()->shellContainerClass(auth()->user()->hasRole('Admin')) }} mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 min-h-[calc(100vh-72px)]">
+    <div class="{{ auth()->user()->shellContainerClass(auth()->user()->hasRole('Admin')) }} mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-10 min-h-[calc(100vh-72px)]">
 
         {{-- Back to profile --}}
         <a href="{{ route('profile.show') }}"
-            class="inline-flex items-center gap-1.5 text-sm font-semibold text-[#060D26] hover:brightness-90 transition-all mb-5">
+            class="inline-flex items-center gap-1.5 text-sm font-semibold text-[#060D26] hover:brightness-90 transition-all mb-3 sm:mb-5">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
             </svg>
@@ -34,21 +34,21 @@
         </a>
 
         {{-- ID-card hero --}}
-        <div class="relative overflow-hidden rounded-[28px] bg-[#060D26] p-6 sm:p-8 mb-8 shadow-[0_12px_36px_rgba(21,111,140,0.28)]"
+        <div class="relative overflow-hidden rounded-2xl sm:rounded-[28px] bg-[#060D26] p-4 sm:p-8 mb-4 sm:mb-8 shadow-[0_12px_36px_rgba(21,111,140,0.28)]"
             data-animate>
             {{-- Security-paper dot texture --}}
             <div class="absolute inset-0 opacity-[0.08] pointer-events-none"
                 style="background-image: radial-gradient(circle at 1px 1px, white 1.3px, transparent 0); background-size: 22px 22px;"></div>
 
-            <div class="relative flex flex-col md:flex-row md:items-center gap-6 md:gap-8">
+            <div class="relative flex flex-wrap md:flex-nowrap items-center gap-x-4 gap-y-3 md:gap-8">
 
                 {{-- Avatar --}}
                 <div class="flex-shrink-0 relative">
                     @if($user->profile_picture)
                         <img loading="lazy" decoding="async" src="{{ $user->profile_picture }}" alt="{{ $user->first_name }}"
-                            class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover ring-4 ring-white/20">
+                            class="w-14 h-14 sm:w-24 sm:h-24 rounded-2xl object-cover ring-2 sm:ring-4 ring-white/20">
                     @else
-                        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/15 ring-4 ring-white/20 flex items-center justify-center text-white text-[28px] font-black">
+                        <div class="w-14 h-14 sm:w-24 sm:h-24 rounded-2xl bg-white/15 ring-2 sm:ring-4 ring-white/20 flex items-center justify-center text-white text-xl sm:text-[28px] font-black">
                             {{ strtoupper(substr($user->first_name, 0, 1)) }}{{ strtoupper(substr($user->last_name, 0, 1)) }}
                         </div>
                     @endif
@@ -81,11 +81,11 @@
                             </span>
                         @endif
                     </div>
-                    <h1 class="text-[24px] sm:text-[28px] font-normal tracking-tight text-white leading-tight truncate">
+                    <h1 class="text-[19px] sm:text-[28px] font-normal tracking-tight text-white leading-tight truncate">
                         {{ $user->first_name }} {{ $user->last_name }}
                     </h1>
                     <p class="text-[13.5px] text-white/80 mt-1 truncate">{{ $user->email }}</p>
-                    <p class="text-[12px] text-white/60 mt-2 flex items-center gap-1.5">
+                    <p class="text-[12px] text-white/60 mt-2 hidden sm:flex items-center gap-1.5">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                         </svg>
@@ -97,7 +97,7 @@
                 </div>
 
                 {{-- Profile strength meter --}}
-                <div class="w-full md:w-[190px] flex-shrink-0 bg-white/10 rounded-2xl p-4 backdrop-blur-sm">
+                <div class="w-full md:w-[190px] flex-shrink-0 bg-white/10 rounded-xl sm:rounded-2xl p-3 sm:p-4 backdrop-blur-sm">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-[10px] font-bold uppercase tracking-widest text-white/70">Profile strength</span>
                         <span class="text-[13px] font-black text-white">{{ $strength }}%</span>
@@ -105,7 +105,7 @@
                     <div class="h-1.5 rounded-full bg-white/15 overflow-hidden">
                         <div class="h-full rounded-full bg-white transition-all duration-700 ease-out" style="width: {{ $strength }}%"></div>
                     </div>
-                    <p class="text-[10.5px] text-white/60 mt-2 leading-snug">
+                    <p class="text-[10.5px] text-white/60 mt-2 leading-snug max-sm:line-clamp-1">
                         @if($strength >= 100)
                             Your account is fully set up.
                         @else
@@ -116,17 +116,17 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 gap-8 lg:grid-cols-[210px_1fr]">
+        <div class="grid grid-cols-1 gap-4 sm:gap-8 lg:grid-cols-[210px_1fr]">
 
             {{-- Sidebar rail --}}
             <aside class="lg:sticky lg:top-24 h-fit flex flex-col gap-4">
-                <div class="bg-white rounded-2xl ring-1 ring-[#5B6A8E]/10 shadow-[0_2px_12px_rgba(6,13,38,0.05)] p-2 relative">
+                <div class="bg-white rounded-2xl ring-1 ring-[#5B6A8E]/10 shadow-[0_2px_12px_rgba(6,13,38,0.05)] p-2 relative max-lg:overflow-x-auto max-lg:[scrollbar-width:none]">
                     <div id="nav-indicator"
-                        class="absolute left-2 right-2 rounded-xl bg-[#ECEEF6] transition-all duration-300 ease-out pointer-events-none"
+                        class="max-lg:hidden absolute left-2 right-2 rounded-xl bg-[#ECEEF6] transition-all duration-300 ease-out pointer-events-none"
                         style="top: 8px; height: 58px;"></div>
-                    <nav class="relative flex flex-col gap-0.5">
+                    <nav class="relative flex flex-col max-lg:flex-row gap-0.5">
                         <a href="#personal-info"
-                            class="sidebar-link relative z-10 group flex items-start gap-2.5 rounded-xl px-3 py-2.5 transition-colors hover:text-[#060D26]"
+                            class="sidebar-link relative z-10 group flex items-start max-lg:items-center max-lg:shrink-0 max-lg:whitespace-nowrap max-lg:[&.font-semibold]:bg-[#ECEEF6] gap-2.5 rounded-xl px-3 py-2.5 max-lg:py-2 transition-colors hover:text-[#060D26]"
                             data-section="personal-info">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                                 class="shrink-0 mt-0.5 opacity-60 group-hover:opacity-100">
@@ -135,11 +135,11 @@
                             </svg>
                             <span>
                                 <span class="block text-sm font-medium leading-tight">Personal info</span>
-                                <span class="block text-[11px] opacity-60 leading-tight mt-0.5">Name, contact, bio</span>
+                                <span class="block max-lg:hidden text-[11px] opacity-60 leading-tight mt-0.5">Name, contact, bio</span>
                             </span>
                         </a>
                         <a href="#security"
-                            class="sidebar-link relative z-10 group flex items-start gap-2.5 rounded-xl px-3 py-2.5 transition-colors hover:text-[#060D26]"
+                            class="sidebar-link relative z-10 group flex items-start max-lg:items-center max-lg:shrink-0 max-lg:whitespace-nowrap max-lg:[&.font-semibold]:bg-[#ECEEF6] gap-2.5 rounded-xl px-3 py-2.5 max-lg:py-2 transition-colors hover:text-[#060D26]"
                             data-section="security">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                                 class="shrink-0 mt-0.5 opacity-60 group-hover:opacity-100">
@@ -148,13 +148,13 @@
                             </svg>
                             <span>
                                 <span class="block text-sm font-medium leading-tight">Password</span>
-                                <span class="block text-[11px] opacity-60 leading-tight mt-0.5">Login &amp; security</span>
+                                <span class="block max-lg:hidden text-[11px] opacity-60 leading-tight mt-0.5">Login &amp; security</span>
                             </span>
                         </a>
                         @if($user->usesLandlordShell())
                             @if($user->showsPayoutTools())
                             <a href="#payout"
-                                class="sidebar-link relative z-10 group flex items-start gap-2.5 rounded-xl px-3 py-2.5 transition-colors hover:text-[#060D26]"
+                                class="sidebar-link relative z-10 group flex items-start max-lg:items-center max-lg:shrink-0 max-lg:whitespace-nowrap max-lg:[&.font-semibold]:bg-[#ECEEF6] gap-2.5 rounded-xl px-3 py-2.5 max-lg:py-2 transition-colors hover:text-[#060D26]"
                                 data-section="payout">
                                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                                     class="shrink-0 mt-0.5 opacity-60 group-hover:opacity-100">
@@ -162,12 +162,12 @@
                                 </svg>
                                 <span>
                                     <span class="block text-sm font-medium leading-tight">Payout details</span>
-                                    <span class="block text-[11px] opacity-60 leading-tight mt-0.5">GCash for payouts</span>
+                                    <span class="block max-lg:hidden text-[11px] opacity-60 leading-tight mt-0.5">GCash for payouts</span>
                                 </span>
                             </a>
                             @endif
                             <a href="#business"
-                                class="sidebar-link relative z-10 group flex items-start gap-2.5 rounded-xl px-3 py-2.5 transition-colors hover:text-[#060D26]"
+                                class="sidebar-link relative z-10 group flex items-start max-lg:items-center max-lg:shrink-0 max-lg:whitespace-nowrap max-lg:[&.font-semibold]:bg-[#ECEEF6] gap-2.5 rounded-xl px-3 py-2.5 max-lg:py-2 transition-colors hover:text-[#060D26]"
                                 data-section="business">
                                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                                     class="shrink-0 mt-0.5 opacity-60 group-hover:opacity-100">
@@ -175,13 +175,13 @@
                                 </svg>
                                 <span>
                                     <span class="block text-sm font-medium leading-tight">Business</span>
-                                    <span class="block text-[11px] opacity-60 leading-tight mt-0.5">Public business page</span>
+                                    <span class="block max-lg:hidden text-[11px] opacity-60 leading-tight mt-0.5">Public business page</span>
                                 </span>
                             </a>
                         @endif
                         @if($user->hasRole('Tenant'))
                             <a href="#emergency-contact"
-                                class="sidebar-link relative z-10 group flex items-start gap-2.5 rounded-xl px-3 py-2.5 transition-colors hover:text-[#060D26]"
+                                class="sidebar-link relative z-10 group flex items-start max-lg:items-center max-lg:shrink-0 max-lg:whitespace-nowrap max-lg:[&.font-semibold]:bg-[#ECEEF6] gap-2.5 rounded-xl px-3 py-2.5 max-lg:py-2 transition-colors hover:text-[#060D26]"
                                 data-section="emergency-contact">
                                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                                     class="shrink-0 mt-0.5 opacity-60 group-hover:opacity-100">
@@ -190,12 +190,12 @@
                                 </svg>
                                 <span>
                                     <span class="block text-sm font-medium leading-tight">Emergency contact</span>
-                                    <span class="block text-[11px] opacity-60 leading-tight mt-0.5">Contact &amp; ID on file</span>
+                                    <span class="block max-lg:hidden text-[11px] opacity-60 leading-tight mt-0.5">Contact &amp; ID on file</span>
                                 </span>
                             </a>
                         @endif
                         <a href="#danger-zone"
-                            class="sidebar-link relative z-10 group flex items-start gap-2.5 rounded-xl px-3 py-2.5 transition-colors hover:text-[#DC2626]"
+                            class="sidebar-link relative z-10 group flex items-start max-lg:items-center max-lg:shrink-0 max-lg:whitespace-nowrap max-lg:[&.font-semibold]:bg-[#ECEEF6] gap-2.5 rounded-xl px-3 py-2.5 max-lg:py-2 transition-colors hover:text-[#DC2626]"
                             data-section="danger-zone">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                                 class="shrink-0 mt-0.5 opacity-60 group-hover:opacity-100">
@@ -204,14 +204,14 @@
                             </svg>
                             <span>
                                 <span class="block text-sm font-medium leading-tight">Danger zone</span>
-                                <span class="block text-[11px] opacity-60 leading-tight mt-0.5">Delete account</span>
+                                <span class="block max-lg:hidden text-[11px] opacity-60 leading-tight mt-0.5">Delete account</span>
                             </span>
                         </a>
                     </nav>
                 </div>
 
                 {{-- Account overview --}}
-                <div class="bg-white rounded-2xl ring-1 ring-[#5B6A8E]/10 shadow-[0_2px_12px_rgba(6,13,38,0.05)] p-5">
+                <div class="max-lg:hidden bg-white rounded-2xl ring-1 ring-[#5B6A8E]/10 shadow-[0_2px_12px_rgba(6,13,38,0.05)] p-5">
                     <h3 class="text-[11px] font-normal uppercase tracking-widest text-[#5B6A8E] mb-3.5">Account overview</h3>
                     <dl class="flex flex-col gap-3.5">
                         <div class="flex items-center gap-2.5">
@@ -259,7 +259,7 @@
                 </div>
 
                 {{-- Trust tip --}}
-                <div class="rounded-2xl bg-[#ECEEF6] p-5">
+                <div class="max-lg:hidden rounded-2xl bg-[#ECEEF6] p-5">
                     <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center mb-3 shadow-sm">
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253" />
@@ -273,7 +273,7 @@
             </aside>
 
             {{-- Main content --}}
-            <div class="flex flex-col gap-6">
+            <div class="flex flex-col gap-4 sm:gap-6">
                 <div id="personal-info" class="scroll-mt-28" data-animate>
                     @include('profile.partials.update-profile-information-form')
                 </div>
