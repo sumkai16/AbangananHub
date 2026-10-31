@@ -59,7 +59,11 @@ class LeaseTerms
      * Build the terms from the reservation's current data. Call this at the
      * moment the lease is issued and store the result.
      */
-    public static function snapshot(Reservation $reservation, bool $withRentRules = true): array
+    /**
+     * @param  array  $overrides  Terms agreed for this lease rather than read from the listing, e.g. the agreed
+     *                            `deposit` and `advance_months` from the Send-agreement form.
+     */
+    public static function snapshot(Reservation $reservation, bool $withRentRules = true, array $overrides = []): array
     {
         $reservation->loadMissing(['property.landlord', 'unit', 'tenant']);
 
@@ -78,7 +82,7 @@ class LeaseTerms
             }
         }
 
-        return [
+        return $overrides + [
             'reference'   => static::reference($reservation),
             'issued_at'   => now()->toIso8601String(),
             'landlord'    => static::party($landlord),

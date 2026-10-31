@@ -105,6 +105,7 @@ class ReservationController extends Controller
             'rental_status'        => 'Inquiry',
             'target_move_in_date'  => $request->target_move_in_date,
             'target_move_out_date' => $request->target_move_out_date,
+            'occupants_count'      => $request->occupants_count,
         ]);
 
         // First message is always the inquiry summary card — it carries the

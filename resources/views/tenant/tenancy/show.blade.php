@@ -494,7 +494,7 @@
 
     @if($isActive)
         {{-- The landlord may record an offline payment while this page is open
-             — mirrors landlord/tenancies/show.blade.php's listener so both
+             — mirrors landlord/payments/ledger.blade.php's listener so both
              sides of the ledger stay in sync without a manual refresh. --}}
         @push('scripts')
             <script>

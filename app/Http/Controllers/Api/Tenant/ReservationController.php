@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Tenant;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreReservationRequest;
 use App\Http\Resources\ReservationResource;
 use App\Models\Conversation;
 use App\Models\PropertyUnit;
@@ -10,6 +11,7 @@ use App\Models\Reservation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class ReservationController extends Controller
@@ -49,23 +51,29 @@ class ReservationController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $request->validate([
-            'unit_id'             => 'required|integer|exists:property_units,unit_id',
-            'target_move_in_date' => 'nullable|date|after_or_equal:today',
-            // Mirrors the web StoreReservationRequest: the app is
-            // monthly-only, so duration is months, not a free move-out date —
-            // target_move_out_date is derived below, never taken from the
-            // client.
-            'duration_months'     => 'nullable|integer|in:1,3,6,12',
-            'remarks'             => 'nullable|string|max:300',
-            'message'             => 'nullable|string|max:300',
+        // Same fields as the web StoreReservationRequest (move-out date, occupants), with two allowances for app
+        // builds already installed: move-in and occupants stay optional here, and the old duration_months is still
+        // turned into a move-out date when no move-out date is sent.
+        $validator = Validator::make($request->all(), [
+            'unit_id'              => 'required|integer|exists:property_units,unit_id',
+            'target_move_in_date'  => 'nullable|date|after_or_equal:today',
+            'target_move_out_date' => 'nullable|date|after:target_move_in_date',
+            'duration_months'      => 'nullable|integer|in:1,3,6,12',
+            'occupants_count'      => 'nullable|integer|min:1|max:20',
+            'remarks'              => 'nullable|string|max:300',
+            'message'              => 'nullable|string|max:300',
         ]);
+        $validator->after(fn ($v) => StoreReservationRequest::checkStayAndOccupants(
+            $v, $request->unit_id, $request->target_move_in_date, $request->target_move_out_date, $request->occupants_count,
+        ));
+        $validator->validate();
 
         $tenantId = $request->user()->user_id;
 
-        $targetMoveOutDate = ($request->target_move_in_date && $request->duration_months)
-            ? Carbon::parse($request->target_move_in_date)->addMonthsNoOverflow((int) $request->duration_months)->toDateString()
-            : null;
+        $targetMoveOutDate = $request->target_move_out_date
+            ?? (($request->target_move_in_date && $request->duration_months)
+                ? Carbon::parse($request->target_move_in_date)->addMonthsNoOverflow((int) $request->duration_months)->toDateString()
+                : null);
 
         $unit = PropertyUnit::where('unit_id', $request->unit_id)
             ->where('availability_status', 'Available')
@@ -123,6 +131,7 @@ class ReservationController extends Controller
             'rental_status'        => 'Inquiry',
             'target_move_in_date'  => $request->target_move_in_date,
             'target_move_out_date' => $targetMoveOutDate,
+            'occupants_count'      => $request->occupants_count,
             'remarks'              => $request->remarks,
         ]);
 

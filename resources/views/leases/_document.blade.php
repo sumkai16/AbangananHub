@@ -57,6 +57,12 @@
             'Monthly rent'     => $peso($terms['monthly_rent']),
             'Rent due'         => 'Every ' . $ordinal((int) $terms['due_day']) . ' of the month',
             'Security deposit' => $terms['deposit'] !== null && $terms['deposit'] > 0 ? $peso($terms['deposit']) : 'None',
+            // Only on agreements sent with the final terms (they record the advance); older leases never said.
+            'Due at move-in'   => array_key_exists('advance_months', $terms)
+                ? $peso($terms['advance_months'] * $terms['monthly_rent'] + ($terms['deposit'] ?? 0))
+                    . ' (' . $terms['advance_months'] . ' ' . \Illuminate\Support\Str::plural('month', $terms['advance_months']) . ' advance'
+                    . (($terms['deposit'] ?? 0) > 0 ? ' + deposit' : '') . ')'
+                : null,
             'Occupants'        => $terms['occupants'] ? $terms['occupants'] . ' ' . \Illuminate\Support\Str::plural('person', $terms['occupants']) : null,
         ]) as $label => $value)
             <div class="flex items-baseline justify-between gap-4 py-2.5">

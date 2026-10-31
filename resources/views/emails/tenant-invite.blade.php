@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body
+    style="margin: 0; padding: 0; background-color: #F7F8FC; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #F7F8FC; padding: 40px 0;">
+        <tr>
+            <td align="center">
+                <table width="560" cellpadding="0" cellspacing="0"
+                    style="background-color: #FFFFFF; border-radius: 12px; padding: 48px 40px; max-width: 560px;">
+                    <tr>
+                        <td style="text-align: center; padding-bottom: 32px;">
+                            <span style="font-size: 20px; font-weight: 700; color: #060D26;">AbangananHub</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <h1
+                                style="margin: 0 0 16px; font-size: 22px; font-weight: 700; color: #060D26; text-align: center;">
+                                Set up your AbangananHub account
+                            </h1>
+                            <p
+                                style="margin: 0 0 8px; font-size: 15px; color: #5B6A8E; line-height: 1.6; text-align: center;">
+                                <strong style="color: #060D26;">{{ $landlord->publicName() }}</strong> added you as their tenant. Set a password to see your lease and rent, message your landlord, and report payments.
+                            </p>
+                            <p style="margin: 0 0 32px; font-size: 14px; color: #5B6A8E; text-align: center;">
+                                This link works for 7 days. If you do not rent from {{ $landlord->publicName() }}, you can ignore this email.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="padding-bottom: 32px;">
+                            <a href="{{ $inviteUrl }}"
+                                style="display: inline-block; background-color: #FF8A66; color: #060D26; font-size: 15px; font-weight: 600; text-decoration: none; padding: 14px 40px; border-radius: 8px;">
+                                Set my password
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding-bottom: 32px;">
+                            <p style="margin: 0; font-size: 12px; color: #94A3B8; line-height: 1.6; text-align: center; word-break: break-all;">
+                                Or copy and paste this link into your browser:<br>
+                                <a href="{{ $inviteUrl }}" style="color: #B35A3D;">{{ $inviteUrl }}</a>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border-top: 1px solid #E2E4EC; padding-top: 24px;">
+                            <p style="margin: 0; font-size: 12px; color: #94A3B8; text-align: center;">
+                                AbangananHub — Secure Rental Accommodation Platform
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

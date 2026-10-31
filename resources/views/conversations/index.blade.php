@@ -308,6 +308,8 @@
         {{-- Loaded here, not from the component: the chat panel arrives by AJAX
              with no layout, so anything the component pushes never renders. --}}
         <script src="{{ asset('js/datetime-picker.js') }}"></script>
+        {{-- The Send-agreement form's move-in and move-out pickers (landlord.reservations._agreement-fields). --}}
+        <script src="{{ asset('js/date-picker.js') }}"></script>
         <script>
             function inboxApp() {
                 return {

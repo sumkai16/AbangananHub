@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Events\HandoverScheduleUpdated;
 use App\Events\ReservationStatusUpdated;
 use App\Models\Conversation;
+use App\Models\LandlordTenant;
 use App\Models\Notification;
 use App\Models\Reservation;
 use Illuminate\Broadcasting\BroadcastException;
@@ -27,6 +28,7 @@ class ReservationObserver
     {
         // A tenancy recorded straight as Occupied (rather than reaching it through the pipeline).
         $this->syncTenancyThread($reservation);
+        $this->syncRoster($reservation);
 
         if (! $reservation->conversation_id) {
             return;
@@ -52,6 +54,7 @@ class ReservationObserver
         // inquiry thread, and walk-ins (which have none) are skipped inside.
         if ($reservation->wasChanged('rental_status')) {
             $this->syncTenancyThread($reservation);
+            $this->syncRoster($reservation);
         }
 
         // A reservation created outside the inquiry flow has no thread to
@@ -81,6 +84,19 @@ class ReservationObserver
         $this->cancelViewingsIfEnded($reservation);
 
         $this->notifyTransition($reservation);
+    }
+
+    /**
+     * A tenant with a signed lease, a held unit or a unit they live in belongs on the landlord's Tenants list.
+     * Hooked on the save so walk-ins, online bookings, seeders and the mobile API all land there the same way.
+     */
+    private function syncRoster(Reservation $reservation): void
+    {
+        $landlordId = $reservation->property?->landlord_id;
+
+        if ($landlordId && in_array($reservation->rental_status, LandlordTenant::ACTIVE_STATUSES, true)) {
+            LandlordTenant::ensureFor($landlordId, $reservation->tenant_id);
+        }
     }
 
     /**

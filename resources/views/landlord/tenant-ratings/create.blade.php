@@ -4,12 +4,12 @@
     <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {{-- Back link --}}
-        <a href="{{ route('landlord.reservations.index', ['status' => 'Occupied']) }}"
+        <a href="{{ route('landlord.contracts.index', ['open' => $reservation->reservation_id]) }}"
             class="inline-flex items-center gap-1.5 text-sm font-medium text-[#5B6A8E] hover:text-[#060D26] mb-6">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
             </svg>
-            Back to Reservations
+            Back to Contracts
         </a>
 
         <h1 class="text-2xl font-normal text-[#060D26] mb-1">Rate Tenant</h1>
@@ -91,7 +91,7 @@
                     class="px-6 py-2.5 bg-[#FF8A66] text-[#060D26] text-sm font-semibold rounded-xl hover:bg-[#E96F4F] transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed">
                     Submit Rating
                 </button>
-                <a href="{{ route('landlord.reservations.index', ['status' => 'Occupied']) }}"
+                <a href="{{ route('landlord.contracts.index', ['open' => $reservation->reservation_id]) }}"
                     class="px-5 py-2.5 text-sm font-medium text-[#5B6A8E] hover:text-[#060D26] transition-colors duration-150">
                     Cancel
                 </a>

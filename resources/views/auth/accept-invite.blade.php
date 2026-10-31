@@ -1,0 +1,94 @@
+<x-guest-layout>
+    {{-- Right panel top action --}}
+    <x-slot name="rightTopAction">
+        <a href="{{ route('login') }}" class="text-xs text-white/90 font-semibold hover:text-white transition-colors">
+            Back to login
+        </a>
+    </x-slot>
+
+    {{-- Right panel headline & feature area --}}
+    <x-slot name="rightContent">
+        <div class="max-w-xl mx-auto">
+            <h1 class="text-3xl font-black text-white leading-tight tracking-tight mb-3 drop-shadow-sm">
+                Your landlord<br>
+                <span class="italic text-[#FF8A66]">invited you.</span>
+            </h1>
+            <p class="text-white/90 font-medium text-xs leading-relaxed mb-6 drop-shadow">
+                Set a password to see your lease and rent, message your landlord and report payments.
+            </p>
+        </div>
+    </x-slot>
+
+    {{-- Left panel: form --}}
+    <div class="w-full min-h-screen bg-[#F7F8FC] flex flex-col items-center px-4 py-10 lg:py-14">
+        <div class="w-full max-w-sm sm:max-w-md bg-white rounded-2xl border border-[#E2E4EC]/80 p-6 lg:p-8 shadow-xl shadow-[#060D26]/[0.04] transition-all duration-300">
+
+            {{-- Branding --}}
+            <div class="mb-5">
+                <a href="/" class="flex items-center gap-2 mb-4 group inline-flex">
+                    <x-brand-logo mark="w-8 h-8" text="text-base" />
+                </a>
+                <h2 class="text-lg sm:text-xl font-normal text-[#060D26] tracking-tight">Set up your account</h2>
+                <p class="text-[#5B6A8E] text-xs font-medium mt-0.5">Choose a password for your new AbangananHub account.</p>
+            </div>
+
+            <form method="POST" action="{{ route('invite.store') }}" class="space-y-3.5" novalidate>
+                @csrf
+
+                <input type="hidden" name="token" value="{{ $token }}">
+
+                {{-- Email Address --}}
+                <div>
+                    <label for="email" class="block text-xs font-bold text-[#060D26] mb-1">Email Address</label>
+                    <input id="email" type="email" name="email" value="{{ old('email', $email) }}" required autofocus autocomplete="username" placeholder="Enter your email"
+                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
+                    <x-input-error :messages="$errors->get('email')" class="mt-1.5 !text-xs" role="alert" />
+                </div>
+
+                {{-- New Password --}}
+                <div>
+                    <label for="password" class="block text-xs font-bold text-[#060D26] mb-1">Password</label>
+                    <div class="relative">
+                        <input id="password" type="password" name="password" minlength="8" data-strength required autocomplete="new-password" placeholder="Create a password"
+                            class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
+                        <button type="button" onclick="togglePassword('password', this)"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-[#5B6A8E] hover:text-[#060D26] transition-colors focus:outline-none">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <x-input-error :messages="$errors->get('password')" class="mt-1.5 !text-xs" role="alert" />
+                </div>
+
+                {{-- Confirm Password --}}
+                <div>
+                    <label for="password_confirmation" class="block text-xs font-bold text-[#060D26] mb-1">Confirm Password</label>
+                    <input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password" placeholder="Confirm your password"
+                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
+                </div>
+
+                {{-- Action Submission Button --}}
+                <div class="pt-1">
+                    <button type="submit" class="w-full bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-md shadow-[#060D26]/20 text-[15px]">
+                        Set password and continue
+                    </button>
+                </div>
+            </form>
+
+            <p class="text-center text-[10px] font-bold text-[#5B6A8E]/70 mt-5 tracking-wider uppercase">© {{ date('Y') }} AbangananHub. All rights reserved.</p>
+        </div>
+    </div>
+</x-guest-layout>
+
+<script>
+    function togglePassword(fieldId, btn) {
+        const input = document.getElementById(fieldId);
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+        btn.innerHTML = isPassword
+            ? `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>`
+            : `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`;
+    }
+</script>

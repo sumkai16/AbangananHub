@@ -38,7 +38,7 @@ class RentReminderNotifier
             $this->title($today->greaterThan($period['due_on'])),
             $name . "'s " . $period['label'] . ' rent (' . $this->amount($period) . ') '
                 . $this->timing($period['due_on'], $today) . '.',
-            route('landlord.tenancies.show', $reservation),
+            route('landlord.payments.ledger', $reservation),
         );
     }
 
