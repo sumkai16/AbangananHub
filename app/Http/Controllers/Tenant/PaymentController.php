@@ -33,6 +33,11 @@ class PaymentController extends Controller
             return back()->withErrors(['payment' => 'This unit is no longer available. Please contact your landlord.']);
         }
 
+        // Paying holds the unit, so it cannot be paid for while someone else holds it (PaymentClaims does the same).
+        if ($reservation->unitHeldByAnother()) {
+            return back()->withErrors(['payment' => 'This unit is already taken by another tenant. Please contact your landlord.']);
+        }
+
         if ($reservation->hasSettledInitialPayment()) {
             return back()->withErrors(['payment' => 'The initial payment for this reservation has already been made.']);
         }

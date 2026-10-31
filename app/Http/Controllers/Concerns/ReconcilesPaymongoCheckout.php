@@ -65,6 +65,8 @@ trait ReconcilesPaymongoCheckout
             $reservation->postSystemMessage($reservation->tenant->name.' paid rent for '.$label.' online.');
         } else {
             $payment->update($common + ['status' => 'Held']);
+            // Paid to reserve: the unit is now spoken for, the same as a confirmed direct payment.
+            $reservation->holdUnit();
 
             $reservation->postSystemMessage(
                 $reservation->tenant->name.' completed the initial payment. Funds are held by AbangananHub.'

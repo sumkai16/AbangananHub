@@ -75,6 +75,11 @@ class PayMongoWebhookController extends Controller
             'payout_owed_at' => $isRent ? now() : null,
         ]);
 
+        // Paid to reserve: the unit is now spoken for, the same as a confirmed direct payment.
+        if (! $isRent) {
+            $payment->reservation?->holdUnit();
+        }
+
         // The broadcast and both notifications are raised by PaymentObserver off
         // the status change above — the tenant sitting on the agreement/ledger
         // page's "Payment Processing" spinner is waiting for exactly that.
