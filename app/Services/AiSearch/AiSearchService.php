@@ -276,7 +276,7 @@ class AiSearchService
         $key = $this->dailyCapKey();
         Cache::add($key, 0, now('Asia/Manila')->endOfDay()->addMinutes(5));
 
-        return Cache::increment($key) <= (int) config('ai_search.daily_cap', 8);
+        return Cache::increment($key) <= (int) config('ai_search.daily_cap', 600);
     }
 
     /** Gives back the search withinDailyCap() counted when the driver call then failed; never goes below 0. */

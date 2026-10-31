@@ -35,9 +35,9 @@ return [
 
     // Searches per day across everyone, so the provider's quota is never blown. Resets at midnight
     // Asia/Manila. Over it -> keyword fallback. A search is 2 AI calls and Gemini's FREE tier allows
-    // only ~20 calls per model per day (Oct 2026), so keep this at 8 for free testing and raise it
-    // (AI_SEARCH_DAILY_CAP) once on a paid plan or Anthropic.
-    'daily_cap' => (int) env('AI_SEARCH_DAILY_CAP', 8),
+    // only ~20 calls per model per day (Oct 2026), so set AI_SEARCH_DAILY_CAP=8 in .env for free
+    // testing. The default stays 600 so a server that never set it is not capped at a handful a day.
+    'daily_cap' => (int) env('AI_SEARCH_DAILY_CAP', 600),
 
     'cache' => [
         'interpret_ttl' => 86400, // same sentence -> same filters
