@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Conversation;
 use App\Models\PaymentClaim;
 use App\Models\Reservation;
+use App\Models\UnitMedia;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Carbon;
 use Tests\Support\CreatesMarketplaceFixtures;
@@ -53,6 +54,32 @@ class ReservationsPipelineTest extends TestCase
     private function page(array $query = [])
     {
         return $this->actingAs($this->landlord)->get(route('landlord.reservations.index', $query))->assertOk();
+    }
+
+    public function test_the_moved_in_tab_is_a_link_to_tenants_and_the_old_url_redirects(): void
+    {
+        $this->request('Occupied', 'Resident');
+        $this->request('Inquiry', 'Asker');
+
+        $this->page()->assertSee('Moved-in tenants')
+            ->assertSee(route('landlord.tenants.index'), false)
+            ->assertDontSee('stage=history', false);
+
+        $this->actingAs($this->landlord)->get(route('landlord.reservations.index', ['stage' => 'history', 'search' => 'Res']))
+            ->assertRedirect(route('landlord.tenants.index', ['search' => 'Res']));
+    }
+
+    public function test_the_details_popup_carries_the_unit_photo_figures_and_a_chat_link(): void
+    {
+        $r = $this->request('Inquiry', 'Pictured');
+        UnitMedia::create(['unit_id' => $r->unit_id, 'media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/unit-photo?w=1200']);
+
+        $page = $this->page();
+
+        // The popup's data is JSON in the page: slashes are escaped, so look for the stable parts.
+        $page->assertSee('unit-photo', false)->assertSee('w=320', false)
+            ->assertSee('conversations', false)
+            ->assertSee('Rental request')->assertSee('Open chat');
     }
 
     public function test_only_open_requests_are_listed_and_leases_stay_on_contracts(): void

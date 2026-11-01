@@ -171,7 +171,6 @@
                 'agreement' => 'Agreement sent',
                 'payment' => 'Awaiting payment',
                 'closed' => 'Closed',
-                'history' => 'Moved in',
             ] as $key => $label)
                 <a href="{{ route('landlord.reservations.index', array_filter([
                         'stage' => $key === 'open' ? null : $key,
@@ -188,6 +187,8 @@
                     @endif
                 </a>
             @endforeach
+            {{-- People who already moved in are tenants now: one tap to them, no second list of the same rentals. --}}
+            <a href="{{ route('landlord.tenants.index') }}" class="ml-auto pl-4 py-2.5 text-[13px] font-semibold whitespace-nowrap text-[#5B6A8E] hover:text-[#060D26] transition-colors">Moved-in tenants &rarr;</a>
         </div>
 
         {{-- Reservations table --}}
@@ -237,6 +238,8 @@
                         'status_class' => $stageTones[$requestStage['tone']],
                         'rent' => $reservation->agreed_monthly_rent ? '₱' . number_format($reservation->agreed_monthly_rent, 0) . '/mo' : null,
                         'cancel_reservation_url' => route('landlord.reservations.cancel', $reservation),
+                        'photo' => \App\Support\Images::resize($reservation->unit?->media->first()?->media_url ?? $reservation->property->media->firstWhere('media_type', 'Image')?->media_url, 320),
+                        'chat_url' => $reservation->conversation ? route('conversations.show', $reservation->conversation) : null,
                     ];
                     $initials = mb_strtoupper(mb_substr($reservation->tenant->first_name ?? '?', 0, 1) . mb_substr($reservation->tenant->last_name ?? '', 0, 1));
                     $moveIn = $reservation->target_move_in_date ?? $reservation->reservation_date;
@@ -438,83 +441,73 @@
             <div x-show="modalOpen" x-cloak @keydown.escape.window="modalOpen = false"
                 class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center sm:p-4">
                 <div @click="modalOpen = false" class="absolute inset-0 bg-[#060D26]/50"></div>
-                <div class="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto"
+                <div class="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-xl max-h-[92dvh] overflow-y-auto"
                     role="dialog" aria-modal="true" aria-label="Reservation details" x-show="modalOpen" x-transition>
                     <template x-if="selected">
                         <div>
-                            {{-- Who: identity + status --}}
-                            <div class="flex items-start gap-3.5 p-5 sm:p-6 border-b border-[#E2E4EC]">
-                                <div class="h-12 w-12 shrink-0 rounded-full bg-[#060D26] text-white flex items-center justify-center text-[14px] font-semibold"
-                                    x-text="selected.initials"></div>
+                            {{-- Header: the unit's photo, who asked, and where the request stands --}}
+                            <div class="flex items-start gap-4 p-5 sm:p-6 pr-14 border-b border-[#E2E4EC]">
+                                <div class="h-[68px] w-[88px] shrink-0 overflow-hidden rounded-xl bg-[#ECEEF6]">
+                                    <img x-show="selected.photo" :src="selected.photo" x-on:error="selected.photo = null" alt="" loading="lazy" decoding="async" class="h-full w-full object-cover">
+                                    <span x-show="!selected.photo" class="flex h-full w-full items-center justify-center text-[#94A3B8]">
+                                        <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18v-6.75A2.25 2.25 0 0 1 4.5 9h15a2.25 2.25 0 0 1 2.25 2.25V18M2.25 18h19.5M2.25 18v2.25m19.5-2.25v2.25M6 9V6.75A2.25 2.25 0 0 1 8.25 4.5h7.5A2.25 2.25 0 0 1 18 6.75V9" /></svg>
+                                    </span>
+                                </div>
                                 <div class="min-w-0 flex-1">
-                                    <p class="text-[16px] font-semibold text-[#060D26] truncate" x-text="selected.tenant_name"></p>
-                                    <a :href="'tel:' + selected.tenant_contact"
-                                        class="inline-flex items-center gap-1 mt-0.5 text-[13px] text-[#5B6A8E] hover:text-[#060D26] transition-colors duration-200">
-                                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h1.5a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
-                                        </svg>
-                                        <span x-text="selected.tenant_contact"></span>
-                                    </a>
+                                    <p class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">Rental request</p>
+                                    <p class="mt-0.5 text-[19px] font-semibold leading-tight text-[#060D26] truncate" x-text="selected.tenant_name"></p>
+                                    <p class="mt-0.5 truncate text-[13px] text-[#5B6A8E]"><span x-text="selected.unit_label"></span> · <span x-text="selected.property_title"></span></p>
                                     <div class="mt-2 flex flex-wrap items-center gap-2">
                                         <span class="inline-flex px-2.5 py-1 rounded-full text-[11px] font-semibold"
                                             :class="selected.status_class" x-text="selected.rental_status"></span>
-                                        <span class="text-[11px] text-[#5B6A8E]" x-text="selected.stage_next"></span>
-                                        <template x-if="selected.reservation_date">
-                                            <span class="text-[11px] text-[#5B6A8E]">Requested <span x-text="selected.reservation_date"></span></span>
-                                        </template>
+                                        <span class="text-[11.5px] text-[#5B6A8E]" x-text="selected.stage_next"></span>
                                     </div>
                                 </div>
                                 <button @click="modalOpen = false" aria-label="Close"
-                                    class="h-9 w-9 -mr-1.5 -mt-1.5 flex items-center justify-center rounded-lg text-[#5B6A8E] hover:bg-[#ECEEF6] hover:text-[#060D26] transition-colors duration-200 cursor-pointer">
+                                    class="absolute right-4 top-4 h-9 w-9 flex items-center justify-center rounded-lg text-[#5B6A8E] hover:bg-[#ECEEF6] hover:text-[#060D26] transition-colors duration-200 cursor-pointer">
                                     <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
                             </div>
 
-                            <div class="p-5 sm:p-6 space-y-5">
-                                {{-- Where --}}
-                                <div>
-                                    <p class="text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Place</p>
-                                    <p class="mt-1 text-[14px] font-semibold text-[#060D26]" x-text="selected.property_title"></p>
-                                    <p class="text-[13px] text-[#5B6A8E]" x-text="selected.unit_label"></p>
+                            {{-- The figures first: what they are asking for --}}
+                            <dl class="grid grid-cols-2 gap-2.5 px-5 pt-5 sm:px-6 sm:grid-cols-4">
+                                <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] px-3.5 py-2.5">
+                                    <dt class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">Rent</dt>
+                                    <dd class="mt-0.5 text-[14.5px] font-extrabold text-[#060D26] tabular-nums" x-text="selected.rent || '—'"></dd>
                                 </div>
+                                <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] px-3.5 py-2.5">
+                                    <dt class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">Move-in</dt>
+                                    <dd class="mt-0.5 text-[14.5px] font-extrabold text-[#060D26]" x-text="selected.move_in || selected.reservation_date || '—'"></dd>
+                                </div>
+                                <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] px-3.5 py-2.5">
+                                    <dt class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">Move-out</dt>
+                                    <dd class="mt-0.5 text-[14.5px] font-extrabold text-[#060D26]" x-text="selected.move_out || 'Open'"></dd>
+                                </div>
+                                <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] px-3.5 py-2.5">
+                                    <dt class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">People</dt>
+                                    <dd class="mt-0.5 text-[14.5px] font-extrabold text-[#060D26]" x-text="selected.occupants_count || 'Not given'"></dd>
+                                </div>
+                            </dl>
 
-                                {{-- When: the stay as a range, facts beneath — one unified card
-                                     instead of boxed dates + a separate plain stat row, so the
-                                     section reads as one fact block, not two container styles. --}}
+                            <div class="p-5 sm:p-6 space-y-5">
                                 <div>
-                                    <p class="text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Stay</p>
-                                    <div class="mt-2 rounded-xl bg-[#F7F8FC] border border-[#E2E4EC] overflow-hidden">
-                                        <div class="grid grid-cols-2 divide-x divide-[#E2E4EC]">
-                                            <div class="px-3.5 py-3">
-                                                <p class="text-[11px] text-[#5B6A8E]">Move-in</p>
-                                                <p class="mt-0.5 text-[13.5px] font-semibold text-[#060D26]" x-text="selected.move_in || selected.reservation_date || '—'"></p>
-                                            </div>
-                                            <div class="px-3.5 py-3">
-                                                <p class="text-[11px] text-[#5B6A8E]">Move-out</p>
-                                                <p class="mt-0.5 text-[13.5px] font-semibold text-[#060D26]" x-text="selected.move_out || '—'"></p>
-                                            </div>
+                                    <p class="text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Tenant</p>
+                                    <dl class="mt-1 text-[13px]">
+                                        <div class="flex items-start justify-between gap-4 py-2 border-b border-[#E2E4EC]">
+                                            <dt class="text-[12.5px] text-[#5B6A8E]">Mobile</dt>
+                                            <dd class="font-semibold text-[#060D26]"><a :href="'tel:' + selected.tenant_contact" class="hover:underline" x-text="selected.tenant_contact"></a></dd>
                                         </div>
-                                        <dl class="flex flex-wrap gap-x-6 gap-y-2.5 px-3.5 py-3 border-t border-[#E2E4EC] text-[13px]">
-                                            <div>
-                                                <dt class="text-[11px] text-[#5B6A8E]">Duration</dt>
-                                                <dd class="font-medium text-[#060D26]" x-text="selected.duration_of_stay || '—'"></dd>
-                                            </div>
-                                            {{-- Only shown when actually recorded — an em dash here
-                                                 reads as broken data, not "not applicable". --}}
-                                            <template x-if="selected.occupants_count">
-                                                <div>
-                                                    <dt class="text-[11px] text-[#5B6A8E]">Occupants</dt>
-                                                    <dd class="font-medium text-[#060D26]" x-text="selected.occupants_count"></dd>
-                                                </div>
-                                            </template>
-                                            <div class="ml-auto text-right">
-                                                <dt class="text-[11px] text-[#5B6A8E]">Rent</dt>
-                                                <dd class="font-medium text-[#060D26]" x-text="selected.rent || '—'"></dd>
-                                            </div>
-                                        </dl>
-                                    </div>
+                                        <div class="flex items-start justify-between gap-4 py-2 border-b border-[#E2E4EC]">
+                                            <dt class="text-[12.5px] text-[#5B6A8E]">Length of stay</dt>
+                                            <dd class="font-semibold text-[#060D26]" x-text="selected.duration_of_stay || '—'"></dd>
+                                        </div>
+                                        <div class="flex items-start justify-between gap-4 py-2">
+                                            <dt class="text-[12.5px] text-[#5B6A8E]">Requested</dt>
+                                            <dd class="font-semibold text-[#060D26]" x-text="selected.reservation_date || '—'"></dd>
+                                        </div>
+                                    </dl>
                                 </div>
 
                                 <template x-if="selected.remarks">
@@ -525,6 +518,14 @@
                                 </template>
                             </div>
 
+                            <div class="sticky bottom-0 flex items-center justify-end gap-2 border-t border-[#E2E4EC] bg-white px-5 py-3 sm:px-6">
+                                <button type="button" @click="modalOpen = false"
+                                    class="h-10 px-4 rounded-full text-[13px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">Close</button>
+                                <template x-if="selected.chat_url">
+                                    <a :href="selected.chat_url"
+                                        class="inline-flex h-10 items-center px-5 rounded-full bg-[#FF8A66] text-[13px] font-semibold text-[#060D26] hover:bg-[#E96F4F] transition-colors duration-200 cursor-pointer">Open chat</a>
+                                </template>
+                            </div>
                         </div>
                     </template>
                 </div>

@@ -24,7 +24,7 @@ class ReservationController extends Controller
      * the first inquiry to a signed agreement whose move-in money the landlord has not confirmed yet. Once it is
      * confirmed the lease is on the Tenants page, so Reserved, Occupied and Completed never show here.
      */
-    public const STAGES = ['open', 'new', 'discussing', 'agreement', 'payment', 'closed', 'history'];
+    public const STAGES = ['open', 'new', 'discussing', 'agreement', 'payment', 'closed'];
 
     /** Narrows a reservation query to one stage tab. */
     public static function applyStage($query, string $stage)
@@ -86,6 +86,11 @@ class ReservationController extends Controller
 
     public function index(Request $request)
     {
+        // The old "Moved in" tab listed people who already live there, which is the Tenants page.
+        if ($request->query('stage') === 'history') {
+            return redirect()->route('landlord.tenants.index', array_filter($request->only(['search', 'property'])));
+        }
+
         $base = $this->filteredQuery($request);
         $stage = in_array($request->query('stage'), self::STAGES, true) ? $request->query('stage') : 'open';
 
@@ -104,7 +109,11 @@ class ReservationController extends Controller
         ];
 
         $reservations = self::applyStage($base, $stage)
-            ->with(['property.media', 'property.landlord', 'unit', 'tenant', 'conversation', 'payments', 'paymentClaims'])
+            ->with([
+                'property.media', 'property.landlord', 'tenant', 'conversation', 'payments', 'paymentClaims', 'unit',
+                // The Details popup shows the unit's own photo (first image), falling back to the property's.
+                'unit.media' => fn ($q) => $q->where('media_type', 'Image')->orderBy('media_id')->select('media_id', 'unit_id', 'media_type', 'media_url'),
+            ])
             ->latest()
             ->paginate(10)
             ->withQueryString();
