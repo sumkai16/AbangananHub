@@ -235,7 +235,8 @@ class LeaseTemplatesTest extends TestCase
 
         $template = LeaseTemplate::where('landlord_id', $l->user_id)->firstOrFail();
         $this->assertSame('<h3>Rules</h3><p>Be kind</p>', $template->body);
-        $this->assertSame([['title' => 'Curfew', 'rules' => ['Lights out at 11']]], $template->house_rule_sections);
+        // assertEquals: MySQL stores JSON with the keys sorted, so the key order is not ours to assert.
+        $this->assertEquals([['title' => 'Curfew', 'rules' => ['Lights out at 11']]], $template->house_rule_sections);
         $this->assertSame(14, $template->notice_days);
 
         $this->actingAs($l)->put(route('landlord.lease-templates.update', $template), [
