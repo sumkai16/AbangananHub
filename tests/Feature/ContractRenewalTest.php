@@ -54,7 +54,7 @@ class ContractRenewalTest extends TestCase
 
     public function test_renewing_extends_the_end_date_and_tells_the_tenant(): void
     {
-        $this->renew()->assertRedirect(route('landlord.contracts.index', ['open' => $this->contract->reservation_id]))
+        $this->renew()->assertRedirect(route('landlord.tenants.index', ['open' => $this->contract->reservation_id]))
             ->assertSessionHas('success');
 
         $this->assertSame('2027-05-31', $this->contract->fresh()->target_move_out_date->toDateString());
@@ -85,7 +85,7 @@ class ContractRenewalTest extends TestCase
     public function test_the_new_rent_cannot_start_in_a_past_month(): void
     {
         $this->renew(['rent_effective_from' => '2026-09'])
-            ->assertRedirect(route('landlord.contracts.index', ['open' => $this->contract->reservation_id]))
+            ->assertRedirect(route('landlord.tenants.index', ['open' => $this->contract->reservation_id]))
             ->assertSessionHas('error');
 
         $this->assertSame(0, LeaseRenewal::count());

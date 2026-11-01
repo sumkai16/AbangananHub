@@ -8,10 +8,9 @@ use App\Http\Requests\Landlord\StoreContractRequest;
 use App\Models\AuditLog;
 use App\Models\LandlordTenant;
 use App\Models\Notification;
-use App\Models\Property;
 use App\Models\Reservation;
 use App\Services\LeaseContractCreator;
-use Illuminate\Database\Eloquent\Builder;
+use App\Support\Images;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -19,76 +18,27 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 /**
- * The Contracts page: every lease on the landlord's properties, online and added by hand, grouped by property.
- * A contract is a reservation from 'Rental Agreement Signed' on; the inquiry funnel before that stays on the
- * Reservations page. See plans/landlord-tenants-contracts-direct-payments.md.
+ * Contracts: add, view, renew. The list itself lives on the Tenants page (one row per tenant with their current
+ * contract); the old Contracts list URL redirects there. A contract is a reservation from 'Rental Agreement Signed'
+ * on; the inquiry funnel before that stays on the Reservations page.
+ * See plans/landlord-tenants-contracts-direct-payments.md and plans/merge-tenants-contracts-policies.md.
  */
 class ContractController extends Controller
 {
     public const CONTRACT_STATUSES = ['Rental Agreement Signed', 'Reserved', 'Occupied', 'Completed'];
 
-    /** The status filter: 'current' (default) hides ended contracts. */
-    private const FILTERS = [
-        'current' => ['Rental Agreement Signed', 'Reserved', 'Occupied'],
-        'awaiting' => ['Rental Agreement Signed', 'Reserved'],
-        'active' => ['Occupied'],
-        'ended' => ['Completed'],
-        'all' => self::CONTRACT_STATUSES,
-    ];
+    /** Old status filters on the Contracts list, mapped to the Tenants page's stage chips. */
+    private const OLD_FILTERS = ['active' => 'living', 'awaiting' => 'moving', 'ended' => 'former'];
 
-    private function landlordContracts(): Builder
-    {
-        return Reservation::whereHas('property', fn ($q) => $q->where('landlord_id', Auth::id()))
-            ->whereIn('rental_status', self::CONTRACT_STATUSES);
-    }
-
+    /** The Contracts list moved onto the Tenants page; old links and bookmarks keep their filters and open modal. */
     public function index(Request $request)
     {
-        $filter = array_key_exists($request->input('status'), self::FILTERS) ? $request->input('status') : 'current';
+        $status = $request->boolean('lease_missing') ? 'no-agreement' : (self::OLD_FILTERS[$request->input('status')] ?? null);
 
-        $contracts = $this->landlordContracts()
-            ->whereIn('rental_status', self::FILTERS[$filter])
-            ->when($request->integer('property'), fn ($q, $id) => $q->where('property_id', $id))
-            ->when($request->input('search'), fn ($q, $search) => $q->whereHas('tenant', fn ($t) => $t
-                ->where('first_name', 'like', "%{$search}%")
-                ->orWhere('last_name', 'like', "%{$search}%")
-                ->orWhere('email', 'like', "%{$search}%")))
-            ->when($request->boolean('lease_missing'), fn ($q) => $q->whereNull('lease_file_path')->whereNull('agreed_at'))
-            ->with(['tenant', 'unit', 'property', 'renewals'])
-            ->orderBy('property_id')
-            ->orderByRaw("FIELD(rental_status, 'Rental Agreement Signed', 'Reserved', 'Occupied', 'Completed')")
-            ->orderBy('target_move_out_date')
-            ->get();
-
-        // Tenant IDs for every row in one query, keyed by tenant.
-        $codes = LandlordTenant::where('landlord_id', Auth::id())
-            ->whereIn('tenant_id', $contracts->pluck('tenant_id')->unique())
-            ->get()
-            ->mapWithKeys(fn (LandlordTenant $row) => [$row->tenant_id => $row->code()]);
-
-        $live = $this->landlordContracts()->whereIn('rental_status', self::FILTERS['current']);
-        $stats = [
-            'active' => (clone $live)->where('rental_status', 'Occupied')->count(),
-            'awaiting' => (clone $live)->whereIn('rental_status', self::FILTERS['awaiting'])->count(),
-            'ending' => (clone $live)->where('rental_status', 'Occupied')
-                ->whereNotNull('target_move_out_date')
-                ->whereDate('target_move_out_date', '<=', now()->addDays((int) config('rentals.renewal_window_days', 60)))
-                ->count(),
-            'lease_missing' => (clone $live)->whereNull('lease_file_path')->whereNull('agreed_at')->count(),
-        ];
-
-        $properties = Auth::user()->properties()->where('verification_status', 'Approved')
-            ->orderBy('title')->get(['property_id', 'title']);
-
-        return view('landlord.contracts.index', [
-            'groups' => $contracts->groupBy('property_id'),
-            'codes' => $codes,
-            'stats' => $stats,
-            'filter' => $filter,
-            'properties' => $properties,
-            'tenantOptions' => $this->tenantOptions(),
-            'unitOptions' => $this->unitOptions(),
-        ]);
+        return redirect()->route('landlord.tenants.index', array_filter(
+            $request->only(['open', 'rate', 'new', 'tenant', 'search', 'property']) + ['status' => $status],
+            fn ($v) => $v !== null && $v !== '',
+        ));
     }
 
     public function store(StoreContractRequest $request)
@@ -99,7 +49,7 @@ class ContractController extends Controller
         $reservation = LeaseContractCreator::create(Auth::id(), $row->tenant, $data, $request->file('lease_file'));
 
         return redirect()
-            ->route('landlord.contracts.index', ['open' => $reservation->reservation_id])
+            ->route('landlord.tenants.index', ['open' => $reservation->reservation_id])
             ->with('success', $reservation->rental_status === 'Occupied'
                 ? 'Contract added. The unit is now occupied.'
                 : 'Contract added. The unit is reserved until '.$row->tenant->first_name.' moves in.');
@@ -111,17 +61,40 @@ class ContractController extends Controller
         Gate::authorize('viewTenancy', $reservation);
         abort_unless(in_array($reservation->rental_status, self::CONTRACT_STATUSES, true), 404);
 
+        return view('landlord.contracts.partials._details', self::detailsData($reservation));
+    }
+
+    /**
+     * Everything the contract modal needs. Shared with TenantController::show, which opens the same modal for a
+     * tenant's current contract. The caller has already authorised the landlord for this reservation.
+     */
+    public static function detailsData(Reservation $reservation): array
+    {
         $reservation->load(['tenant.tenantDetail', 'unit', 'property', 'renewals', 'payments', 'tenantRating']);
 
-        $code = LandlordTenant::where('landlord_id', Auth::id())->where('tenant_id', $reservation->tenant_id)->first()?->code();
+        $row = LandlordTenant::where('landlord_id', Auth::id())->where('tenant_id', $reservation->tenant_id)->first();
 
-        return view('landlord.contracts.partials._details', [
+        $others = Reservation::where('tenant_id', $reservation->tenant_id)
+            ->whereKeyNot($reservation->getKey())
+            ->whereIn('rental_status', self::CONTRACT_STATUSES)
+            ->whereHas('property', fn ($q) => $q->where('landlord_id', Auth::id()))
+            ->with(['unit:unit_id,unit_label', 'property:property_id,title'])
+            ->latest('reservation_date')
+            ->get();
+
+        return [
             'reservation' => $reservation,
-            'code' => $code,
+            'code' => $row?->code(),
             'showTenantDetails' => Gate::allows('viewTenantDetails', $reservation),
+            'canInvite' => $row && Gate::allows('invite', $row),
+            'inviteUrl' => $row ? route('landlord.tenants.invite', $row) : null,
+            'others' => $others,
+            'photo' => Images::resize($reservation->unit?->media()->where('media_type', 'Image')->orderBy('media_id')->value('media_url'), 320),
             // ?rate=1 opens the modal on its rating form (the "Rate your tenant" notification, or a failed submit).
             'startRating' => request()->boolean('rate'),
-        ]);
+            // ?renew=1 opens it on the Renew form (the Renew button on an ending-soon row).
+            'startRenewing' => request()->boolean('renew'),
+        ];
     }
 
     /**
@@ -176,49 +149,7 @@ class ContractController extends Controller
             return back()->with('error', 'This contract can no longer be renewed.');
         }
 
-        return redirect()->route('landlord.contracts.index', ['open' => $reservation->reservation_id])
+        return redirect()->route('landlord.tenants.index', ['open' => $reservation->reservation_id])
             ->with('success', 'Contract renewed until '.$renewed->new_move_out_date->format('M j, Y').'.');
-    }
-
-    /** Tenants on this landlord's list, for the Add contract picker: those without a live contract first. */
-    private function tenantOptions()
-    {
-        return LandlordTenant::where('landlord_id', Auth::id())->visible()
-            ->with('tenant:user_id,first_name,last_name')
-            ->get()
-            ->map(fn (LandlordTenant $row) => [
-                'id' => $row->landlord_tenant_id,
-                'label' => $row->code().' · '.trim($row->tenant?->first_name.' '.$row->tenant?->last_name),
-            ])
-            ->sortBy('label')
-            ->values();
-    }
-
-    /** Units a contract can be added on: approved, available, and with no live reservation (LeaseContractCreator's rule). */
-    private function unitOptions()
-    {
-        return Property::where('landlord_id', Auth::id())
-            ->where('verification_status', 'Approved')
-            ->with(['units' => fn ($q) => $q
-                ->where('verification_status', 'Approved')
-                ->where('availability_status', 'Available')
-                ->whereDoesntHave('reservations', fn ($r) => $r->whereNotIn('rental_status', Reservation::TERMINAL_STATUSES))
-                ->orderBy('unit_label')])
-            ->orderBy('title')
-            ->get()
-            ->filter(fn (Property $p) => $p->units->isNotEmpty())
-            ->map(fn (Property $p) => [
-                'id' => $p->property_id,
-                'title' => $p->title,
-                'terms' => $p->default_lease_terms,
-                'units' => $p->units->map(fn ($u) => [
-                    'id' => $u->unit_id,
-                    'label' => $u->unit_label,
-                    'rent' => (float) $u->rental_fee,
-                    'deposit' => (float) ($u->security_deposit ?? 0),
-                    'limit' => $u->occupancy_limit,
-                ])->values(),
-            ])
-            ->values();
     }
 }

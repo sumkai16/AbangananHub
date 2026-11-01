@@ -273,7 +273,7 @@ Route::middleware('auth')->group(function () {
 
         // Tenants
         Route::get('/tenants', [TenantController::class, 'index'])->name('tenants.index');
-        // Contracts: every lease on the landlord's properties, online and added by hand.
+        // Contracts: the old list URL redirects to Tenants; add, view and renew stay here.
         Route::get('/contracts', [ContractController::class, 'index'])->name('contracts.index');
         Route::post('/contracts', [ContractController::class, 'store'])->name('contracts.store');
         Route::get('/contracts/{reservation}', [ContractController::class, 'show'])->name('contracts.show');
@@ -282,7 +282,7 @@ Route::middleware('auth')->group(function () {
 
         // The old walk-in wizard was replaced by Add Tenant + Add contract (Oct 2026). Old links land on Add contract.
         // Registered before /tenants/{landlordTenant} so the literal segments can't be swallowed by the wildcard.
-        Route::redirect('/tenants/walk-in/create', '/landlord/contracts?new=1');
+        Route::redirect('/tenants/walk-in/create', '/landlord/tenants?new=1');
 
         // The tenant list: add, view, edit, invite, remove.
         Route::post('/tenants', [TenantController::class, 'store'])->name('tenants.store');

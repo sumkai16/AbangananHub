@@ -45,11 +45,12 @@
             this.rent = this.unit.rent;
             if (!this.terms && this.unit.terms) this.terms = this.unit.terms;
         },
-        open() { this.show = true; },
+        // $dispatch('open-add-contract', { tenant: <landlord_tenant_id> }) opens it with that tenant picked.
+        open(detail) { if (detail && detail.tenant) this.tenantId = String(detail.tenant); this.show = true; if (this.unitId && !this.rent) this.pickUnit(); },
         close() { this.show = false; },
      }"
      x-init="$watch('unitId', () => pickUnit())"
-     x-on:open-add-contract.window="open()"
+     x-on:open-add-contract.window="open($event.detail)"
      x-on:keydown.escape.window="close()">
 
     <template x-teleport="body">
@@ -106,95 +107,7 @@
                         </div>
                     </div>
 
-                    <div class="grid gap-3">
-                        <p class="{{ $section }}">Dates</p>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="{{ $label }}" for="contract_move_in">Move-in</label>
-                                <x-date-picker name="move_in_date" id="contract_move_in" x-model="moveIn" :max="now()->addYear()->toDateString()" />
-                                @error('move_in_date')<p class="{{ $err }}">{{ $message }}</p>@enderror
-                            </div>
-                            <div>
-                                <label class="{{ $label }}" for="contract_move_out">Move-out</label>
-                                <x-date-picker name="move_out_date" id="contract_move_out" x-model="moveOut" min-expr="minMoveOut" />
-                                @error('move_out_date')<p class="{{ $err }}">{{ $message }}</p>@enderror
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid gap-3">
-                        <p class="{{ $section }}">Terms</p>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="{{ $label }}" for="contract_rent">Monthly rent (₱)</label>
-                                <input id="contract_rent" type="number" name="agreed_monthly_rent" x-model="rent" min="0" step="0.01" required class="{{ $input }}">
-                                @error('agreed_monthly_rent')<p class="{{ $err }}">{{ $message }}</p>@enderror
-                            </div>
-                            <div>
-                                <label class="{{ $label }}" for="contract_due">Rent due day</label>
-                                <input id="contract_due" type="number" name="rent_due_day" value="{{ old('rent_due_day') }}" min="1" max="28" placeholder="Move-in day" class="{{ $input }}">
-                                @error('rent_due_day')<p class="{{ $err }}">{{ $message }}</p>@enderror
-                            </div>
-                            <div>
-                                <label class="{{ $label }}" for="contract_occupants">Occupants</label>
-                                <input id="contract_occupants" type="number" name="occupants_count" value="{{ old('occupants_count', 1) }}" min="1" :max="unit?.limit ?? 20" class="{{ $input }}">
-                                @error('occupants_count')<p class="{{ $err }}">{{ $message }}</p>@enderror
-                            </div>
-                            <div class="flex items-end">
-                                <p class="text-[12px] text-[#5B6A8E] pb-2" x-show="unit">Deposit for this unit: <span class="font-semibold text-[#060D26]" x-text="unit && unit.deposit > 0 ? '₱' + Number(unit.deposit).toLocaleString() : 'None'"></span></p>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="{{ $label }}" for="contract_terms">Additional terms <span class="font-normal text-[#5B6A8E]">(optional)</span></label>
-                            <textarea id="contract_terms" name="agreement_terms_notes" x-model="terms" rows="3" maxlength="2000"
-                                class="w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 py-2.5 text-[13.5px] text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30"></textarea>
-                        </div>
-                    </div>
-
-                    <div class="grid gap-3">
-                        <p class="{{ $section }}">Signed agreement</p>
-                        <div class="flex gap-2">
-                            <label class="flex-1 flex items-center gap-2 rounded-xl border border-[#E2E4EC] px-3 py-2.5 text-[13px] cursor-pointer" :class="leaseMode === 'later' && 'border-[#FF8A66] bg-[#ECEEF6]'">
-                                <input type="radio" name="lease_mode" value="later" x-model="leaseMode" class="text-[#060D26] focus:ring-[#FF8A66]"> Upload later
-                            </label>
-                            <label class="flex-1 flex items-center gap-2 rounded-xl border border-[#E2E4EC] px-3 py-2.5 text-[13px] cursor-pointer" :class="leaseMode === 'now' && 'border-[#FF8A66] bg-[#ECEEF6]'">
-                                <input type="radio" name="lease_mode" value="now" x-model="leaseMode" class="text-[#060D26] focus:ring-[#FF8A66]"> Upload now
-                            </label>
-                        </div>
-                        <input x-show="leaseMode === 'now'" type="file" name="lease_file" accept=".pdf,.jpg,.jpeg,.png" class="text-[13px]">
-                        @error('lease_file')<p class="{{ $err }}">{{ $message }}</p>@enderror
-                    </div>
-
-                    <div class="grid gap-3">
-                        <div class="flex items-center justify-between gap-3">
-                            <p class="{{ $section }}">Move-in payment</p>
-                            <span x-show="paymentRequired" class="text-[11px] font-bold text-[#B45309]">Required: the move-in date has arrived</span>
-                            <label x-show="!paymentRequired" class="flex items-center gap-2 text-[12.5px] text-[#060D26] cursor-pointer">
-                                <input type="checkbox" x-model="recordPayment" class="rounded text-[#060D26] focus:ring-[#FF8A66]"> I already received money
-                            </label>
-                        </div>
-                        <template x-if="paymentRequired || recordPayment">
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="{{ $label }}" for="contract_amount">Amount received (₱)</label>
-                                    <input id="contract_amount" type="number" name="initial_amount" value="{{ old('initial_amount') }}" min="1" step="0.01" class="{{ $input }}">
-                                </div>
-                                <div>
-                                    <label class="{{ $label }}">Method</label>
-                                    <x-styled-select name="payment_method" :options="array_combine($methods = ['Cash', 'GCash', 'Maya', 'Bank Transfer', 'Check', 'Other'], $methods)" x-model="method"
-                                        class="{{ $input }} text-left" />
-                                </div>
-                                <div x-show="method !== 'Cash'" class="col-span-2">
-                                    <label class="{{ $label }}" for="contract_ref">Reference no.</label>
-                                    <input id="contract_ref" type="text" name="reference_no" value="{{ old('reference_no') }}" maxlength="255" class="{{ $input }}">
-                                </div>
-                                <p class="col-span-2 text-[12px] text-[#5B6A8E]">Allocated to the deposit first, then rent from the move-in month.</p>
-                            </div>
-                        </template>
-                        @foreach(['initial_amount', 'payment_method', 'reference_no'] as $field)
-                            @error($field)<p class="{{ $err }}">{{ $message }}</p>@enderror
-                        @endforeach
-                    </div>
+                    @include('landlord.contracts.partials._contract-fields', ['idPrefix' => 'contract'])
 
                     <div class="flex justify-end gap-2 pt-1">
                         <button type="button" @click="close()" class="h-11 px-5 rounded-full border border-[#5B6A8E]/30 text-[13.5px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">Cancel</button>

@@ -1,6 +1,6 @@
 {{--
     A modal whose body is fetched when it opens, so emergency contacts are not embedded in the page for every row.
-    Used by the Contracts page (event 'open-contract') and the Tenants page (event 'open-tenant'):
+    Used by the Tenants page (same event, 'open-contract'):
     $dispatch(event, { url }). Optional include vars: $event, $label.
 --}}
 @php($event = $event ?? 'open-contract')
@@ -40,7 +40,7 @@
                 x-transition:enter-end="opacity-100 translate-y-0"
                 x-transition:leave="transition ease-in duration-150"
                 x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-                class="relative w-full sm:max-w-xl max-h-[92vh] overflow-y-auto bg-white border border-[#E2E4EC] rounded-t-2xl sm:rounded-2xl shadow-[0_20px_60px_rgba(6,13,38,0.18)]">
+                class="relative w-full sm:max-w-3xl max-h-[92dvh] overflow-y-auto bg-white border border-[#E2E4EC] rounded-t-2xl sm:rounded-2xl shadow-[0_20px_60px_rgba(6,13,38,0.18)]">
 
                 <button type="button" @click="close()" aria-label="Close"
                     class="absolute right-4 top-4 w-8 h-8 rounded-lg flex items-center justify-center text-[#5B6A8E] hover:bg-[#F7F8FC] hover:text-[#060D26] transition-colors duration-200 cursor-pointer z-10">

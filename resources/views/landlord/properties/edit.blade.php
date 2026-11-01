@@ -215,7 +215,7 @@
                             <p class="text-[13px] text-[#060D26]">
                                 {{ $property->leaseTemplate?->name ?? 'Standard policy' }}
                                 <span class="text-[#5B6A8E]">&middot; units can use their own.</span>
-                                <a href="{{ route('landlord.leases.index', ['property' => $property->property_id]) }}" class="ml-1 font-semibold text-[#060D26] underline underline-offset-2">Change on the Policies page</a>
+                                <a href="{{ route('landlord.leases.index', ['property' => $property->property_id]) }}" class="ml-1 font-semibold text-[#060D26] underline underline-offset-2">Change in Lease policies</a>
                             </p>
                             @if($property->leaseTemplate && ($property->leaseTemplate->rent_grace_days !== null || $property->leaseTemplate->late_fee_type !== null))
                                 <p class="mt-1 text-[12px] text-[#B45309]">This policy sets its own rent rules, so the rent rules below apply only to units on another policy.</p>

@@ -63,7 +63,7 @@ class RenewContractRequest extends FormRequest
     protected function failedValidation(Validator $validator): void
     {
         throw new HttpResponseException(
-            redirect()->route('landlord.contracts.index', ['open' => $this->route('reservation')?->reservation_id])
+            redirect()->route('landlord.tenants.index', ['open' => $this->route('reservation')?->reservation_id])
                 ->with('error', $validator->errors()->first())
         );
     }

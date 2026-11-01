@@ -5,14 +5,19 @@ namespace Tests\Feature;
 use App\Mail\TenantInviteMail;
 use App\Models\LandlordTenant;
 use App\Models\Payment;
+use App\Models\PropertyMedia;
+use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use App\Models\TenantDetail;
+use App\Models\UnitMedia;
 use App\Models\User;
 use App\Support\TenantInvites;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Storage;
 use Tests\Support\CreatesMarketplaceFixtures;
 use Tests\TestCase;
 
@@ -69,6 +74,139 @@ class TenantsPageTest extends TestCase
 
         $this->actingAs($landlord)->get(route('landlord.tenants.index'))
             ->assertOk()->assertSee('TN-0001')->assertSee('Ana')->assertSee('Pending');
+    }
+
+    private function contractFields(array $overrides = []): array
+    {
+        return $overrides + [
+            'move_in_date' => now()->addDays(20)->toDateString(), 'move_out_date' => now()->addDays(20)->addYear()->toDateString(),
+            'agreed_monthly_rent' => 4500, 'rent_due_day' => 1, 'occupants_count' => 1, 'lease_mode' => 'later',
+        ];
+    }
+
+    public function test_adding_a_tenant_with_a_unit_creates_the_contract_in_the_same_submit(): void
+    {
+        $landlord = $this->makeLandlord();
+        $unit = $this->makeUnit($this->makeProperty($landlord, ['title' => 'Lahug Dorm']), ['unit_label' => 'Rm 9']);
+
+        $response = $this->addTenant($landlord, ['unit_id' => $unit->unit_id] + $this->contractFields());
+
+        $row = LandlordTenant::where('landlord_id', $landlord->user_id)->firstOrFail();
+        $contract = Reservation::where('tenant_id', $row->tenant_id)->firstOrFail();
+        $response->assertSessionHasNoErrors()->assertRedirect(route('landlord.tenants.index', ['open' => $contract->reservation_id]));
+        $this->assertSame('Reserved', $contract->rental_status, 'A move-in still ahead holds the unit.');
+        $this->assertSame('4500.00', $contract->agreed_monthly_rent);
+        $this->assertSame($unit->unit_id, $contract->unit_id);
+        $this->assertSame('Reserved', $unit->fresh()->availability_status);
+        $this->assertNotNull($contract->lease_snapshot);
+        Mail::assertSent(TenantInviteMail::class);
+    }
+
+    public function test_a_failed_add_reopens_with_what_was_typed_and_says_what_to_fix(): void
+    {
+        $landlord = $this->makeLandlord();
+        $unit = $this->makeUnit($this->makeProperty($landlord));
+
+        // Only the move-in date filled: the end date, and so the contract, is refused.
+        $this->actingAs($landlord)->from(route('landlord.tenants.index'))
+            ->post(route('landlord.tenants.store'), [
+                '_form' => 'tenant', '_action' => '', 'first_name' => 'Ana', 'last_name' => 'Santos', 'contact_number' => '09175550123',
+                'unit_id' => $unit->unit_id, 'move_in_date' => now()->addDays(10)->toDateString(),
+            ])
+            ->assertSessionHasErrors('move_out_date')
+            ->assertRedirect(route('landlord.tenants.index'));
+
+        $page = $this->get(route('landlord.tenants.index'));
+
+        $page->assertSee('Nothing was saved', false)
+            ->assertSee('Enter the date the contract ends.')
+            ->assertSee('pendingReopen: true', false)
+            ->assertSee('Ana')
+            ->assertSee(now()->addDays(10)->toDateString(), false);
+        $this->assertNull(User::where('first_name', 'Ana')->where('last_name', 'Santos')->first(), 'Nothing was saved.');
+    }
+
+    public function test_a_refused_contract_leaves_no_tenant_behind(): void
+    {
+        $landlord = $this->makeLandlord();
+        $unit = $this->makeUnit($this->makeProperty($landlord));
+
+        // Already moved in, but no move-in money recorded: the contract rules refuse it.
+        $this->addTenant($landlord, ['unit_id' => $unit->unit_id] + $this->contractFields(['move_in_date' => now()->subDay()->toDateString()]))
+            ->assertSessionHasErrors('initial_amount');
+        // No end date.
+        $this->addTenant($landlord, ['unit_id' => $unit->unit_id] + $this->contractFields(['move_out_date' => '']))
+            ->assertSessionHasErrors('move_out_date');
+
+        $this->assertNull(User::where('email', 'ana.santos.tenant@example.test')->first(), 'No half-added tenant.');
+        $this->assertSame('Available', $unit->fresh()->availability_status);
+        Mail::assertNothingSent();
+    }
+
+    public function test_a_unit_taken_before_submit_is_refused_and_no_tenant_is_left(): void
+    {
+        $landlord = $this->makeLandlord();
+        $unit = $this->makeUnit($this->makeProperty($landlord));
+        // The unit was taken after the picker loaded.
+        PropertyUnit::whereKey($unit->unit_id)->update(['availability_status' => 'Reserved']);
+
+        $this->addTenant($landlord, ['unit_id' => $unit->unit_id] + $this->contractFields())->assertSessionHasErrors('unit_id');
+
+        $this->assertNull(User::where('email', 'ana.santos.tenant@example.test')->first());
+    }
+
+    public function test_a_tenant_with_a_unit_and_a_signed_copy_stores_the_file(): void
+    {
+        Storage::fake('local');
+        $landlord = $this->makeLandlord();
+        $unit = $this->makeUnit($this->makeProperty($landlord));
+
+        $this->addTenant($landlord, ['unit_id' => $unit->unit_id, 'lease_mode' => 'now',
+            'lease_file' => UploadedFile::fake()->create('lease.pdf', 100, 'application/pdf')] + $this->contractFields())
+            ->assertSessionHasNoErrors();
+
+        $contract = Reservation::where('unit_id', $unit->unit_id)->firstOrFail();
+        $this->assertNotNull($contract->lease_file_path);
+        Storage::disk('local')->assertExists($contract->lease_file_path);
+    }
+
+    public function test_the_unit_picker_gets_photos_floor_and_a_cover_per_property(): void
+    {
+        $landlord = $this->makeLandlord();
+        $property = $this->makeProperty($landlord, ['title' => 'Photo Dorm']);
+        $withPhotos = $this->makeUnit($property, ['unit_label' => 'Rm 1', 'floor' => '2nd floor']);
+        $bare = $this->makeUnit($property, ['unit_label' => 'Rm 2']);
+        PropertyMedia::create(['property_id' => $property->property_id, 'media_type' => 'Video', 'media_url' => 'https://example.test/clip.mp4']);
+        PropertyMedia::create(['property_id' => $property->property_id, 'media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/cover?w=1200']);
+        UnitMedia::create(['unit_id' => $withPhotos->unit_id, 'media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/room?w=1200']);
+
+        $options = $this->actingAs($landlord)->get(route('landlord.tenants.index'))->assertOk()->viewData('unitOptions');
+        $dorm = $options->firstWhere('title', 'Photo Dorm');
+        $one = collect($dorm['units'])->firstWhere('label', 'Rm 1');
+        $two = collect($dorm['units'])->firstWhere('label', 'Rm 2');
+
+        $this->assertStringContainsString('images.unsplash.com/cover', $dorm['photo'], 'The cover is the first image, never a video.');
+        $this->assertStringContainsString('w=480', $dorm['photo']);
+        $this->assertStringContainsString('images.unsplash.com/room', $one['photo']);
+        $this->assertSame('2nd floor', $one['floor']);
+        $this->assertNull($two['photo'], 'A unit with no photo gets null, and the page draws an icon.');
+        $this->assertSame($bare->unit_id, $two['id']);
+    }
+
+    public function test_a_unit_that_is_not_free_or_not_yours_is_refused_on_add(): void
+    {
+        $landlord = $this->makeLandlord();
+        $theirs = $this->makeUnit($this->makeProperty($this->makeLandlord()));
+        $taken = $this->makeUnit($this->makeProperty($landlord));
+        Reservation::create([
+            'tenant_id' => $this->makeTenant()->user_id, 'property_id' => $taken->property_id, 'unit_id' => $taken->unit_id,
+            'rental_status' => 'Occupied', 'reservation_date' => '2026-01-01',
+        ]);
+
+        $this->addTenant($landlord, ['unit_id' => $theirs->unit_id])->assertSessionHasErrors('unit_id');
+        $this->addTenant($landlord, ['unit_id' => $taken->unit_id])->assertSessionHasErrors('unit_id');
+
+        $this->assertNull(User::where('email', 'ana.santos.tenant@example.test')->first(), 'Nobody was added.');
     }
 
     public function test_a_tenant_without_email_needs_a_mobile_number_and_gets_no_invite(): void

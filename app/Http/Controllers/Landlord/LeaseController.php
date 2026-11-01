@@ -42,7 +42,7 @@ class LeaseController extends Controller
         // From the Contracts page's modal, whose body is fetched after the page loads: field errors flashed to the
         // session would be gone by then, so it comes back to the reopened modal and the error shows in the flash modal.
         $fromContracts = $request->input('from') === 'contracts';
-        $backToModal = fn () => redirect()->route('landlord.contracts.index', ['open' => $reservation->reservation_id]);
+        $backToModal = fn () => redirect()->route('landlord.tenants.index', ['open' => $reservation->reservation_id]);
 
         $validator = Validator::make($request->all(), [
             'lease_file' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],

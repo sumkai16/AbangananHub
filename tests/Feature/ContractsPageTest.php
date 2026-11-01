@@ -13,7 +13,7 @@ use Tests\Support\CreatesMarketplaceFixtures;
 use Tests\TestCase;
 
 /**
- * The landlord's Contracts page: list, Add contract and the view modal's details.
+ * Contracts on the landlord's Tenants page: list, Add contract and the modal's details.
  * plans/landlord-tenants-contracts-direct-payments.md, phase 2.
  */
 class ContractsPageTest extends TestCase
@@ -51,7 +51,7 @@ class ContractsPageTest extends TestCase
         ];
     }
 
-    public function test_the_page_lists_this_landlords_contracts_grouped_by_property_and_not_inquiries(): void
+    public function test_the_tenants_page_lists_this_landlords_contracts_and_not_inquiries(): void
     {
         $landlord = $this->makeLandlord();
         $property = $this->makeProperty($landlord, ['title' => 'Tunghaan Dorm']);
@@ -64,7 +64,7 @@ class ContractsPageTest extends TestCase
         $stranger = $this->makeTenant();
         $this->contract($this->makeUnit($this->makeProperty($this->makeLandlord(), ['title' => 'Someone Else Place'])), $stranger, 'Occupied');
 
-        $this->actingAs($landlord)->get(route('landlord.contracts.index'))
+        $this->actingAs($landlord)->get(route('landlord.tenants.index'))
             ->assertOk()
             ->assertSee('Tunghaan Dorm')
             ->assertSee($living->first_name)
@@ -208,7 +208,7 @@ class ContractsPageTest extends TestCase
         $this->actingAs($landlord)->post(route('landlord.leases.upload', $contract), [
             'from' => 'contracts',
             'lease_file' => UploadedFile::fake()->create('lease.pdf', 120, 'application/pdf'),
-        ])->assertRedirect(route('landlord.contracts.index', ['open' => $contract->reservation_id]))
+        ])->assertRedirect(route('landlord.tenants.index', ['open' => $contract->reservation_id]))
             ->assertSessionHas('success');
 
         $contract->refresh();
@@ -228,7 +228,7 @@ class ContractsPageTest extends TestCase
         $this->actingAs($landlord)->post(route('landlord.leases.upload', $contract), [
             'from' => 'contracts',
             'lease_file' => UploadedFile::fake()->create('notes.txt', 5, 'text/plain'),
-        ])->assertRedirect(route('landlord.contracts.index', ['open' => $contract->reservation_id]))
+        ])->assertRedirect(route('landlord.tenants.index', ['open' => $contract->reservation_id]))
             ->assertSessionHas('error', 'Upload the signed agreement as a PDF, JPG or PNG.');
 
         $this->assertNull($contract->fresh()->lease_file_path);

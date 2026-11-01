@@ -79,6 +79,6 @@
         </form>
     @endif
     @if($status !== 'Active')
-        <a href="{{ route('landlord.contracts.index', ['new' => 1, 'tenant' => $row->landlord_tenant_id]) }}" class="{{ $ctaBtn }}">Add contract</a>
+        <a href="{{ route('landlord.tenants.index', ['new' => 1, 'tenant' => $row->landlord_tenant_id]) }}" class="{{ $ctaBtn }}">Add contract</a>
     @endif
 </div>

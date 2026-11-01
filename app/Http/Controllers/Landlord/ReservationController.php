@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Landlord;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Landlord\SendAgreementRequest;
 use App\Models\Notification;
+use App\Models\PaymentClaim;
 use App\Models\Property;
 use App\Models\Reservation;
 use App\Models\ViewingRequest;
@@ -21,7 +22,7 @@ class ReservationController extends Controller
     /**
      * The page's stage tabs. Reservations is the request pipeline only (plans/reservations-page-pipeline.md): from
      * the first inquiry to a signed agreement whose move-in money the landlord has not confirmed yet. Once it is
-     * confirmed the lease is on the Contracts page, so Reserved, Occupied and Completed never show here.
+     * confirmed the lease is on the Tenants page, so Reserved, Occupied and Completed never show here.
      */
     public const STAGES = ['open', 'new', 'discussing', 'agreement', 'payment', 'closed', 'history'];
 
@@ -98,7 +99,7 @@ class ReservationController extends Controller
             'discussing' => $counts['discussing'],
             'waiting' => $counts['agreement'] + self::applyStage(clone $base, 'payment')->whereNot($withReport)->count(),
             'confirm' => (clone $toConfirm)->count(),
-            'confirmAmount' => (float) \App\Models\PaymentClaim::where('status', 'Pending')->where('claim_type', 'MoveIn')
+            'confirmAmount' => (float) PaymentClaim::where('status', 'Pending')->where('claim_type', 'MoveIn')
                 ->whereIn('reservation_id', (clone $toConfirm)->select('reservation_id'))->sum('amount'),
         ];
 

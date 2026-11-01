@@ -24,8 +24,14 @@ class LeaseTemplateController extends Controller
     public function index(Request $request)
     {
         $landlord = $request->user();
-        // "By property" is the main view; older links used ?tab=where or ?tab=templates, which now land there too.
-        $tab = $request->query('tab') === 'sent' ? 'sent' : 'property';
+
+        // The Sent & signed tab was the Contracts list again; its rows now live on the Tenants page. An unsigned one
+        // (the old "Awaiting signature") belongs to the Reservations pipeline.
+        if ($request->query('tab') === 'sent') {
+            return $request->query('status') === 'awaiting'
+                ? redirect()->route('landlord.reservations.index', ['stage' => 'agreement'])
+                : redirect()->route('landlord.tenants.index', array_filter($request->only(['search', 'property'])));
+        }
 
         $templates = LeaseTemplate::where('landlord_id', $landlord->user_id)
             ->withCount(['properties', 'units'])
@@ -37,60 +43,9 @@ class LeaseTemplateController extends Controller
             ->orderBy('title')
             ->get(['property_id', 'landlord_id', 'title', 'property_type', 'lease_template_id']);
 
-        $sent = $tab === 'sent' ? $this->sentLeases($request) : null;
         $selected = $properties->firstWhere('property_id', $request->integer('property')) ?? $properties->first();
 
-        return view('landlord.leases.index', compact('tab', 'templates', 'properties', 'sent', 'selected'));
-    }
-
-    /** Status shown for a lease that has been issued, key => [label, pill classes]. */
-    public const SENT_STATUSES = [
-        'awaiting' => ['Awaiting signature', 'bg-[#FBBF24]/[0.15] text-[#8A5A00]'],
-        'signed' => ['Signed', 'bg-[#3B82F6]/[0.12] text-[#1D4ED8]'],
-        'active' => ['Active', 'bg-[#22C55E]/[0.12] text-[#15803D]'],
-        'ended' => ['Ended', 'bg-[#94A3B8]/[0.15] text-[#5B6A8E]'],
-        'cancelled' => ['Cancelled', 'bg-[#EF4444]/[0.10] text-[#B91C1C]'],
-    ];
-
-    private const SENT_STATUS_MAP = [
-        'awaiting' => ['Pending Rental Agreement'],
-        'signed' => ['Rental Agreement Signed', 'Reserved'],
-        'active' => ['Occupied'],
-        'ended' => ['Completed'],
-        'cancelled' => ['Cancelled', 'Rejected'],
-    ];
-
-    /** Every lease this landlord has issued: the frozen copy on the reservation, newest first. */
-    private function sentLeases(Request $request)
-    {
-        $landlordId = $request->user()->user_id;
-        $status = array_key_exists($request->query('status'), self::SENT_STATUSES) ? $request->query('status') : null;
-        $search = trim((string) $request->query('search', ''));
-
-        return Reservation::query()
-            ->whereNotNull('lease_snapshot')
-            ->whereHas('property', fn ($q) => $q->where('landlord_id', $landlordId)
-                ->when($request->filled('property'), fn ($q) => $q->where('property_id', $request->integer('property'))))
-            ->when($status, fn ($q) => $q->whereIn('rental_status', self::SENT_STATUS_MAP[$status]))
-            ->when($search !== '', fn ($q) => $q->whereHas('tenant', fn ($t) => $t->where(fn ($w) => $w
-                ->where('first_name', 'like', "%{$search}%")->orWhere('last_name', 'like', "%{$search}%")
-                ->orWhereRaw("CONCAT(first_name, ' ', last_name) like ?", ["%{$search}%"]))))
-            ->with(['tenant:user_id,first_name,last_name,is_walk_in', 'property:property_id,title', 'unit:unit_id,unit_label', 'documents:tenancy_document_id,reservation_id,status'])
-            ->latest('reservation_id')
-            ->paginate(15)
-            ->withQueryString();
-    }
-
-    /** The label key for a reservation row. */
-    public static function sentStatusOf(Reservation $reservation): string
-    {
-        foreach (self::SENT_STATUS_MAP as $key => $statuses) {
-            if (in_array($reservation->rental_status, $statuses, true)) {
-                return $key;
-            }
-        }
-
-        return 'awaiting';
+        return view('landlord.leases.index', compact('templates', 'properties', 'selected'));
     }
 
     public function create(Request $request)
@@ -123,7 +78,7 @@ class LeaseTemplateController extends Controller
         $this->syncProperties($request, $template);
 
         return redirect()->route('landlord.lease-templates.edit', $template)
-            ->with('success', 'Policy saved. Choose which properties and units use it on the Policies page.');
+            ->with('success', 'Policy saved. Choose which properties and units use it on the Lease policies page.');
     }
 
     public function edit(Request $request, LeaseTemplate $leaseTemplate)

@@ -137,10 +137,10 @@ class ReservationsPipelineTest extends TestCase
             ->assertOk()
             ->assertSee('Rate tenant')
             ->assertSee(route('landlord.reservations.rateTenant.store', $resident), false)
-            ->assertSee("rating: false", false);
+            ->assertSee('rating: false', false);
 
         $this->actingAs($this->landlord)->get(route('landlord.contracts.show', [$resident, 'rate' => 1]))
-            ->assertOk()->assertSee("rating: true", false);
+            ->assertOk()->assertSee('rating: true', false);
     }
 
     public function test_the_old_rate_tenant_page_opens_the_contract_modal(): void
@@ -148,7 +148,7 @@ class ReservationsPipelineTest extends TestCase
         $resident = $this->request('Occupied', 'Resident');
 
         $this->actingAs($this->landlord)->get(route('landlord.reservations.rateTenant', $resident))
-            ->assertRedirect(route('landlord.contracts.index', ['open' => $resident->reservation_id, 'rate' => 1]));
+            ->assertRedirect(route('landlord.tenants.index', ['open' => $resident->reservation_id, 'rate' => 1]));
     }
 
     public function test_rating_without_stars_reopens_the_rating_form_with_the_error(): void
@@ -156,7 +156,7 @@ class ReservationsPipelineTest extends TestCase
         $resident = $this->request('Occupied', 'Resident');
 
         $this->actingAs($this->landlord)->post(route('landlord.reservations.rateTenant.store', $resident), ['comment' => 'Fine'])
-            ->assertRedirect(route('landlord.contracts.index', ['open' => $resident->reservation_id, 'rate' => 1]))
+            ->assertRedirect(route('landlord.tenants.index', ['open' => $resident->reservation_id, 'rate' => 1]))
             ->assertSessionHas('error', 'Pick a rating from 1 to 5 stars.');
 
         $this->assertNull($resident->fresh()->tenantRating);
@@ -167,7 +167,7 @@ class ReservationsPipelineTest extends TestCase
         $resident = $this->request('Occupied', 'Resident');
 
         $this->actingAs($this->landlord)->post(route('landlord.reservations.rateTenant.store', $resident), ['rating' => 4, 'comment' => 'Paid on time'])
-            ->assertRedirect(route('landlord.contracts.index', ['open' => $resident->reservation_id]))
+            ->assertRedirect(route('landlord.tenants.index', ['open' => $resident->reservation_id]))
             ->assertSessionHas('success');
 
         $this->actingAs($this->landlord)->get(route('landlord.contracts.show', $resident))

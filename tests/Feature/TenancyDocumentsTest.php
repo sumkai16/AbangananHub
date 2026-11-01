@@ -326,6 +326,5 @@ class TenancyDocumentsTest extends TestCase
             ->assertSee('1 to review')->assertSee('Valid government ID')->assertSee('Approve');
         $this->actingAs($tenant)->get(route('conversations.show', $c), $ajax)->assertOk()
             ->assertDontSee('1 to review')->assertSee('Documents uploaded');
-        $this->actingAs($l)->get(route('landlord.leases.index', ['tab' => 'sent']))->assertOk()->assertSee('Docs 1/1');
     }
 }

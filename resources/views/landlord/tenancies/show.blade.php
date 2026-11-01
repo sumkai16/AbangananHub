@@ -66,8 +66,8 @@
 
         {{-- Breadcrumb --}}
         <div class="flex flex-wrap items-center gap-1.5 text-sm text-[#5B6A8E] mb-3">
-            <a href="{{ route('landlord.contracts.index') }}"
-                class="hover:text-[#060D26] transition-colors duration-200">Contracts</a>
+            <a href="{{ route('landlord.tenants.index') }}"
+                class="hover:text-[#060D26] transition-colors duration-200">Tenants</a>
             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
             </svg>

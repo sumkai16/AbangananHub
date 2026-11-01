@@ -304,7 +304,7 @@ class LeaseTemplatesTest extends TestCase
 
         // By property: the property's policy, its units, and the list of policies.
         $this->actingAs($l)->get(route('landlord.leases.index'))->assertOk()
-            ->assertSee('Policies')->assertSee($prop->title)->assertSee('This property uses')->assertSee('Bedspace lease')
+            ->assertSee('Lease policies')->assertSee($prop->title)->assertSee('This property uses')->assertSee('Bedspace lease')
             ->assertSee('Standard policy')->assertSee('1 in use')->assertSee('Edit policy');
         $this->actingAs($l)->get(route('landlord.leases.index', ['property' => $prop->property_id]))->assertOk()->assertSee('Same as property');
         $this->actingAs($l)->get(route('landlord.lease-templates.edit', $template))->assertOk()->assertSee('Rent rules')->assertSee('Open editor')->assertSee('Save policy');
@@ -432,42 +432,16 @@ class LeaseTemplatesTest extends TestCase
 
     // ─── Sent & signed tab and the move-in checklist ───────────────
 
-    public function test_the_sent_tab_lists_only_this_landlords_issued_leases_with_template_and_status(): void
+    public function test_the_old_sent_tab_lands_on_tenants_or_the_reservations_agreement_stage(): void
     {
-        ['landlord' => $l, 'prop' => $prop, 'reservation' => $r] = $this->setupLandlord();
-        $t = $this->template($l, ['name' => 'Room lease']);
-        $prop->forceFill(['lease_template_id' => $t->lease_template_id])->save();
-        $r->fresh()->advanceToPendingAgreement();
-        ['reservation' => $foreign] = $this->setupLandlord();
-        $foreign->fresh()->advanceToPendingAgreement();
-        ['reservation' => $notIssued] = $this->setupLandlord();
+        ['landlord' => $l, 'prop' => $prop] = $this->setupLandlord();
 
-        $page = $this->actingAs($l)->get(route('landlord.leases.index', ['tab' => 'sent']))->assertOk();
-
-        $page->assertSee('Room lease · v1')->assertSee('Awaiting signature')->assertSee($r->tenant->first_name)
-            ->assertSee(route('landlord.leases.show', $r), false)
-            ->assertDontSee(route('landlord.leases.show', $foreign), false);
-        $this->assertNull($notIssued->fresh()->lease_snapshot);
-    }
-
-    public function test_the_sent_tab_filters_by_status_property_and_tenant(): void
-    {
-        ['landlord' => $l, 'prop' => $prop, 'reservation' => $r] = $this->setupLandlord();
-        $r->fresh()->advanceToPendingAgreement();
-        $r->update(['rental_status' => 'Occupied', 'agreed_at' => now()]);
-
-        $this->actingAs($l)->get(route('landlord.leases.index', ['tab' => 'sent', 'status' => 'active']))->assertOk()->assertSee('Signed '.now()->format('M j, Y'));
-        $this->actingAs($l)->get(route('landlord.leases.index', ['tab' => 'sent', 'status' => 'awaiting']))->assertOk()->assertSee('Nothing matches these filters.');
-        $this->actingAs($l)->get(route('landlord.leases.index', ['tab' => 'sent', 'search' => 'zzznobody']))->assertOk()->assertSee('Nothing matches these filters.');
-        $this->actingAs($l)->get(route('landlord.leases.index', ['tab' => 'sent', 'property' => $prop->property_id, 'search' => $r->tenant->first_name]))->assertOk()->assertSee($r->tenant->first_name);
-    }
-
-    public function test_a_lease_with_no_template_reads_standard_lease_on_the_sent_tab(): void
-    {
-        ['landlord' => $l, 'reservation' => $r] = $this->setupLandlord();
-        $r->fresh()->advanceToPendingAgreement();
-
-        $this->actingAs($l)->get(route('landlord.leases.index', ['tab' => 'sent']))->assertOk()->assertSee('Standard policy');
+        $this->actingAs($l)->get(route('landlord.leases.index', ['tab' => 'sent']))
+            ->assertRedirect(route('landlord.tenants.index'));
+        $this->actingAs($l)->get(route('landlord.leases.index', ['tab' => 'sent', 'property' => $prop->property_id, 'search' => 'ana']))
+            ->assertRedirect(route('landlord.tenants.index', ['search' => 'ana', 'property' => $prop->property_id]));
+        $this->actingAs($l)->get(route('landlord.leases.index', ['tab' => 'sent', 'status' => 'awaiting']))
+            ->assertRedirect(route('landlord.reservations.index', ['stage' => 'agreement']));
     }
 
     public function test_the_move_in_checklist_shows_progress_to_both_sides(): void

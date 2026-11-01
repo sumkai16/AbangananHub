@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Landlord;
 
 use App\Models\TenantDetail;
+use App\Support\ContractFormOptions;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -28,6 +29,8 @@ class TenantRequest extends FormRequest
             // online instead, so a landlord can never attach a stranger's account to their list.
             'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($editing, 'user_id')],
             'contact_number' => ['required_without:email', 'nullable', 'string', 'max:20'],
+            // Add only: a free unit to put them in. The contract (dates, rent, terms) is filled in next, in Add contract.
+            'unit_id' => $editing ? ['prohibited'] : ['nullable', Rule::in(ContractFormOptions::units()->flatMap(fn ($p) => collect($p['units'])->pluck('id'))->all())],
             ...TenantDetail::rules(false),
         ];
     }
@@ -37,6 +40,7 @@ class TenantRequest extends FormRequest
         return [
             'first_name.required' => 'Enter the tenant’s first name.',
             'last_name.required' => 'Enter the tenant’s last name.',
+            'unit_id.in' => 'Pick one of your free units, or leave the unit empty.',
             'email.unique' => 'This email already has an AbangananHub account. Ask the tenant to book the unit online, or leave the email blank.',
             'contact_number.required_without' => 'Enter a mobile number. Without an email there is no other way to reach this tenant.',
             ...TenantDetail::messages(),
@@ -45,7 +49,7 @@ class TenantRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        foreach (['email', 'contact_number'] as $field) {
+        foreach (['email', 'contact_number', 'unit_id'] as $field) {
             if ($this->input($field) === '') {
                 $this->merge([$field => null]);
             }

@@ -338,7 +338,7 @@
                     </button>
                     <div x-show="open === 'applies'" x-cloak class="border-t border-[#E2E4EC] bg-[#FBFBFE] px-4 pb-4 pt-3">
                         <div class="flex items-center justify-between gap-2">
-                            <p class="text-[12px] text-[#5B6A8E]">Units with their own policy keep it. Set units on the Policies page.</p>
+                            <p class="text-[12px] text-[#5B6A8E]">Units with their own policy keep it. Set units on the Lease policies page.</p>
                             @if($properties->isNotEmpty())
                                 <div class="flex shrink-0 gap-3 text-[12px] font-semibold">
                                     <button type="button" @click="ids = [...all]" class="text-[#060D26] underline underline-offset-2">Select all</button>

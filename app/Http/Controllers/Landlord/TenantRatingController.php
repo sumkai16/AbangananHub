@@ -23,7 +23,7 @@ class TenantRatingController extends Controller
             return $refusal;
         }
 
-        return redirect()->route('landlord.contracts.index', ['open' => $reservation->reservation_id, 'rate' => 1]);
+        return redirect()->route('landlord.tenants.index', ['open' => $reservation->reservation_id, 'rate' => 1]);
     }
 
     public function store(Request $request, Reservation $reservation): RedirectResponse
@@ -42,7 +42,7 @@ class TenantRatingController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return redirect()->route('landlord.contracts.index', ['open' => $reservation->reservation_id, 'rate' => 1])
+            return redirect()->route('landlord.tenants.index', ['open' => $reservation->reservation_id, 'rate' => 1])
                 ->with('error', $validator->errors()->first());
         }
 
@@ -65,7 +65,7 @@ class TenantRatingController extends Controller
             route('tenancy.show', $reservation),
         );
 
-        return redirect()->route('landlord.contracts.index', ['open' => $reservation->reservation_id])->with('success', 'Tenant rated successfully.');
+        return redirect()->route('landlord.tenants.index', ['open' => $reservation->reservation_id])->with('success', 'Tenant rated successfully.');
     }
 
     /**
@@ -80,7 +80,7 @@ class TenantRatingController extends Controller
             abort(403);
         }
 
-        $back = fn (string $message) => redirect()->route('landlord.contracts.index', ['open' => $reservation->reservation_id])->with('error', $message);
+        $back = fn (string $message) => redirect()->route('landlord.tenants.index', ['open' => $reservation->reservation_id])->with('error', $message);
 
         if (! in_array($reservation->rental_status, ['Occupied', 'Completed'], true)) {
             return $back('You can only rate tenants for occupied or completed rentals.');

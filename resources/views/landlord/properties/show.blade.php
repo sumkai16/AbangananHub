@@ -123,7 +123,7 @@
                         </a>
 
                         @if($unitStats['available'] > 0)
-                            <a href="{{ route('landlord.contracts.index', ['new' => 1]) }}"
+                            <a href="{{ route('landlord.tenants.index', ['new' => 1]) }}"
                                class="flex items-center px-4 py-2.5 text-sm text-[#060D26] hover:bg-[#ECEEF6] transition-colors">
                                 Add contract
                             </a>
