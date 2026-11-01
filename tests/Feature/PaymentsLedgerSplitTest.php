@@ -62,17 +62,21 @@ class PaymentsLedgerSplitTest extends TestCase
         $this->actingAs($this->makeLandlord())->get(route('landlord.payments.ledger', $this->tenancy))->assertForbidden();
     }
 
-    public function test_the_contract_page_is_under_contracts_and_has_no_ledger(): void
+    public function test_the_old_tenancy_page_opens_the_lease_modal(): void
     {
-        $response = $this->actingAs($this->landlord)->get(route('landlord.tenancies.show', $this->tenancy))
-            ->assertOk()
-            ->assertSee('Open ledger')
-            ->assertSee(route('landlord.payments.ledger', $this->tenancy), false)
-            ->assertSee('End of tenancy')
-            ->assertDontSee('Record payment')
-            ->assertDontSee('Rent ledger');
+        // The tenancy page was removed; its address opens the Leases page with this lease's modal.
+        $this->actingAs($this->landlord)->get(route('landlord.tenancies.show', $this->tenancy))
+            ->assertRedirect(route('landlord.contracts.index', ['open' => $this->tenancy->reservation_id]));
 
-        $this->assertSame(route('landlord.contracts.index'), $this->activeNavHref($response->getContent()));
+        $this->actingAs($this->makeLandlord())->get(route('landlord.tenancies.show', $this->tenancy))->assertForbidden();
+    }
+
+    public function test_the_lease_modal_can_end_an_occupied_lease(): void
+    {
+        $this->actingAs($this->landlord)->get(route('landlord.contracts.show', $this->tenancy))
+            ->assertOk()
+            ->assertSee(route('landlord.tenancies.end', $this->tenancy), false)
+            ->assertSee('End this lease');
     }
 
     public function test_the_contract_modal_links_to_the_ledger(): void

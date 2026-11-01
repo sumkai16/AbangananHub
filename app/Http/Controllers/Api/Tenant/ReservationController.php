@@ -103,24 +103,8 @@ class ReservationController extends Controller
             throw ValidationException::withMessages(['unit' => ['You already have an active inquiry or reservation for this unit.']]);
         }
 
-        $conversation = Conversation::inquiries()->where('tenant_id', $tenantId)
-            ->where('landlord_id', $property->landlord_id)
-            ->where('property_id', $property->property_id)
-            ->where('status', '!=', 'Cancelled')
-            ->first();
-
-        if ($conversation) {
-            if ($conversation->unit_id !== $unit->unit_id) {
-                $conversation->update(['unit_id' => $unit->unit_id]);
-            }
-        } else {
-            $conversation = Conversation::create([
-                'tenant_id'   => $tenantId,
-                'landlord_id' => $property->landlord_id,
-                'property_id' => $property->property_id,
-                'unit_id'     => $unit->unit_id,
-            ]);
-        }
+        // The tenant's one thread for this property, reopened if an earlier deal closed it (same as the web).
+        $conversation = Conversation::forInquiry($tenantId, $property, $unit);
 
         $reservation = Reservation::create([
             'property_id'          => $property->property_id,

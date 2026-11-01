@@ -66,35 +66,8 @@ class ReservationController extends Controller
             return back()->with('warning', 'You already have an active inquiry or reservation for this unit.');
         }
 
-        // Any conversation, cancelled included: the table allows only one per
-        // (tenant, landlord, property), so a cancelled thread can't be
-        // replaced by a new row — creating one threw a duplicate-key error
-        // and left the tenant unable to inquire about this property again.
-        $conversation = Conversation::inquiries()->where('tenant_id', Auth::id())
-            ->where('landlord_id', $property->landlord_id)
-            ->where('property_id', $property->property_id)
-            ->first();
-
-        if ($conversation) {
-            // Reopen a cancelled thread and point it at the unit asked about.
-            $changes = [];
-            if ($conversation->unit_id !== $unit->unit_id) {
-                $changes['unit_id'] = $unit->unit_id;
-            }
-            if ($conversation->status === 'Cancelled') {
-                $changes['status'] = 'Open';
-            }
-            if ($changes) {
-                $conversation->update($changes);
-            }
-        } else {
-            $conversation = Conversation::create([
-                'tenant_id'   => Auth::id(),
-                'landlord_id' => $property->landlord_id,
-                'property_id' => $property->property_id,
-                'unit_id'     => $unit->unit_id,
-            ]);
-        }
+        // The tenant's one thread for this property, reopened if an earlier deal closed it.
+        $conversation = Conversation::forInquiry(Auth::id(), $property, $unit);
 
         Reservation::create([
             'property_id'          => $property->property_id,

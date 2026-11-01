@@ -176,7 +176,7 @@
                     <ul class="divide-y divide-[#E2E4EC]">
                         @foreach($sent as $row)
                             @php
-                                $snap = $row->lease_snapshot;
+                                $snap = \App\Support\LeaseTerms::for($row);
                                 [$statusLabel, $statusClass] = \App\Http\Controllers\Landlord\LeaseTemplateController::SENT_STATUSES[\App\Http\Controllers\Landlord\LeaseTemplateController::sentStatusOf($row)];
                                 $sentOn = isset($snap['issued_at']) ? \Illuminate\Support\Carbon::parse($snap['issued_at'])->format('M j, Y') : '—';
                                 $tpl = $snap['template'] ?? null;

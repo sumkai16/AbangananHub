@@ -161,7 +161,7 @@ class WalkInScenarios extends Command
         $this->newLine();
         $this->line('  Tenants:        /landlord/tenants');
         $this->line('  Rent & payments:/landlord/payments');
-        $this->line('  A tenancy:      /landlord/tenancies/{id}');
+        $this->line('  A tenancy:      /landlord/contracts?open={id}');
         $this->line('  Admin payments: /admin/payments?status=Paid');
         $this->newLine();
         $this->line('  Remove with <options=bold>php artisan walkin:scenarios --clean</>');

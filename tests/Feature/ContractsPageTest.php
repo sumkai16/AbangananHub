@@ -190,7 +190,7 @@ class ContractsPageTest extends TestCase
 
         $this->actingAs($landlord)->get(route('landlord.contracts.show', $contract))
             ->assertOk()
-            ->assertSee('Documents')
+            ->assertSee('Agreement')
             ->assertSee('Agreement missing')
             ->assertSee('Upload signed copy')
             ->assertSee(route('landlord.leases.show', $contract), false)

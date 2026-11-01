@@ -186,25 +186,22 @@ class TenantDetailsTest extends TestCase
         ['landlord' => $landlord, 'tenant' => $tenant, 'reservation' => $reservation] = $this->makeTenancy();
         TenantDetail::saveFor($tenant, self::DETAILS);
 
-        $this->actingAs($landlord)->get(route('landlord.tenancies.show', $reservation))
+        // The lease modal shows them, the ID masked.
+        $this->actingAs($landlord)->get(route('landlord.contracts.show', $reservation))
             ->assertOk()
             ->assertSee('Ana Cruz')
             ->assertSee('PhilSys')
-            // The full number is in the page for the Show button; the visible default is masked.
-            ->assertSee('••••••••••••3456');
+            ->assertSee('••••••••••••3456')
+            ->assertDontSee('1234-5678-9012-3456');
     }
 
-    public function test_another_landlord_cannot_read_or_edit_them(): void
+    public function test_another_landlord_cannot_read_them(): void
     {
         ['tenant' => $tenant, 'reservation' => $reservation] = $this->makeTenancy();
         TenantDetail::saveFor($tenant, self::DETAILS);
         $stranger = $this->makeLandlord();
 
-        $this->actingAs($stranger)->get(route('landlord.tenancies.show', $reservation))->assertForbidden();
-        $this->actingAs($stranger)->patch(route('landlord.tenancies.tenantDetails.update', $reservation), ['id_number' => 'x'])
-            ->assertForbidden();
-
-        $this->assertSame('1234-5678-9012-3456', TenantDetail::find($tenant->user_id)->id_number);
+        $this->actingAs($stranger)->get(route('landlord.contracts.show', $reservation))->assertForbidden();
     }
 
     public function test_details_are_hidden_while_the_tenancy_is_still_being_negotiated(): void
@@ -217,30 +214,6 @@ class TenantDetailsTest extends TestCase
         $reservation->update(['rental_status' => 'Occupied']);
 
         $this->assertTrue($landlord->can('viewTenantDetails', $reservation->fresh()));
-    }
-
-    public function test_the_landlord_cannot_edit_an_online_tenants_details(): void
-    {
-        ['landlord' => $landlord, 'tenant' => $tenant, 'reservation' => $reservation] = $this->makeTenancy();
-
-        $this->actingAs($landlord)->patch(route('landlord.tenancies.tenantDetails.update', $reservation), self::DETAILS)
-            ->assertForbidden();
-
-        $this->assertNull(TenantDetail::find($tenant->user_id));
-    }
-
-    public function test_a_landlord_fills_in_a_walk_in_tenants_details(): void
-    {
-        $landlord = $this->makeLandlord();
-        $walkIn = User::factory()->create(['is_walk_in' => true, 'created_by_landlord_id' => $landlord->user_id]);
-        $walkIn->assignRole('Tenant');
-        ['reservation' => $reservation] = $this->makeTenancy([], $landlord, $walkIn);
-
-        $this->actingAs($landlord)->patch(route('landlord.tenancies.tenantDetails.update', $reservation), self::DETAILS)
-            ->assertRedirect(route('landlord.tenancies.show', $reservation))
-            ->assertSessionHas('success');
-
-        $this->assertSame('Ana Cruz', TenantDetail::find($walkIn->user_id)->emergency_contact_name);
     }
 
     public function test_add_tenant_stores_the_optional_details(): void

@@ -2,6 +2,30 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 1 2026 — Unsigned paper leases follow Policies; agreement opens in a print modal (branch `emman`)
+Why: editing a property's policy did not change a lease that was added before it and never signed. **Not verified in a browser.**
+- `LeaseTerms::followsPolicy()`: a lease added from the Leases page (Reserved/Occupied), no signed copy uploaded, not signed online. `LeaseTerms::for()` / `rentRules()` then rebuild its policy parts (house rules, wording, required documents, welcome, and, only when a policy is assigned, notice, grace and late fee) from the unit's current policy. Parties, unit, dates, rent, deposit, advance, extra terms, reference and issue date stay as issued.
+- Uploading the signed copy freezes the terms that were printed (`Landlord\LeaseController::upload`). Leases signed online never change.
+- Lease modal: "View & print agreement" opens `leases.show?embed=1` (new `layouts/embed`) in a modal with a Print button. The printed heading above the cover page is now screen-only (it pushed the cover onto two sheets).
+
+## Nov 1 2026 — Landlord tenancy page removed; End lease moved into the lease modal (branch `emman`)
+Why: everything on `landlord/tenancies/{id}` was already in the lease modal except ending the tenancy. **Not verified in a browser.**
+- Deleted `landlord/tenancies/show` and `_tenant-details`. The GET `landlord.tenancies.show` now redirects to `landlord.contracts.index?open={id}` (old links open the lease modal).
+- Lease modal (`contracts/partials/_details`): "End lease" opens a move-out date + confirm in place; posts to the unchanged `landlord.tenancies.end`, which now returns to the Leases page.
+- Removed the walk-in "edit emergency contact & ID" endpoint (`tenancies.tenantDetails.update`, `ReservationPolicy::editWalkInDetails`); the Tenants page's Edit tenant saves the same fields.
+- The lease document's Back link returns to the lease modal.
+
+## Nov 1 2026 — Lease house rules come from Policies only (branch `emman`)
+Why: rules were set in two places, and the lease printed the listing's checkboxes as a "Property rules" block on top of the policy's. **Not verified in a browser.**
+- `LeaseTerms::snapshot()` takes `house_rules` / `house_rule_sections` from the policy's visible sections only; `HouseRules::forSnapshot()` removed. No policy = no house-rules clause.
+- The property's checkbox rules stay on the property: the public listing and the search filters (`BrowseFilters`, AI search) still use them.
+- Policies editor says so ("The lease prints only the rules you write here…"), and still shows the listing's rules for reference.
+- Leases already sent keep their frozen rules, "Property rules" included.
+
+## Nov 1 2026 — Inquiry reopens a Resolved thread; Send agreement is a modal (branch `emman`)
+- `Conversation::forInquiry()` (web + mobile API): a new inquiry reopens the tenant's thread for that property when it was Cancelled **or Resolved** (closed by an earlier move-in), so it shows in the landlord's Active list. The API used to try a second row and hit the unique key.
+- Chat "Send agreement" opens a modal (bottom sheet on phones, 640px dialog otherwise; fixed header/footer).
+
 ## Nov 1 2026 — axci merged into emman; axci's payment flow wins (branch `emman`)
 Plan: `plans/merge-axci-into-emman.md`. 12 migrations come in from axci. **Not verified in a browser.**
 - **Payments are axci's, start to finish:** checkout (`PaymongoCheckout`, rent `Initial` + `Deposit` rows, optional fee), webhook, return-page reconcile, refunds, payouts, cash and disputes. emman's own checkout (one row for `moveInDue()`, `RentLedger::platformInitialSplit()`, `Reservation::moveInBreakdown()`) is gone.

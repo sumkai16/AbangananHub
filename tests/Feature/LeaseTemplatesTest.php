@@ -111,20 +111,30 @@ class LeaseTemplatesTest extends TestCase
         $this->assertSame($template->name, $r->fresh()->lease_snapshot['template']['name']);
     }
 
-    public function test_house_rules_are_the_listing_rules_plus_the_policys_sections(): void
+    public function test_house_rules_come_from_the_policy_only(): void
     {
+        // The listing has "No smoking" ticked (setupLandlord); it stays on the listing and is not printed.
         ['landlord' => $l, 'reservation' => $r] = $this->setupLandlord();
 
         $snap = LeaseTerms::snapshot($r, template: $this->template($l, ['house_rule_sections' => [
-            ['title' => 'Curfew', 'rules' => ['Quiet after 10 PM', 'No smoking']],
+            ['title' => 'Curfew', 'rules' => ['Quiet after 10 PM']],
             ['title' => 'Visitors', 'rules' => ['Visitors leave by 9 PM']],
         ]]));
 
-        // Flat list (older leases and the API): the listing's first, duplicates removed.
-        $this->assertSame(['No smoking', 'Quiet after 10 PM', 'Visitors leave by 9 PM'], $snap['house_rules']);
-        // Titled sections: the listing's rules come first as "Property rules".
-        $this->assertSame(['Property rules', 'Curfew', 'Visitors'], array_column($snap['house_rule_sections'], 'title'));
-        $this->assertSame(['No smoking'], $snap['house_rule_sections'][0]['rules']);
+        // Flat list (older leases and the API): the policy's rules only.
+        $this->assertSame(['Quiet after 10 PM', 'Visitors leave by 9 PM'], $snap['house_rules']);
+        // Titled sections: the policy's own, no "Property rules" block.
+        $this->assertSame(['Curfew', 'Visitors'], array_column($snap['house_rule_sections'], 'title'));
+    }
+
+    public function test_without_a_policy_the_lease_has_no_house_rules(): void
+    {
+        ['reservation' => $r] = $this->setupLandlord();
+
+        $snap = LeaseTerms::snapshot($r);
+
+        $this->assertSame([], $snap['house_rules']);
+        $this->assertSame([], $snap['house_rule_sections']);
     }
 
     public function test_the_lease_prints_house_rules_under_their_section_titles(): void
@@ -135,26 +145,29 @@ class LeaseTemplatesTest extends TestCase
         $r->fresh()->advanceToPendingAgreement();
 
         $this->actingAs($r->tenant)->get(route('agreements.show', $r))->assertOk()
-            ->assertSeeInOrder(['House rules', 'Property rules', 'No smoking', 'Visitors', 'Visitors leave by 9 PM']);
+            ->assertSeeInOrder(['House rules', 'Visitors', 'Visitors leave by 9 PM'])
+            ->assertDontSee('Property rules');
     }
 
     public function test_a_lease_sent_before_sections_still_prints_its_flat_rules(): void
     {
         ['reservation' => $r] = $this->setupLandlord();
         $r->advanceToPendingAgreement();
+        // An older lease, frozen with the listing's rule in its flat list and no sections.
         $snap = $r->fresh()->lease_snapshot;
         unset($snap['house_rule_sections']);
+        $snap['house_rules'] = ['No smoking'];
         $r->forceFill(['lease_snapshot' => $snap])->save();
 
         $this->actingAs($r->tenant)->get(route('agreements.show', $r))->assertOk()->assertSee('No smoking')->assertDontSee('Property rules');
     }
 
-    public function test_the_editor_shows_the_listed_rules_and_suggested_sections(): void
+    public function test_the_editor_explains_only_its_rules_print_and_shows_the_listing_rules(): void
     {
         ['landlord' => $l, 'prop' => $prop] = $this->setupLandlord();
 
         $this->actingAs($l)->get(route('landlord.lease-templates.create'))->assertOk()
-            ->assertSee("Each property's own listed rules always print first", false)->assertSee('No smoking')->assertSee('Suggested:')->assertSee('Curfew and quiet hours');
+            ->assertSee('The lease prints only the rules you write here')->assertSee('No smoking')->assertSee('Suggested:')->assertSee('Curfew and quiet hours');
     }
 
     public function test_a_hidden_section_is_kept_in_the_policy_but_left_off_the_lease(): void
@@ -174,9 +187,9 @@ class LeaseTemplatesTest extends TestCase
         $this->assertEquals([['title' => 'Visitors', 'rules' => ['Visitors leave by 9 PM']], ['title' => 'Parking', 'rules' => ['Park only in assigned areas'], 'hidden' => true]], $t->house_rule_sections);
 
         $snap = LeaseTerms::snapshot($r, template: $t);
-        $this->assertSame(['Property rules', 'Visitors'], array_column($snap['house_rule_sections'], 'title'));
+        $this->assertSame(['Visitors'], array_column($snap['house_rule_sections'], 'title'));
         $this->assertNotContains('Park only in assigned areas', $snap['house_rules']);
-        $this->assertArrayNotHasKey('hidden', $snap['house_rule_sections'][1]);
+        $this->assertArrayNotHasKey('hidden', $snap['house_rule_sections'][0]);
 
         $this->actingAs($l)->get(route('landlord.lease-templates.edit', $t))->assertOk()->assertSee('Park only in assigned areas');
     }
@@ -202,7 +215,7 @@ class LeaseTemplatesTest extends TestCase
 
         $this->actingAs($r->tenant)->get(route('agreements.show', $r))
             ->assertOk()
-            ->assertSeeInOrder(['Our own wording.', 'House rules', 'No smoking', 'Quiet after 10 PM']);
+            ->assertSeeInOrder(['Our own wording.', 'House rules', 'Quiet after 10 PM']);
     }
 
     public function test_deleting_a_template_sends_the_standard_lease_and_keeps_sent_leases(): void

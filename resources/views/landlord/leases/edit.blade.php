@@ -167,7 +167,7 @@
                     </div>
                 </div>
 
-                {{-- House rules: the listing's rules always apply; the policy adds titled sections after them --}}
+                {{-- House rules: the only rules the lease prints. The listing's checkbox rules stay on the listing. --}}
                 <div>
                     <button type="button" @click="toggle('houserules')" :aria-expanded="open === 'houserules'" class="{{ $row }}">
                         <span class="min-w-0 flex-1"><span class="block text-[14px] font-semibold text-[#060D26]">House rules</span><span class="block truncate text-[12.5px] text-[#5B6A8E]" x-text="houseRulesSummary"></span></span>
@@ -175,8 +175,8 @@
                     </button>
                     <div x-show="open === 'houserules'" x-cloak class="border-t border-[#E2E4EC] bg-[#FBFBFE] px-4 pb-5 pt-4" x-data="{ listed: false }">
                         <p class="text-[12.5px] leading-relaxed text-[#5B6A8E]">
-                            Each property's own listed rules always print first. Add your own below, grouped under headings.
-                            <button type="button" x-show="ids.length" @click="listed = !listed" class="ml-1 font-semibold text-[#060D26] underline underline-offset-2" x-text="listed ? 'Hide listed rules' : 'See listed rules'"></button>
+                            The lease prints only the rules you write here, grouped under headings. Your listing's rules are shown to tenants when they browse, not on the lease, so add any you want them to sign.
+                            <button type="button" x-show="ids.length" @click="listed = !listed" class="ml-1 font-semibold text-[#060D26] underline underline-offset-2" x-text="listed ? 'Hide listing rules' : 'See listing rules'"></button>
                         </p>
 
                         <div x-show="listed" x-cloak class="mt-3 flex flex-col gap-2">

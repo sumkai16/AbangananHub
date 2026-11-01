@@ -7,7 +7,6 @@ use App\Models\AuditLog;
 use App\Models\LateFeeWaiver;
 use App\Models\Notification;
 use App\Models\Reservation;
-use App\Models\TenantDetail;
 use App\Services\RentLedger;
 use App\Services\RentReminderNotifier;
 use Illuminate\Http\Request;
@@ -17,8 +16,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 /**
- * One tenancy from the landlord's side: the contract page and its actions (tenant details, end, reminder, late
- * fee waiver). Its rent ledger page is LedgerController, under Payments.
+ * One tenancy's actions from the landlord's side (end, reminder, late fee waiver). There is no tenancy page any more:
+ * the lease modal on the Leases page shows the tenancy, and its rent ledger is LedgerController, under Payments.
  *
  * Serves walk-in and platform tenancies identically: both are an occupied unit
  * with rent falling due every month, and the escrow only ever covered the
@@ -28,49 +27,14 @@ use Illuminate\Support\Facades\Gate;
 class TenancyController extends Controller
 {
     /**
-     * The contract page: who the tenant is, the lease, their details, the unit, and ending the tenancy. The money
-     * (ledger, payments, deposit charges) is under Payments (LedgerController); this page only shows the balance
-     * and links there.
+     * The old tenancy page's address. The page was removed (Nov 2026); everything on it lives in the lease modal,
+     * so old links and bookmarks open the Leases page with this lease's modal.
      */
     public function show(Reservation $reservation)
     {
         Gate::authorize('viewTenancy', $reservation);
 
-        // Eager-loaded up front: the balance strip reads the ledger summary, the header reads the tenant and
-        // unit, and Model::preventLazyLoading is on in dev.
-        $reservation->load([
-            'tenant.tenantDetail',
-            'property',
-            'unit.media',
-            'payments',
-            'depositCharges',
-            'conversation',
-        ]);
-
-        return view('landlord.tenancies.show', [
-            'reservation' => $reservation,
-            'summary' => RentLedger::for($reservation)->summary(),
-        ]);
-    }
-
-    /**
-     * Fill in or correct a walk-in tenant's emergency contact and ID. A walk-in cannot log in, so the
-     * landlord who recorded them is the only one who can; an online tenant edits their own in Account
-     * Settings, which is why the policy refuses everything but the landlord's own walk-ins.
-     */
-    public function updateTenantDetails(Request $request, Reservation $reservation)
-    {
-        Gate::authorize('editWalkInDetails', $reservation);
-
-        $validated = $request->validate(TenantDetail::rules(false), TenantDetail::messages());
-
-        if (TenantDetail::saveFor($reservation->tenant, $validated) === null) {
-            return back()->with('warning', 'Nothing to save. Fill in at least one field.');
-        }
-
-        return redirect()
-            ->route('landlord.tenancies.show', $reservation)
-            ->with('success', 'Emergency contact and ID saved.');
+        return redirect()->route('landlord.contracts.index', ['open' => $reservation->reservation_id]);
     }
 
     /**
@@ -113,8 +77,8 @@ class TenancyController extends Controller
         }
 
         return redirect()
-            ->route('landlord.tenancies.show', $reservation)
-            ->with('success', 'Tenancy ended. The unit is available again and the ledger is closed.');
+            ->route('landlord.contracts.index')
+            ->with('success', 'Lease ended. The unit is available again and the ledger is closed.');
     }
 
     /**

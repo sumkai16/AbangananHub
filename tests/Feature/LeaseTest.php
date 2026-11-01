@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\LandlordTenant;
+use App\Models\LeaseTemplate;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use App\Models\User;
@@ -76,7 +77,11 @@ class LeaseTest extends TestCase
     public function test_sending_the_agreement_freezes_the_lease(): void
     {
         $property = $this->unit->property;
-        $property->update(['house_rules' => ['No Smoking']]);
+        // House rules on the lease come from the property's policy (Policies page).
+        $policy = new LeaseTemplate(['name' => 'House policy', 'house_rule_sections' => [['title' => 'Rules', 'rules' => ['No Smoking']]]]);
+        $policy->landlord_id = $property->landlord_id;
+        $policy->save();
+        $property->forceFill(['lease_template_id' => $policy->lease_template_id])->save();
         $reservation = $this->negotiatingReservation();
 
         $this->actingAs($this->landlord)->patch(route('landlord.reservations.advanceAgreement', $reservation), [
@@ -88,8 +93,8 @@ class LeaseTest extends TestCase
         $this->assertSame(['No Smoking'], $reservation->lease_snapshot['house_rules']);
         $this->assertSame('Tenant waters the plants.', $reservation->lease_snapshot['extra_terms']);
 
-        // Editing the property afterwards must not rewrite what the tenant signs.
-        $property->update(['house_rules' => ['Curfew']]);
+        // Editing the policy afterwards must not rewrite what the tenant signs.
+        $policy->update(['house_rule_sections' => [['title' => 'Rules', 'rules' => ['Curfew']]]]);
 
         $this->actingAs($this->tenant)->get(route('agreements.show', $reservation))
             ->assertOk()
@@ -126,13 +131,84 @@ class LeaseTest extends TestCase
         $this->actingAs($this->landlord)->get(route('landlord.leases.file', $reservation))->assertOk();
     }
 
+    public function test_an_unsigned_paper_lease_follows_the_policy_until_the_signed_copy_is_uploaded(): void
+    {
+        // Added with the standard lease (no policy yet).
+        $this->walkIn()->assertRedirect();
+        $reservation = $this->latestWalkIn();
+        $depositAtIssue = $reservation->agreedDeposit();
+        $this->assertSame([], $reservation->lease_snapshot['house_rule_sections']);
+
+        // The landlord then gives the property a policy: the unsigned lease prints it.
+        $property = $this->unit->property;
+        $policy = new LeaseTemplate(['name' => 'Colon policy', 'notice_days' => 45, 'house_rule_sections' => [['title' => 'Visitors', 'rules' => ['Visitors leave by 9 PM']]]]);
+        $policy->landlord_id = $property->landlord_id;
+        $policy->save();
+        $property->forceFill(['lease_template_id' => $policy->lease_template_id])->save();
+
+        $this->actingAs($this->landlord)->get(route('landlord.leases.show', $reservation->fresh()))
+            ->assertOk()->assertSee('Visitors leave by 9 PM')->assertSee('45 days');
+
+        // The deal itself is untouched by a policy edit.
+        $this->unit->update(['security_deposit' => 99999]);
+        $this->assertSame($depositAtIssue, $reservation->fresh()->agreedDeposit());
+
+        // Uploading the signed copy freezes the policy that was printed.
+        $this->actingAs($this->landlord)->post(route('landlord.leases.upload', $reservation), [
+            'lease_file' => UploadedFile::fake()->create('signed.pdf', 120, 'application/pdf'),
+        ])->assertSessionHas('success');
+
+        $policy->update(['house_rule_sections' => [['title' => 'Visitors', 'rules' => ['Changed after signing']]]]);
+
+        $this->actingAs($this->landlord)->get(route('landlord.leases.show', $reservation->fresh()))
+            ->assertOk()->assertSee('Visitors leave by 9 PM')->assertDontSee('Changed after signing');
+    }
+
+    public function test_a_lease_signed_online_never_follows_later_policy_edits(): void
+    {
+        $this->walkIn()->assertRedirect();
+        $reservation = $this->latestWalkIn();
+        $reservation->forceFill(['agreed_at' => now()])->save();
+
+        $property = $this->unit->property;
+        $policy = new LeaseTemplate(['name' => 'Later policy', 'house_rule_sections' => [['title' => 'Rules', 'rules' => ['Added later']]]]);
+        $policy->landlord_id = $property->landlord_id;
+        $policy->save();
+        $property->forceFill(['lease_template_id' => $policy->lease_template_id])->save();
+
+        $this->assertFalse(\App\Support\LeaseTerms::followsPolicy($reservation->fresh()));
+        $this->actingAs($this->landlord)->get(route('landlord.leases.show', $reservation->fresh()))
+            ->assertOk()->assertDontSee('Added later');
+    }
+
+    public function test_the_lease_modal_shows_the_agreement_in_a_printable_frame(): void
+    {
+        $this->walkIn()->assertRedirect();
+        $reservation = $this->latestWalkIn();
+        $embedUrl = route('landlord.leases.show', ['reservation' => $reservation, 'embed' => 1]);
+
+        $this->actingAs($this->landlord)->get(route('landlord.contracts.show', $reservation))
+            ->assertOk()->assertSee($embedUrl, false)->assertSee('View &amp; print agreement', false);
+
+        // Embedded: the document without the landlord sidebar or its own Back / Print bar.
+        $this->actingAs($this->landlord)->get($embedUrl)
+            ->assertOk()
+            ->assertSee('signature over printed name')
+            ->assertDontSee('Print / Save PDF')
+            ->assertDontSee(route('landlord.dashboard'), false);
+
+        // The full page still works on its own.
+        $this->actingAs($this->landlord)->get(route('landlord.leases.show', $reservation))
+            ->assertOk()->assertSee('Print / Save PDF');
+    }
+
     public function test_walk_in_upload_later_then_upload_and_replace(): void
     {
         $this->walkIn()->assertRedirect();
         $reservation = $this->latestWalkIn();
         $this->assertSame('missing', $reservation->leaseStatus());
 
-        $this->actingAs($this->landlord)->get(route('landlord.tenancies.show', $reservation))->assertOk()->assertSee('Agreement missing');
+        $this->actingAs($this->landlord)->get(route('landlord.contracts.show', $reservation))->assertOk()->assertSee('Agreement missing');
         $this->actingAs($this->landlord)->get(route('landlord.leases.show', $reservation))->assertOk()->assertSee('signature over printed name');
 
         $this->actingAs($this->landlord)->post(route('landlord.leases.upload', $reservation), [

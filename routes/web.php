@@ -288,11 +288,10 @@ Route::middleware('auth')->group(function () {
         Route::delete('/tenants/{landlordTenant}', [TenantController::class, 'destroy'])->name('tenants.destroy');
         Route::post('/tenants/{landlordTenant}/invite', [TenantController::class, 'invite'])->middleware('throttle:6,1')->name('tenants.invite');
 
-        // A single tenancy and its rent ledger. Serves walk-in and platform
-        // tenancies alike — the escrow only ever covered the initial payment.
+        // A single tenancy's actions. Serves walk-in and platform tenancies alike — the escrow only ever covered the
+        // initial payment. The GET is the removed tenancy page's address: it now opens the lease modal.
         Route::get('/tenancies/{reservation}', [App\Http\Controllers\Landlord\TenancyController::class, 'show'])->name('tenancies.show');
         Route::post('/tenancies/{reservation}/end', [App\Http\Controllers\Landlord\TenancyController::class, 'endTenancy'])->name('tenancies.end');
-        Route::patch('/tenancies/{reservation}/tenant-details', [App\Http\Controllers\Landlord\TenancyController::class, 'updateTenantDetails'])->name('tenancies.tenantDetails.update');
         // Lease — printable document + the signed copy (private disk)
         Route::get('/tenancies/{reservation}/lease', [App\Http\Controllers\Landlord\LeaseController::class, 'show'])->name('leases.show');
         Route::post('/tenancies/{reservation}/lease-file', [App\Http\Controllers\Landlord\LeaseController::class, 'upload'])->name('leases.upload');

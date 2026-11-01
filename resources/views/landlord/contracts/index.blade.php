@@ -108,7 +108,18 @@
 
                     {{-- Desktop: table --}}
                     <div class="hidden lg:block overflow-x-auto">
-                        <table class="w-full min-w-[820px] text-left">
+                        {{-- Fixed column widths, the same in every property's table, so Unit, dates and the rest line
+                             up down the page whatever a row says (e.g. "No agreement on file" under a tenant). --}}
+                        <table class="w-full min-w-[940px] table-fixed text-left">
+                            <colgroup>
+                                <col>
+                                <col class="w-[120px]">
+                                <col class="w-[230px]">
+                                <col class="w-[100px]">
+                                <col class="w-[80px]">
+                                <col class="w-[180px]">
+                                <col class="w-[68px]">
+                            </colgroup>
                             <thead>
                                 <tr class="border-b border-[#E2E4EC]">
                                     <th class="px-5 py-3 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Tenant</th>
@@ -125,13 +136,13 @@
                                     @php $status = $contract->contractStatus(); @endphp
                                     <tr class="hover:bg-[#ECEEF6] transition-colors duration-200">
                                         <td class="px-5 py-3">
-                                            <p class="text-[13px] font-bold text-[#060D26] truncate max-w-[220px]">{{ $contract->tenant->first_name }} {{ $contract->tenant->last_name }}</p>
-                                            <p class="text-[11.5px] text-[#5B6A8E]">
+                                            <p class="text-[13px] font-bold text-[#060D26] truncate">{{ $contract->tenant->first_name }} {{ $contract->tenant->last_name }}</p>
+                                            <p class="text-[11.5px] text-[#5B6A8E] truncate">
                                                 {{ $codes[$contract->tenant_id] ?? '' }}
                                                 @if($contract->leaseStatus() === 'missing') · <span class="text-[#B45309]">No agreement on file</span> @endif
                                             </p>
                                         </td>
-                                        <td class="px-4 py-3 text-[13px] text-[#060D26]">{{ $contract->unit->unit_label ?? 'No unit' }}</td>
+                                        <td class="px-4 py-3 text-[13px] text-[#060D26] truncate">{{ $contract->unit->unit_label ?? 'No unit' }}</td>
                                         <td class="px-4 py-3 text-[13px] text-[#5B6A8E] whitespace-nowrap tabular-nums">{{ $fmt($contract->target_move_in_date) }} → {{ $fmt($contract->target_move_out_date) }}</td>
                                         <td class="px-4 py-3 text-[13px] font-semibold text-[#060D26] text-right tabular-nums">₱{{ number_format($contract->currentRent()) }}</td>
                                         <td class="px-4 py-3 text-[13px] text-[#5B6A8E] whitespace-nowrap">Day {{ $contract->rentDueDay() }}</td>

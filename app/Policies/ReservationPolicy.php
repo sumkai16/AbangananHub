@@ -214,17 +214,6 @@ class ReservationPolicy
             && in_array($reservation->rental_status, ['Reserved', 'Occupied', 'Completed'], true);
     }
 
-    /**
-     * A walk-in cannot log in, so the landlord who recorded them keeps their details. Only that
-     * landlord, and only while the tenancy is live; an online tenant edits their own in Account Settings.
-     */
-    public function editWalkInDetails(User $user, Reservation $reservation): bool
-    {
-        return $reservation->property?->landlord_id === $user->user_id
-            && $reservation->tenant?->is_walk_in
-            && $reservation->tenant->created_by_landlord_id === $user->user_id
-            && in_array($reservation->rental_status, ['Reserved', 'Occupied'], true);
-    }
 
     /**
      * Only the reservation's tenant asks to see the unit, and only between
