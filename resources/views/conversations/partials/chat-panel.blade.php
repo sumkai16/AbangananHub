@@ -222,7 +222,7 @@
 
                 @elseif($rentalStatus === 'Under Negotiation')
                     <div class="flex items-center gap-2">
-                        <button type="button" @click="showTc = !showTc" class="flex-1 bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-1.5">
+                        <button type="button" @click="showTc = true" aria-haspopup="dialog" class="flex-1 bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-1.5">
                             <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                             Send agreement
                         </button>
@@ -231,32 +231,63 @@
                             Reject
                         </button>
                     </div>
-                    <div x-show="showTc" x-transition x-cloak class="mt-2">
-                        <form action="{{ route('landlord.reservations.advanceAgreement', $reservation) }}" method="POST"
-                            x-data="{ agreement: @js($reservation->agreementDefaults()) }">
-                            @csrf @method('PATCH')
-                            <div class="p-3 bg-[#ECEEF6] rounded-xl border border-[#FF8A66]/20">
-                                <p class="text-[12px] font-semibold text-[#060D26] mb-2">The terms you agreed in this chat</p>
-                                @include('landlord.reservations._agreement-fields', ['idPrefix' => 'agreement_'.$reservation->reservation_id])
-                                @include('landlord.partials._lease-editor', ['reservation' => $reservation])
-                                @if($needsLandlordTc)
-                                    <label class="flex items-start gap-2.5 cursor-pointer group mb-3">
-                                        <input type="checkbox" name="accept_tc" required
-                                            class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66] focus:ring-offset-0 transition">
-                                        <span class="text-[11px] text-[#060D26] leading-relaxed">
-                                            <x-payment-consent role="landlord" />
-                                        </span>
-                                    </label>
-                                @else
-                                    <p class="mb-3 text-[11px] text-[#5B6A8E]">You accepted the payment terms on {{ auth()->user()->landlord_terms_accepted_at->format('M j, Y') }}.</p>
-                                @endif
-                                <button type="submit"
-                                    class="w-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold py-2 rounded-lg cursor-pointer transition-all duration-200">
-                                    Confirm &amp; send agreement
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                    {{-- The terms form is tall (terms, lease wording, consent), so it is a modal, not a panel in this bar.
+                         Teleported to body: this bar scrolls and would clip it (DESIGN.md §5). Bottom sheet on phones. --}}
+                    <template x-teleport="body">
+                        <div x-show="showTc" x-cloak
+                            x-effect="document.body.classList.toggle('overflow-hidden', showTc)"
+                            @keydown.escape.window="! [...$el.querySelectorAll('[role=dialog]')].some(d => d.style.display !== 'none') && (showTc = false)"
+                            class="fixed inset-0 z-[200] flex items-end justify-center px-3 pt-6 pb-[calc(env(safe-area-inset-bottom)+4rem)] sm:items-center sm:p-4"
+                            role="dialog" aria-modal="true" aria-labelledby="send-agreement-title-{{ $reservation->reservation_id }}">
+                            <div @click="showTc = false" x-show="showTc" x-transition.opacity class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+                            <form action="{{ route('landlord.reservations.advanceAgreement', $reservation) }}" method="POST"
+                                x-data="{ agreement: @js($reservation->agreementDefaults()), accepted: {{ $needsLandlordTc ? 'false' : 'true' }} }" x-show="showTc"
+                                x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-6 sm:translate-y-0 sm:scale-95"
+                                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                                class="relative flex max-h-full w-full flex-col rounded-2xl bg-white shadow-xl sm:max-h-[90vh] sm:max-w-xl">
+                                @csrf @method('PATCH')
+
+                                <div class="flex flex-shrink-0 items-start justify-between gap-3 border-b border-[#E2E4EC] px-5 py-4">
+                                    <div class="min-w-0">
+                                        <h2 id="send-agreement-title-{{ $reservation->reservation_id }}" class="text-[16px] font-semibold text-[#060D26]">Send rental agreement</h2>
+                                        <p class="mt-0.5 truncate text-[12px] text-[#5B6A8E]">To {{ $otherParty->first_name }} &middot; {{ $reservation->unit?->unit_name ?? $reservation->property?->title }}</p>
+                                    </div>
+                                    <button type="button" @click="showTc = false" aria-label="Close"
+                                        class="-mr-2 -mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-[#5B6A8E] transition-colors hover:bg-[#F7F8FC] hover:text-[#060D26] cursor-pointer">
+                                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                                    </button>
+                                </div>
+
+                                <div class="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+                                    <p class="mb-3 text-[12px] leading-relaxed text-[#5B6A8E]">The terms you agreed in this chat. {{ $otherParty->first_name }} signs exactly what you send, so check them first.</p>
+                                    @include('landlord.reservations._agreement-fields', ['idPrefix' => 'agreement_'.$reservation->reservation_id])
+                                    @include('landlord.partials._lease-editor', ['reservation' => $reservation])
+                                    @if($needsLandlordTc)
+                                        <label class="mb-1 flex items-start gap-2.5 cursor-pointer group">
+                                            <input type="checkbox" name="accept_tc" required x-model="accepted"
+                                                class="mt-0.5 h-5 w-5 flex-shrink-0 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66] focus:ring-offset-0 transition cursor-pointer">
+                                            <span class="text-[12px] leading-relaxed text-[#060D26]">
+                                                <x-payment-consent role="landlord" />
+                                            </span>
+                                        </label>
+                                    @else
+                                        <p class="text-[11px] text-[#5B6A8E]">You accepted the payment terms on {{ auth()->user()->landlord_terms_accepted_at->format('M j, Y') }}.</p>
+                                    @endif
+                                </div>
+
+                                <div class="flex flex-shrink-0 items-center gap-3 border-t border-[#E2E4EC] bg-[#F7F8FC] px-5 py-4 rounded-b-2xl">
+                                    <button type="button" @click="showTc = false"
+                                        class="h-12 rounded-xl border border-[#E2E4EC] bg-white px-5 text-[14px] font-semibold text-[#5B6A8E] transition-colors hover:bg-white hover:text-[#060D26] hover:border-[#5B6A8E]/40 cursor-pointer sm:h-11">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" :disabled="! accepted"
+                                        class="h-12 flex-1 rounded-xl bg-[#FF8A66] px-4 text-[14px] font-bold text-[#060D26] transition-all duration-200 hover:bg-[#E96F4F] cursor-pointer disabled:cursor-not-allowed disabled:bg-[#E2E4EC] disabled:text-[#94A3B8] sm:h-11">
+                                        Confirm &amp; send agreement
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </template>
                     <div x-show="showReject" x-cloak class="mt-2">
                         <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST" class="flex gap-2">
                             @csrf @method('PATCH')
