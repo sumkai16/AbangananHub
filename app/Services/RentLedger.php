@@ -101,7 +101,6 @@ class RentLedger
             return collect();
         }
 
-        $rent = $this->reservation->monthlyRent();
         $dueDay = $this->reservation->rentDueDay();
         // Grace days and the late fee come from the lease's frozen terms, not the live property.
         $rules = LeaseTerms::rentRules($this->reservation);
@@ -110,6 +109,8 @@ class RentLedger
         $periods = collect();
 
         while ($cursor->lessThanOrEqualTo($last)) {
+            // Per month, not once: a renewal can change the rent from a given month on.
+            $rent = $this->reservation->rentFor($cursor);
             $paidPayments = $this->monthlyPaymentsFor($cursor);
             $paid = round((float) $paidPayments->sum(fn (Payment $p) => (float) $p->amount), 2);
             // Safe without overflow handling because rentDueDay() clamps to 28.
@@ -235,12 +236,14 @@ class RentLedger
         $prepaid = $periods->filter(fn ($p) => $p['is_future'] && $p['status'] === 'paid');
 
         $monthlyCollected = (float) $periods->sum('paid');
-        $otherCollected = (float) $this->otherCharges()->sum(fn (Payment $p) => (float) $p->amount);
+        // An online checkout's deposit share counts as a deposit, the same as a direct move-in's Deposit row.
+        $platformDeposit = $this->platformInitialDeposit();
+        $otherCollected = (float) $this->otherCharges()->sum(fn (Payment $p) => (float) $p->amount) + $platformDeposit;
         // The security deposit on its own: it is held, not earned, and is
         // returned at move-out, so it must not read as rent income.
         $depositCollected = (float) $this->otherCharges()
             ->where('payment_type', 'Deposit')
-            ->sum(fn (Payment $p) => (float) $p->amount);
+            ->sum(fn (Payment $p) => (float) $p->amount) + $platformDeposit;
 
         // Claims a landlord has made against the held deposit (damage,
         // cleaning, etc.) — a voided charge no longer counts against it.
@@ -260,7 +263,7 @@ class RentLedger
         $prepaidThrough = $prepaid->last()['period'] ?? null;
 
         return [
-            'monthlyRent'      => $this->reservation->monthlyRent(),
+            'monthlyRent'      => $this->reservation->currentRent(),
             'dueDay'           => $this->reservation->rentDueDay(),
             'periodCount'      => $periods->count(),
             'collected'        => round($monthlyCollected + $otherCollected, 2),
@@ -373,7 +376,7 @@ class RentLedger
             return null;
         }
 
-        $rent = $this->reservation->monthlyRent();
+        $rent = $this->reservation->rentFor($next);
 
         return [
             'period' => $next,
@@ -475,19 +478,26 @@ class RentLedger
      */
     private function latestSettledMonthlyPeriod(): ?Carbon
     {
-        return $this->payments
-            ->filter(fn (Payment $p) => $p->payment_type === 'Monthly'
-                && $p->billing_period
-                && in_array($p->status, self::SETTLED_STATUSES, true))
+        // toBase(): the months below are dates, not models, and an Eloquent collection cannot merge them.
+        $settled = $this->payments->toBase()->filter(fn (Payment $p) => in_array($p->status, self::SETTLED_STATUSES, true));
+
+        // Advance months paid at an online checkout reach forward too.
+        $initialMonths = $settled->filter(fn (Payment $p) => $this->isPlatformInitial($p))
+            ->flatMap(fn (Payment $p) => array_keys($this->platformInitialSplit($p)['months']))
+            ->map(fn (string $ym) => Carbon::createFromFormat('Y-m-d', $ym.'-01')->startOfMonth());
+
+        return $settled
+            ->filter(fn (Payment $p) => $p->payment_type === 'Monthly' && $p->billing_period)
             ->map(fn (Payment $p) => $p->billing_period->copy()->startOfMonth())
+            ->merge($initialMonths)
             ->sort()
             ->last();
     }
 
     /**
-     * The initial payment an online tenant makes at checkout. It is the first month's rent (the checkout
-     * charges the agreed monthly rent and nothing else), so it settles the first billing period instead of
-     * sitting in otherCharges() while the move-in month still reads Due and offers "Pay now" again.
+     * The move-in payment an online tenant makes at checkout. It settles rent months (and the deposit, see
+     * platformInitialSplit()) instead of sitting in otherCharges() while the move-in month still reads Due and
+     * offers "Pay now" again.
      *
      * Only platform checkouts qualify. A walk-in's lump the landlord typed in carries recorded_by and is
      * split into Deposit + Monthly rows at entry (MoveInPaymentBreakdown), so it is left alone here.
@@ -495,6 +505,63 @@ class RentLedger
     private function isPlatformInitial(Payment $payment): bool
     {
         return $payment->payment_type === 'Initial' && ! $payment->isManuallyRecorded();
+    }
+
+    /** @var array<int, array{months: array<string, float>, deposit: float}> */
+    private array $initialSplits = [];
+
+    /**
+     * What one platform Initial payment paid for, split on read. It stays a single row because escrow
+     * (Held → Released, payouts, admin release) works on that one row.
+     *
+     * Rent first, for the advance months agreed on the lease (Reservation::advanceMonths(), at least the
+     * move-in month), then the deposit, then any overpayment onto the last month. The checkout charges
+     * Reservation::moveInDue() (advance months + deposit), which this undoes exactly. Older checkouts charged
+     * one month's rent, so they settle the move-in month and no deposit, as they always did.
+     *
+     * @return array{months: array<string, float>, deposit: float} months keyed 'Y-m'
+     */
+    private function platformInitialSplit(Payment $payment): array
+    {
+        $key = $payment->payment_id;
+
+        if (isset($this->initialSplits[$key])) {
+            return $this->initialSplits[$key];
+        }
+
+        $start = $this->reservation->tenancyStartDate()?->copy()->startOfMonth();
+        $remaining = round((float) $payment->amount, 2);
+        $rent = $this->reservation->monthlyRent();
+        $months = [];
+        $deposit = 0.0;
+
+        if ($start) {
+            $month = $start->copy();
+            for ($i = 0; $i < max(1, $this->reservation->advanceMonths()) && $remaining > 0; $i++) {
+                $slice = $rent > 0 ? round(min($remaining, $rent), 2) : $remaining;
+                $months[$month->format('Y-m')] = $slice;
+                $remaining = round($remaining - $slice, 2);
+                $month->addMonthNoOverflow();
+            }
+
+            $deposit = round(min($remaining, $this->reservation->agreedDeposit()), 2);
+            $remaining = round($remaining - $deposit, 2);
+
+            if ($remaining > 0 && $months !== []) {
+                $last = array_key_last($months);
+                $months[$last] = round($months[$last] + $remaining, 2);
+            }
+        }
+
+        return $this->initialSplits[$key] = ['months' => $months, 'deposit' => $deposit];
+    }
+
+    /** The deposit part of every settled platform Initial payment. */
+    private function platformInitialDeposit(): float
+    {
+        return (float) $this->payments
+            ->filter(fn (Payment $p) => $this->isPlatformInitial($p) && in_array($p->status, self::SETTLED_STATUSES, true))
+            ->sum(fn (Payment $p) => $this->platformInitialSplit($p)['deposit']);
     }
 
     /**
@@ -506,26 +573,32 @@ class RentLedger
      */
     private function monthlyPaymentsFor(Carbon $period): Collection
     {
-        $firstPeriod = $this->reservation->tenancyStartDate()?->copy()->startOfMonth();
-
         return $this->payments
-            ->filter(function (Payment $payment) use ($period, $firstPeriod) {
+            ->map(function (Payment $payment) use ($period) {
                 if (! in_array($payment->status, self::SETTLED_STATUSES, true)) {
-                    return false;
+                    return null;
                 }
 
-                // The move-in payment taken at checkout pays the first month (see isPlatformInitial()).
+                // The move-in payment taken at checkout pays its share of this month (see platformInitialSplit()).
+                // A copy carrying only that share, so sums and the late-fee check see the right amount.
                 if ($this->isPlatformInitial($payment)) {
-                    return $firstPeriod !== null && $period->isSameMonth($firstPeriod);
+                    $slice = $this->platformInitialSplit($payment)['months'][$period->format('Y-m')] ?? null;
+
+                    if ($slice === null) {
+                        return null;
+                    }
+
+                    $share = clone $payment;
+                    $share->amount = $slice;
+
+                    return $share;
                 }
 
-                if ($payment->payment_type !== 'Monthly') {
-                    return false;
-                }
-
-                return $payment->billing_period
-                    && $payment->billing_period->isSameMonth($period);
+                return $payment->payment_type === 'Monthly'
+                    && $payment->billing_period
+                    && $payment->billing_period->isSameMonth($period) ? $payment : null;
             })
+            ->filter()
             ->sortBy(fn (Payment $p) => $p->paid_at ?? $p->created_at)
             ->values();
     }

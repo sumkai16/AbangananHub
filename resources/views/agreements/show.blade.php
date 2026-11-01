@@ -61,7 +61,7 @@
         <x-card class="mb-6 p-5 sm:p-7 print:hidden">
             <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
                 <div class="min-w-0">
-                    <h1 class="text-2xl sm:text-[28px] font-bold text-[#060D26] tracking-tight">Lease Agreement</h1>
+                    <h1 class="text-2xl sm:text-[28px] font-bold text-[#060D26] tracking-tight">Rental Agreement</h1>
                     <p class="mt-1 text-[14px] text-[#5B6A8E]">{{ $premises }}@if($terms['property']['address'] ?? null) · {{ $terms['property']['address'] }}@endif</p>
                 </div>
                 <p class="text-[12px] font-bold text-[#5B6A8E] tracking-wider tabular-nums border border-[#E2E4EC] rounded-full px-3 py-1">{{ $agreementRef }}</p>

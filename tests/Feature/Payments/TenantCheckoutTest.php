@@ -390,6 +390,26 @@ class TenantCheckoutTest extends TestCase
     }
 
     #[DataProvider('surfaces')]
+    public function test_the_initial_checkout_charges_every_advance_month_and_the_deposit_on_its_own_row(string $surface): void
+    {
+        $this->fakeCheckoutCreated('cs_checkout_advance');
+        // Two advance months agreed in the lease: the rent row is 2 x 5,000, the deposit stays its own row.
+        $t = $this->signedTenancy(['agreed_monthly_rent' => 5000, 'lease_snapshot' => ['advance_months' => 2, 'deposit' => 3000]]);
+
+        $this->startCheckout($surface, 'initial', $t['tenant'], $t['reservation']);
+
+        $attributes = $this->sentCheckoutAttributes();
+        $this->assertSame(1000000, $attributes['line_items'][0]['amount'], 'Two months of PHP 5,000 rent in centavos.');
+        $this->assertStringContainsString('2 months', $attributes['line_items'][0]['name']);
+        $this->assertSame(300000, $attributes['line_items'][1]['amount'], 'The PHP 3,000 deposit is its own line.');
+
+        $payments = $this->paymentsOf($t['reservation']);
+        $this->assertSame(['Initial', 'Deposit'], $payments->pluck('payment_type')->all());
+        $this->assertSame([10000.0, 3000.0], $payments->map(fn ($p) => (float) $p->amount)->all());
+        $this->assertSame(13000.0, $t['reservation']->fresh()->moveInDue(), 'The checkout adds up to what direct payment asks for.');
+    }
+
+    #[DataProvider('surfaces')]
     public function test_a_unit_price_edited_after_signing_does_not_change_what_the_tenant_is_charged(string $surface): void
     {
         $this->fakeCheckoutCreated('cs_checkout_frozen');

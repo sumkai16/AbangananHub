@@ -156,9 +156,9 @@ class StoreWalkInTenantRequest extends FormRequest
             'payment_method.required_with'    => 'Choose how the initial payment was made.',
             'payment_date.before_or_equal'    => 'A payment cannot be recorded for a future date.',
             'reference_no.required'           => 'Enter the reference number for this payment, or switch the method to Cash.',
-            'lease_file.required_if'          => 'Choose the signed lease file, or pick "Upload later".',
-            'lease_file.mimes'                => 'Upload the signed lease as a PDF, JPG or PNG.',
-            'lease_file.max'                  => 'The lease file must be 10 MB or smaller.',
+            'lease_file.required_if'          => 'Choose the signed agreement file, or pick "Upload later".',
+            'lease_file.mimes'                => 'Upload the signed agreement as a PDF, JPG or PNG.',
+            'lease_file.max'                  => 'The agreement file must be 10 MB or smaller.',
             ...TenantDetail::messages(),
         ];
     }

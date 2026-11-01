@@ -312,7 +312,7 @@ class PaymentController extends Controller
 
                 $status = 'upcoming';
                 $dueOn = $month->copy()->day($reservation->rentDueDay());
-                $entryExpected = $reservation->monthlyRent();
+                $entryExpected = $reservation->rentFor($month);
                 $entryPaid = 0.0;
             }
 
@@ -325,7 +325,7 @@ class PaymentController extends Controller
                 'paid'     => $entryPaid,
                 'balance'  => max(0, round($entryExpected - $entryPaid, 2)),
                 'status'   => $status,
-                'url'      => route('landlord.tenancies.show', $reservation),
+                'url'      => route('landlord.payments.ledger', $reservation),
             ];
 
             $expected += $entryExpected;

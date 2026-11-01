@@ -243,18 +243,14 @@ class TenantDetailsTest extends TestCase
         $this->assertSame('Ana Cruz', TenantDetail::find($walkIn->user_id)->emergency_contact_name);
     }
 
-    public function test_a_walk_in_form_stores_the_optional_details(): void
+    public function test_add_tenant_stores_the_optional_details(): void
     {
         $landlord = $this->makeLandlord();
-        $unit = $this->makeUnit($this->makeProperty($landlord));
 
-        $this->actingAs($landlord)->post(route('landlord.tenants.walkIn.store'), array_merge([
+        $this->actingAs($landlord)->post(route('landlord.tenants.store'), array_merge([
             'first_name'     => 'Walk',
             'last_name'      => 'In',
             'contact_number' => '09170000000',
-            'unit_id'        => $unit->unit_id,
-            'move_in_date'   => today()->addDays(3)->toDateString(),
-            'lease_mode'     => 'later',
         ], self::DETAILS))->assertRedirect();
 
         $walkIn = User::where('first_name', 'Walk')->where('last_name', 'In')->firstOrFail();

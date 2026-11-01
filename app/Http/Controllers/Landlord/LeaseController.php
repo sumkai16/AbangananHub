@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 /**
  * The landlord's side of a tenancy's lease: the printable document (for a
@@ -38,13 +39,26 @@ class LeaseController extends Controller
     {
         Gate::authorize('manageLease', $reservation);
 
-        $request->validate([
+        // From the Contracts page's modal, whose body is fetched after the page loads: field errors flashed to the
+        // session would be gone by then, so it comes back to the reopened modal and the error shows in the flash modal.
+        $fromContracts = $request->input('from') === 'contracts';
+        $backToModal = fn () => redirect()->route('landlord.contracts.index', ['open' => $reservation->reservation_id]);
+
+        $validator = Validator::make($request->all(), [
             'lease_file' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
         ], [
-            'lease_file.required' => 'Choose the signed lease file to upload.',
-            'lease_file.mimes'    => 'Upload the signed lease as a PDF, JPG or PNG.',
-            'lease_file.max'      => 'The lease file must be 10 MB or smaller.',
+            'lease_file.required' => 'Choose the signed agreement file to upload.',
+            'lease_file.mimes'    => 'Upload the signed agreement as a PDF, JPG or PNG.',
+            'lease_file.max'      => 'The agreement file must be 10 MB or smaller.',
         ]);
+
+        if ($validator->fails()) {
+            if ($fromContracts) {
+                return $backToModal()->with('error', $validator->errors()->first());
+            }
+
+            $validator->validate();
+        }
 
         $file = $request->file('lease_file');
         $path = $file->store("leases/{$reservation->property->landlord_id}", 'local');
@@ -79,12 +93,13 @@ class LeaseController extends Controller
         Notification::notify(
             $reservation->tenant?->is_walk_in ? null : $reservation->tenant_id,
             'agreement',
-            $oldPath ? 'Signed lease replaced' : 'Signed lease uploaded',
-            'Your landlord attached the signed lease to your tenancy.',
+            $oldPath ? 'Signed agreement replaced' : 'Signed agreement uploaded',
+            'Your landlord attached the signed rental agreement to your tenancy.',
             route('tenancy.show', $reservation),
         );
 
-        return back()->with('success', $oldPath ? 'Signed lease replaced.' : 'Signed lease uploaded.');
+        return ($fromContracts ? $backToModal() : back())
+            ->with('success', $oldPath ? 'Signed agreement replaced.' : 'Signed agreement uploaded.');
     }
 
     public function file(Reservation $reservation)

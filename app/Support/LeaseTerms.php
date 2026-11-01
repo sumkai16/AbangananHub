@@ -63,8 +63,12 @@ class LeaseTerms
     /**
      * $template is the lease template the agreement is issued on (LeaseTemplates::forReservation). It is passed in,
      * never looked up here, so a late snapshot of an old tenancy (LeaseController::upload) can't pick up today's template.
+     *
+     * @param  array  $overrides  Terms agreed for this lease rather than read from the listing, e.g. the agreed
+     *                            `deposit` and `advance_months` from the Send-agreement form. Applied before the
+     *                            landlord's wording is resolved, so its merge fields print the agreed numbers.
      */
-    public static function snapshot(Reservation $reservation, bool $withRentRules = true, ?string $body = null, ?LeaseTemplate $template = null): array
+    public static function snapshot(Reservation $reservation, bool $withRentRules = true, ?string $body = null, ?LeaseTemplate $template = null, array $overrides = []): array
     {
         $reservation->loadMissing(['property.landlord', 'unit', 'tenant']);
 
@@ -83,7 +87,7 @@ class LeaseTerms
             }
         }
 
-        $terms = [
+        $terms = $overrides + [
             'reference'   => static::reference($reservation),
             'issued_at'   => now()->toIso8601String(),
             'landlord'    => static::party($landlord),

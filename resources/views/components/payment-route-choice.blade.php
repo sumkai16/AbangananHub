@@ -9,7 +9,7 @@
 @php
     $isMoveIn = $type === 'MoveIn';
     $landlordName = $reservation->property?->landlord?->first_name ?? 'your landlord';
-    $onlineAmount = $isMoveIn ? (float) $reservation->monthlyRent() : max(0, (float) ($period['balance'] ?? 0));
+    $onlineAmount = $isMoveIn ? $reservation->moveInRent() : max(0, (float) ($period['balance'] ?? 0));
     $deposit = $isMoveIn ? (float) $reservation->agreedDeposit() : 0.0;
     $fee = \App\Support\ServiceFee::for($onlineAmount);
     $onlineTotal = $onlineAmount + $deposit + $fee;
@@ -124,7 +124,7 @@
                 </div>
             @endif
             <dl class="space-y-1.5 text-[13px]">
-                <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">{{ $isMoveIn ? 'First month’s rent' : $period['label'] }}</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($onlineAmount, 2) }}</dd></div>
+                <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">{{ $isMoveIn ? $reservation->moveInRentLabel() : $period['label'] }}</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($onlineAmount, 2) }}</dd></div>
                 @if($deposit > 0)
                     <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Security deposit</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($deposit, 2) }}</dd></div>
                 @endif
@@ -158,7 +158,7 @@
         <div class="rounded-2xl border border-[#E2E4EC] bg-white p-4 sm:p-5">
             <h3 class="text-[15px] font-normal text-[#060D26]">Pay {{ $landlordName }} in cash</h3>
             <p class="mt-1 text-2xl font-extrabold tabular-nums text-[#060D26]">&#8369;{{ number_format($cashAmount, 2) }}</p>
-            <p class="text-[12px] text-[#5B6A8E]">{{ $isMoveIn ? 'First month’s rent'.($deposit > 0 ? ' and security deposit' : '') : $period['label'] }}</p>
+            <p class="text-[12px] text-[#5B6A8E]">{{ $isMoveIn ? $reservation->moveInBreakdown() : $period['label'] }}</p>
             <ol class="mt-3 space-y-1.5 text-[13px] leading-relaxed text-[#060D26] list-decimal pl-5">
                 <li>Agree a time and place with {{ $landlordName }} in <a href="{{ $chatLink }}" class="font-bold underline">your chat</a>.</li>
                 <li>Hand over the exact amount and ask for a receipt.</li>

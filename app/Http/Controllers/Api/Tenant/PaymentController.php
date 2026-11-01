@@ -42,6 +42,11 @@ class PaymentController extends Controller
             throw ValidationException::withMessages(['payment' => ['This unit is no longer available. Please contact your landlord.']]);
         }
 
+        // Paying holds the unit, so it cannot be paid for while someone else holds it (PaymentClaims does the same).
+        if ($reservation->unitHeldByAnother()) {
+            throw ValidationException::withMessages(['payment' => ['This unit is already taken by another tenant. Please contact your landlord.']]);
+        }
+
         if ($reservation->hasSettledInitialPayment()) {
             throw ValidationException::withMessages(['payment' => ['The initial payment for this reservation has already been made.']]);
         }
@@ -54,8 +59,8 @@ class PaymentController extends Controller
             $reservation,
             'Initial',
             null,
-            (float) $reservation->monthlyRent(),
-            rentLineName: $reservation->unit->unit_name.' — First month’s rent',
+            $reservation->moveInRent(),
+            rentLineName: $reservation->unit->unit_name.' — '.$reservation->moveInRentLabel(),
             description: 'Move-in payment for '.$reservation->unit->unit_name,
             // No web route to redirect to — the app intercepts the WebView's navigation to success_url instead of loading it.
             successUrl: route('payments.success', $reservation),

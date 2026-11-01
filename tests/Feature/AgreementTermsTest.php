@@ -174,7 +174,7 @@ class AgreementTermsTest extends TestCase
         $this->actingAs($this->landlord)
             ->get(route('landlord.reservations.index'))
             ->assertOk()
-            ->assertSee('Edit the lease for this tenant in the chat');
+            ->assertSee('Edit the agreement for this tenant in the chat');
     }
 
     public function test_the_prefilled_terms_land_on_the_lease_the_tenant_signs(): void

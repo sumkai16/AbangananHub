@@ -145,7 +145,7 @@ class CheckoutDoubleClickTest extends TestCase
             'rental_status' => 'Rental Agreement Signed', 'reservation_date' => '2026-08-01', 'target_move_in_date' => '2026-08-01',
         ]);
 
-        $this->start('web', 'initial', $t)->assertSessionHasErrors(['payment' => 'This unit is no longer available. Please contact your landlord.']);
+        $this->start('web', 'initial', $t)->assertSessionHasErrors(['payment' => 'This unit is already taken by another tenant. Please contact your landlord.']);
 
         $this->assertNoSessionOpened();
     }

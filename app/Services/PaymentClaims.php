@@ -140,6 +140,7 @@ class PaymentClaims
 
                 $locked->move_in_paid_at = now();
                 $locked->save();
+                $locked->holdUnit();
             } else {
                 if ($locked->rental_status !== 'Occupied') {
                     self::fail('This tenancy is no longer running, so the payment cannot be confirmed.');
@@ -352,6 +353,7 @@ class PaymentClaims
 
             $locked->move_in_paid_at = now();
             $locked->save();
+            $locked->holdUnit();
 
             AuditLog::record(
                 'move_in_payment.record',
@@ -411,6 +413,11 @@ class PaymentClaims
         if (! $locked->unit) {
             self::fail('This unit is no longer available.');
         }
+
+        // Settling the money holds the unit for this tenant, so it cannot also be held for someone else.
+        if ($locked->unitHeldByAnother()) {
+            self::fail('This unit is already taken by another tenant.');
+        }
     }
 
     /**
@@ -443,7 +450,7 @@ class PaymentClaims
     {
         return $locked->conversation_id
             ? route('conversations.index', ['active' => $locked->conversation_id])
-            : route('landlord.tenancies.show', $locked);
+            : route('landlord.payments.ledger', $locked);
     }
 
     private static function fail(string $message): never

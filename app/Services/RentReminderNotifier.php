@@ -38,7 +38,7 @@ class RentReminderNotifier
             $this->title(($period['status'] ?? '') === 'overdue'),
             $name . "'s " . $period['label'] . ' rent (' . $this->amount($period) . ') '
                 . $this->timing($period['due_on'], $today, ($period['status'] ?? 'overdue') === 'overdue') . '.',
-            route('landlord.tenancies.show', $reservation),
+            route('landlord.payments.ledger', $reservation),
         );
     }
 

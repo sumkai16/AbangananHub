@@ -3,7 +3,7 @@
     waiting for the tenant to report it. Needs $reservation (unit loaded). Posts to
     landlord.reservations.recordMoveInPayment, which also withdraws any pending report from the tenant.
 --}}
-@php $due = (float) $reservation->monthlyRent() + $reservation->agreedDeposit(); @endphp
+@php $due = $reservation->moveInDue(); @endphp
 <div x-data="{ open: false }" class="mt-2">
     <button type="button" x-show="!open" @click="open = true"
         class="h-8 rounded-lg border border-[#E2E4EC] bg-white px-3 text-[11.5px] font-bold text-[#060D26] hover:bg-[#F7F8FC] transition-colors">Record move-in payment</button>

@@ -60,7 +60,7 @@
     </div>
 
     <p class="{{ $body }}">
-        This Lease Agreement is made between <strong>{{ $landlordName }}</strong> ("Landlord") and
+        This Rental Agreement is made between <strong>{{ $landlordName }}</strong> ("Landlord") and
         <strong>{{ $tenantName }}</strong> ("Tenant") for the rental of the premises described below.
     </p>
 
@@ -80,6 +80,12 @@
             'Monthly rent'     => $peso($terms['monthly_rent']),
             'Rent due'         => 'Every ' . $ordinal((int) $terms['due_day']) . ' of the month',
             'Security deposit' => $terms['deposit'] !== null && $terms['deposit'] > 0 ? $peso($terms['deposit']) : 'None',
+            // Only on agreements sent with the final terms (they record the advance); older leases never said.
+            'Due at move-in'   => array_key_exists('advance_months', $terms)
+                ? $peso($terms['advance_months'] * $terms['monthly_rent'] + ($terms['deposit'] ?? 0))
+                    . ' (' . $terms['advance_months'] . ' ' . \Illuminate\Support\Str::plural('month', $terms['advance_months']) . ' advance'
+                    . (($terms['deposit'] ?? 0) > 0 ? ' + deposit' : '') . ')'
+                : null,
             'Occupants'        => $terms['occupants'] ? $terms['occupants'] . ' ' . \Illuminate\Support\Str::plural('person', $terms['occupants']) : null,
         ]) as $label => $value)
             <div class="flex items-baseline justify-between gap-4 py-2.5">
@@ -125,7 +131,7 @@
             "The Tenant may not sublet or transfer the premises without the Landlord's written consent.",
         ];
         $termItems = [
-            ($terms['start'] ? 'This lease starts on ' . $date($terms['start']) : "This lease starts on the Tenant's move-in date")
+            ($terms['start'] ? 'This agreement starts on ' . $date($terms['start']) : "This agreement starts on the Tenant's move-in date")
             . ($terms['end']
                 ? ' and ends on ' . $date($terms['end']) . ', unless ended earlier as set out below or renewed in writing.'
                 : ' and continues month to month until either party ends it with notice as set out below.'),
@@ -144,7 +150,7 @@
             'The Tenant pays a security deposit of ' . $peso($terms['deposit']) . '. It covers unpaid rent and damage beyond normal wear and tear.',
             'The Landlord returns it within 30 days after the Tenant moves out, less any deductions, which the Landlord lists in writing.',
             "The deposit may not be used as the last month's rent without the Landlord's written agreement.",
-        ] : ['No security deposit is required under this lease.'];
+        ] : ['No security deposit is required under this agreement.'];
         $utilityItems = [];
         if ($utilities['included']) { $utilityItems[] = 'Included in the rent: ' . implode(', ', $utilities['included']) . '.'; }
         if ($utilities['not_included']) { $utilityItems[] = 'Not included, paid by the Tenant: ' . implode(', ', $utilities['not_included']) . '.'; }
@@ -160,8 +166,8 @@
             'The Landlord gives reasonable notice before entering the premises, except in an emergency.',
         ];
         $endingItems = [
-            'Either party may end this lease by giving at least ' . $terms['notice_days'] . " days' written notice, including by message on AbangananHub.",
-            'The Landlord may end it sooner if the Tenant fails to pay rent or seriously breaks this lease, as allowed by law.',
+            'Either party may end this agreement by giving at least ' . $terms['notice_days'] . " days' written notice, including by message on AbangananHub.",
+            'The Landlord may end it sooner if the Tenant fails to pay rent or seriously breaks this agreement, as allowed by law.',
             'On moving out, the Tenant returns the premises and all keys in the condition received, apart from normal wear and tear.',
         ];
         $wholeItems = ['This document is the whole agreement between the parties. Changes are valid only if made in writing and accepted by both.'];
@@ -208,7 +214,7 @@
     @endif
 
     <p class="text-[11.5px] text-[#5B6A8E] leading-relaxed mt-6 pt-4 border-t border-[#E2E4EC]">
-        AbangananHub provides this lease as a template and record-keeping tool between Landlord and Tenant. It is not a party to,
+        AbangananHub provides this agreement as a template and record-keeping tool between Landlord and Tenant. It is not a party to,
         nor liable for, the terms herein, and this template is not legal advice. Reference {{ $terms['reference'] }}
         · issued {{ \Illuminate\Support\Carbon::parse($terms['issued_at'])->format('F j, Y') }}.
     </p>

@@ -5,21 +5,17 @@ namespace App\Http\Controllers\Api\Landlord;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Landlord\StoreWalkInTenantRequest;
 use App\Http\Resources\ReservationResource;
-use App\Models\PropertyUnit;
-use App\Models\Reservation;
 use App\Models\User;
-use App\Services\MoveInPaymentRecorder;
+use App\Services\LeaseContractCreator;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
- * Mobile equivalent of Landlord\WalkInTenantController::store. Reuses the
- * exact same StoreWalkInTenantRequest — its rules are framework validation,
- * not view-coupled, so there's nothing web-specific to fork. See that
- * controller's docblock for why this is the second way a tenancy is born.
+ * Mobile walk-in endpoint: a tenant and their contract in one call. The web form it mirrored was replaced by
+ * Add Tenant + Add contract (Oct 2026); both now go through LeaseContractCreator. Validation is
+ * StoreWalkInTenantRequest, which Add contract's request extends.
  */
 class WalkInTenantController extends Controller
 {
@@ -28,62 +24,10 @@ class WalkInTenantController extends Controller
         $data = $request->validated();
         $landlordId = auth()->id();
 
+        // Same path as the web form (LeaseContractCreator); the tenant is created in the same transaction so a
+        // refused unit leaves no orphaned account. Mobile gets the frozen lease snapshot too.
         $reservation = DB::transaction(function () use ($data, $landlordId) {
-            $unit = PropertyUnit::whereKey($data['unit_id'])->lockForUpdate()->firstOrFail();
-            $property = $unit->property;
-
-            abort_unless($property && $property->landlord_id === $landlordId, 403);
-
-            abort_unless(
-                $unit->verification_status === 'Approved',
-                422,
-                'This unit is still awaiting admin approval.'
-            );
-
-            abort_unless(
-                $unit->availability_status === 'Available',
-                409,
-                'This unit is no longer available.'
-            );
-
-            abort_if(
-                Reservation::where('unit_id', $unit->unit_id)
-                    ->whereNotIn('rental_status', Reservation::TERMINAL_STATUSES)
-                    ->exists(),
-                409,
-                'This unit already has an active reservation.'
-            );
-
-            $tenant = $this->resolveTenant($data, $landlordId);
-
-            // Same rule as the web controller: occupy immediately only if the
-            // move-in date is today or already past, otherwise reserve the
-            // unit until the landlord confirms the actual move-in.
-            $movesInNow = Carbon::parse($data['move_in_date'])->lte(Carbon::today());
-            $status = $movesInNow ? 'Occupied' : 'Reserved';
-
-            $reservation = Reservation::create([
-                'property_id'          => $property->property_id,
-                'unit_id'              => $unit->unit_id,
-                'tenant_id'            => $tenant->user_id,
-                'conversation_id'      => null,
-                'reservation_date'     => now(),
-                'target_move_in_date'  => $data['move_in_date'],
-                'target_move_out_date' => $data['move_out_date'] ?? null,
-                'occupants_count'      => $data['occupants_count'] ?? null,
-                'agreed_monthly_rent'  => $data['agreed_monthly_rent'] ?? $unit->rental_fee,
-                'rent_due_day'         => $data['rent_due_day'] ?? null,
-                'rental_status'        => $status,
-                'remarks'              => $data['notes'] ?? null,
-            ]);
-
-            $unit->update(['availability_status' => $status]);
-
-            if (! empty($data['initial_amount'])) {
-                MoveInPaymentRecorder::record($reservation, $unit, $data, $landlordId);
-            }
-
-            return $reservation;
+            return LeaseContractCreator::create($landlordId, $this->resolveTenant($data, $landlordId), $data);
         });
 
         return response()->json([

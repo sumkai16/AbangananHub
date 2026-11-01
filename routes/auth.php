@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\SocialiteController;
+use App\Http\Controllers\Auth\TenantInviteController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +35,14 @@ Route::middleware('guest')->group(function () {
 
     Route::post('reset-password', [NewPasswordController::class, 'store'])
         ->name('password.store');
+
+    // A tenant the landlord added by hand accepting their invite (App\Support\TenantInvites).
+    Route::get('invite/{token}', [TenantInviteController::class, 'show'])
+        ->name('invite.show');
+
+    Route::post('invite', [TenantInviteController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('invite.store');
 
     Route::get('auth/{provider}/redirect', [SocialiteController::class, 'redirect'])
         ->whereIn('provider', ['google', 'facebook'])

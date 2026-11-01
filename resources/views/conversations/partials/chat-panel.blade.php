@@ -232,9 +232,12 @@
                         </button>
                     </div>
                     <div x-show="showTc" x-transition x-cloak class="mt-2">
-                        <form action="{{ route('landlord.reservations.advanceAgreement', $reservation) }}" method="POST">
+                        <form action="{{ route('landlord.reservations.advanceAgreement', $reservation) }}" method="POST"
+                            x-data="{ agreement: @js($reservation->agreementDefaults()) }">
                             @csrf @method('PATCH')
                             <div class="p-3 bg-[#ECEEF6] rounded-xl border border-[#FF8A66]/20">
+                                <p class="text-[12px] font-semibold text-[#060D26] mb-2">The terms you agreed in this chat</p>
+                                @include('landlord.reservations._agreement-fields', ['idPrefix' => 'agreement_'.$reservation->reservation_id])
                                 @include('landlord.partials._lease-editor', ['reservation' => $reservation])
                                 @if($needsLandlordTc)
                                     <label class="flex items-start gap-2.5 cursor-pointer group mb-3">
