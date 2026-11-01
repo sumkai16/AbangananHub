@@ -35,7 +35,7 @@
 <div x-show="!rating">
 
 <div class="px-6 pt-6 pb-5 border-b border-[#E2E4EC] pr-14">
-    <p class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">{{ $reference ?? 'Contract' }}</p>
+    <p class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">{{ $reference ?? 'Lease' }}</p>
     <h2 class="mt-1 text-[18px] font-normal text-[#060D26]">{{ $tenant->first_name }} {{ $tenant->last_name }}</h2>
     <div class="mt-2 flex flex-wrap items-center gap-2">
         <span class="inline-flex items-center h-6 px-2.5 rounded-full border text-[11px] font-bold {{ $pill }}">{{ $status['label'] }}</span>
@@ -173,10 +173,10 @@
 
     @if($reservation->rental_status === 'Reserved')
         <form method="POST" action="{{ route('landlord.reservations.cancel', $reservation) }}"
-            data-confirm="Cancel this contract?" data-confirm-type="warning"
-            data-confirm-message="{{ $tenant->first_name }} has not moved in yet. The unit goes back to Available." data-confirm-button="Cancel contract" data-confirm-cancel="Keep it">
+            data-confirm="Cancel this lease?" data-confirm-type="warning"
+            data-confirm-message="{{ $tenant->first_name }} has not moved in yet. The unit goes back to Available." data-confirm-button="Cancel lease" data-confirm-cancel="Keep it">
             @csrf @method('PATCH')
-            <button type="submit" class="{{ $ghostBtn }} text-[#B91C1C] cursor-pointer">Cancel contract</button>
+            <button type="submit" class="{{ $ghostBtn }} text-[#B91C1C] cursor-pointer">Cancel lease</button>
         </form>
         <form method="POST" action="{{ route('landlord.reservations.confirmWalkInMoveIn', $reservation) }}"
             data-confirm="Confirm move-in?" data-confirm-message="The unit will be marked Occupied and rent starts." data-confirm-button="Confirm move-in">
@@ -209,7 +209,7 @@
             <a href="{{ route('conversations.index', ['active' => $reservation->conversation_id]) }}" class="{{ $ctaBtn }}">Open chat</a>
         @endif
     @elseif($reservation->rental_status === 'Occupied')
-        <a href="{{ route('landlord.tenancies.show', $reservation) }}#end-tenancy" class="{{ $ghostBtn }} text-[#B91C1C]">End contract</a>
+        <a href="{{ route('landlord.tenancies.show', $reservation) }}#end-tenancy" class="{{ $ghostBtn }} text-[#B91C1C]">End lease</a>
         @if($canRenew)
             <button type="button" @click="renewing = true" x-show="!renewing" class="{{ $ctaBtn }}">Renew</button>
         @endif
@@ -221,7 +221,7 @@
     <form method="POST" action="{{ route('landlord.contracts.renew', $reservation) }}" x-show="renewing" x-cloak
         class="mx-6 mb-6 grid gap-3 rounded-2xl border border-[#E2E4EC] bg-[#F7F8FC] p-4">
         @csrf
-        <p class="text-[13px] font-semibold text-[#060D26]">Renew this contract</p>
+        <p class="text-[13px] font-semibold text-[#060D26]">Renew this lease</p>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
                 <label class="block text-[12px] font-semibold text-[#060D26] mb-1.5" for="renew_end_{{ $reservation->reservation_id }}">New end date</label>
@@ -259,7 +259,7 @@
             <button type="button" @click="rate(false)"
                 class="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#5B6A8E] hover:text-[#060D26] transition-colors duration-200 cursor-pointer">
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
-                Back to contract
+                Back to lease
             </button>
             <h2 class="mt-2 text-[18px] font-normal text-[#060D26]">Rate {{ $tenant->first_name }} {{ $tenant->last_name }}</h2>
             <p class="mt-1 text-[12.5px] text-[#5B6A8E]">{{ $reservation->property->title }} · {{ $reservation->unit->unit_label ?? 'No unit' }}. Other landlords see this when {{ $tenant->first_name }} applies.</p>

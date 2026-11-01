@@ -52,9 +52,9 @@
     </section>
 
     <section aria-labelledby="tenant-contracts">
-        <h3 id="tenant-contracts" class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E] mb-1">Contracts</h3>
+        <h3 id="tenant-contracts" class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E] mb-1">Leases</h3>
         @if($reservations->isEmpty())
-            <p class="text-[13px] text-[#5B6A8E] py-2">No contracts yet.</p>
+            <p class="text-[13px] text-[#5B6A8E] py-2">No leases yet.</p>
         @else
             <ul class="divide-y divide-[#E2E4EC]">
                 @foreach($reservations as $reservation)
@@ -79,6 +79,6 @@
         </form>
     @endif
     @if($status !== 'Active')
-        <a href="{{ route('landlord.contracts.index', ['new' => 1, 'tenant' => $row->landlord_tenant_id]) }}" class="{{ $ctaBtn }}">Add contract</a>
+        <a href="{{ route('landlord.contracts.index', ['new' => 1, 'tenant' => $row->landlord_tenant_id]) }}" class="{{ $ctaBtn }}">Add lease</a>
     @endif
 </div>

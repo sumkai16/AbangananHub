@@ -67,7 +67,7 @@
         {{-- Breadcrumb --}}
         <div class="flex flex-wrap items-center gap-1.5 text-sm text-[#5B6A8E] mb-3">
             <a href="{{ route('landlord.contracts.index') }}"
-                class="hover:text-[#060D26] transition-colors duration-200">Contracts</a>
+                class="hover:text-[#060D26] transition-colors duration-200">Leases</a>
             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
             </svg>
@@ -180,7 +180,7 @@
                 {{-- Lease timeline --}}
                 <div class="p-5 sm:p-6">
                     <div class="flex items-baseline justify-between gap-3">
-                        <h2 class="text-[12px] font-bold uppercase tracking-wide text-[#5B6A8E]">Contract</h2>
+                        <h2 class="text-[12px] font-bold uppercase tracking-wide text-[#5B6A8E]">Lease</h2>
                         <p class="text-[12px] text-[#5B6A8E]">
                             {{ $reservation->duration_of_stay ?? 'Term not recorded' }} &middot; rent due day {{ $summary['dueDay'] }}
                         </p>
@@ -198,7 +198,7 @@
                     </div>
 
                     @if($leaseTotal > 0)
-                        <div class="mt-3 h-2 w-full rounded-full bg-[#ECEEF6] overflow-hidden" role="progressbar" aria-valuemin="0" aria-valuemax="{{ $leaseTotal }}" aria-valuenow="{{ $leaseMonth }}" aria-label="Contract progress">
+                        <div class="mt-3 h-2 w-full rounded-full bg-[#ECEEF6] overflow-hidden" role="progressbar" aria-valuemin="0" aria-valuemax="{{ $leaseTotal }}" aria-valuenow="{{ $leaseMonth }}" aria-label="Lease progress">
                             <div class="h-full rounded-full bg-[#FF8A66]" style="width: {{ round($leaseMonth / $leaseTotal * 100) }}%"></div>
                         </div>
                         <p class="mt-1.5 text-[12px] text-[#5B6A8E]">

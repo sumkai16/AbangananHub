@@ -4,7 +4,7 @@
     $dispatch(event, { url }). Optional include vars: $event, $label.
 --}}
 @php($event = $event ?? 'open-contract')
-@php($label = $label ?? 'Contract details')
+@php($label = $label ?? 'Lease details')
 <div x-data="{
         show: false,
         loading: false,

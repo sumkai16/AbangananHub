@@ -250,7 +250,7 @@
                 </div>
                 <p class="text-[14px] font-semibold text-[#060D26]">Nothing to collect yet</p>
                 <p class="text-[13px] text-[#5B6A8E] mt-1 max-w-md">
-                    Rent tracking starts once a unit is occupied, either through an online booking or a contract you add.
+                    Rent tracking starts once a unit is occupied, either through an online booking or a lease you add.
                 </p>
                 <a href="{{ route('landlord.contracts.index', ['new' => 1]) }}"
                     class="mt-5 inline-flex items-center justify-center h-11 px-5 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">

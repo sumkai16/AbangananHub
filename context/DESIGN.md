@@ -495,10 +495,10 @@ The sidebar's "Rent & Payments" became **Payments**. One tenancy used to be one 
 - **Stage pill tone = whose turn:** amber (`#FBBF24` tint, `#B45309` text) when the landlord acts, navy-on-`#ECEEF6` when the tenant acts, muted grey when closed. The line under the pill says the next step in words ("You reply", "Ana signs", "₱7,000.00 to confirm").
 - **One primary button per row** (Accept / Send agreement / Confirm payment), none while waiting on the tenant. Reject and Cancel are quiet grey text that turns red on hover, so the next step stays the obvious button. Table and phone cards share `_row-actions` so they cannot drift.
 
-## 6t. Words: contract vs rental agreement (Oct 31 2026)
-- **Contract** = the arrangement: tenant, unit, rent, start and end dates, renewals, ending. "Contract progress", "Your contract was renewed", the Contracts page.
+## 6t. Words: lease vs rental agreement (Oct 31 2026, renamed Nov 1 2026)
+- **Lease** = the arrangement: tenant, unit, rent, start and end dates, renewals, ending. "Lease progress", "Your lease was renewed", the Leases page. (It was "Contract" from Oct 31 to Nov 1 2026; changed on request to "Lease", the word renters know.)
 - **Rental agreement** = the paper: the printable page, signing online, the signed copy. Short form "agreement" where it is clear ("Agreement missing", "View & print agreement"). Matches the statuses Pending Rental Agreement / Rental Agreement Signed.
-- Do not write "lease" in new UI text. Code names (`LeaseController`, `LeaseTerms`, `landlord.leases.*`, `lease_snapshot`, `lease_file_*`) keep "lease"; renaming them was not worth the diff. `legal/terms` keeps "party to any lease" as legal wording.
+- Do not write "contract" in new UI text. Code names keep "contract" (`ContractController`, `landlord.contracts.*`, the `/landlord/contracts` URL, `open-contract` events, `contractStatus()`); renaming them was not worth the diff, and old links in notifications keep working. "Lease" code names (`LeaseController`, `landlord.leases.*`, `lease_file_*`) mean the paper, for history reasons. `legal/terms` keeps its legal wording.
 
 ## 7. Components
 - Border radius default: `rounded-2xl` (standard), `rounded-3xl` (hero sections only)

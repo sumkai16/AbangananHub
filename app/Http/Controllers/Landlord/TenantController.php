@@ -98,7 +98,8 @@ class TenantController extends Controller
         return view('landlord.tenants.partials._details', [
             'row' => $landlordTenant,
             'tenant' => $landlordTenant->tenant,
-            'reservations' => $reservations,
+            // Cancelled leases are hidden from the list; status still reads every reservation.
+            'reservations' => $reservations->where('rental_status', '!=', 'Cancelled')->values(),
             'status' => LandlordTenant::statusFrom($reservations->pluck('rental_status')),
             'canEdit' => Gate::allows('update', $landlordTenant),
             'canInvite' => Gate::allows('invite', $landlordTenant),
@@ -167,9 +168,9 @@ class TenantController extends Controller
         });
 
         return match ($result) {
-            'live' => back()->with('error', 'This tenant has a contract or booking in progress. End or cancel it on the Contracts page first.'),
+            'live' => back()->with('error', 'This tenant has a lease or booking in progress. End or cancel it on the Leases page first.'),
             'deleted' => back()->with('success', 'Tenant deleted.'),
-            default => back()->with('success', 'Tenant removed from your list. Their past contracts and payments stay in your records.'),
+            default => back()->with('success', 'Tenant removed from your list. Their past leases and payments stay in your records.'),
         };
     }
 

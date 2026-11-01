@@ -14,7 +14,7 @@
                 <span class="italic text-[#FF8A66]">invited you.</span>
             </h1>
             <p class="text-white/90 font-medium text-xs leading-relaxed mb-6 drop-shadow">
-                Set a password to see your contract and rent, message your landlord and report payments.
+                Set a password to see your lease and rent, message your landlord and report payments.
             </p>
         </div>
     </x-slot>

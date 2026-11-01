@@ -164,7 +164,7 @@ class ContractsPageTest extends TestCase
             ->assertOk()
             ->assertSee('Liza Santos')
             ->assertSee('₱5,000.00')
-            ->assertSee('End contract');
+            ->assertSee('End lease');
 
         $this->actingAs($this->makeLandlord())->get(route('landlord.contracts.show', $contract))->assertForbidden();
     }
@@ -196,7 +196,7 @@ class ContractsPageTest extends TestCase
             ->assertSee(route('landlord.leases.show', $contract), false)
             ->assertSee(route('landlord.leases.upload', $contract), false)
             ->assertDontSee('Open signed copy')
-            ->assertDontSee('View contract');
+            ->assertDontSee('View lease');
     }
 
     public function test_uploading_the_lease_from_the_modal_comes_back_to_it(): void

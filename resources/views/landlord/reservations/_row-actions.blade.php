@@ -32,7 +32,7 @@
 @elseif($report)
     <form method="POST" action="{{ route('landlord.paymentClaims.confirm', $report) }}"
         data-confirm="Confirm ₱{{ number_format((float) $report->amount, 2) }} from {{ $tenantName }}?"
-        data-confirm-message="{{ $report->payment_method }}, reference {{ $report->reference_no }}, paid {{ $report->paid_on->format('M j') }}. Only confirm after you see it in your account. The unit is then held for {{ $tenantName }} and the contract moves to Contracts."
+        data-confirm-message="{{ $report->payment_method }}, reference {{ $report->reference_no }}, paid {{ $report->paid_on->format('M j') }}. Only confirm after you see it in your account. The unit is then held for {{ $tenantName }} and the lease moves to Leases."
         data-confirm-button="Confirm payment">
         @csrf
         <button type="submit" class="{{ $primary }}">Confirm payment</button>

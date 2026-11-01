@@ -195,7 +195,7 @@
                 <p class="text-sm font-semibold text-[#060D26] mb-1">
                     {{ $stage !== 'open' || request()->hasAny(['search', 'property', 'from', 'to']) ? 'No requests match' : 'No open requests' }}
                 </p>
-                <p class="text-[13px] text-[#5B6A8E]">New inquiries from tenants show up here. Signed and paid ones are on <a href="{{ route('landlord.contracts.index') }}" class="font-semibold text-[#060D26] underline underline-offset-2">Contracts</a>.</p>
+                <p class="text-[13px] text-[#5B6A8E]">New inquiries from tenants show up here. Signed and paid ones are on <a href="{{ route('landlord.contracts.index') }}" class="font-semibold text-[#060D26] underline underline-offset-2">Leases</a>.</p>
             </div>
         @else
             @php
@@ -330,7 +330,7 @@
                 {{-- Table footer: showing text + pagination --}}
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-5 py-3.5 border-t border-[#E2E4EC]">
                     <p class="text-[12px] text-[#5B6A8E]">
-                        Showing {{ $reservations->firstItem() }} to {{ $reservations->lastItem() }} of {{ $reservations->total() }} requests &middot; <a href="{{ route('landlord.contracts.index') }}" class="font-semibold text-[#060D26] hover:underline">Moved-in tenants are on Contracts &rarr;</a>
+                        Showing {{ $reservations->firstItem() }} to {{ $reservations->lastItem() }} of {{ $reservations->total() }} requests &middot; <a href="{{ route('landlord.contracts.index') }}" class="font-semibold text-[#060D26] hover:underline">Moved-in tenants are on Leases &rarr;</a>
                     </p>
                     @if($reservations->hasPages())
                         <div>
@@ -415,7 +415,7 @@
                 {{-- Card footer: showing text + pagination --}}
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-5">
                     <p class="text-[12px] text-[#5B6A8E]">
-                        Showing {{ $reservations->firstItem() }} to {{ $reservations->lastItem() }} of {{ $reservations->total() }} requests &middot; <a href="{{ route('landlord.contracts.index') }}" class="font-semibold text-[#060D26] hover:underline">Moved-in tenants are on Contracts &rarr;</a>
+                        Showing {{ $reservations->firstItem() }} to {{ $reservations->lastItem() }} of {{ $reservations->total() }} requests &middot; <a href="{{ route('landlord.contracts.index') }}" class="font-semibold text-[#060D26] hover:underline">Moved-in tenants are on Leases &rarr;</a>
                     </p>
                     @if($reservations->hasPages())
                         <div>

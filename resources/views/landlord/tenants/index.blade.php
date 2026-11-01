@@ -28,7 +28,7 @@
         x-data="{}"
         x-init="@if($errors->any() && old('_form') === 'tenant') $nextTick(() => $dispatch('open-tenant-form', @js(old('_action') ? ['action' => old('_action')] : []))); @endif">
 
-        <x-page-header title="My Tenants" subtitle="Everyone you rent to. Add a tenant first, then give them a contract.">
+        <x-page-header title="My Tenants" subtitle="Everyone you rent to. Add a tenant first, then give them a lease.">
             <x-slot:icon>
                 <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
@@ -50,8 +50,8 @@
 
         <div class="stat-chips grid grid-cols-3 gap-3 mb-4">
             <x-stat-card label="Total" :value="$stats['total']" :href="route('landlord.tenants.index')" sub="On your list" />
-            <x-stat-card label="Active" :value="$stats['active']" value-color="#15803D" :href="route('landlord.tenants.index', ['status' => 'active'])" sub="Have a contract" />
-            <x-stat-card label="Pending" :value="$stats['pending']" value-color="#B45309" :href="route('landlord.tenants.index', ['status' => 'pending'])" sub="No contract yet" />
+            <x-stat-card label="Active" :value="$stats['active']" value-color="#15803D" :href="route('landlord.tenants.index', ['status' => 'active'])" sub="Have a lease" />
+            <x-stat-card label="Pending" :value="$stats['pending']" value-color="#B45309" :href="route('landlord.tenants.index', ['status' => 'pending'])" sub="No lease yet" />
         </div>
 
         <form method="GET" action="{{ route('landlord.tenants.index') }}" class="bg-white rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-4 mb-5">
@@ -73,7 +73,7 @@
 
         @if($rows->isEmpty())
             <x-empty-state title="{{ request()->hasAny(['search', 'status', 'property']) ? 'No tenants match' : 'No tenants yet' }}"
-                message="Add a tenant with their contact and emergency details. They show as Pending until you give them a contract.">
+                message="Add a tenant with their contact and emergency details. They show as Pending until you give them a lease.">
                 <x-slot:icon>
                     <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
                 </x-slot:icon>

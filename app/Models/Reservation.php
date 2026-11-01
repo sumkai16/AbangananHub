@@ -964,7 +964,7 @@ class Reservation extends Model
             'Pending Rental Agreement' => ['label' => 'Agreement sent', 'next' => $tenant.' signs', 'tone' => 'info'],
             'Rejected' => ['label' => 'Rejected', 'next' => $this->rejection_reason ?: 'You declined', 'tone' => 'muted'],
             'Cancelled' => ['label' => 'Cancelled', 'next' => 'Closed', 'tone' => 'muted'],
-            default => ['label' => $this->rental_status, 'next' => 'On the Contracts page', 'tone' => 'muted'],
+            default => ['label' => $this->rental_status, 'next' => 'On the Leases page', 'tone' => 'muted'],
         };
     }
 

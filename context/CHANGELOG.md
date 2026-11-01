@@ -2,6 +2,22 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 1 2026 — Add lease modal redesigned (branch `emman`)
+`landlord/contracts/partials/_add-modal`. Same field names and controller; view only. **Not verified in a browser.**
+- Header and footer stay put; only the form scrolls (the Create button used to scroll off the bottom). Phones: bottom sheet, full-width buttons.
+- Desktop (`lg+`): 960px wide, two plain columns that fit without scrolling. No section headings, step numbers, dividers or helper paragraphs: labels and spacing carry the structure. Left: tenant, property + unit, dates, rent / due day / occupants. Right: additional terms, signed agreement, payment. `overflow-y-auto` stays only as a fallback for short windows. Phones and tablets: one scrolling column, same order.
+- Property and Unit are two dropdowns: Unit lists only that property's free units, is disabled until a property is picked, and auto-picks a property's only free unit. The form blocks submit with "Choose a unit." when none is picked. One muted line under them shows the unit's listed rent, deposit and occupancy limit.
+- Signed agreement is a two-option segmented toggle (Upload later / Upload now); Upload now adds a one-line file picker.
+- Move-in payment is one row, "Tenant already paid me" + a switch (a required notice instead once the move-in date has passed). The explanation and "Use ₱X (deposit + 1 month)" appear only once it is on.
+- The footer shows rent and lease length.
+
+## Nov 1 2026 — "Contract" renamed "Lease" in the UI (branch `emman`)
+Why: requested; "lease" is the word renters know. Same split as before (DESIGN.md §6t): **lease** = the arrangement, **rental agreement** = the paper. UI text only: routes, URLs (`/landlord/contracts`), classes, events and columns keep "contract".
+- Landlord: sidebar and page "Leases", Add / Create / Cancel / End / Renew lease, "Lease details", "Back to lease", the tenancy page's "Lease" heading and "Lease progress", Tenants page ("Have a lease", "No lease yet", the Leases section, delete warnings), Payments and Property empty states, Reservations links, the Rent rules hint.
+- Messages: "Lease added", "Lease renewed", the renewal notification ("Your lease was renewed"), the add/agreement validation errors, the tenant-delete errors, the `Reservation` hint "On the Leases page".
+- Public: About page, invite email and accept-invite page ("your lease and rent").
+- Tests updated: `ContractsPageTest`, `ContractRenewalTest`. **Not verified in a browser.** `TenantConcernsTest` has 3 failures (chat panel returns 500) that predate this change.
+
 ## Oct 31 2026 — axci merged; online (PayMongo) reservation payments work in the pipeline (branch `emman`)
 Plan: `plans/axci-merge-online-reservation-payments.md`. No migrations. **Not verified in a browser.**
 - **Merge of `origin/axci`:** phone layouts and "Remind overdue" on Payments come in; emman's Tenants, Contracts, Payments (ledger links) and Reservations win. The walk-in wizard and rate-tenant page stay deleted.
