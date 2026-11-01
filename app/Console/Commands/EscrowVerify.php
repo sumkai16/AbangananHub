@@ -77,6 +77,7 @@ class EscrowVerify extends Command
             $this->checkAutoRelease();
             $this->checkHumanActions();
             $this->checkAdminRelease();
+            $this->checkDepositGroup();
             $this->checkAuthorization();
         } finally {
             $this->restoreRealRows();
@@ -506,6 +507,68 @@ class EscrowVerify extends Command
                 ->exists();
 
             return $this->eq($inQueue, true, 'present in queue');
+        });
+    }
+
+    /** An online move-in is rent + deposit rows from one checkout; every exit from escrow must move both. */
+    private function checkDepositGroup(): void
+    {
+        $this->group = 'RENT + DEPOSIT (one checkout)';
+
+        $rows = fn (Reservation $r) => Payment::where('reservation_id', $r->reservation_id)->orderBy('payment_id')->get();
+
+        $this->check('auto-release releases both rows and owes both to the landlord', function () use ($rows) {
+            $r = $this->scenario('g-auto', [
+                'deposit' => 3000,
+                'keys_turned_over_at' => now()->subDays(8),
+                'move_in_deadline_at' => today()->subDay()->addHours(9),
+            ]);
+
+            $this->runNightly();
+            $p = $rows($r);
+
+            return $this->all([
+                $this->eq($p->pluck('status')->all(), ['Released', 'Released'], 'statuses'),
+                $this->eq($p->pluck('release_reason')->unique()->values()->all(), ['auto_expiry'], 'release_reason'),
+                $this->eq($p->every(fn ($x) => $x->payout_owed_at !== null), true, 'both owed to the landlord'),
+                $this->eq((float) $p->sum('amount'), 8000.0, 'payout would be rent + deposit'),
+            ]);
+        });
+
+        $this->check('the tenant confirming move-in releases both rows', function () use ($rows) {
+            $r = $this->scenario('g-confirm', [
+                'deposit' => 3000,
+                'keys_turned_over_at' => now()->subDays(2),
+                'move_in_deadline_at' => now()->addDays(5),
+            ]);
+
+            DB::transaction(function () use ($r) {
+                $locked = Reservation::whereKey($r->reservation_id)->lockForUpdate()->first();
+                $locked->confirmMoveIn();
+            });
+            $p = $rows($r);
+
+            return $this->all([
+                $this->eq($p->pluck('status')->all(), ['Released', 'Released'], 'statuses'),
+                $this->eq($p->pluck('release_reason')->unique()->values()->all(), ['tenant_confirmed'], 'release_reason'),
+                $this->eq($r->fresh()->rental_status, 'Occupied', 'rental_status'),
+            ]);
+        });
+
+        $this->check('an admin releasing the deposit row releases the rent row too', function () use ($rows) {
+            $r = $this->scenario('g-admin', [
+                'deposit' => 3000,
+                'keys_turned_over_at' => now()->subDays(2),
+                'move_in_deadline_at' => now()->addDays(5),
+            ]);
+
+            $err = $this->adminRelease($rows($r)->last());
+            $p = $rows($r);
+
+            return $this->all([
+                $this->eq($p->pluck('status')->all(), ['Released', 'Released'], 'statuses'),
+                $this->eq($p->pluck('release_reason')->unique()->values()->all(), ['admin_manual'], 'release_reason'),
+            ], $err);
         });
     }
 

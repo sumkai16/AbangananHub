@@ -199,7 +199,7 @@
                         </div>
                     </x-form-section>
 
-                    <x-form-section title="Standard lease terms" description="Private to you. Not shown on the listing.">
+                    <x-form-section title="Standard agreement terms" description="Private to you. Not shown on the listing.">
                         <x-slot:icon>{!! $ico('M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z') !!}</x-slot:icon>
 
                         <div>
@@ -209,9 +209,21 @@
                                 class="w-full px-3.5 py-3 rounded-xl border border-[#E2E4EC] bg-white text-[14px] text-[#060D26] leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/25 focus:border-[#FF8A66] transition-all duration-200">{{ old('default_lease_terms', $property->default_lease_terms) }}</textarea>
                             @error('default_lease_terms')<p class="{{ $error }}">{{ $message }}</p>@enderror
                         </div>
+
+                        <div class="mt-5 border-t border-[#E2E4EC] pt-5">
+                            <p class="{{ $label }}">Policy</p>
+                            <p class="text-[13px] text-[#060D26]">
+                                {{ $property->leaseTemplate?->name ?? 'Standard policy' }}
+                                <span class="text-[#5B6A8E]">&middot; units can use their own.</span>
+                                <a href="{{ route('landlord.leases.index', ['property' => $property->property_id]) }}" class="ml-1 font-semibold text-[#060D26] underline underline-offset-2">Change in Lease policies</a>
+                            </p>
+                            @if($property->leaseTemplate && ($property->leaseTemplate->rent_grace_days !== null || $property->leaseTemplate->late_fee_type !== null))
+                                <p class="mt-1 text-[12px] text-[#B45309]">This policy sets its own rent rules, so the rent rules below apply only to units on another policy.</p>
+                            @endif
+                        </div>
                     </x-form-section>
 
-                    <x-form-section title="Rent rules" description="Private to you. Each lease keeps the rules that were in force when it was sent.">
+                    <x-form-section title="Rent rules" description="Private to you. Each contract keeps the rules that were in force when it was sent.">
                         <x-slot:icon>{!! $ico('M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z') !!}</x-slot:icon>
 
                         <div x-data="{

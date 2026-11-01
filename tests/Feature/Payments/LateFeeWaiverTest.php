@@ -93,7 +93,7 @@ class LateFeeWaiverTest extends TestCase
         // The row payload is Js::from() JSON in an attribute; the key only appears there when the landlord may waive.
         $waiveKey = 'waive_action\\u0022';
 
-        $this->actingAs($t['landlord'])->get(route('landlord.tenancies.show', $t['reservation']))
+        $this->actingAs($t['landlord'])->get(route('landlord.payments.ledger', $t['reservation']))
             ->assertOk()->assertSee('incl. ₱100.00 late fee')->assertSee($waiveKey, false);
         $this->actingAs($t['tenant'])->get(route('tenancy.show', $t['reservation']))
             ->assertOk()->assertSee('incl. ₱100.00 late fee')->assertDontSee($waiveKey, false);

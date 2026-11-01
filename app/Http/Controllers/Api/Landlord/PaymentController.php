@@ -8,6 +8,7 @@ use App\Models\Property;
 use App\Models\Reservation;
 use App\Services\RentLedger;
 use App\Services\RentPaymentRecorder;
+use App\Support\BusinessTime;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -92,7 +93,7 @@ class PaymentController extends Controller
             'billing_period' => ['required_if:payment_type,Monthly', 'nullable', 'date'],
             'amount'         => ['required', 'numeric', 'min:1', 'max:1000000'],
             'payment_method' => ['required', Rule::in(self::METHODS)],
-            'paid_at'        => ['required', 'date', 'before_or_equal:today'],
+            'paid_at'        => ['required', 'date', 'before_or_equal:' . BusinessTime::today()],
             'reference_no'   => ['nullable', 'string', 'max:255'],
             'payment_notes'  => ['nullable', 'string', 'max:1000'],
             // Set only by the "void and record a correction" flow, same as the web form.

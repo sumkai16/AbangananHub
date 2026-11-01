@@ -66,6 +66,45 @@
             <p class="text-[13.5px] text-[#060D26] leading-relaxed whitespace-pre-line">{{ $report->report_reason }}</p>
         </x-card>
 
+        {{-- Payment dispute: the evidence in one place, and the landlord's record --}}
+        @if($claim)
+            @php
+                $dispReservation = $claim->reservation;
+                $dispWhat = $claim->claim_type === 'MoveIn' ? 'Move-in payment' : 'Rent for '.$claim->billing_period?->format('F Y');
+            @endphp
+            <x-card class="mb-4">
+                <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-3">Payment dispute</p>
+                <dl class="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-[13px]">
+                    <div class="flex justify-between gap-3"><dt class="text-[#94A3B8]">What</dt><dd class="font-semibold text-[#060D26]">{{ $dispWhat }}</dd></div>
+                    <div class="flex justify-between gap-3"><dt class="text-[#94A3B8]">Amount</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($claim->amount, 2) }}</dd></div>
+                    <div class="flex justify-between gap-3"><dt class="text-[#94A3B8]">Method</dt><dd class="font-semibold text-[#060D26]">{{ $claim->payment_method }}</dd></div>
+                    <div class="flex justify-between gap-3"><dt class="text-[#94A3B8]">Reference</dt><dd class="font-mono font-semibold text-[#060D26]">{{ $claim->reference_no ?? 'None (cash)' }}</dd></div>
+                    <div class="flex justify-between gap-3"><dt class="text-[#94A3B8]">Paid on</dt><dd class="font-semibold text-[#060D26]">{{ $claim->paid_on->format('M d, Y') }}</dd></div>
+                    <div class="flex justify-between gap-3"><dt class="text-[#94A3B8]">Landlord rejected</dt><dd class="font-semibold text-[#060D26]">{{ $claim->decided_at?->format('M d, Y') ?? '—' }}</dd></div>
+                </dl>
+                @if($claim->note)<p class="mt-2 text-[12.5px] italic text-[#5B6A8E]">Tenant&rsquo;s note: &ldquo;{{ $claim->note }}&rdquo;</p>@endif
+                <p class="mt-2 text-[13px] text-[#060D26]"><span class="text-[#94A3B8]">Landlord&rsquo;s reason:</span> &ldquo;{{ $claim->rejection_reason }}&rdquo;</p>
+
+                @if($landlordRecord)
+                    <div class="mt-3 rounded-xl border px-3 py-2.5 text-[12.5px] {{ $landlordRecord['disputed'] > 1 ? 'border-[#EF4444]/30 bg-[#EF4444]/[0.05] text-[#B91C1C]' : 'border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26]' }}">
+                        <span class="font-bold">This landlord&rsquo;s record:</span>
+                        {{ $landlordRecord['confirmed'] }} reports confirmed, {{ $landlordRecord['rejected'] }} rejected,
+                        <span class="font-bold">{{ $landlordRecord['disputed'] }} sent to admin</span>{{ $landlordRecord['disputed'] > 1 ? ' — a pattern worth acting on.' : '.' }}
+                    </div>
+                @endif
+
+                <div class="mt-3 flex flex-wrap gap-2 text-[12.5px] font-bold">
+                    @if($dispReservation)
+                        <a href="{{ route('admin.reservations.show', $dispReservation) }}" class="rounded-lg border border-[#E2E4EC] bg-white px-3 py-2 text-[#060D26] hover:bg-[#F7F8FC] transition-colors">Open reservation #{{ $dispReservation->reservation_id }}</a>
+                        @if($dispReservation->conversation_id)
+                            <a href="{{ route('admin.conversations.show', $dispReservation->conversation_id) }}" class="rounded-lg border border-[#E2E4EC] bg-white px-3 py-2 text-[#060D26] hover:bg-[#F7F8FC] transition-colors">Read the chat</a>
+                        @endif
+                    @endif
+                </div>
+                <p class="mt-3 text-[12px] text-[#5B6A8E]">This money went straight to the landlord, so AbangananHub cannot refund it. The actions below act on the landlord&rsquo;s account or listing.</p>
+            </x-card>
+        @endif
+
         {{-- Actions --}}
         @if($report->isPending())
             <x-card>
@@ -92,6 +131,7 @@
                         @php
                             $actionTakenOptions = ['none' => 'No action needed'];
                             if ($report->reported_user_id || $report->property) {
+                                $actionTakenOptions['warn_user'] = 'Warn reported user (notification, no suspension)';
                                 $actionTakenOptions['suspend_user'] = "Suspend reported user's account";
                             }
                             if ($report->property) {

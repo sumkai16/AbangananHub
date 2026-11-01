@@ -20,6 +20,18 @@ class PaymentClaimController extends Controller
 
         PaymentClaims::confirm($claim, $request->user());
 
+        // "Confirm payment & move-in": one button when the move-in date has come, so the landlord isn't
+        // asked to confirm the same handover in a second step. The payment stays confirmed either way.
+        if ($request->boolean('and_move_in') && $claim->claim_type === 'MoveIn') {
+            $reservation = $claim->reservation->fresh();
+
+            if (Gate::allows('confirmDirectMoveIn', $reservation) && $this->occupy($reservation, false)) {
+                return back()->with('success', 'Payment confirmed and move-in started.');
+            }
+
+            return back()->with('success', 'Payment confirmed. Confirm move-in once the keys are handed over.');
+        }
+
         return back()->with('success', 'Payment confirmed. It now counts as paid.');
     }
 
@@ -62,7 +74,16 @@ class PaymentClaimController extends Controller
 
         $byTenant = $request->user()->user_id === $reservation->tenant_id;
 
-        $done = DB::transaction(function () use ($reservation, $byTenant) {
+        if (! $this->occupy($reservation, $byTenant)) {
+            return back()->with('error', 'Move-in cannot be confirmed right now.');
+        }
+
+        return back()->with('success', 'Move-in confirmed.');
+    }
+
+    private function occupy(Reservation $reservation, bool $byTenant): bool
+    {
+        return DB::transaction(function () use ($reservation, $byTenant) {
             $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();
 
             if (! $locked->markOccupied($byTenant)) {
@@ -74,11 +95,5 @@ class PaymentClaimController extends Controller
 
             return true;
         });
-
-        if (! $done) {
-            return back()->with('error', 'Move-in cannot be confirmed right now.');
-        }
-
-        return back()->with('success', 'Move-in confirmed.');
     }
 }

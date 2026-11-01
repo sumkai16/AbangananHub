@@ -9,7 +9,9 @@
         'Under Negotiation'        => ['label' => 'Negotiation',       'dot' => 'bg-[#FF8A66]'],
         'Pending Rental Agreement' => ['label' => 'Pending Agreement', 'dot' => 'bg-[#FBBF24]'],
         'Rental Agreement Signed'  => ['label' => 'Agreement Signed',  'dot' => 'bg-[#FF8A66]'],
+        'Reserved'                 => ['label' => 'Reserved',          'dot' => 'bg-[#FF8A66]'],
         'Occupied'                 => ['label' => 'Occupied',          'dot' => 'bg-[#22C55E]'],
+        'Completed'                => ['label' => 'Completed',         'dot' => 'bg-[#94A3B8]'],
         'Cancelled'                => ['label' => 'Cancelled',         'dot' => 'bg-[#94A3B8]'],
         'Rejected'                 => ['label' => 'Rejected',          'dot' => 'bg-[#EF4444]'],
     ];
@@ -19,7 +21,9 @@
         'Under Negotiation'        => 'bg-[#ECEEF6] text-[#060D26] border-[#FF8A66]/25',
         'Pending Rental Agreement' => 'bg-[#FBBF24]/[0.10] text-[#B45309] border-[#FBBF24]/35',
         'Rental Agreement Signed'  => 'bg-[#ECEEF6] text-[#060D26] border-[#FF8A66]/25',
+        'Reserved'                 => 'bg-[#ECEEF6] text-[#060D26] border-[#FF8A66]/25',
         'Occupied'                 => 'bg-[#22C55E]/[0.07] text-[#15803D] border-[#22C55E]/25',
+        'Completed'                => 'bg-[#F7F8FC] text-[#5B6A8E] border-[#E2E4EC]',
         'Cancelled'                => 'bg-[#F7F8FC] text-[#94A3B8] border-[#E2E4EC]',
         'Rejected'                 => 'bg-[#EF4444]/[0.07] text-[#DC2626] border-[#EF4444]/25',
     ];
@@ -57,7 +61,7 @@
             </x-slot:icon>
         </x-stat-card>
 
-        <x-stat-card label="In Progress" :value="number_format($counts['Inquiry'] + $counts['Under Negotiation'] + $counts['Pending Rental Agreement'] + $counts['Rental Agreement Signed'])"
+        <x-stat-card label="In Progress" :value="number_format($counts['Inquiry'] + $counts['Under Negotiation'] + $counts['Pending Rental Agreement'] + $counts['Rental Agreement Signed'] + $counts['Reserved'])"
             value-color="#060D26" icon-bg="#ECEEF6" sub="Active pipeline">
             <x-slot:icon>
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
@@ -67,7 +71,7 @@
             </x-slot:icon>
         </x-stat-card>
 
-        <x-stat-card label="Closed" :value="number_format($counts['Cancelled'] + $counts['Rejected'])" value-color="#DC2626" icon-bg="rgba(239,68,68,0.07)" sub="Cancelled + Rejected">
+        <x-stat-card label="Closed" :value="number_format($counts['Cancelled'] + $counts['Rejected'] + $counts['Completed'])" value-color="#DC2626" icon-bg="rgba(239,68,68,0.07)" sub="Cancelled, Rejected, Completed">
             <x-slot:icon>
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />

@@ -25,7 +25,7 @@
     <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#FF8A66] focus:text-[#060D26] focus:font-semibold">Skip to main content</a>
 
     <header id="site-header" x-data="{ mobileNavOpen: false }"
-        class="bg-white border-b border-[#E2E4EC] sticky top-0 z-[100] transition-all duration-300">
+        class="print:hidden bg-white border-b border-[#E2E4EC] sticky top-0 z-[100] transition-all duration-300">
 
         {{-- 1. Nav Row --}}
         @php
@@ -537,7 +537,7 @@
          (@section('sticky_search')) so search + filters stay put on desktop while only the listings scroll. z-[60] keeps the search
          pill's dropdowns above the listings but under the sticky header (z-[100]). --}}
     @if(($searchBar ?? true) && !View::hasSection('hide_search'))
-        <div id="header-search-expanded" class="{{ View::hasSection('sticky_search') ? 'relative lg:sticky lg:top-[64px]' : 'relative' }} z-[60] bg-white border-b border-[#E2E4EC]">
+        <div id="header-search-expanded" class="print:hidden {{ View::hasSection('sticky_search') ? 'relative lg:sticky lg:top-[64px]' : 'relative' }} z-[60] bg-white border-b border-[#E2E4EC]">
             <div class="bg-[#060D26]">
                 <div id="browse-search-pill" class="max-w-[1400px] mx-auto flex justify-center px-4 sm:px-6 py-5">
                     <x-ai-search-box variant="header" />
@@ -555,78 +555,81 @@
         @yield('content')
     </main>
 
-    <footer class="bg-[#060D26] mt-auto">
-        <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-8">
+    <footer class="print:hidden bg-[#060D26] mt-auto">
+        <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 pb-[max(2rem,env(safe-area-inset-bottom))]">
 
-            {{-- Logo --}}
-            <a href="{{ route('home') }}" class="inline-flex items-center gap-2.5 no-underline mb-10">
-                <x-brand-logo tone="on-dark" mark="w-8 h-8" text="text-[16px]" />
-            </a>
+            {{-- Brand --}}
+            <div class="mb-8 sm:mb-10">
+                <a href="{{ route('home') }}" class="inline-flex items-center gap-2.5 no-underline">
+                    <x-brand-logo tone="on-dark" mark="w-8 h-8" text="text-[16px]" />
+                </a>
+                <p class="mt-3 max-w-[34ch] text-[13.5px] leading-relaxed text-white/60">Verified rentals across Cebu, from the first message to move-in.</p>
+            </div>
 
             {{-- Link columns --}}
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-x-8 gap-y-10 pb-12">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-x-6 sm:gap-x-8 gap-y-8 sm:gap-y-10 pb-8 sm:pb-12 max-sm:[&>*:last-child:nth-child(odd)]:col-span-2">
 
                 <div>
-                    <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-4">Explore</p>
-                    <ul class="space-y-3 text-[14px]">
-                        <li><a href="{{ route('home') }}" class="text-white/75 hover:text-white transition-colors">Home</a></li>
-                        <li><a href="{{ route('properties.index') }}" class="text-white/75 hover:text-white transition-colors">Browse Properties</a></li>
-                        <li><a href="{{ route('about') }}" class="text-white/75 hover:text-white transition-colors">About Us</a></li>
+                    <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-2">Explore</p>
+                    <ul class="text-[14px] leading-snug">
+                        <li><a href="{{ route('home') }}" class="block py-2 text-white/75 hover:text-white transition-colors">Home</a></li>
+                        <li><a href="{{ route('properties.index') }}" class="block py-2 text-white/75 hover:text-white transition-colors">Browse Properties</a></li>
+                        <li><a href="{{ route('about') }}" class="block py-2 text-white/75 hover:text-white transition-colors">About Us</a></li>
                     </ul>
                 </div>
 
                 @auth
                     <div>
-                        <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-4">For Tenants</p>
-                        <ul class="space-y-3 text-[14px]">
-                            <li><a href="{{ route('favorites.index') }}" class="text-white/75 hover:text-white transition-colors">Saved Listings</a></li>
-                            <li><a href="{{ route('conversations.index') }}" class="text-white/75 hover:text-white transition-colors">Messages</a></li>
-                            <li><a href="{{ route('reservations.index') }}" class="text-white/75 hover:text-white transition-colors">My Reservations</a></li>
-                            <li><a href="{{ route('reports.create') }}" class="text-white/75 hover:text-white transition-colors">Report a Problem</a></li>
+                        <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-2">For Tenants</p>
+                        <ul class="text-[14px] leading-snug">
+                            <li><a href="{{ route('favorites.index') }}" class="block py-2 text-white/75 hover:text-white transition-colors">Saved Listings</a></li>
+                            <li><a href="{{ route('conversations.index') }}" class="block py-2 text-white/75 hover:text-white transition-colors">Messages</a></li>
+                            <li><a href="{{ route('reservations.index') }}" class="block py-2 text-white/75 hover:text-white transition-colors">My Reservations</a></li>
+                            <li><a href="{{ route('reports.create') }}" class="block py-2 text-white/75 hover:text-white transition-colors">Report a Problem</a></li>
                         </ul>
                     </div>
                 @endauth
 
                 @auth
                     <div>
-                        <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-4">For Landlords</p>
-                        <ul class="space-y-3 text-[14px]">
+                        <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-2">For Landlords</p>
+                        <ul class="text-[14px] leading-snug">
                             @php $hasVerification = auth()->user()->verificationApplication !== null; @endphp
-                            <li><a href="{{ route($hasVerification ? 'landlord.verification.show' : 'landlord.verification.create') }}" class="text-white/75 hover:text-white transition-colors">{{ $hasVerification ? 'Verification status' : 'Become a Landlord' }}</a></li>
-                            <li><a href="{{ route('landlord.dashboard') }}" class="text-white/75 hover:text-white transition-colors">Landlord Dashboard</a></li>
-                            <li><a href="{{ route('landlord.analytics.index') }}" class="text-white/75 hover:text-white transition-colors">Analytics &amp; Occupancy</a></li>
+                            <li><a href="{{ route($hasVerification ? 'landlord.verification.show' : 'landlord.verification.create') }}" class="block py-2 text-white/75 hover:text-white transition-colors">{{ $hasVerification ? 'Verification status' : 'Become a Landlord' }}</a></li>
+                            <li><a href="{{ route('landlord.dashboard') }}" class="block py-2 text-white/75 hover:text-white transition-colors">Landlord Dashboard</a></li>
+                            <li><a href="{{ route('landlord.analytics.index') }}" class="block py-2 text-white/75 hover:text-white transition-colors">Analytics &amp; Occupancy</a></li>
                         </ul>
                     </div>
                 @endauth
 
                 <div>
-                    <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-4">Company</p>
-                    <ul class="space-y-3 text-[14px]">
-                        <li><a href="{{ route('privacy') }}" class="text-white/75 hover:text-white transition-colors">Privacy Policy</a></li>
-                        <li><a href="{{ route('terms') }}" class="text-white/75 hover:text-white transition-colors">Terms of Service</a></li>
-                        <li><a href="#" class="text-white/75 hover:text-white transition-colors">Help Center</a></li>
+                    <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-2">Company</p>
+                    <ul class="text-[14px] leading-snug">
+                        <li><a href="{{ route('privacy') }}" class="block py-2 text-white/75 hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="{{ route('terms') }}" class="block py-2 text-white/75 hover:text-white transition-colors">Terms of Service</a></li>
+                        <li><a href="#" class="block py-2 text-white/75 hover:text-white transition-colors">Help Center</a></li>
                     </ul>
                 </div>
 
                 <div>
-                    <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-4">Social</p>
-                    <ul class="space-y-3 text-[14px]">
-                        <li><a href="#" class="text-white/75 hover:text-white transition-colors">Facebook</a></li>
-                        <li><a href="#" class="text-white/75 hover:text-white transition-colors">Instagram</a></li>
-                        <li><a href="#" class="text-white/75 hover:text-white transition-colors">X (Twitter)</a></li>
+                    <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-2">Social</p>
+                    <ul class="text-[14px] leading-snug">
+                        <li><a href="#" class="block py-2 text-white/75 hover:text-white transition-colors">Facebook</a></li>
+                        <li><a href="#" class="block py-2 text-white/75 hover:text-white transition-colors">Instagram</a></li>
+                        <li><a href="#" class="block py-2 text-white/75 hover:text-white transition-colors">X (Twitter)</a></li>
                     </ul>
                 </div>
             </div>
 
             {{-- Bottom bar --}}
-            <div class="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <p class="text-[13px] text-white/60 text-center sm:text-left">
+            <div class="pt-6 border-t border-white/10 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                <p class="text-[13px] text-white/60">
                     &copy; {{ date('Y') }} AbangananHub. All rights reserved.
                 </p>
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 text-[12px] font-semibold text-white/70">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66]"></span>
+                <p class="inline-flex items-center gap-2 text-[12.5px] text-white/60">
+                    <span class="w-1.5 h-1.5 shrink-0 rounded-full bg-[#FF8A66]" aria-hidden="true"></span>
                     Supporting UN SDG 11 &middot; Cebu, Philippines
-                </span>
+                </p>
             </div>
         </div>
     </footer>

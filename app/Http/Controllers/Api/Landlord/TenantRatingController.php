@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Landlord;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Models\Notification;
 use App\Models\Reservation;
 use App\Models\TenantRating;
 use Illuminate\Http\JsonResponse;
@@ -62,6 +63,15 @@ class TenantRatingController extends Controller
             'rating'         => $validated['rating'],
             'comment'        => $validated['comment'] ?? null,
         ]);
+
+        $reservation->loadMissing('tenant');
+        Notification::notify(
+            $reservation->tenant?->is_walk_in ? null : $reservation->tenant_id,
+            'tenant_rating',
+            'You received a rating',
+            'Your landlord left a '.$validated['rating'].'-star rating on your tenancy.',
+            route('tenancy.show', $reservation),
+        );
 
         return response()->json(['data' => $rating], 201);
     }

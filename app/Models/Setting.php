@@ -34,8 +34,8 @@ class Setting extends Model
      * renders from it and UpdateSettingsRequest validates against it, so an admin
      * cannot set a grace period to -5 or to "banana".
      *
-     * `type` is 'integer', 'integer_list' (a comma-separated list, stored as text
-     * and cast back on read) or 'boolean' (stored as '1' / '0').
+     * `type` is 'integer', 'decimal' (two places, e.g. a fee), 'integer_list' (a comma-separated list,
+     * stored as text and cast back on read) or 'boolean' (stored as '1' / '0').
      */
     public const DEFINITIONS = [
         'online_payments_enabled' => [
@@ -45,6 +45,33 @@ class Setting extends Model
             'unit'  => 'on / off',
             'type'  => 'boolean',
             'rule'  => ['in:0,1'],
+            // Shown in the confirmation before the switch is turned off.
+            'off_warning' => 'Tenants will only be able to pay their landlord directly. Payments already held, refunds and payouts keep working.',
+        ],
+        'automatic_payouts_enabled' => [
+            'group' => self::GROUP_PAYMENTS,
+            'label' => 'Automatic payouts',
+            'help'  => 'On: what landlords are owed is sent to their GCash through PayMongo as soon as it is payable. Off (manual mode): nothing is sent; you pay landlords by hand and press Mark Paid Out on the Payouts page. Turn it off while PayMongo cannot send to GCash. Transfers PayMongo is already processing still finish.',
+            'unit'  => 'on / off',
+            'type'  => 'boolean',
+            'rule'  => ['in:0,1'],
+            'off_warning' => 'Landlords will not be paid automatically. What they are owed stays owed, and you pay them by hand with Mark Paid Out on the Payouts page.',
+        ],
+        'online_payment_fee_percent' => [
+            'group' => self::GROUP_PAYMENTS,
+            'label' => 'Online payment fee (percent)',
+            'help'  => 'Charged to the tenant on top of the rent for each online checkout (move-in and monthly rent), as a share of the rent. It covers what PayMongo takes. Direct and cash payments never carry it. Leave both fee fields at 0 for no fee.',
+            'unit'  => '% of the rent',
+            'type'  => 'decimal',
+            'rule'  => ['numeric', 'min:0', 'max:20'],
+        ],
+        'online_payment_fee_fixed' => [
+            'group' => self::GROUP_PAYMENTS,
+            'label' => 'Online payment fee (fixed)',
+            'help'  => 'A flat amount added to the percentage fee on every online checkout. The deposit is never counted in the percentage, only the rent.',
+            'unit'  => 'pesos per payment',
+            'type'  => 'decimal',
+            'rule'  => ['numeric', 'min:0', 'max:500'],
         ],
         'move_in_confirmation_days' => [
             'group' => self::GROUP_ESCROW,
@@ -199,6 +226,10 @@ class Setting extends Model
             return (bool) (int) $value;
         }
 
+        if (self::DEFINITIONS[$key]['type'] === 'decimal') {
+            return (float) $value;
+        }
+
         return (int) $value;
     }
 
@@ -207,6 +238,7 @@ class Setting extends Model
         return match (self::DEFINITIONS[$key]['type']) {
             'integer_list' => implode(',', array_map('intval', (array) $value)),
             'boolean' => filter_var($value, FILTER_VALIDATE_BOOLEAN) ? '1' : '0',
+            'decimal' => (string) round((float) $value, 2),
             default => (string) (int) $value,
         };
     }

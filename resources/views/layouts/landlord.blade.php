@@ -94,7 +94,7 @@
 
     <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#060D26] focus:text-white focus:font-semibold">Skip to main content</a>
 
-    <div class="flex min-h-screen">
+    <div class="landlord-shell flex min-h-screen">
 
         {{-- Mobile overlay --}}
         <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false" class="fixed inset-0 bg-black/40 z-40 lg:hidden">
@@ -219,10 +219,13 @@
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />'],
                         ['label' => 'Reservations', 'href' => route('landlord.reservations.index'), 'active' => str_starts_with($current, 'landlord.reservations'), 'badge' => $navInquiries,
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />'],
-                        // Also lit for the per-tenancy management page.
-                        ['label' => 'Tenants', 'href' => route('landlord.tenants.index'), 'active' => str_starts_with($current, 'landlord.tenants') || str_starts_with($current, 'landlord.tenancies'),
+                        // One item for tenants, their contracts and the lease policies behind them. Also lit for the pages a contract opens:
+                        // the per-tenancy management page (ledger, lease), Lease policies and the policy editor.
+                        ['label' => 'Tenants', 'href' => route('landlord.tenants.index'),
+                            'active' => str_starts_with($current, 'landlord.tenants') || str_starts_with($current, 'landlord.contracts') || str_starts_with($current, 'landlord.tenancies')
+                                || $current === 'landlord.leases.index' || str_starts_with($current, 'landlord.lease-templates'),
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />'],
-                        ['label' => 'Rent & Payments', 'href' => route('landlord.payments.index'), 'active' => str_starts_with($current, 'landlord.payments'),
+                        ['label' => 'Payments', 'href' => route('landlord.payments.index'), 'active' => str_starts_with($current, 'landlord.payments'),
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />'],
                         ...(auth()->user()->showsPayoutTools() ? [['label' => 'Payouts', 'href' => route('landlord.payouts.index'), 'active' => str_starts_with($current, 'landlord.payouts'),
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />']] : []),
@@ -355,7 +358,10 @@
                     </svg>
                 </button>
 
-                <div class="flex items-center gap-2">
+                {{-- Page title: pages push it from <x-page-header> (or by hand) and the in-page title hides below lg. --}}
+                <div class="flex min-w-0 flex-1 items-center gap-2 px-3">@stack('mobile-title')</div>
+
+                <div class="flex shrink-0 items-center gap-2">
                     <x-theme-toggle class="w-9 h-9 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26] hover:bg-[#ECEEF6]" />
 
                     {{-- Messages — mobile equivalent of the floating chat bubble,
@@ -366,10 +372,13 @@
                             $mobileUnreadMsgCount = $unreadMessageCount;
                         @endphp
                         <a href="{{ route('conversations.index') }}"
-                            class="relative flex items-center gap-1.5 h-9 px-3 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26] text-[12.5px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
-                            Messages
+                            aria-label="Messages"
+                            class="relative flex items-center justify-center w-9 h-9 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26]/70 hover:bg-[#ECEEF6] transition-colors duration-200">
+                            <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
                             @if($mobileUnreadMsgCount > 0)
-                                <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold">{{ $mobileUnreadMsgCount > 99 ? '99+' : $mobileUnreadMsgCount }}</span>
+                                <span class="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold ring-2 ring-white">{{ $mobileUnreadMsgCount > 99 ? '99+' : $mobileUnreadMsgCount }}</span>
                             @endif
                         </a>
                     @endauth

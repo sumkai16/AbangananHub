@@ -172,17 +172,53 @@ class RentLedgerInitialTest extends TestCase
         ];
 
         foreach ($cases as $status => $label) {
-            $t = $this->makeTenancy(['rental_status' => $status]);
+            // A landlord with GCash on file, so "Pay now" (online offered) rather than "Pay your landlord".
+            $t = $this->makeOnlineTenancy(['rental_status' => $status]);
 
             $this->assertSame($label, $t['reservation']->tenantNextStep()['label'] ?? null, $status);
         }
     }
 
-    public function test_once_the_initial_payment_is_held_the_next_step_is_to_open_the_agreement(): void
+    public function test_once_the_initial_payment_is_held_the_next_step_is_to_confirm_move_in(): void
     {
         $t = $this->makeTenancy(['rental_status' => 'Rental Agreement Signed']);
         $this->onlineInitial($t['reservation']);
 
-        $this->assertSame('Open agreement', $t['reservation']->fresh()->tenantNextStep()['label']);
+        $this->assertSame('Confirm move-in', $t['reservation']->fresh()->tenantNextStep()['label']);
+    }
+
+    // ─── The full move-in amount (checkout charges moveInDue() since Oct 31 2026) ──
+
+    public function test_a_full_move_in_payment_settles_the_advance_months_and_holds_the_deposit(): void
+    {
+        // Two months in advance and a 5,000 deposit, as agreed on the lease: 5,000 x 2 + 5,000 = 15,000.
+        $t = $this->makeTenancy(['lease_snapshot' => ['advance_months' => 2, 'deposit' => 5000]]);
+        $this->assertSame(15000.0, $t['reservation']->moveInDue());
+        $this->makePayment($t['reservation'], [
+            'payment_type' => 'Initial', 'billing_period' => null, 'status' => 'Held',
+            'payment_method' => 'GCash', 'amount' => 15000,
+        ]);
+
+        $ledger = RentLedger::for($t['reservation']->fresh());
+        $periods = $ledger->periods();
+        $summary = $ledger->summary();
+
+        $this->assertSame(['Aug 2026', 'Sep 2026'], $periods->pluck('label')->all(), 'the advance month is shown');
+        $this->assertSame(['paid', 'paid'], $periods->pluck('status')->all());
+        $this->assertSame(10000.0, $summary['monthlyCollected'], 'rent, not the deposit');
+        $this->assertSame(5000.0, $summary['depositCollected'], 'the deposit share is held as the deposit');
+        $this->assertSame(15000.0, $summary['collected'], 'counted once');
+        $this->assertSame(0.0, $summary['outstanding']);
+    }
+
+    public function test_an_old_one_month_online_payment_still_reads_as_the_first_month_only(): void
+    {
+        $t = $this->makeTenancy(['lease_snapshot' => ['advance_months' => 2, 'deposit' => 5000]]);
+        $this->onlineInitial($t['reservation']);
+
+        $summary = RentLedger::for($t['reservation']->fresh())->summary();
+
+        $this->assertSame(5000.0, $summary['monthlyCollected']);
+        $this->assertSame(0.0, $summary['depositCollected'], 'one month of rent is never mistaken for a deposit');
     }
 }

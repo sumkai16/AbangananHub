@@ -10,6 +10,8 @@ use App\Models\Reservation;
 use App\Models\TenantDetail;
 use App\Services\RentLedger;
 use App\Services\RentReminderNotifier;
+use App\Support\BusinessTime;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -17,7 +19,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 /**
- * One tenancy and its rent ledger, from the landlord's side.
+ * One tenancy from the landlord's side: the contract page and its actions (tenant details, end, reminder, late
+ * fee waiver). Its rent ledger page is LedgerController, under Payments.
  *
  * Serves walk-in and platform tenancies identically: both are an occupied unit
  * with rent falling due every month, and the escrow only ever covered the
@@ -26,36 +29,29 @@ use Illuminate\Support\Facades\Gate;
  */
 class TenancyController extends Controller
 {
+    /**
+     * The contract page: who the tenant is, the lease, their details, the unit, and ending the tenancy. The money
+     * (ledger, payments, deposit charges) is under Payments (LedgerController); this page only shows the balance
+     * and links there.
+     */
     public function show(Reservation $reservation)
     {
         Gate::authorize('viewTenancy', $reservation);
 
-        // Eager-loaded up front: the ledger reads payments, the header reads
-        // the tenant and unit, and Model::preventLazyLoading is on in dev.
+        // Eager-loaded up front: the balance strip reads the ledger summary, the header reads the tenant and
+        // unit, and Model::preventLazyLoading is on in dev.
         $reservation->load([
             'tenant.tenantDetail',
             'property',
             'unit.media',
-            'payments.recorder',
-            'payments.voider',
-            'payments.replacements',
-            'depositCharges.charger',
-            'depositCharges.voider',
+            'payments',
+            'depositCharges',
             'conversation',
-            'paymentClaims',
         ]);
 
-        $ledger = RentLedger::for($reservation);
-
         return view('landlord.tenancies.show', [
-            'reservation'         => $reservation,
-            'ledger'              => $ledger,
-            'periods'             => $ledger->periods(),
-            'otherCharges'        => $ledger->otherCharges(),
-            'summary'             => $ledger->summary(),
-            'unsettledPeriods'    => $ledger->unsettledPeriods(),
-            'monthlyTransactions' => $ledger->monthlyTransactions(),
-            'voidedTransactions'  => $ledger->voidedTransactions(),
+            'reservation' => $reservation,
+            'summary' => RentLedger::for($reservation)->summary(),
         ]);
     }
 
@@ -80,6 +76,30 @@ class TenancyController extends Controller
     }
 
     /**
+     * The tenant's full ID number, fetched only when the landlord taps Show, so it is never in the page
+     * HTML. Each reveal is audited (without the number itself).
+     */
+    public function revealTenantId(Reservation $reservation): JsonResponse
+    {
+        Gate::authorize('viewTenantDetails', $reservation);
+
+        $reservation->load('tenant.tenantDetail');
+        $idNumber = $reservation->tenant?->tenantDetail?->id_number;
+
+        abort_if(blank($idNumber), 404);
+
+        AuditLog::record(
+            'tenant_details.reveal_id',
+            'Landlord viewed a tenant\'s ID number',
+            $reservation,
+            null,
+            ['tenant_id' => $reservation->tenant_id],
+        );
+
+        return response()->json(['id_number' => $idNumber])->header('Cache-Control', 'no-store, private');
+    }
+
+    /**
      * Close out the tenancy and hand the unit back to the available pool.
      *
      * Locked and re-checked inside the transaction per RULES.md: this flips a
@@ -92,7 +112,7 @@ class TenancyController extends Controller
         Gate::authorize('endTenancy', $reservation);
 
         $data = $request->validate([
-            'move_out_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'move_out_date' => ['nullable', 'date', 'before_or_equal:' . BusinessTime::today()],
         ], [
             'move_out_date.before_or_equal' => 'A move-out date cannot be in the future.',
         ]);

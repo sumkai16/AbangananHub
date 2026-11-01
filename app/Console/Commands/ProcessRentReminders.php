@@ -52,23 +52,27 @@ class ProcessRentReminders extends Command
 
         // Occupied only: a Completed tenancy's ledger is frozen, so there is
         // nothing left to chase.
-        $reservations = Reservation::where('rental_status', 'Occupied')
+        $scanned = 0;
+
+        Reservation::where('rental_status', 'Occupied')
             ->with(['tenant', 'property', 'unit', 'payments', 'depositCharges'])
             ->whereHas('property')
-            ->get();
+            ->chunkById(100, function ($reservations) use ($today, &$sent, &$failures, &$scanned) {
+                foreach ($reservations as $reservation) {
+                    $scanned++;
 
-        foreach ($reservations as $reservation) {
-            try {
-                $sent += $this->remindFor($reservation, $today) ? 1 : 0;
-            } catch (\Throwable $e) {
-                $failures++;
-                Log::error('Rent reminder failed for reservation ' . $reservation->reservation_id, [
-                    'exception' => $e->getMessage(),
-                ]);
-            }
-        }
+                    try {
+                        $sent += $this->remindFor($reservation, $today) ? 1 : 0;
+                    } catch (\Throwable $e) {
+                        $failures++;
+                        Log::error('Rent reminder failed for reservation ' . $reservation->reservation_id, [
+                            'exception' => $e->getMessage(),
+                        ]);
+                    }
+                }
+            }, 'reservation_id');
 
-        $this->info("Rent reminders: {$sent} sent, {$failures} failed, {$reservations->count()} tenancies scanned.");
+        $this->info("Rent reminders: {$sent} sent, {$failures} failed, {$scanned} tenancies scanned.");
 
         return self::SUCCESS;
     }

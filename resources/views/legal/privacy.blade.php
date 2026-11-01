@@ -25,6 +25,7 @@
                         'Account details: first and last name, email address, contact number and password (stored only as a secure hash).',
                         'Sign-in through Google or Facebook: the name, email address and profile identifier those providers share with us when you choose to log in that way.',
                         'Landlord verification: identity and property documents you upload so we can verify you and your listings.',
+                        'Tenant documents: if a landlord asks for them before you sign a lease, the documents you upload (for example a government ID, a clearance or proof of income). Only that landlord can see them, they are not shared with other landlords or reused, and the files are deleted 30 days after your tenancy ends, or straight away if you never sign.',
                         'Listings: property descriptions, addresses and map locations, prices, amenities, photos and videos you publish.',
                         'Activity: favorites, inquiries, reservations, rental agreements, reviews, reports you file, and notifications.',
                         'Messages you send to other users through the in-app chat.',

@@ -10,16 +10,6 @@ use Illuminate\Support\Facades\DB;
 
 class ReservationController extends Controller
 {
-    private const STATUSES = [
-        'Inquiry',
-        'Under Negotiation',
-        'Pending Rental Agreement',
-        'Rental Agreement Signed',
-        'Occupied',
-        'Cancelled',
-        'Rejected',
-    ];
-
     public function index(Request $request)
     {
         $search = $request->input('search');
@@ -28,20 +18,18 @@ class ReservationController extends Controller
         $base = Reservation::with(['property.media', 'property.landlord', 'unit', 'tenant'])
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($inner) use ($search) {
-                    $inner->whereHas('tenant', fn($t) =>
-                        $t->where('first_name', 'like', "%{$search}%")
-                          ->orWhere('last_name',  'like', "%{$search}%")
-                          ->orWhere('email',       'like', "%{$search}%")
-                    )->orWhereHas('property', fn($p) =>
-                        $p->where('title',   'like', "%{$search}%")
-                          ->orWhere('address', 'like', "%{$search}%")
+                    $inner->whereHas('tenant', fn ($t) => $t->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                    )->orWhereHas('property', fn ($p) => $p->where('title', 'like', "%{$search}%")
+                        ->orWhere('address', 'like', "%{$search}%")
                     );
                 });
             });
 
-        $counts = Reservation::statusCounts($base, self::STATUSES);
+        $counts = Reservation::statusCounts($base, Reservation::STATUSES);
 
-        if (in_array($status, self::STATUSES, true)) {
+        if (in_array($status, Reservation::STATUSES, true)) {
             $base->where('rental_status', $status);
         }
 

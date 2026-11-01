@@ -1,6 +1,8 @@
 @extends('layouts.landlord')
 
 @section('content')
+    @push('mobile-title')<span class="truncate text-[15px] font-semibold tracking-tight text-[#060D26]">Add New Unit</span>@endpush
+
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16">
 
         {{-- Breadcrumb --}}
@@ -25,8 +27,8 @@
 
         {{-- Header --}}
         <div class="mb-6">
-            <h1 class="text-2xl font-semibold text-[#060D26] leading-tight">Add New Unit</h1>
-            <p class="text-sm text-[#5B6A8E] mt-1">Add a new rental unit under your property.</p>
+            <h1 class="page-header-title text-xl sm:text-2xl font-semibold text-[#060D26] leading-tight">Add New Unit</h1>
+            <p class="hidden sm:block text-sm text-[#5B6A8E] mt-1">Add a new rental unit under your property.</p>
         </div>
 
         {{-- Flash / errors --}}

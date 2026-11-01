@@ -155,7 +155,13 @@ export function aiSearch({ query, interpretUrl, resultsUrl }) {
                 }
             } catch (e) {
                 this.upgrading = false;
-                if (id === runId) this.fail(e);
+                if (id !== runId) return;
+                // Keyword results are already on screen: keep them and show the "busy" note instead of an error page.
+                if (this.html && e?.name !== 'AbortError') {
+                    this.reason = 'unavailable';
+                    return;
+                }
+                this.fail(e);
             }
         },
 

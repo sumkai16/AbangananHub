@@ -18,7 +18,8 @@ return [
 
     // Seconds per AI call. The page already shows instant keyword results while the AI reads, so a
     // slow free model (10-15 s) is tolerable; use 8 or less with a fast paid model. One retry on 429/5xx, then the keyword fallback.
-    'timeout' => (int) env('AI_SEARCH_TIMEOUT', 40),
+    // Default 20, not more: PHP's max_execution_time is 30 s, so a longer wait (plus a retry) turns a provider outage into a fatal 500.
+    'timeout' => (int) env('AI_SEARCH_TIMEOUT', 20),
 
     // Below this many exact matches, filters are relaxed step by step.
     'min_results' => 3,

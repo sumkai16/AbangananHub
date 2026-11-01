@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Validation\Rule;
 
 /**
@@ -37,11 +40,27 @@ class TenantDetail extends Model
 
     protected $fillable = [...self::FIELDS, 'user_id'];
 
-    protected function casts(): array
+    /**
+     * Same storage format as the `encrypted` cast, but an undecryptable value (APP_KEY changed or rotated)
+     * reads as null instead of throwing: signing and several pages read this, and a 500 there is worse than
+     * treating the ID as "not on file" so the tenant is simply asked again.
+     */
+    protected function idNumber(): Attribute
     {
-        return [
-            'id_number' => 'encrypted',
-        ];
+        return Attribute::make(
+            get: function (?string $value) {
+                if ($value === null) {
+                    return null;
+                }
+
+                try {
+                    return Crypt::decryptString($value);
+                } catch (DecryptException) {
+                    return null;
+                }
+            },
+            set: fn (?string $value) => $value === null ? null : Crypt::encryptString($value),
+        );
     }
 
     public function user(): BelongsTo

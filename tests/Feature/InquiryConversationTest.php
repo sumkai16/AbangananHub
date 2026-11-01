@@ -37,7 +37,7 @@ class InquiryConversationTest extends TestCase
         ]);
 
         $this->actingAs($tenant)
-            ->post(route('reservations.store'), ['unit_id' => $unit->unit_id])
+            ->post(route('reservations.store'), ['unit_id' => $unit->unit_id, 'target_move_in_date' => now()->addWeek()->toDateString(), 'occupants_count' => 1])
             ->assertSessionHasNoErrors();
 
         $old->refresh();

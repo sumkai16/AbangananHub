@@ -65,6 +65,14 @@
                             $landlordId = $conversation->landlord_id ?? null;
                         @endphp
                         @foreach($conversation->messages as $msg)
+                            @if($msg->is_system)
+                                <div class="flex items-center gap-3 my-2 px-2">
+                                    <div class="flex-1 h-px bg-[#E2E4EC]"></div>
+                                    <p class="text-[11px] text-[#5B6A8E] text-center max-w-[70%] leading-relaxed">{{ $msg->message }}</p>
+                                    <div class="flex-1 h-px bg-[#E2E4EC]"></div>
+                                </div>
+                                @continue
+                            @endif
                             @php
                                 $isTenant   = $msg->sender_id === $tenantId;
                                 $senderName = trim(($msg->sender->first_name ?? '') . ' ' . ($msg->sender->last_name ?? '')) ?: 'Unknown';
@@ -85,7 +93,15 @@
                                         {{ $isTenant
                                             ? 'bg-[#FF8A66]/10 text-[#060D26] rounded-bl-sm border border-[#FF8A66]/10'
                                             : 'bg-[#ECEEF6] text-[#060D26] rounded-br-sm border border-[#E2E4EC]' }}">
-                                        {{ $msg->message }}
+                                        @if($msg->is_inquiry_summary)
+                                            <p class="text-[10.5px] font-bold uppercase tracking-wider text-[#5B6A8E] mb-1">Inquiry summary</p>
+                                            {{ $msg->message !== '' ? $msg->message : 'No note from the tenant. Move-in details are on the reservation.' }}
+                                        @elseif($msg->concern)
+                                            <p class="text-[10.5px] font-bold uppercase tracking-wider text-[#5B6A8E] mb-1">Concern &middot; {{ $msg->concern->category }} &middot; {{ $msg->concern->status }}</p>
+                                            {{ $msg->concern->description }}
+                                        @else
+                                            {{ $msg->message }}
+                                        @endif
                                     </div>
                                     <p class="text-[10.5px] text-[#94A3B8] mt-1 {{ $isTenant ? '' : 'text-right' }}">
                                         {{ $msg->sent_at?->format('M d, Y · g:i A') ?? $msg->created_at->format('M d, Y · g:i A') }}
@@ -140,9 +156,9 @@
                             <dt class="text-[#94A3B8] shrink-0">Escrow</dt>
                             <dd class="font-semibold text-right {{ $heldPayment ? 'text-[#060D26]' : ($releasedPayment ? 'text-[#15803D]' : 'text-[#5B6A8E]') }}">
                                 @if ($heldPayment)
-                                    Held &middot; &#8369;{{ number_format($heldPayment->amount, 2) }}
+                                    Held &middot; &#8369;{{ number_format($reservation->heldTotal(), 2) }}
                                 @elseif ($releasedPayment)
-                                    Released &middot; &#8369;{{ number_format($releasedPayment->amount, 2) }}
+                                    Released &middot; &#8369;{{ number_format($reservation->payments->where('status', 'Released')->sum('amount'), 2) }}
                                 @else
                                     Not funded
                                 @endif
@@ -180,7 +196,38 @@
                             </div>
                         @endif
                     </dl>
+
+                    {{-- Give the held money back to the tenant. Releasing it to the landlord stays in Payments. --}}
+                    @if ($heldPayment)
+                        @php
+                            $heldRows = $reservation->payments->where('status', 'Held')->filter(
+                                fn ($p) => $heldPayment->paymongo_checkout_session_id
+                                    ? $p->paymongo_checkout_session_id === $heldPayment->paymongo_checkout_session_id
+                                    : $p->payment_id === $heldPayment->payment_id
+                            );
+                            $heldQuote = \App\Services\PaymentRefunds::quote($heldRows);
+                            $heldRefundDetail = [
+                                'id' => $heldPayment->payment_id,
+                                'action' => route('admin.payments.refund', $heldPayment),
+                                'label' => trim(($conversation->tenant->first_name ?? '').' '.($conversation->tenant->last_name ?? '')).' · '.($reservation->property?->title ?? 'Reservation'),
+                                'rent' => $heldQuote['rent'],
+                                'fee' => $heldQuote['fee'],
+                                'rows' => $heldQuote['rows'],
+                            ];
+                        @endphp
+                        @if ($heldPayment->recorded_by === null && $heldQuote['paymongo_payment_id'])
+                            <button type="button" @click="$dispatch('open-refund-payment', {{ \Illuminate\Support\Js::from($heldRefundDetail) }})"
+                                class="mt-3 block w-full text-center py-2 text-[12px] font-semibold border border-[#EF4444]/30 text-[#DC2626] rounded-xl hover:bg-[#EF4444]/[0.06] transition-colors cursor-pointer">
+                                Refund tenant
+                            </button>
+                            <a href="{{ route('admin.payments.index', ['status' => 'Held']) }}"
+                                class="mt-2 block text-center text-[11.5px] font-semibold text-[#5B6A8E] hover:text-[#060D26] underline underline-offset-2">
+                                Or release it to the landlord in Payments
+                            </a>
+                        @endif
+                    @endif
                 </x-card>
+                @include('admin.payments.partials.refund-modal')
             @endif
 
             {{-- Tenant card --}}

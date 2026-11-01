@@ -45,11 +45,22 @@ class EscrowScenarios extends Command
 
         $rows = [];
 
+        $rows[] = ['Signed, nothing paid yet', $this->make('signed agreement, no payment', $landlord, $tenant, [
+            'payment_status'      => null,
+            'target_move_in_date' => today()->addDays(7),
+        ]), 'Tenant: "How do you want to pay to move in?" with QR and cash (and online once the landlord has GCash set and approved). Pay by QR or cash and the landlord records it, or pay online in the sandbox.'];
+
         $rows[] = ['Clock 1 — awaiting turnover', $this->make('paid, keys not yet handed over', $landlord, $tenant, [
             'target_move_in_date' => today()->addDays(5),
             'paid_at'             => now(),
             'move_in_deadline_at' => today()->addDays(12),
         ]), 'Tenant: blue "Payment secured", no countdown. Landlord: "Mark keys turned over" button.'];
+
+        $rows[] = ['Rent + deposit (one online checkout)', $this->make('two held rows, one session', $landlord, $tenant, [
+            'deposit'             => 3000,
+            'keys_turned_over_at' => now()->subDay(),
+            'move_in_deadline_at' => now()->addDays(6),
+        ]), 'Tenant: "Your payment of ₱8,000.00 is held" with rent and deposit listed. Confirming move-in (or an admin Release on either row) releases both rows.'];
 
         $rows[] = ['Clock 2 — 5 days left', $this->make('turnover done, comfortable', $landlord, $tenant, [
             'keys_turned_over_at' => now()->subDays(2),

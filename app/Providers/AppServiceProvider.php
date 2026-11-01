@@ -4,7 +4,9 @@ namespace App\Providers;
 
 use App\Models\Message;
 use App\Models\Payment;
+use App\Models\Property;
 use App\Models\PropertyUnit;
+use App\Models\RentalBusiness;
 use App\Models\Reservation;
 use App\Models\Setting;
 use App\Observers\PaymentObserver;
@@ -12,6 +14,7 @@ use App\Observers\PropertyUnitObserver;
 use App\Observers\ReservationObserver;
 use App\Services\AiSearch\AiSearchDriver;
 use App\Services\AiSearch\GeminiDriver;
+use App\Services\AiSearch\NameMatcher;
 use App\Services\AiSearch\NullDriver;
 use App\Services\AiSearch\OpenRouterDriver;
 use Illuminate\Database\Eloquent\Model;
@@ -48,6 +51,20 @@ class AppServiceProvider extends ServiceProvider
         Payment::observe(PaymentObserver::class);
         PropertyUnit::observe(PropertyUnitObserver::class);
         Reservation::observe(ReservationObserver::class);
+
+        // The name index feeds AI search; refresh it when a name, or whether a listing is live, changes.
+        RentalBusiness::saved(function (RentalBusiness $business) {
+            if ($business->wasRecentlyCreated || $business->wasChanged('business_name')) {
+                NameMatcher::flush();
+            }
+        });
+        RentalBusiness::deleted(fn () => NameMatcher::flush());
+        Property::saved(function (Property $property) {
+            if ($property->wasRecentlyCreated || $property->wasChanged(['title', 'landlord_id', 'publication_status', 'verification_status'])) {
+                NameMatcher::flush();
+            }
+        });
+        Property::deleted(fn () => NameMatcher::flush());
 
         // Header badges, computed once per request. Each layout used to run the
         // notification count twice (the server-rendered dot plus the Alpine

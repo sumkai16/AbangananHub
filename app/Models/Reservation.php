@@ -3,12 +3,15 @@
 namespace App\Models;
 
 use App\Events\MessageSent;
+use App\Services\TenancyDocuments;
+use App\Support\LeaseTemplates;
 use App\Support\LeaseTerms;
 use App\Support\Payments;
 use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -117,33 +120,32 @@ class Reservation extends Model
             return false;
         }
 
-        // Locked, not just checked: this row is about to move money.
-        $heldPayment = $this->payments()
-            ->where('status', 'Held')
-            ->lockForUpdate()
-            ->first();
-
-        if (! $heldPayment) {
+        // One occupant per unit: never release the deposit into a unit someone else already occupies.
+        if ($this->unitHeldByAnother(['Occupied'])) {
             return false;
         }
+
+        // Locked, not just checked: these rows are about to move money. An online move-in holds several rows
+        // (rent, deposit) from one checkout; they leave escrow together.
+        $held = $this->payments()
+            ->where('status', 'Held')
+            ->orderBy('payment_id')
+            ->lockForUpdate()
+            ->get();
+
+        if ($held->isEmpty()) {
+            return false;
+        }
+
+        $heldPayment = $held->first();
 
         $this->rental_status = 'Occupied';
         $this->tenant_confirmed_move_in_at = now();
         $this->move_in_deadline_at = null;
         $this->save();
 
-        $heldPayment->update([
-            'status'         => 'Released',
-            'released_at'    => now(),
-            // Null = released by the platform, not an admin. release_reason is what
-            // distinguishes a tenant confirming from a timer firing — released_by is
-            // null for both, so it cannot carry that distinction on its own.
-            'released_by'    => null,
-            'release_reason' => 'tenant_confirmed',
-            // The money is now owed to the landlord — see
-            // docs/specs/2026-07-26-landlord-payout-design.md.
-            'payout_owed_at' => now(),
-        ]);
+        // released_by stays null (the platform released it, not an admin); the reason says it was the tenant.
+        $held->each(fn (Payment $p) => $p->markReleased('tenant_confirmed'));
 
         $this->releasedPayment = $heldPayment;
 
@@ -163,14 +165,32 @@ class Reservation extends Model
     public ?Payment $releasedPayment = null;
 
     /**
-     * The single held payment for this reservation, if any.
+     * The lead held payment for this reservation (the rent row of an online move-in), if any. Use heldTotal() for
+     * "how much is held" and heldPayments() when every row matters.
      *
      * Both clocks exist only while money is held — no held payment means
      * nothing to protect and no deadline to run.
      */
     public function heldPayment(): ?Payment
     {
-        return $this->payments()->where('status', 'Held')->first();
+        return $this->payments()->where('status', 'Held')->orderBy('payment_id')->first();
+    }
+
+    /**
+     * Every held row: an online move-in is several (rent, deposit), all from one checkout. Uses the loaded
+     * payments when there are some, so a list of reservations does not query per row.
+     */
+    public function heldPayments(): Collection
+    {
+        return $this->relationLoaded('payments')
+            ? $this->payments->where('status', 'Held')->sortBy('payment_id')->values()
+            : $this->payments()->where('status', 'Held')->orderBy('payment_id')->get();
+    }
+
+    /** What is in escrow for this reservation: the rent and the deposit, not the online fee (that is not held for anyone). */
+    public function heldTotal(): float
+    {
+        return round((float) $this->heldPayments()->sum('amount'), 2);
     }
 
     /**
@@ -508,9 +528,20 @@ class Reservation extends Model
         return $this->hasMany(LateFeeWaiver::class, 'reservation_id', 'reservation_id');
     }
 
+    public function documents()
+    {
+        return $this->hasMany(TenancyDocument::class, 'reservation_id', 'reservation_id');
+    }
+
     public function paymentClaims()
     {
-        return $this->hasMany(PaymentClaim::class, 'reservation_id', 'reservation_id');
+        // chaperone: each claim already knows its reservation, so a list of them never lazy-loads it per row.
+        return $this->hasMany(PaymentClaim::class, 'reservation_id', 'reservation_id')->chaperone('reservation');
+    }
+
+    public function renewals()
+    {
+        return $this->hasMany(LeaseRenewal::class, 'reservation_id', 'reservation_id')->orderBy('rent_effective_from');
     }
 
     /**
@@ -529,6 +560,38 @@ class Reservation extends Model
             ->where('payment_type', 'Initial')
             ->whereIn('status', ['Held', 'Paid', 'Released'])
             ->exists();
+    }
+
+    /**
+     * hasSettledInitialPayment() without a query when payments are already loaded (list pages). The one
+     * "is the move-in money settled" answer for both channels: paid directly (move_in_paid_at) or paid online
+     * through PayMongo (an Initial payment Held, Paid or Released). move_in_paid_at alone means "paid directly".
+     */
+    public function moveInSettled(): bool
+    {
+        if ($this->move_in_paid_at !== null) {
+            return true;
+        }
+
+        return $this->relationLoaded('payments')
+            ? $this->payments->contains(fn (Payment $p) => $p->payment_type === 'Initial' && in_array($p->status, ['Held', 'Paid', 'Released'], true))
+            : $this->hasSettledInitialPayment();
+    }
+
+    /** The query form of moveInSettled(), for stage tabs and the unit hold. */
+    public function scopeMoveInSettled(Builder $query): Builder
+    {
+        return $query->where(fn ($q) => $q->whereNotNull('move_in_paid_at')
+            ->orWhereHas('payments', fn ($p) => $p->where('payment_type', 'Initial')->whereIn('status', ['Held', 'Paid', 'Released'])));
+    }
+
+    /** True when the move-in money came through a PayMongo checkout (not recorded by the landlord). */
+    public function paidOnline(): bool
+    {
+        $payments = $this->relationLoaded('payments') ? $this->payments : $this->payments()->get();
+
+        return $payments->contains(fn (Payment $p) => $p->payment_type === 'Initial' && ! $p->isManuallyRecorded()
+            && in_array($p->status, ['Held', 'Paid', 'Released'], true));
     }
 
     public function depositCharges()
@@ -645,6 +708,41 @@ class Reservation extends Model
         return $this->rental_status === 'Occupied';
     }
 
+    /**
+     * How a contract reads on the Contracts page, with a tone for its pill (ok, warn, bad, muted). A signed agreement
+     * waits for its move-in money; once that is confirmed (or for a contract added by hand with a future date) the
+     * unit is held and it waits for the move-in.
+     *
+     * @return array{label: string, tone: string}
+     */
+    public function contractStatus(): array
+    {
+        return match ($this->rental_status) {
+            'Rental Agreement Signed' => $this->moveInSettled()
+                ? ['label' => 'Awaiting move-in', 'tone' => 'warn']
+                : ['label' => 'Awaiting payment', 'tone' => 'muted'],
+            'Reserved' => ['label' => 'Awaiting move-in', 'tone' => 'warn'],
+            'Occupied' => $this->occupiedContractStatus(),
+            'Completed' => ['label' => 'Ended', 'tone' => 'muted'],
+            default => ['label' => $this->rental_status, 'tone' => 'muted'],
+        };
+    }
+
+    private function occupiedContractStatus(): array
+    {
+        if ($this->isLeaseExpired()) {
+            return ['label' => 'Past end date', 'tone' => 'bad'];
+        }
+
+        $daysLeft = $this->target_move_out_date
+            ? (int) round(now()->startOfDay()->diffInDays($this->target_move_out_date->copy()->startOfDay(), false))
+            : null;
+
+        return $daysLeft !== null && $daysLeft <= (int) config('rentals.renewal_window_days', 60)
+            ? ['label' => 'Ends in '.$daysLeft.' '.($daysLeft === 1 ? 'day' : 'days'), 'tone' => 'warn']
+            : ['label' => 'Active', 'tone' => 'ok'];
+    }
+
     public function isLeaseExpired(): bool
     {
         return $this->rental_status === 'Occupied'
@@ -672,7 +770,33 @@ class Reservation extends Model
     // ─── Rent terms (the ledger's inputs) ────────────────────
 
     /**
-     * What this tenant owes per month.
+     * The rent for one billing month: the newest renewal whose new rent has started by then, otherwise the
+     * contract's own rent (monthlyRent()). A renewal never changes a month before its rent_effective_from, so
+     * months already billed keep their amounts. Renewals are loaded once and reused across the ledger's months.
+     */
+    public function rentFor(Carbon $month): float
+    {
+        if (! $this->relationLoaded('renewals')) {
+            $this->load('renewals');
+        }
+
+        $start = $month->copy()->startOfMonth();
+        $renewal = $this->renewals
+            ->filter(fn (LeaseRenewal $r) => $r->rent_effective_from->lte($start))
+            ->sortBy('rent_effective_from')
+            ->last();
+
+        return $renewal ? (float) $renewal->new_monthly_rent : $this->monthlyRent();
+    }
+
+    /** The rent this month, for display. */
+    public function currentRent(): float
+    {
+        return $this->rentFor(now());
+    }
+
+    /**
+     * The contract's rent as first agreed (renewals aside, see rentFor()).
      *
      * Falls back to the unit's listed price so every pre-existing platform
      * reservation has a rent without a backfill. The override exists because a
@@ -721,6 +845,12 @@ class Reservation extends Model
      * target date); and only then the date the reservation was made, which is
      * the inquiry day and would bill months before anyone lived there.
      */
+    /** The agreed start is today or earlier (or never set), so a confirmed payment can also start the tenancy. */
+    public function moveInDateReached(): bool
+    {
+        return $this->tenancyStartDate()?->startOfDay()->lte(today()) ?? true;
+    }
+
     public function tenancyStartDate(): ?Carbon
     {
         $start = $this->target_move_in_date ?? $this->tenant_confirmed_move_in_at ?? $this->reservation_date;
@@ -786,40 +916,233 @@ class Reservation extends Model
 
     // ─── State Transitions ───────────────────────────────────
 
+    /** Statuses in which a reservation holds its unit against every other one. */
+    public const UNIT_HOLDING_STATUSES = ['Pending Rental Agreement', 'Rental Agreement Signed', 'Reserved', 'Occupied'];
+
+    /**
+     * Another reservation on this unit that already holds it, or null. Only one agreement may be in progress
+     * per unit; competing inquiries before that point are fine.
+     *
+     * @param  array<int, string>|null  $statuses  narrow the statuses that count (default UNIT_HOLDING_STATUSES)
+     */
+    public function unitHeldByAnother(?array $statuses = null): ?Reservation
+    {
+        if (! $this->unit_id) {
+            return null;
+        }
+
+        return static::where('unit_id', $this->unit_id)
+            ->where('reservation_id', '!=', $this->getKey())
+            ->whereIn('rental_status', $statuses ?? self::UNIT_HOLDING_STATUSES)
+            ->first();
+    }
+
+    /** Why an agreement cannot be sent for this reservation right now because of its unit, or null. */
+    public function agreementBlockedReason(): ?string
+    {
+        if ($this->rental_status !== 'Under Negotiation' || ! $this->unitHeldByAnother()) {
+            return null;
+        }
+
+        return 'Another reservation on this unit already has an agreement in progress, or the unit is occupied. Cancel or complete that one first.';
+    }
+
     public function advanceToNegotiation(): bool
     {
         if ($this->rental_status !== 'Inquiry') {
             return false;
         }
-        $this->rental_status = 'Under Negotiation';
 
-        return $this->save();
+        return DB::transaction(function () {
+            static::whereKey($this->getKey())->lockForUpdate()->first();
+            $this->refresh();
+
+            if ($this->rental_status !== 'Inquiry') {
+                return false;
+            }
+
+            $this->rental_status = 'Under Negotiation';
+
+            return $this->save();
+        });
     }
 
-    public function advanceToPendingAgreement(?string $terms = null): bool
+    /**
+     * The landlord sends the agreement with the final terms agreed in chat (step 6 of the reservation flow,
+     * plans/reservation-final-terms.md). $terms is SendAgreementRequest's validated data; any term left out keeps
+     * what the inquiry or the listing said, so an older client that sends only the extra-terms text still works.
+     * A plain string is taken as the extra terms (the seeder and older callers). $body is the landlord's wording
+     * edit for this one tenant and wins over the lease template's.
+     *
+     * Only one agreement may be in progress per unit: sending is refused while another reservation holds it.
+     */
+    public function advanceToPendingAgreement(array|string|null $terms = [], ?string $body = null): bool
     {
         if ($this->rental_status !== 'Under Negotiation') {
             return false;
         }
-        if ($terms !== null) {
-            $this->agreement_terms_notes = $terms;
+
+        $terms = is_string($terms) ? ['agreement_terms_notes' => $terms] : ($terms ?? []);
+        $given = fn (string $key) => array_key_exists($key, $terms) && $terms[$key] !== null && $terms[$key] !== '';
+
+        return DB::transaction(function () use ($terms, $given, $body) {
+            // The unit row is the lock two landlord clicks (or two competing reservations) serialise on.
+            if ($this->unit_id) {
+                PropertyUnit::whereKey($this->unit_id)->lockForUpdate()->first();
+            }
+
+            $this->refresh();
+
+            if ($this->rental_status !== 'Under Negotiation' || $this->unitHeldByAnother()) {
+                return false;
+            }
+
+            foreach (['agreed_monthly_rent', 'target_move_in_date', 'target_move_out_date', 'rent_due_day', 'occupants_count', 'agreement_terms_notes'] as $key) {
+                if ($given($key)) {
+                    $this->{$key} = $terms[$key];
+                }
+            }
+
+            // Pin the rent to what the tenant is about to sign. Online tenancies never had an agreed rent (only
+            // walk-ins did), so checkout and the ledger read the unit's live price, and a landlord editing it after
+            // signing changed what the tenant paid. Set before the snapshot so the lease and the charge agree.
+            $this->agreed_monthly_rent ??= $this->unit?->rental_fee;
+
+            // Freeze the lease the tenant is about to sign. Done here, not at the call sites, so every path that
+            // issues the agreement does it. The lease template for this unit (else the property's, else the
+            // standard clauses), with the deposit and advance agreed for this lease rather than the listing's.
+            $this->lease_snapshot = LeaseTerms::snapshot(
+                $this,
+                body: $body,
+                template: LeaseTemplates::forReservation($this),
+                overrides: array_filter([
+                    'deposit' => $given('security_deposit') ? (float) $terms['security_deposit'] : null,
+                    'advance_months' => $given('advance_months') ? (int) $terms['advance_months'] : null,
+                ], fn ($v) => $v !== null),
+            );
+            $this->rental_status = 'Pending Rental Agreement';
+
+            $saved = $this->save();
+
+            // The documents the lease asks for become rows the tenant fills in; none asked, none created.
+            if ($saved) {
+                TenancyDocuments::requestFor($this);
+            }
+
+            return $saved;
+        });
+    }
+
+    /**
+     * Where a request stands on the landlord's Reservations page and whose turn it is: label, a short "next" line, and
+     * a tone for its pill (warn = the landlord acts, info = the tenant acts, muted = nothing to do).
+     * Needs paymentClaims loaded for a signed agreement.
+     *
+     * @return array{label: string, next: string, tone: string}
+     */
+    public function requestStage(): array
+    {
+        $tenant = $this->tenant?->first_name ?? 'The tenant';
+
+        if ($this->rental_status === 'Rental Agreement Signed') {
+            $report = $this->paymentClaims->where('status', 'Pending')->where('claim_type', 'MoveIn')->first();
+
+            if ($report) {
+                return ['label' => 'Payment reported', 'next' => '₱'.number_format((float) $report->amount, 2).' to confirm', 'tone' => 'warn'];
+            }
+
+            if ($this->moveInSettled()) {
+                return $this->paidOnline()
+                    ? ['label' => 'Paid online', 'next' => 'Held by AbangananHub until move-in', 'tone' => 'info']
+                    : ['label' => 'Paid', 'next' => 'Waiting for move-in', 'tone' => 'info'];
+            }
+
+            return ['label' => 'Signed', 'next' => $tenant.' pays you ₱'.number_format($this->moveInDue(), 2), 'tone' => 'info'];
         }
-        // Pin the rent to what the tenant is about to sign. Online tenancies never had an agreed rent (only
-        // walk-ins did), so checkout and the ledger read the unit's live price, and a landlord editing it after
-        // signing changed what the tenant paid. Set before the snapshot so the lease and the charge agree.
-        $this->agreed_monthly_rent ??= $this->unit?->rental_fee;
 
-        // Freeze the lease the tenant is about to sign. Done here, not at
-        // the call sites, so every path that issues the agreement does it.
-        $this->lease_snapshot = LeaseTerms::snapshot($this);
-        $this->rental_status = 'Pending Rental Agreement';
+        return match ($this->rental_status) {
+            'Inquiry' => ['label' => 'New inquiry', 'next' => 'You reply', 'tone' => 'warn'],
+            'Under Negotiation' => ['label' => 'Discussing', 'next' => 'Send the agreement once agreed', 'tone' => 'warn'],
+            'Pending Rental Agreement' => ['label' => 'Agreement sent', 'next' => $tenant.' signs', 'tone' => 'info'],
+            'Rejected' => ['label' => 'Rejected', 'next' => $this->rejection_reason ?: 'You declined', 'tone' => 'muted'],
+            'Cancelled' => ['label' => 'Cancelled', 'next' => 'Closed', 'tone' => 'muted'],
+            default => ['label' => $this->rental_status, 'next' => 'On the Tenants page', 'tone' => 'muted'],
+        };
+    }
 
-        return $this->save();
+    /** Months of rent paid ahead at move-in, as agreed in the lease (one when the lease does not say). */
+    public function advanceMonths(): int
+    {
+        $snapshot = $this->lease_snapshot;
+
+        return is_array($snapshot) && isset($snapshot['advance_months']) ? (int) $snapshot['advance_months'] : 1;
+    }
+
+    /**
+     * Starting values for the Send-agreement form: what the tenant asked for at inquiry, and the listing's rent,
+     * deposit and standard terms. The landlord edits them to what was agreed in chat.
+     *
+     * @return array<string, mixed>
+     */
+    public function agreementDefaults(): array
+    {
+        return [
+            'rent' => (float) ($this->agreed_monthly_rent ?? $this->unit?->rental_fee ?? 0),
+            'deposit' => (float) ($this->unit?->security_deposit ?? 0),
+            'advance' => 1,
+            'move_in' => $this->target_move_in_date?->toDateString() ?? '',
+            'move_out' => $this->target_move_out_date?->toDateString() ?? '',
+            'due_day' => $this->rent_due_day ?? '',
+            'occupants' => $this->occupants_count ?? 1,
+            'limit' => $this->unit?->occupancy_limit,
+            'terms' => $this->agreement_terms_notes ?? $this->property?->default_lease_terms ?? '',
+        ];
+    }
+
+    /** What the tenant pays the landlord at move-in: the agreed advance months of rent plus the deposit. */
+    public function moveInDue(): float
+    {
+        return round($this->moveInRent() + $this->agreedDeposit(), 2);
+    }
+
+    /**
+     * The rent part of moveInDue(): the agreed advance months (at least the move-in month). The online checkout's
+     * Initial row carries this; the deposit is its own Deposit row, so refunds and payouts work per row.
+     */
+    public function moveInRent(): float
+    {
+        return round($this->advanceMonths() * $this->monthlyRent(), 2);
+    }
+
+    /** The checkout line for moveInRent(): "Rent (2 months)", or "First month’s rent" when only one is due. */
+    public function moveInRentLabel(): string
+    {
+        $months = $this->advanceMonths();
+
+        return $months === 1 ? 'First month’s rent' : 'Rent ('.$months.' months, paid in advance)';
+    }
+
+    /**
+     * What moveInDue() is made of, in words: "₱10,000.00 rent (2 months) + ₱5,000.00 deposit". Shown on the
+     * PayMongo checkout and next to every Pay button, so the tenant sees why the number is more than one rent.
+     */
+    public function moveInBreakdown(): string
+    {
+        $months = $this->advanceMonths();
+        $text = '₱'.number_format($months * $this->monthlyRent(), 2).' rent ('.$months.' '.($months === 1 ? 'month' : 'months').')';
+
+        return $this->agreedDeposit() > 0
+            ? $text.' + ₱'.number_format($this->agreedDeposit(), 2).' deposit'
+            : $text;
     }
 
     public function signAgreement(string $ip): bool
     {
         if ($this->rental_status !== 'Pending Rental Agreement') {
+            return false;
+        }
+        // Here, not in a controller, so the web form and the mobile API cannot disagree.
+        if (TenancyDocuments::blocksSigning($this)) {
             return false;
         }
         $this->rental_status = 'Rental Agreement Signed';
@@ -839,11 +1162,16 @@ class Reservation extends Model
      */
     public function markOccupied(bool $byTenant = false): bool
     {
-        if ($this->rental_status !== 'Rental Agreement Signed' || $this->move_in_paid_at === null) {
+        // Settled either way. A PayMongo payment still Held is refused just below (it goes through
+        // confirmMoveIn()); one already released by an admin before the keys were handed over lands here.
+        if ($this->rental_status !== 'Rental Agreement Signed' || ! $this->moveInSettled()) {
             return false;
         }
 
-        if ($this->move_in_disputed_at !== null || $this->payments()->where('status', 'Held')->exists()) {
+        // A dispute or held money must go through confirmMoveIn(); and a unit another tenant already occupies is never taken twice.
+        if ($this->move_in_disputed_at !== null
+            || $this->payments()->where('status', 'Held')->exists()
+            || $this->unitHeldByAnother(['Occupied'])) {
             return false;
         }
 
@@ -863,7 +1191,7 @@ class Reservation extends Model
 
     /**
      * The walk-in equivalent of markOccupied() — a walk-in reserved for a
-     * future date (see WalkInTenantController::createWalkIn()) has no
+     * future date (see LeaseContractCreator) has no
      * agreement, no escrow and no held payment to release, so unlike the
      * platform pipeline's confirmMoveIn() this touches only the two status
      * fields. The landlord's own assertion is enough here, same as
@@ -901,7 +1229,7 @@ class Reservation extends Model
         $held = (float) $payments->where('status', 'Held')->sum('amount');
 
         if ($held > 0) {
-            return 'A payment of ₱'.number_format($held, 2).' is held by AbangananHub for this reservation, so it cannot be cancelled here. Message each other, or use Report a Problem and an administrator will sort it out.';
+            return 'A payment of ₱'.number_format($held, 2).' is held by AbangananHub for this reservation, so it cannot be cancelled here. Message each other, or use Report a Problem: an administrator can refund it to the tenant or release it to the landlord.';
         }
 
         $cutoff = now()->subMinutes((int) config('rentals.checkout_stale_minutes', 30));
@@ -939,15 +1267,29 @@ class Reservation extends Model
      *
      * @return array{label: string, url: string}|null
      */
+    /**
+     * Where a tenant notification about the agreement should land. The agreement page 404s once a reservation is
+     * rejected or cancelled, so those fall back to the reservations list instead of a dead end.
+     */
+    public function tenantAgreementUrl(): string
+    {
+        return in_array($this->rental_status, ['Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied', 'Completed'], true)
+            ? route('agreements.show', $this)
+            : route('reservations.index');
+    }
+
     public function tenantNextStep(): ?array
     {
-        $paid = $this->move_in_paid_at !== null || ($this->relationLoaded('payments')
-            ? $this->payments->contains(fn ($p) => $p->payment_type === 'Initial' && in_array($p->status, ['Held', 'Paid', 'Released'], true))
-            : $this->hasSettledInitialPayment());
+        $paid = $this->moveInSettled();
+
+        // A direct-payment report the landlord has not answered yet: do not invite the tenant to pay again.
+        $reported = ! $paid && $this->rental_status === 'Rental Agreement Signed' && ($this->relationLoaded('paymentClaims')
+            ? $this->paymentClaims->contains(fn ($c) => $c->status === 'Pending')
+            : $this->paymentClaims()->pending()->exists());
 
         return match ($this->rental_status) {
             'Pending Rental Agreement' => ['label' => 'Review & sign', 'url' => route('agreements.show', $this)],
-            'Rental Agreement Signed'  => ['label' => $paid ? 'Open agreement' : (Payments::online() ? 'Pay now' : 'Pay your landlord'), 'url' => route('agreements.show', $this)],
+            'Rental Agreement Signed'  => ['label' => $reported ? 'Waiting for landlord' : ($paid ? 'Confirm move-in' : (Payments::onlineFor($this) ? 'Pay now' : 'Pay your landlord')), 'url' => route('agreements.show', $this)],
             'Occupied'                 => ['label' => 'Rent & payments', 'url' => route('tenancy.show', $this)],
             'Completed'                => ['label' => 'View tenancy', 'url' => route('tenancy.show', $this)],
             default                    => null,
@@ -963,8 +1305,12 @@ class Reservation extends Model
         return DB::transaction(function () use ($reason) {
             // Same row the checkout locks, so a payment being started and this cannot both pass.
             static::whereKey($this->getKey())->lockForUpdate()->first();
-
+            $this->refresh();
             $this->unsetRelation('payments');
+
+            if (in_array($this->rental_status, ['Occupied', ...self::TERMINAL_STATUSES], true)) {
+                return false;
+            }
 
             if ($this->cancellationBlockedReason() !== null) {
                 return false;
@@ -993,8 +1339,12 @@ class Reservation extends Model
 
         return DB::transaction(function () {
             static::whereKey($this->getKey())->lockForUpdate()->first();
-
+            $this->refresh();
             $this->unsetRelation('payments');
+
+            if (in_array($this->rental_status, ['Occupied', ...self::TERMINAL_STATUSES], true)) {
+                return false;
+            }
 
             if ($this->cancellationBlockedReason() !== null) {
                 return false;
@@ -1013,18 +1363,27 @@ class Reservation extends Model
     }
 
     /**
+     * The move-in money is settled, so the unit is kept for this tenant until they move in: it reads Reserved and
+     * leaves the browse results. Other tenants were already blocked from the moment the agreement was sent
+     * (unitHeldByAnother / UNIT_HOLDING_STATUSES); this only changes what the listing shows.
+     * Callers hold the reservation lock.
+     */
+    public function holdUnit(): void
+    {
+        if ($this->unit && ! in_array($this->unit->availability_status, ['Reserved', 'Occupied'], true)) {
+            $this->unit->availability_status = 'Reserved';
+            $this->unit->save();
+        }
+    }
+
+    /**
      * A unit can have several live reservations at once (competing inquiries,
      * or an inquiry on a unit someone already occupies). Dropping one must not
      * re-list the unit while another still holds it.
      */
     public function releaseUnitIfUnclaimed(): void
     {
-        $claimed = self::where('unit_id', $this->unit_id)
-            ->where('reservation_id', '!=', $this->reservation_id)
-            ->whereNotIn('rental_status', self::TERMINAL_STATUSES)
-            ->exists();
-
-        if (! $claimed) {
+        if (! $this->unitHeldByAnother()) {
             $this->releaseUnit();
         }
     }

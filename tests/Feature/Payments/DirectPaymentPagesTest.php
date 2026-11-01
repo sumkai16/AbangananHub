@@ -87,13 +87,43 @@ class DirectPaymentPagesTest extends TestCase
             ->assertSee('Pay by the 5th');
     }
 
-    public function test_with_online_payments_on_the_old_pay_now_button_is_back(): void
+    public function test_with_online_payments_on_the_tenant_chooses_between_online_and_direct(): void
+    {
+        config(['rentals.online_payments_enabled' => true]);
+        ['landlord' => $landlord, 'tenant' => $tenant, 'reservation' => $reservation] = $this->signedWithChat();
+        $landlord->savePayoutAccount('09171234567', 'Test Landlord');
+
+        $this->actingAs($tenant)->get(route('agreements.show', $reservation))
+            ->assertOk()
+            ->assertSee('How do you want to pay to move in?')
+            ->assertSee('Pay online')
+            // Online on: one "directly" card, with QR and cash chosen inside it (no second QR card).
+            ->assertSee('Pay '.$landlord->first_name.' directly')
+            ->assertDontSee('Pay '.$landlord->first_name.' by QR')
+            ->assertSee('Cash')
+            // The direct side is on the page too, so choosing it needs no reload.
+            ->assertSee('Pay your landlord to move in');
+    }
+
+    public function test_a_landlord_without_gcash_details_can_only_be_paid_directly(): void
     {
         config(['rentals.online_payments_enabled' => true]);
         ['tenant' => $tenant, 'reservation' => $reservation] = $this->signedWithChat();
 
         $this->actingAs($tenant)->get(route('agreements.show', $reservation))
-            ->assertOk()->assertSee('Pay Now')->assertDontSee('Pay your landlord to move in');
+            ->assertOk()->assertDontSee('Pay online')->assertSee('Pay cash')->assertSee('Pay your landlord to move in');
+    }
+
+    public function test_a_landlord_who_opted_out_of_online_payments_is_paid_directly_only(): void
+    {
+        config(['rentals.online_payments_enabled' => true]);
+        ['landlord' => $landlord, 'tenant' => $tenant, 'reservation' => $reservation] = $this->signedWithChat();
+        $landlord->savePayoutAccount('09171234567', 'Test Landlord');
+        $landlord->setAcceptsOnlinePayments(false);
+
+        $this->assertFalse($landlord->acceptsOnlinePayments());
+        $this->actingAs($tenant)->get(route('agreements.show', $reservation))
+            ->assertOk()->assertDontSee('Pay online')->assertSee('Pay cash')->assertSee('Pay your landlord to move in');
     }
 
     public function test_the_tenant_sees_a_pending_report_and_a_rejection_reason(): void
@@ -101,6 +131,7 @@ class DirectPaymentPagesTest extends TestCase
         ['landlord' => $landlord, 'tenant' => $tenant, 'reservation' => $reservation] = $this->signedWithChat();
 
         $this->actingAs($tenant)->post(route('paymentClaims.store', $reservation), [
+            'accept_terms' => '1',
             'claim_type' => 'MoveIn', 'amount' => 10000, 'payment_method' => 'Maya', 'reference_no' => 'MY12345', 'paid_on' => '2026-10-13',
         ]);
 
@@ -130,7 +161,8 @@ class DirectPaymentPagesTest extends TestCase
             ->assertOk()->assertSee('waiting for')->assertSee('Record move-in payment')->assertSee('Share payment QR');
 
         $this->actingAs($tenant)->post(route('paymentClaims.store', $reservation), [
-            'claim_type' => 'MoveIn', 'amount' => 10000, 'payment_method' => 'GCash', 'reference_no' => 'GC999', 'paid_on' => '2026-10-13',
+            'accept_terms' => '1',
+            'accept_terms' => '1', 'claim_type' => 'MoveIn', 'amount' => 10000, 'payment_method' => 'GCash', 'reference_no' => 'GC999', 'paid_on' => '2026-10-13',
         ]);
 
         $this->actingAs($landlord)->get(route('conversations.show', $conversation), self::AJAX)
@@ -167,28 +199,34 @@ class DirectPaymentPagesTest extends TestCase
             ->assertOk()->assertSee('Pay your landlord')->assertSee('I&rsquo;ve paid', false)->assertDontSee('now</button>', false);
 
         $this->actingAs($tenant)->post(route('paymentClaims.store', $reservation), [
+            'accept_terms' => '1',
             'claim_type' => 'Monthly', 'billing_period' => '2026-10-01', 'amount' => 5000,
             'payment_method' => 'GoTyme', 'reference_no' => 'GT55', 'paid_on' => '2026-10-10',
         ])->assertSessionHasNoErrors();
 
         $this->actingAs($tenant)->get(route('tenancy.show', $reservation))->assertOk()->assertSee('GT55');
-        $this->actingAs($landlord)->get(route('landlord.tenancies.show', $reservation))
+        $this->actingAs($landlord)->get(route('landlord.payments.ledger', $reservation))
             ->assertOk()->assertSee('Payment to confirm')->assertSee('GT55');
     }
 
-    public function test_the_landlords_reservation_list_flags_a_report_and_offers_move_in_confirmation(): void
+    public function test_the_reservation_list_flags_a_report_and_a_paid_request_moves_to_contracts(): void
     {
         ['landlord' => $landlord, 'tenant' => $tenant, 'reservation' => $reservation] = $this->signedWithChat();
 
         $this->actingAs($tenant)->post(route('paymentClaims.store', $reservation), [
-            'claim_type' => 'MoveIn', 'amount' => 10000, 'payment_method' => 'GCash', 'reference_no' => 'GC1', 'paid_on' => '2026-10-13',
+            'accept_terms' => '1',
+            'accept_terms' => '1', 'claim_type' => 'MoveIn', 'amount' => 10000, 'payment_method' => 'GCash', 'reference_no' => 'GC1', 'paid_on' => '2026-10-13',
         ]);
 
-        $this->actingAs($landlord)->get(route('landlord.reservations.index'))->assertOk()->assertSee('Payment to confirm');
+        $this->actingAs($landlord)->get(route('landlord.reservations.index'))->assertOk()
+            ->assertSee('Payment to confirm')->assertSee('Confirm payment');
 
+        // Once the money is confirmed the lease lives on the Contracts page, where move-in is confirmed.
         $reservation->update(['move_in_paid_at' => now()]);
 
-        $this->actingAs($landlord)->get(route('landlord.reservations.index'))->assertOk()->assertSee('Confirm move-in');
+        $this->actingAs($landlord)->get(route('landlord.reservations.index', ['stage' => 'payment']))->assertOk()
+            ->assertDontSee(route('landlord.paymentClaims.confirm', $reservation->paymentClaims()->first()), false);
+        $this->actingAs($landlord)->get(route('landlord.contracts.show', $reservation))->assertOk()->assertSee('Confirm move-in');
     }
 
     public function test_payout_screens_are_hidden_while_online_payments_are_off_and_return_with_them(): void
@@ -209,7 +247,8 @@ class DirectPaymentPagesTest extends TestCase
         ['landlord' => $landlord, 'tenant' => $tenant, 'reservation' => $reservation] = $this->signedWithChat();
 
         $this->actingAs($tenant)->post(route('paymentClaims.store', $reservation), [
-            'claim_type' => 'MoveIn', 'amount' => 10000, 'payment_method' => 'GCash', 'reference_no' => 'GC1', 'paid_on' => '2026-10-13',
+            'accept_terms' => '1',
+            'accept_terms' => '1', 'claim_type' => 'MoveIn', 'amount' => 10000, 'payment_method' => 'GCash', 'reference_no' => 'GC1', 'paid_on' => '2026-10-13',
         ]);
 
         $this->actingAs($landlord)->get(route('landlord.dashboard'))

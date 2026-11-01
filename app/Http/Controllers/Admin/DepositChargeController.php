@@ -124,7 +124,7 @@ class DepositChargeController extends Controller
                 $reservation->property->title ?? 'a tenancy',
                 strtolower($voided->voidReasonLabel()),
             ),
-            route('landlord.tenancies.show', $reservation),
+            route('landlord.payments.ledger', $reservation),
         );
 
         return back()->with('success', 'Deposit charge voided. The original entry stays on record.');

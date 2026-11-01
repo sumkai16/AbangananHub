@@ -27,6 +27,24 @@
         </div>
     @endif
 
+    {{-- One standalone form per on/off setting. The switch inside the main form points at it with form="...", so a
+         click saves just that key straight away; the main form is never nested around another form (RULES.md).
+         Turning something off asks first; turning it on does not. --}}
+    @foreach($definitions->filter(fn ($d) => $d['type'] === 'boolean') as $toggleKey => $toggle)
+        @php $toggleOn = (bool) App\Models\Setting::effective($toggleKey); @endphp
+        <form id="toggle-{{ $toggleKey }}" method="POST" action="{{ route('admin.settings.update') }}"
+            @if($toggleOn)
+                data-confirm="Turn off {{ strtolower($toggle['label']) }}?"
+                data-confirm-type="warning"
+                data-confirm-message="{{ $toggle['off_warning'] ?? 'This takes effect immediately.' }}"
+                data-confirm-button="Turn off"
+            @endif>
+            @csrf
+            @method('PATCH')
+            <input type="hidden" name="settings[{{ $toggleKey }}]" value="{{ $toggleOn ? '0' : '1' }}">
+        </form>
+    @endforeach
+
     <form method="POST" action="{{ route('admin.settings.update') }}"
         data-confirm="Save system settings?"
         data-confirm-type="warning"
@@ -77,27 +95,31 @@
                             <div>
                                 <div class="relative">
                                     @if($definition['type'] === 'boolean')
-                                        @php $boolValue = $old === null ? ($current ? '1' : '0') : $old; @endphp
-                                        <select name="settings[{{ $key }}]" id="setting-{{ $key }}"
-                                            class="w-full rounded-xl border border-[#E2E4EC] bg-white px-4 py-2.5 text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
-                                            <option value="1" @selected($boolValue === '1')>On</option>
-                                            <option value="0" @selected($boolValue === '0')>Off</option>
-                                        </select>
+                                        @php $isOn = (bool) $current; @endphp
+                                        <div class="flex items-center gap-3 py-1.5">
+                                            <button type="submit" form="toggle-{{ $key }}" role="switch" aria-checked="{{ $isOn ? 'true' : 'false' }}"
+                                                aria-label="{{ $definition['label'] }}"
+                                                class="relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2 {{ $isOn ? 'bg-[#FF8A66]' : 'bg-[#CBD2E1]' }}">
+                                                <span class="inline-block h-5 w-5 rounded-full bg-white shadow transition-transform {{ $isOn ? 'translate-x-6' : 'translate-x-1' }}"></span>
+                                            </button>
+                                            <span class="text-[13px] font-semibold {{ $isOn ? 'text-[#060D26]' : 'text-[#5B6A8E]' }}">{{ $isOn ? 'On' : 'Off' }}</span>
+                                        </div>
                                     @else
                                     <input
                                         @class(['w-full rounded-xl border bg-white pl-4 pr-4 py-2.5 text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] transition-colors',
                                             'border-[#EF4444]' => $errors->has("settings.$key") || $errors->has("settings.$key.*"),
                                             'border-[#E2E4EC]' => ! ($errors->has("settings.$key") || $errors->has("settings.$key.*")),
                                         ])
-                                        type="{{ $definition['type'] === 'integer' ? 'number' : 'text' }}"
+                                        type="{{ in_array($definition['type'], ['integer', 'decimal'], true) ? 'number' : 'text' }}"
                                         @if($definition['type'] === 'integer') min="0" step="1" inputmode="numeric" @endif
+                                        @if($definition['type'] === 'decimal') min="0" step="0.01" inputmode="decimal" @endif
                                         name="settings[{{ $key }}]"
                                         id="setting-{{ $key }}"
                                         value="{{ $value }}"
                                         placeholder="{{ App\Models\Setting::display($key, $default) }}" />
                                     @endif
                                 </div>
-                                <p class="text-[11px] text-[#94A3B8] mt-1">{{ $definition['unit'] }}</p>
+                                <p class="text-[11px] text-[#94A3B8] mt-1">{{ $definition['type'] === 'boolean' ? 'saves as soon as you click' : $definition['unit'] }}</p>
 
                                 @error("settings.$key")
                                     <p class="text-[12px] text-[#EF4444] mt-1">{{ $message }}</p>

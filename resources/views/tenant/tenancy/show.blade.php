@@ -5,6 +5,15 @@
         $unit = $reservation->unit;
         $isActive = $reservation->rental_status === 'Occupied';
 
+        // Rows the tenant can open a receipt for get a link in the period popup.
+        $withReceipts = function (array $detail) use ($reservation) {
+            $detail['payments'] = array_map(fn ($p) => $p['has_receipt']
+                ? $p + ['receipt_url' => route('tenancy.receipt', [$reservation, $p['id']])]
+                : $p, $detail['payments']);
+
+            return $detail;
+        };
+
         $periodStyles = [
             'paid'    => ['pill' => 'bg-[#22C55E]/[0.07] text-[#15803D] border-[#22C55E]/25', 'label' => 'Paid'],
             'partial' => ['pill' => 'bg-[#FBBF24]/[0.10] text-[#B45309] border-[#FBBF24]/35', 'label' => 'Partial'],
@@ -110,7 +119,7 @@
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                         </svg>
-                        View lease
+                        View rental agreement
                     </button>
                     @if($canReview)
                         <a href="{{ route('properties.show', $reservation->property) }}#reviews"
@@ -170,36 +179,19 @@
                     @endforeach
                 </div>
 
-                {{-- Pay your landlord directly (online payments off) --}}
-                @if($isActive && ! \App\Support\Payments::online() && ($payablePeriod || $advancePeriod))
-                    @include('payments.partials._direct-pay', ['reservation' => $reservation, 'type' => 'Monthly', 'period' => $payablePeriod ?? $advancePeriod])
-                @endif
-
-                {{-- Pay now --}}
-                @if($isActive && $payablePeriod && \App\Support\Payments::online())
-                    <x-card class="!bg-[#ECEEF6] !border-[#FF8A66]/25">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div>
-                                <p class="text-[11px] font-bold text-[#060D26] uppercase tracking-wide mb-1">
-                                    {{ $payablePeriod['status'] === 'overdue' ? 'Overdue' : 'Due' }} — {{ $payablePeriod['label'] }}
-                                </p>
-                                <p class="text-2xl font-extrabold text-[#060D26]">
-                                    ₱{{ number_format(max(0, $payablePeriod['balance']), 2) }}
-                                </p>
-                                <p class="text-[12px] text-[#5B6A8E] mt-1">
-                                    Due on {{ $payablePeriod['due_on']->format('M d, Y') }}. Pay securely via GCash.
-                                </p>
-                            </div>
-                            <form method="POST" action="{{ route('payments.rentCheckout', $reservation) }}" class="shrink-0">
-                                @csrf
-                                <button type="submit"
-                                    class="h-11 px-6 w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
-                                    Pay ₱{{ number_format(max(0, $payablePeriod['balance']), 2) }} now
-                                </button>
-                            </form>
-                        </div>
-                        <x-payment-test-notice class="mt-4" />
-                    </x-card>
+                {{-- Pay rent: online (when this landlord can be paid online), by QR, or in cash. Online pays the earliest
+                     unsettled month; paying a month ahead is QR or cash. --}}
+                @php
+                    // An online rent checkout still open (not yet stale): offer a way back to it instead of the choice.
+                    $openRentCheckout = $reservation->payments->first(fn ($p) => $p->payment_type === 'Monthly' && $p->status === 'Pending'
+                        && $p->paymongo_checkout_session_id && ! $p->isStalePending());
+                @endphp
+                @if($isActive && ($payablePeriod || $advancePeriod))
+                    @if($openRentCheckout)
+                        @include('payments.partials._checkout-processing', ['reservation' => $reservation, 'type' => 'Monthly'])
+                    @else
+                        <x-payment-route-choice :reservation="$reservation" type="Monthly" :period="$payablePeriod ?? $advancePeriod" />
+                    @endif
                 @endif
 
                 {{-- Security deposit — read-only: only the landlord can add or void a charge. --}}
@@ -284,6 +276,7 @@
                                     $detail = \App\Services\RentLedger::periodPayload($period);
                                     $detail['pill'] = $mStyle['pill'];
                                     $detail['status_label'] = $mStyle['label'];
+                                    $detail = $withReceipts($detail);
                                 @endphp
                                 <div class="px-5 py-4 cursor-pointer active:bg-[#F7F8FC]" role="button" tabindex="0" aria-haspopup="dialog"
                                     @if($isCollapsed($period, $loop->index)) x-show="moreRows" x-cloak @endif
@@ -331,6 +324,7 @@
                                             $detail = \App\Services\RentLedger::periodPayload($period);
                                             $detail['pill'] = $style['pill'];
                                             $detail['status_label'] = $style['label'];
+                                            $detail = $withReceipts($detail);
                                         @endphp
                                         <tr class="hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer"
                                             @if($isCollapsed($period, $loop->index)) x-show="moreRows" x-cloak @endif
@@ -396,6 +390,9 @@
                                     <div class="flex items-center justify-between gap-3 mt-1 text-[12px] text-[#5B6A8E]">
                                         <span>{{ optional($charge->paid_at)->format('M d, Y') ?? '—' }} · {{ $charge->payment_method }}</span>
                                     </div>
+                                    @if($charge->hasReceipt())
+                                        <a href="{{ route('tenancy.receipt', [$reservation, $charge]) }}" class="mt-2 inline-block text-[12.5px] font-semibold text-[#B35A3D] hover:underline">Receipt</a>
+                                    @endif
                                     <div class="mt-2">
                                         @if($charge->isManuallyRecorded())
                                             <span class="inline-flex items-center h-6 px-2.5 rounded-full border border-[#E2E4EC] bg-[#F7F8FC] text-[#5B6A8E] text-[11px] font-bold">
@@ -443,6 +440,9 @@
                                                         Paid online
                                                     </span>
                                                 @endif
+                                            @if($charge->hasReceipt())
+                                                    <a href="{{ route('tenancy.receipt', [$reservation, $charge]) }}" class="ml-2 text-[12.5px] font-semibold text-[#B35A3D] hover:underline">Receipt</a>
+                                                @endif
                                             </td>
                                         </tr>
                                     @endforeach
@@ -454,7 +454,7 @@
             </div>
 
             {{-- ── Side column ────────────────────────────────── --}}
-            <div class="space-y-5">
+            <x-sticky-rail class="space-y-5">
                 <x-card>
                     <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-4">Unit</p>
 
@@ -488,13 +488,13 @@
                         </p>
                     </x-card>
                 @endunless
-            </div>
+            </x-sticky-rail>
         </div>
     </div>
 
     @if($isActive)
         {{-- The landlord may record an offline payment while this page is open
-             — mirrors landlord/tenancies/show.blade.php's listener so both
+             — mirrors landlord/payments/ledger.blade.php's listener so both
              sides of the ledger stay in sync without a manual refresh. --}}
         @push('scripts')
             <script>
@@ -520,7 +520,7 @@
         <div class="flex flex-col max-h-[85vh]">
             <div class="flex items-start justify-between gap-3 px-6 pt-6 pb-4 border-b border-[#E2E4EC] shrink-0">
                 <div>
-                    <h2 class="text-lg font-semibold text-[#060D26]">Lease Agreement</h2>
+                    <h2 class="text-lg font-semibold text-[#060D26]">Rental Agreement</h2>
                     <p class="mt-1 text-[11px] font-bold text-[#5B6A8E] tracking-wider tabular-nums">{{ $terms['reference'] }}</p>
                 </div>
                 <button type="button" x-on:click="$dispatch('close')" aria-label="Close"

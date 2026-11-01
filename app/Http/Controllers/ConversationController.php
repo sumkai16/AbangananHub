@@ -138,8 +138,10 @@ class ConversationController extends Controller
             'tenant_id' => $tenantId,
             'landlord_id' => $property->landlord_id,
             'property_id' => $property->property_id,
-            'unit_id' => $validated['unit_id'] ?? null,
             'type' => Conversation::TYPE_INQUIRY,
+        ], [
+            // Not in the match: the unique key is (tenant, landlord, property, type), so a different unit would collide.
+            'unit_id' => $validated['unit_id'] ?? null,
         ]);
 
         return redirect()->route('conversations.show', $conversation);
@@ -162,7 +164,7 @@ class ConversationController extends Controller
 
         // One load() with every path: a second load('messages.…') would re-fetch the
         // messages and drop the sender eager load (Model::preventLazyLoading then throws).
-        $relations = ['tenant', 'landlord', 'property.media', 'unit.media', 'messages.sender', 'messages.paymentQrShare.sharedBy', 'activeReservation.payments', 'activeReservation.paymentClaims'];
+        $relations = ['tenant', 'landlord', 'property.media', 'unit.media', 'messages.sender', 'messages.paymentQrShare.sharedBy', 'activeReservation.payments', 'activeReservation.paymentClaims', 'activeReservation.unit', 'activeReservation.property'];
         if ($conversation->isTenancy()) {
             array_push($relations, 'reservation', 'concerns', 'messages.concern.tenant', 'reservation.payments', 'reservation.depositCharges', 'reservation.unit');
         }

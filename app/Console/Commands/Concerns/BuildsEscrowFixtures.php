@@ -9,6 +9,7 @@ use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use App\Models\User;
 use App\Models\UserRole;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -65,7 +66,7 @@ trait BuildsEscrowFixtures
         if (! $existing) {
             // forceFill: user_roles carries assigned_at, which is not
             // guaranteed to be mass-assignable on that model.
-            (new UserRole())->forceFill([
+            (new UserRole)->forceFill([
                 'user_id'     => $user->user_id,
                 'role'        => $role,
                 'assigned_at' => now(),
@@ -144,10 +145,15 @@ trait BuildsEscrowFixtures
             // string. No move-in date means an open-ended fixture, matching
             // the accessor's "Open-ended" fallback.
             'target_move_out_date' => $targetMoveInDate
-                ? \Illuminate\Support\Carbon::parse($targetMoveInDate)->addMonthsNoOverflow(6)
+                ? Carbon::parse($targetMoveInDate)->addMonthsNoOverflow(6)
                 : null,
             'occupants_count'      => 1,
             'rental_status'        => $o['status'] ?? 'Rental Agreement Signed',
+            // A signed agreement always carries when and by whom it was signed; the agreement page prints it.
+            'agreed_at'            => $o['agreed_at'] ?? now()->subDay(),
+            'agreed_ip'            => '127.0.0.1',
+            'tenant_tc_accepted_at'   => now()->subDay(),
+            'landlord_tc_accepted_at' => now()->subDays(2),
             'remarks'              => '[escrow-fixture] ' . $label,
         ]);
 
@@ -175,6 +181,11 @@ trait BuildsEscrowFixtures
         $paymentStatus = array_key_exists('payment_status', $o) ? $o['payment_status'] : 'Held';
 
         if ($paymentStatus !== null) {
+            // 'deposit' => pesos makes it an online move-in as checkout creates it: the rent row plus a Deposit
+            // row, both on one PayMongo session, so they must be released together (Payment::checkoutGroup()).
+            $deposit = (float) ($o['deposit'] ?? 0);
+            $session = $deposit > 0 ? 'cs_escrow_fixture_' . $reservation->reservation_id : null;
+
             Payment::create([
                 'reservation_id' => $reservation->reservation_id,
                 'payment_type'   => 'Initial',
@@ -182,7 +193,20 @@ trait BuildsEscrowFixtures
                 'payment_method' => 'GCash',
                 'status'         => $paymentStatus,
                 'paid_at'        => $o['paid_at'] ?? now(),
+                'paymongo_checkout_session_id' => $session,
             ]);
+
+            if ($deposit > 0) {
+                Payment::create([
+                    'reservation_id' => $reservation->reservation_id,
+                    'payment_type'   => 'Deposit',
+                    'amount'         => $deposit,
+                    'payment_method' => 'GCash',
+                    'status'         => $paymentStatus,
+                    'paid_at'        => $o['paid_at'] ?? now(),
+                    'paymongo_checkout_session_id' => $session,
+                ]);
+            }
         }
 
         return $reservation->fresh();

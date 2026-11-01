@@ -8,6 +8,7 @@ use App\Models\DepositCharge;
 use App\Models\Notification;
 use App\Models\Reservation;
 use App\Services\RentLedger;
+use App\Support\BusinessTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -39,7 +40,7 @@ class DepositChargeController extends Controller
             'amount'      => ['required', 'numeric', 'min:1'],
             'category'    => ['required', Rule::in(array_keys(DepositCharge::CATEGORIES))],
             'description' => ['required', 'string', 'max:500'],
-            'charged_at'  => ['nullable', 'date', 'before_or_equal:today'],
+            'charged_at'  => ['nullable', 'date', 'before_or_equal:' . BusinessTime::today()],
         ], [
             'charged_at.before_or_equal' => 'A charge cannot be dated in the future.',
         ]);

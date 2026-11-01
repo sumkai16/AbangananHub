@@ -56,7 +56,13 @@ class AiSearchService
                     $raw = $this->inSlot(function () use ($query) {
                         $this->withinDailyCap() || throw new AiSearchBusy('busy');
 
-                        return $this->driver->interpret($query, Vocabulary::forPrompt());
+                        try {
+                            return $this->driver->interpret($query, Vocabulary::forPrompt());
+                        } catch (Throwable $e) {
+                            $this->refundDailyCap(); // a provider outage must not burn the day's allowance
+
+                            throw $e;
+                        }
                     });
                     $intent = $this->validator->validate($raw);
                     $usedAi = true;
@@ -267,10 +273,25 @@ class AiSearchService
     /** Counts one search against today's cap (resets at midnight Manila time); false once it is spent. */
     private function withinDailyCap(): bool
     {
-        $key = 'ai_search:daily:' . now('Asia/Manila')->format('Ymd');
+        $key = $this->dailyCapKey();
         Cache::add($key, 0, now('Asia/Manila')->endOfDay()->addMinutes(5));
 
-        return Cache::increment($key) <= (int) config('ai_search.daily_cap', 600);
+        return Cache::increment($key) <= (int) config('ai_search.daily_cap', 8);
+    }
+
+    /** Gives back the search withinDailyCap() counted when the driver call then failed; never goes below 0. */
+    private function refundDailyCap(): void
+    {
+        $key = $this->dailyCapKey();
+
+        if ((int) Cache::get($key, 0) > 0) {
+            Cache::decrement($key);
+        }
+    }
+
+    private function dailyCapKey(): string
+    {
+        return 'ai_search:daily:' . now('Asia/Manila')->format('Ymd');
     }
 
     private function log(array $result, ?int $userId, int $latencyMs): void

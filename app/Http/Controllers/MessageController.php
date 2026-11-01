@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Events\MessageSent;
 use App\Http\Requests\SendMessageRequest;
 use App\Models\Conversation;
+use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class MessageController extends Controller
 {
@@ -24,7 +26,16 @@ class MessageController extends Controller
             'message' => $request->validated('message'),
         ]);
         $message->load('sender');
-        broadcast(new MessageSent($message))->toOthers();
+
+        // The row is the message of record; a stopped Reverb must not 500 here or the user retries and duplicates it.
+        try {
+            broadcast(new MessageSent($message))->toOthers();
+        } catch (BroadcastException $e) {
+            Log::warning('Message broadcast failed, continuing without it', [
+                'message_id' => $message->message_id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return response()->json([
             'message_id' => $message->message_id,

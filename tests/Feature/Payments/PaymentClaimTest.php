@@ -52,7 +52,7 @@ class PaymentClaimTest extends TestCase
     private function moveInClaim(array $overrides = []): array
     {
         return $overrides + [
-            'claim_type' => 'MoveIn', 'amount' => 10000, 'payment_method' => 'GCash',
+            'accept_terms' => '1', 'claim_type' => 'MoveIn', 'amount' => 10000, 'payment_method' => 'GCash',
             'reference_no' => 'GC123456', 'paid_on' => '2026-10-13',
         ];
     }
@@ -204,6 +204,7 @@ class PaymentClaimTest extends TestCase
 
         // Paid on time (Sep 4) but the landlord only confirms on Oct 14.
         $this->actingAs($tenant)->post(route('paymentClaims.store', $reservation), [
+            'accept_terms' => '1',
             'claim_type' => 'Monthly', 'billing_period' => '2026-09-01', 'amount' => 5000,
             'payment_method' => 'Maya', 'reference_no' => 'MY777', 'paid_on' => '2026-09-04',
         ])->assertSessionHasNoErrors();
@@ -227,6 +228,7 @@ class PaymentClaimTest extends TestCase
 
         // Two months at once: the lump spreads across November and December.
         $this->actingAs($tenant)->post(route('paymentClaims.store', $reservation), [
+            'accept_terms' => '1',
             'claim_type' => 'Monthly', 'billing_period' => '2026-11-01', 'amount' => 10000,
             'payment_method' => 'GCash', 'reference_no' => 'ADV1', 'paid_on' => '2026-10-14',
         ])->assertSessionHasNoErrors();
@@ -245,6 +247,7 @@ class PaymentClaimTest extends TestCase
         $this->assertNull(RentLedger::for($reservation->fresh())->advancePeriod());
 
         $this->actingAs($tenant)->post(route('paymentClaims.store', $reservation), [
+            'accept_terms' => '1',
             'claim_type' => 'Monthly', 'billing_period' => '2026-11-01', 'amount' => 5000,
             'payment_method' => 'GCash', 'reference_no' => 'SKIP', 'paid_on' => '2026-10-14',
         ])->assertSessionHasErrors();
@@ -257,6 +260,7 @@ class PaymentClaimTest extends TestCase
         $this->makePayment($reservation, ['billing_period' => '2026-08-01']);
 
         $this->actingAs($tenant)->post(route('paymentClaims.store', $reservation), [
+            'accept_terms' => '1',
             'claim_type' => 'Monthly', 'billing_period' => '2026-08-01', 'amount' => 5000,
             'payment_method' => 'GCash', 'reference_no' => 'X1', 'paid_on' => '2026-08-03',
         ])->assertSessionHasErrors('payment');

@@ -154,13 +154,15 @@ class DashboardController extends Controller
                 'meta' => trim(($r->unit?->unit_label ? $r->unit->unit_label . ' · ' : '') . $r->property->title
                     . ($days ? " · {$days} " . ($days === 1 ? 'day' : 'days') . ' overdue' : ' · overdue')),
                 'cta' => 'View ledger',
-                'url' => route('landlord.tenancies.show', $r),
+                'url' => route('landlord.payments.ledger', $r),
             ]);
         }
 
         // Signed agreement, deposit held, keys not yet handed over — Clock 1.
         $handovers = Reservation::whereIn('property_id', $propertyIds)
             ->where('rental_status', 'Rental Agreement Signed')
+            // Only money paid online and held: an unsigned-for or directly-paid move-in has no handover clock.
+            ->whereHas('payments', fn ($p) => $p->where('status', 'Held'))
             ->whereNull('keys_turned_over_at')
             ->whereNull('move_in_disputed_at')
             ->with(['property:property_id,title', 'unit:unit_id,unit_label'])
@@ -371,7 +373,7 @@ class DashboardController extends Controller
                     'meta' => $where($r),
                     'timestamp' => $p->paid_at ?? $p->created_at,
                     'url' => in_array($r->rental_status, ['Occupied', 'Completed'], true)
-                        ? route('landlord.tenancies.show', $r)
+                        ? route('landlord.payments.ledger', $r)
                         : route('landlord.payments.index'),
                 ];
             });
