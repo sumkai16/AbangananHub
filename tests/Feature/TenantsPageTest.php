@@ -55,7 +55,10 @@ class TenantsPageTest extends TestCase
     {
         $landlord = $this->makeLandlord();
 
-        $this->addTenant($landlord)->assertRedirect(route('landlord.tenants.index'))->assertSessionHas('success');
+        $this->addTenant($landlord)->assertRedirect(route('landlord.tenants.index'))->assertSessionHas('tenant_added');
+
+        // A plain form post: the page then opens the "added" popup from the flash.
+        $this->actingAs($landlord)->get(route('landlord.tenants.index'))->assertSee('Added to your tenants');
 
         $tenant = User::where('email', 'ana.santos.tenant@example.test')->firstOrFail();
         $this->assertTrue($tenant->is_walk_in);
@@ -65,10 +68,35 @@ class TenantsPageTest extends TestCase
 
         $row = LandlordTenant::where('landlord_id', $landlord->user_id)->where('tenant_id', $tenant->user_id)->firstOrFail();
         $this->assertSame('TN-0001', $row->code());
-        Mail::assertSent(TenantInviteMail::class, fn ($mail) => $mail->hasTo('ana.santos.tenant@example.test'));
+        Mail::assertQueued(TenantInviteMail::class, fn ($mail) => $mail->hasTo('ana.santos.tenant@example.test'));
 
         $this->actingAs($landlord)->get(route('landlord.tenants.index'))
             ->assertOk()->assertSee('TN-0001')->assertSee('Ana')->assertSee('Pending');
+    }
+
+    public function test_the_page_adds_a_tenant_in_the_background_and_gets_the_popup_data(): void
+    {
+        $landlord = $this->makeLandlord();
+
+        // What the Add tenant modal sends: a background request that wants JSON, no redirect.
+        $response = $this->actingAs($landlord)->postJson(route('landlord.tenants.store'), [
+            'first_name' => 'rica', 'last_name' => 'bas', 'email' => 'rica.bas.tenant@example.test',
+        ])->assertCreated();
+
+        $row = LandlordTenant::where('landlord_id', $landlord->user_id)->latest('landlord_tenant_id')->firstOrFail();
+        $response->assertJson(['tenant_added' => [
+            'id' => $row->landlord_tenant_id,
+            'name' => 'Rica Bas',
+            'code' => $row->code(),
+            'invited' => true,
+            'lease_url' => route('landlord.contracts.index', ['new' => 1, 'tenant' => $row->landlord_tenant_id]),
+        ]]);
+        // The invite still goes out, after the response.
+        Mail::assertQueued(TenantInviteMail::class, fn ($mail) => $mail->hasTo('rica.bas.tenant@example.test'));
+
+        // A missing name comes back as field errors for the open form.
+        $this->actingAs($landlord)->postJson(route('landlord.tenants.store'), ['email' => 'x@example.test'])
+            ->assertStatus(422)->assertJsonValidationErrors(['first_name', 'last_name']);
     }
 
     public function test_a_tenant_without_email_needs_a_mobile_number_and_gets_no_invite(): void
@@ -78,7 +106,7 @@ class TenantsPageTest extends TestCase
         $this->addTenant($landlord, ['email' => '', 'contact_number' => ''])->assertSessionHasErrors('contact_number');
         $this->addTenant($landlord, ['email' => ''])->assertSessionHasNoErrors();
 
-        Mail::assertNothingSent();
+        Mail::assertNothingOutgoing();
     }
 
     public function test_an_email_that_already_has_an_account_is_refused(): void
@@ -117,7 +145,7 @@ class TenantsPageTest extends TestCase
         $tenant = $row->tenant->fresh();
         $this->assertSame('Ana Marie', $tenant->first_name);
         $this->assertSame('Liza Santos', TenantDetail::find($tenant->user_id)->emergency_contact_name, 'Blank keeps what is saved.');
-        Mail::assertSent(TenantInviteMail::class, fn ($mail) => $mail->hasTo('ana.new@example.test'));
+        Mail::assertQueued(TenantInviteMail::class, fn ($mail) => $mail->hasTo('ana.new@example.test'));
     }
 
     public function test_a_tenant_with_their_own_login_cannot_be_edited_by_the_landlord(): void

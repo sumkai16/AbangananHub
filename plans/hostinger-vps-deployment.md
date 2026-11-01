@@ -420,11 +420,12 @@ sudo supervisorctl start abangananhub-reverb
 sudo supervisorctl status
 ```
 
-**No queue worker is configured, deliberately.** Broadcast events are `ShouldBroadcastNow`
-(synchronous) and no Mailable implements `ShouldQueue` — see ARCHITECTURE.md § Known Tradeoffs.
-`QUEUE_CONNECTION=database` is set but nothing dispatches to it. If a future change queues anything,
-a second Supervisor program running `queue:work` becomes mandatory, and its absence will fail
-silently.
+**A queue worker is now mandatory (Nov 2026).** Tenant invite emails are queued
+(`TenantInvites::send`) and automatic payouts run as a queued job (`SendLandlordPayout`), on
+`QUEUE_CONNECTION=database`. Add a second Supervisor program running
+`php artisan queue:work --tries=3 --max-time=3600` (same user and directory as Reverb). Without it,
+invites and payouts sit in the `jobs` table and nothing tells you: it fails silently.
+Broadcast events are still `ShouldBroadcastNow` (synchronous).
 
 ---
 

@@ -48,6 +48,8 @@
             </x-slot:actions>
         </x-page-header>
 
+        {{-- #tenants-list: swapped in place after Add tenant saves in the background (_form-modal refreshList). --}}
+        <div id="tenants-list">
         <div class="stat-chips grid grid-cols-3 gap-3 mb-4">
             <x-stat-card label="Total" :value="$stats['total']" :href="route('landlord.tenants.index')" sub="On your list" />
             <x-stat-card label="Active" :value="$stats['active']" value-color="#15803D" :href="route('landlord.tenants.index', ['status' => 'active'])" sub="Have a lease" />
@@ -150,8 +152,10 @@
                 </div>
             </x-card>
         @endif
+        </div>
 
         @include('landlord.contracts.partials._view-modal', ['event' => 'open-tenant', 'label' => 'Tenant details'])
         @include('landlord.tenants.partials._form-modal')
+        @include('landlord.tenants.partials._added-modal')
     </div>
 @endsection

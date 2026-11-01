@@ -83,8 +83,22 @@ class TenantController extends Controller
 
         $invited = TenantInvites::send($row->tenant, $landlord);
 
-        return redirect()->route('landlord.tenants.index')->with('success', $row->code().' added as Pending.'
-            .($invited ? ' We emailed them an invite to set a password.' : ' Add their email later to invite them.'));
+        // Not the generic "Done" flash: the Tenants page shows its own popup offering to add a lease for them now
+        // (landlord/tenants/partials/_added-modal). The page's form posts in the background and gets this as JSON,
+        // so the popup opens with no reload; a plain form post gets it flashed after the redirect.
+        $added = [
+            'id' => $row->landlord_tenant_id,
+            'name' => \Illuminate\Support\Str::title(trim($row->tenant->first_name.' '.$row->tenant->last_name)),
+            'code' => $row->code(),
+            'invited' => $invited,
+            'lease_url' => route('landlord.contracts.index', ['new' => 1, 'tenant' => $row->landlord_tenant_id]),
+        ];
+
+        if ($request->expectsJson()) {
+            return response()->json(['tenant_added' => $added], 201);
+        }
+
+        return redirect()->route('landlord.tenants.index')->with('tenant_added', $added);
     }
 
     /** The view modal's body, fetched when it opens so emergency contacts are not embedded in the list. */
