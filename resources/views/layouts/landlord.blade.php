@@ -203,8 +203,13 @@
             @php
                 // One list drives every link, so a design change (or a new item) is one edit, not fourteen.
                 // `icon` is static SVG inner markup defined here, never user input.
-                $navUnreadMessages = \App\Models\Message::whereHas('conversation', fn ($q) => $q->where('landlord_id', auth()->id()))
-                    ->where('sender_id', '!=', auth()->id())->where('is_read', false)->count();
+                // The inbox's own rule (ConversationController::unreadIn), both inboxes: open chats whose latest
+                // message is unread. Counting loose messages also counted cancelled and resolved chats, which the
+                // inbox hides, so the badge said 1 over an empty list.
+                $navUnreadMessages = \App\Models\Conversation::where('landlord_id', auth()->id())
+                    ->whereNotIn('status', ['Cancelled', 'Resolved'])
+                    ->whereHas('latestMessage', fn ($q) => $q->where('sender_id', '!=', auth()->id())->where('is_read', false))
+                    ->count();
                 $navInquiries = \App\Models\Reservation::whereHas('property', fn ($q) => $q->where('landlord_id', auth()->id()))
                     ->where('rental_status', 'Inquiry')->count();
 
