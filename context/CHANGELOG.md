@@ -2,6 +2,12 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 2 2026 — Reservations: no second list of moved-in tenants, new Details popup (branch `feat/reservations-cleanup`)
+Suite: 1109 passed. **Checked in a browser at desktop; not on a phone.**
+- **"Moved in" tab removed.** It listed signed-and-paid and living tenants, the same rentals as the Tenants page. The tab row now ends with a "Moved-in tenants →" link to Tenants. `?stage=history` redirects to Tenants (keeping search and property). `ReservationController::STAGES` loses `history`; `applyStage('history')` stays for any caller that still wants it.
+- **Details popup redesigned** to match the contract modal: the unit's photo (first image, else the property's cover), "Unit · Property" under the tenant name, four figure tiles (Rent, Move-in, Move-out, People), a Tenant block (mobile link, length of stay, requested), the tenant's remarks, and a sticky bar with **Open chat** when there is a conversation. 576px wide (`sm:max-w-xl`). The request actions (Accept, Send agreement, Confirm payment, Reject, Cancel) stay in the row, unchanged. A photo that fails to load falls back to a room icon.
+- `unit.media` is eager loaded (images only, one extra query). Tests: `ReservationsPipelineTest` (moved-in link and redirect, popup data).
+
 ## Nov 1 2026 — Tenants, Contracts and Policies merged into one Tenants page (branch `merge/emman`)
 Three sidebar items listed the same rentals. Now one **Tenants** item: one row per tenant with their current contract and agreement on it. Suite: 1100 passed. **Not verified in a browser.** Plan: `plans/merge-tenants-contracts-policies.md` (mockup 1 plus the waiting box from mockup 3).
 - **List:** stage chips replace the two stat-card rows: All, Living there, Moving in, Ending soon and No agreement (hidden at 0), No contract, Former. Counts follow the search and property filter. Search also matches unit and property. Phone: card per tenant; desktop: table with Unit, Lease, Rent, Agreement (+ Docs x/y), Status.
