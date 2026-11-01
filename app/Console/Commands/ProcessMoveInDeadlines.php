@@ -265,12 +265,14 @@ class ProcessMoveInDeadlines extends Command
                         return null;
                     }
 
-                    $heldPayment = $locked->payments()
+                    // An online move-in holds several rows (rent, deposit) from one checkout; they leave escrow together.
+                    $held = $locked->payments()
                         ->where('status', 'Held')
+                        ->orderBy('payment_id')
                         ->lockForUpdate()
-                        ->first();
+                        ->get();
 
-                    if (! $heldPayment) {
+                    if ($held->isEmpty()) {
                         return null;
                     }
 
@@ -282,13 +284,7 @@ class ProcessMoveInDeadlines extends Command
                         'move_in_deadline_at' => null,
                     ]);
 
-                    $heldPayment->update([
-                        'status' => 'Released',
-                        'released_at' => now(),
-                        'released_by' => null,
-                        'release_reason' => 'auto_expiry',
-                        'payout_owed_at' => now(),
-                    ]);
+                    $held->each(fn ($p) => $p->markReleased('auto_expiry'));
 
                     if ($locked->unit) {
                         $locked->unit->update(['availability_status' => 'Occupied']);
@@ -316,7 +312,7 @@ class ProcessMoveInDeadlines extends Command
                         $locked->conversation_id,
                     );
 
-                    return $heldPayment;
+                    return $held->first();
                 });
 
                 if ($payment) {

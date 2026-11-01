@@ -54,7 +54,9 @@
             <x-stat-card label="Pending" :value="$stats['pending']" value-color="#B45309" :href="route('landlord.tenants.index', ['status' => 'pending'])" sub="No lease yet" />
         </div>
 
-        <form method="GET" action="{{ route('landlord.tenants.index') }}" class="bg-white rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-4 mb-5">
+        {{-- Filter bar: bare, the same as the other landlord lists --}}
+        <form method="GET" action="{{ route('landlord.tenants.index') }}" class="mb-5">
+
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
                 <div class="relative flex-1 min-w-[200px]">
                     <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" /></svg>

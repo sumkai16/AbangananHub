@@ -48,6 +48,12 @@ public function resolver()
         return $this->belongsTo(User::class, 'reported_user_id', 'user_id');
     }
 
+    /** The rejected payment report this one was raised from, when it is a payment dispute. */
+    public function paymentClaim()
+    {
+        return $this->hasOne(PaymentClaim::class, 'dispute_report_id', 'report_id');
+    }
+
     // ─── Status Helpers ──────────────────────────────────────
 
     public function isPending(): bool

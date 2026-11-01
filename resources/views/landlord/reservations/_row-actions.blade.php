@@ -26,7 +26,7 @@
     </form>
 @elseif($status === 'Under Negotiation')
     <button type="button" class="{{ $primary }}"
-        @click="openAgreement('{{ route('landlord.reservations.advanceAgreement', $reservation) }}', @js($reservation->agreementDefaults()))">
+        @click="openAgreement('{{ route('landlord.reservations.advanceAgreement', $reservation) }}', @js($reservation->agreementDefaults()), @js($reservation->conversation_id ? route('conversations.index', ['active' => $reservation->conversation_id]) : null))">
         Send agreement
     </button>
 @elseif($report)

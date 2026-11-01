@@ -25,7 +25,7 @@
         ? route('conversations.index', ['active' => $reservation->conversation_id])
         : route('tenancy.chat', $reservation);
 @endphp
-<div id="{{ $isMoveIn ? 'pay' : 'pay-'.$periodKey->format('Y-m') }}" class="scroll-mt-24 rounded-2xl border border-[#E2E4EC] bg-white p-4 sm:p-5" x-data="{ form: {{ $errors->has('payment') || $errors->has('reference_no') || $errors->has('amount') || $errors->has('paid_on') || ($isMoveIn && request()->boolean('pay')) ? 'true' : 'false' }} }">
+<div id="{{ $isMoveIn ? 'pay' : 'pay-'.$periodKey->format('Y-m') }}" class="scroll-mt-24 rounded-2xl border border-[#E2E4EC] bg-white p-4 sm:p-5" x-data="{ form: {{ $errors->has('payment') || $errors->has('reference_no') || $errors->has('amount') || $errors->has('paid_on') || $errors->has('accept_terms') || ($isMoveIn && request()->boolean('pay')) ? 'true' : 'false' }} }">
     <h3 class="text-[15px] font-normal text-[#060D26]">
         {{ $isMoveIn ? 'Pay your landlord to move in' : (($period['is_future'] ?? false) ? 'Pay ahead: '.$period['label'] : 'Pay your landlord: '.$period['label']) }}
     </h3>
@@ -63,30 +63,15 @@
         @endif
     </div>
 
-    @if($rejected)
-        <div class="mt-4 rounded-xl border border-[#EF4444]/25 bg-[#EF4444]/[0.05] px-3 py-2.5 text-[12.5px] text-[#060D26]">
-            <p class="font-bold text-[#DC2626]">{{ $landlordName }} couldn&rsquo;t confirm your last report</p>
-            <p class="mt-0.5">&ldquo;{{ $rejected->rejection_reason }}&rdquo; (&#8369;{{ number_format($rejected->amount, 2) }}, ref {{ $rejected->reference_no }})</p>
-        </div>
-    @endif
+    @include('payments.partials._claim-status', ['pending' => $pending, 'rejected' => $rejected, 'landlordName' => $landlordName])
 
-    @if($pending)
-        <div class="mt-4 rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] px-3 py-3">
-            <p class="text-[13px] font-bold text-[#060D26]">Waiting for {{ $landlordName }} to confirm</p>
-            <p class="mt-0.5 text-[12px] text-[#5B6A8E]">&#8369;{{ number_format($pending->amount, 2) }} by {{ $pending->payment_method }}, ref {{ $pending->reference_no }}, paid {{ $pending->paid_on->format('M j') }}.</p>
-            <form method="POST" action="{{ route('paymentClaims.withdraw', $pending) }}" class="mt-2"
-                data-confirm="Withdraw this report?" data-confirm-message="Use this if you entered it wrong. You can report again." data-confirm-button="Withdraw">
-                @csrf @method('DELETE')
-                <button type="submit" class="h-8 rounded-lg border border-[#E2E4EC] bg-white px-3 text-[11px] font-bold text-[#060D26] hover:bg-[#F7F8FC] transition-colors">Withdraw</button>
-            </form>
-        </div>
-    @else
+    @unless($pending)
         <button type="button" x-show="!form" @click="form = true"
             class="mt-4 h-11 w-full rounded-xl bg-[#FF8A66] text-[14px] font-bold text-[#060D26] hover:bg-[#E96F4F] transition-colors">
             I&rsquo;ve paid {{ $landlordName }}
         </button>
 
-        <form x-show="form" x-cloak method="POST" action="{{ route('paymentClaims.store', $reservation) }}" class="mt-4 space-y-3">
+        <form x-show="form" x-cloak method="POST" action="{{ route('paymentClaims.store', $reservation) }}" class="mt-4 space-y-3" x-data="{ agreed: {{ old('accept_terms') ? 'true' : 'false' }} }">
             @csrf
             <input type="hidden" name="claim_type" value="{{ $type }}">
             @unless($isMoveIn)
@@ -132,8 +117,9 @@
                 <input id="claim-note-{{ $type }}" name="note" maxlength="500" value="{{ old('note') }}"
                     class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5 text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
             </div>
-            <p class="text-[11.5px] text-[#5B6A8E]">Paid in cash? Hand it over and ask {{ $landlordName }} to record it. There is no reference number to report.</p>
-            <button type="submit" class="h-11 w-full rounded-xl bg-[#FF8A66] text-[14px] font-bold text-[#060D26] hover:bg-[#E96F4F] transition-colors">Send to {{ $landlordName }}</button>
+            <p class="text-[11.5px] text-[#5B6A8E]">Paid in cash? Choose <span class="font-bold">Pay cash</span> above instead. There is no reference number to report.</p>
+            <x-payment-agree route="qr" :landlord-name="$landlordName" :id="'agree-qr-'.$type" />
+            <button type="submit" :disabled="!agreed" class="h-11 w-full rounded-xl bg-[#FF8A66] text-[14px] font-bold text-[#060D26] hover:bg-[#E96F4F] transition-colors disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[#FF8A66]">Send to {{ $landlordName }}</button>
         </form>
-    @endif
+    @endunless
 </div>

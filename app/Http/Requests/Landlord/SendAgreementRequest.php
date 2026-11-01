@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Landlord;
 
 use App\Models\Reservation;
+use App\Support\LandlordTerms;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -32,10 +33,13 @@ class SendAgreementRequest extends FormRequest
             'rent_due_day' => ['nullable', 'integer', 'min:1', 'max:28'],
             'occupants_count' => ['nullable', 'integer', 'min:1', 'max:20'],
             'agreement_terms_notes' => ['nullable', 'string', 'max:2000'],
+            // The lease editor's wording for this one tenant (wins over the template's).
+            'lease_body' => ['nullable', 'string', 'max:40000'],
         ];
 
-        // The web forms carry the landlord's consent checkbox; the mobile endpoint never had one.
-        if (! $this->expectsJson()) {
+        // The web forms carry the landlord's consent checkbox, asked for only until the landlord has accepted the
+        // terms for the current payment route (LandlordTerms). The mobile endpoint never had one.
+        if (! $this->expectsJson() && LandlordTerms::needed($this->user())) {
             $rules['accept_tc'] = ['accepted'];
         }
 

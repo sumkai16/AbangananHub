@@ -82,6 +82,7 @@ class ReservationObserver
         ));
 
         $this->cancelViewingsIfEnded($reservation);
+        $this->scheduleDocumentRemovalIfEnded($reservation);
 
         $this->notifyTransition($reservation);
     }
@@ -92,9 +93,17 @@ class ReservationObserver
      */
     private function syncRoster(Reservation $reservation): void
     {
-        $landlordId = $reservation->property?->landlord_id;
+        if (! in_array($reservation->rental_status, LandlordTenant::ACTIVE_STATUSES, true)) {
+            return;
+        }
 
-        if ($landlordId && in_array($reservation->rental_status, LandlordTenant::ACTIVE_STATUSES, true)) {
+        // Queried, not read through the relation: caching the property on the model here would leave the caller
+        // holding a stale copy (e.g. a lease template assigned after the reservation was created).
+        $landlordId = $reservation->relationLoaded('property')
+            ? $reservation->property?->landlord_id
+            : $reservation->property()->value('landlord_id');
+
+        if ($landlordId) {
             LandlordTenant::ensureFor($landlordId, $reservation->tenant_id);
         }
     }
@@ -129,6 +138,14 @@ class ReservationObserver
      * The status change's own notification already tells both parties, so
      * no separate viewing notice.
      */
+    /** Tenant documents are deleted after a tenancy ends (at once if it was never signed). Same hook as above. */
+    private function scheduleDocumentRemovalIfEnded(Reservation $reservation): void
+    {
+        if (in_array($reservation->rental_status, Reservation::TERMINAL_STATUSES, true)) {
+            \App\Services\TenancyDocuments::scheduleRemoval($reservation);
+        }
+    }
+
     private function cancelViewingsIfEnded(Reservation $reservation): void
     {
         if (! in_array($reservation->rental_status, Reservation::TERMINAL_STATUSES, true)) {

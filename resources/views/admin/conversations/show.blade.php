@@ -140,9 +140,9 @@
                             <dt class="text-[#94A3B8] shrink-0">Escrow</dt>
                             <dd class="font-semibold text-right {{ $heldPayment ? 'text-[#060D26]' : ($releasedPayment ? 'text-[#15803D]' : 'text-[#5B6A8E]') }}">
                                 @if ($heldPayment)
-                                    Held &middot; &#8369;{{ number_format($heldPayment->amount, 2) }}
+                                    Held &middot; &#8369;{{ number_format($reservation->heldTotal(), 2) }}
                                 @elseif ($releasedPayment)
-                                    Released &middot; &#8369;{{ number_format($releasedPayment->amount, 2) }}
+                                    Released &middot; &#8369;{{ number_format($reservation->payments->where('status', 'Released')->sum('amount'), 2) }}
                                 @else
                                     Not funded
                                 @endif
@@ -180,7 +180,38 @@
                             </div>
                         @endif
                     </dl>
+
+                    {{-- Give the held money back to the tenant. Releasing it to the landlord stays in Payments. --}}
+                    @if ($heldPayment)
+                        @php
+                            $heldRows = $reservation->payments->where('status', 'Held')->filter(
+                                fn ($p) => $heldPayment->paymongo_checkout_session_id
+                                    ? $p->paymongo_checkout_session_id === $heldPayment->paymongo_checkout_session_id
+                                    : $p->payment_id === $heldPayment->payment_id
+                            );
+                            $heldQuote = \App\Services\PaymentRefunds::quote($heldRows);
+                            $heldRefundDetail = [
+                                'id' => $heldPayment->payment_id,
+                                'action' => route('admin.payments.refund', $heldPayment),
+                                'label' => trim(($conversation->tenant->first_name ?? '').' '.($conversation->tenant->last_name ?? '')).' · '.($reservation->property?->title ?? 'Reservation'),
+                                'rent' => $heldQuote['rent'],
+                                'fee' => $heldQuote['fee'],
+                                'rows' => $heldQuote['rows'],
+                            ];
+                        @endphp
+                        @if ($heldPayment->recorded_by === null && $heldQuote['paymongo_payment_id'])
+                            <button type="button" @click="$dispatch('open-refund-payment', {{ \Illuminate\Support\Js::from($heldRefundDetail) }})"
+                                class="mt-3 block w-full text-center py-2 text-[12px] font-semibold border border-[#EF4444]/30 text-[#DC2626] rounded-xl hover:bg-[#EF4444]/[0.06] transition-colors cursor-pointer">
+                                Refund tenant
+                            </button>
+                            <a href="{{ route('admin.payments.index', ['status' => 'Held']) }}"
+                                class="mt-2 block text-center text-[11.5px] font-semibold text-[#5B6A8E] hover:text-[#060D26] underline underline-offset-2">
+                                Or release it to the landlord in Payments
+                            </a>
+                        @endif
+                    @endif
                 </x-card>
+                @include('admin.payments.partials.refund-modal')
             @endif
 
             {{-- Tenant card --}}

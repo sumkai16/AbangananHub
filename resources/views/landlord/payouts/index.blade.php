@@ -15,6 +15,10 @@
             </x-page-header>
         </div>
 
+        @if ($holdNotice)
+            <div class="mb-6 flex items-start gap-3 rounded-2xl border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] p-4 text-[13px] leading-6 text-[#B45309]">{{ $holdNotice }}</div>
+        @endif
+
         @unless ($hasPayoutDestination)
             <div class="mb-6 flex items-start gap-3 rounded-2xl border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] p-4">
                 <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FBBF24]/[0.10] text-[#B45309]">
@@ -32,7 +36,7 @@
         <div class="stat-chips mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <x-stat-card label="Pending payout" :value="'₱' . number_format($pendingTotal, 2)" value-color="#B45309" icon-bg="rgba(251,191,36,0.10)"
                 class="shadow-[0_10px_25px_rgba(6,13,38,0.07)] hover:-translate-y-0.5 transition-all duration-200"
-                sub="Waiting on AbangananHub to send">
+                sub="{{ \App\Services\LandlordPayouts::automaticEnabled() ? 'Sent to your GCash automatically' : 'Paid to your GCash by AbangananHub' }}">
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B45309" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m5-2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -72,7 +76,7 @@
                                 <p class="text-[13.5px] font-semibold text-[#060D26] truncate">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</p>
                                 <p class="text-[13.5px] font-semibold text-[#060D26] shrink-0">₱{{ number_format($payment->amount, 2) }}</p>
                             </div>
-                            <p class="mt-0.5 text-[12px] text-[#5B6A8E]">{{ $payment->reservation?->unit?->unit_label ?? '—' }} · {{ $payment->payment_type }}</p>
+                            <p class="mt-0.5 text-[12px] text-[#5B6A8E]">{{ $payment->reservation?->unit?->unit_label ?? '—' }} · {{ $payment->payment_type }}@if ($payment->payout?->isProcessing()) · <span class="font-semibold text-[#B45309]">Sending to your GCash</span>@endif</p>
                             <p class="mt-0.5 text-[11.5px] text-[#94A3B8]">Settled {{ ($payment->released_at ?? $payment->paid_at)?->format('M d, Y') ?? '—' }}</p>
                         </div>
                     @endforeach
@@ -96,7 +100,7 @@
                                     <td class="px-5 py-3 text-[13px] font-medium text-[#060D26] sm:px-6">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</td>
                                     <td class="px-5 py-3 text-[13px] text-[#5B6A8E] sm:px-6">{{ $payment->reservation?->unit?->unit_label ?? '—' }}</td>
                                     <td class="px-5 py-3 text-[13px] text-[#5B6A8E] sm:px-6">{{ $payment->payment_type }}</td>
-                                    <td class="px-5 py-3 text-[13px] font-semibold text-[#060D26] sm:px-6">₱{{ number_format($payment->amount, 2) }}</td>
+                                    <td class="px-5 py-3 text-[13px] font-semibold text-[#060D26] sm:px-6">₱{{ number_format($payment->amount, 2) }}@if ($payment->payout?->isProcessing())<span class="block text-[11px] font-semibold text-[#B45309]">Sending to your GCash</span>@endif</td>
                                     <td class="px-5 py-3 text-[13px] text-[#5B6A8E] sm:px-6">{{ ($payment->released_at ?? $payment->paid_at)?->format('M d, Y') ?? '—' }}</td>
                                 </tr>
                             @endforeach

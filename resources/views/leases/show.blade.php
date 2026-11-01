@@ -18,7 +18,8 @@
         : route('tenancy.show', $reservation);
 @endphp
 
-<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
+<x-print-document>
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10 print:max-w-none print:mx-0 print:p-0">
     <div class="flex items-center justify-between gap-3 mb-5 print:hidden">
         <a href="{{ $backUrl }}" class="inline-flex items-center text-sm font-semibold text-[#5B6A8E] hover:text-[#060D26] transition-colors">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
@@ -83,4 +84,5 @@
         @endif
     </x-card>
 </div>
+</x-print-document>
 @endsection

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use App\Models\User;
+use App\Support\LeaseTemplates;
 use App\Support\LeaseTerms;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -87,9 +88,10 @@ class LeaseContractCreator
             'agreement_terms_notes' => $data['agreement_terms_notes'] ?? null,
         ]);
 
-        // The lease this tenancy runs on, frozen now (it needs the new row's id for its reference).
+        // The lease this tenancy runs on, frozen now (it needs the new row's id for its reference), on the unit's
+        // lease template (else the property's, else the standard clauses), the same as an online agreement.
         $reservation->update([
-            'lease_snapshot' => LeaseTerms::snapshot($reservation),
+            'lease_snapshot' => LeaseTerms::snapshot($reservation, template: LeaseTemplates::forReservation($reservation)),
             'lease_file_path' => $leasePath,
             'lease_file_name' => $leasePath ? $leaseName : null,
             'lease_uploaded_at' => $leasePath ? now() : null,

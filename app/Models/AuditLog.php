@@ -62,6 +62,13 @@ class AuditLog extends Model
         'review.visibility_change'  => 'Review visibility changed',
         'report.resolve'            => 'Report resolved',
         'settings.update'           => 'System settings updated',
+        'tenancy_document.view'     => 'Tenant document opened',
+        'payout.mark_paid_out'      => 'Payout recorded by hand',
+        'payout.retry'              => 'Payout retried',
+        'payout.check'              => 'Payout status checked',
+        'payout.pause'              => 'Landlord payouts paused',
+        'payout.resume'             => 'Landlord payouts resumed',
+        'payout_account.approve'    => 'GCash account approved for payouts',
     ];
 
     protected $fillable = [

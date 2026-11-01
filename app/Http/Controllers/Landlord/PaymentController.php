@@ -516,7 +516,7 @@ class PaymentController extends Controller
      */
     public function receipt(Payment $payment)
     {
-        $payment->load(['reservation.property', 'reservation.tenant', 'reservation.unit', 'recorder']);
+        $payment->load(['reservation.property.landlord', 'reservation.tenant', 'reservation.unit', 'recorder', 'claim']);
 
         $reservation = $payment->reservation;
 

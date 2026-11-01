@@ -41,6 +41,14 @@
             </x-slot:badge>
         </x-page-header>
 
+        {{-- Which lease this unit sends: its own, else the property's, else the standard one (App\Support\LeaseTemplates). --}}
+        @php $unitLease = \App\Support\LeaseTemplates::for($property, $unit); @endphp
+        <p class="mb-5 text-[13px] text-[#060D26]">
+            <span class="text-[#5B6A8E]">Policy:</span> {{ $unitLease?->name ?? 'Standard policy' }}
+            @if($unit->lease_template_id === null && $unitLease) <span class="text-[#5B6A8E]">(from the property)</span> @endif
+            <a href="{{ route('landlord.leases.index', ['property' => $property->property_id]) }}" class="ml-1 font-semibold underline underline-offset-2">Change on the Policies page</a>
+        </p>
+
         {{-- Flash / errors --}}
         @if($errors->any())
             <div class="mb-6 px-4 py-3 rounded-xl bg-[#EF4444]/[0.07] border border-[#EF4444]/20 text-[#DC2626] text-sm font-medium flex items-start gap-2.5" role="alert">

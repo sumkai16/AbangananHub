@@ -53,3 +53,5 @@
 @if($blockedReason)
     <p class="basis-full text-[11.5px] leading-snug text-[#5B6A8E] sm:text-right">{{ $blockedReason }}</p>
 @endif
+
+@include('payments.partials._refund-notice', ['reservation' => $reservation])

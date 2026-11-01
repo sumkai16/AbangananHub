@@ -7,14 +7,21 @@
 
     {{-- Payout details: only while online payments are on, or money is still owed to this landlord. --}}
     @if($user->showsPayoutTools())
-    <div id="payout" class="scroll-mt-28 rounded-2xl ring-1 ring-[#5B6A8E]/10 shadow-[0_2px_12px_rgba(6,13,38,0.05)] bg-white p-4 sm:p-8" data-animate>
+    @php
+        $savedNumber = (string) $user->payoutAccount?->gcash_number;
+        $savedName = (string) $user->payoutAccount?->gcash_account_name;
+        $payoutHold = $user->payoutAccount?->isOnHold() ? $user->payoutAccount->payouts_hold_until : null;
+    @endphp
+    <div id="payout" class="scroll-mt-28 rounded-2xl ring-1 ring-[#5B6A8E]/10 shadow-[0_2px_12px_rgba(6,13,38,0.05)] bg-white p-4 sm:p-8" data-animate
+        x-data="{ saved: @js($savedNumber !== '' || $savedName !== ''), savedNumber: @js($savedNumber), savedName: @js($savedName), number: @js(old('gcash_number', $savedNumber)), name: @js(old('gcash_account_name', $savedName)),
+            get changing() { return this.saved && (this.number.trim() !== this.savedNumber || this.name.trim() !== this.savedName); } }">
         <h2 class="text-[15px] font-normal text-[#060D26] mb-1">Payout details</h2>
-        <p class="text-[12px] text-[#5B6A8E] mb-4">Where AbangananHub sends the rent and deposits it collects on your behalf. Both fields are required before you can be paid out.</p>
+        <p class="text-[12px] text-[#5B6A8E] mb-4">Where AbangananHub sends the rent and deposits it collects on your behalf. Both fields are required before you can be paid out. Use your own GCash: the name should match your verified ID, and an administrator approves the account before your first payout.</p>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <label for="gcash_number" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">GCash number</label>
-                <input type="text" id="gcash_number" name="gcash_number" value="{{ old('gcash_number', $user->payoutAccount?->gcash_number) }}"
+                <input type="text" id="gcash_number" name="gcash_number" x-model="number" value="{{ old('gcash_number', $user->payoutAccount?->gcash_number) }}"
                     class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all"
                     placeholder="09XX XXX XXXX">
                 @error('gcash_number')
@@ -23,13 +30,45 @@
             </div>
             <div>
                 <label for="gcash_account_name" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">GCash account name</label>
-                <input type="text" id="gcash_account_name" name="gcash_account_name" value="{{ old('gcash_account_name', $user->payoutAccount?->gcash_account_name) }}"
+                <input type="text" id="gcash_account_name" name="gcash_account_name" x-model="name" value="{{ old('gcash_account_name', $user->payoutAccount?->gcash_account_name) }}"
                     class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all"
                     placeholder="Name on the GCash account">
                 @error('gcash_account_name')
                     <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
                 @enderror
             </div>
+        </div>
+
+        @if ($payoutHold)
+            <p class="mt-4 rounded-xl bg-[#FBBF24]/15 px-3 py-2 text-[12.5px] leading-relaxed text-[#92600A]">
+                Payouts to you are paused until {{ $payoutHold->format('M j, g:i A') }} because your GCash details changed. What you are owed stays safe and goes out after that.
+            </p>
+        @endif
+
+        {{-- Changing where the money goes needs the password, so a borrowed session cannot redirect it. --}}
+        <div x-show="changing || @js($errors->has('current_password'))" x-cloak class="mt-4">
+            <label for="current_password" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Your password</label>
+            <input type="password" id="current_password" name="current_password" autocomplete="current-password"
+                class="w-full sm:max-w-sm px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
+            <p class="mt-1 text-[12px] text-[#5B6A8E]">Needed to change your GCash details. Payouts to you pause for 48 hours afterwards as a safety check, and we email you.</p>
+            @error('current_password')
+                <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div class="mt-5 border-t border-[#E2E4EC] pt-5">
+            <input type="hidden" name="accepts_online" value="0">
+            <label for="accepts_online" class="flex cursor-pointer items-start gap-3">
+                <input type="checkbox" id="accepts_online" name="accepts_online" value="1" @checked(old('accepts_online', $user->payoutAccount?->accepts_online ?? true))
+                    class="mt-0.5 h-4 w-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66] focus:ring-offset-0">
+                <span>
+                    <span class="block text-[13px] font-semibold text-[#060D26]">Let tenants pay me online</span>
+                    <span class="mt-0.5 block text-[12px] leading-relaxed text-[#5B6A8E]">Tenants can choose to pay through PayMongo (GCash or QR Ph) and AbangananHub pays you out to the GCash above. Tenants can always pay you directly instead. Turn this off if you only want direct payments. It only applies once both GCash fields are filled in.</span>
+                </span>
+            </label>
+            @error('accepts_online')
+                <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
+            @enderror
         </div>
     </div>
 

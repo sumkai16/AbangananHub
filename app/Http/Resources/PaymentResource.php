@@ -14,6 +14,12 @@ class PaymentResource extends ApiResource
             'payment_type'                  => $this->attr('payment_type'),
             'billing_period'                => $this->attr('billing_period'),
             'amount'                        => $this->attr('amount'),
+            // The online fee the tenant paid on top of `amount` (0 when none), and what this one row charged them.
+            // A move-in checkout is two rows (rent + deposit); the fee sits on the rent row.
+            'service_fee'                   => $this->attr('service_fee'),
+            'charged_total'                 => $this->resource->amount !== null
+                ? number_format((float) $this->resource->amount + (float) $this->resource->service_fee, 2, '.', '')
+                : null,
             'payment_method'                => $this->attr('payment_method'),
             'paymongo_payment_intent_id'    => $this->attr('paymongo_payment_intent_id'),
             'paymongo_payment_id'           => $this->attr('paymongo_payment_id'),

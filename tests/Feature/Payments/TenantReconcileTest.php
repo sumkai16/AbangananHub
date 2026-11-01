@@ -255,6 +255,33 @@ class TenantReconcileTest extends TestCase
     }
 
     #[DataProvider('entryPoints')]
+    public function test_a_session_paid_for_a_different_amount_is_not_settled(string $flow, string $surface): void
+    {
+        $session = $this->paidSession('cs_checkout_short');
+        $session['data']['attributes']['payments'][0]['attributes']['amount'] = 100;
+        $this->fakeSession('cs_checkout_short', $session);
+        $t = $this->tenancyWithCheckout($flow, 'cs_checkout_short', ['amount' => 5000]);
+        $before = $this->noise($t);
+
+        $this->reconcile($flow, $surface, $t['tenant'], $t['reservation']);
+
+        $this->assertNothingSettled($t, $before, 'A payment for the wrong amount must stay Pending.');
+    }
+
+    #[DataProvider('entryPoints')]
+    public function test_a_session_paid_for_the_amount_asked_is_settled(string $flow, string $surface): void
+    {
+        $session = $this->paidSession('cs_checkout_exact');
+        $session['data']['attributes']['payments'][0]['attributes']['amount'] = 500000;
+        $this->fakeSession('cs_checkout_exact', $session);
+        $t = $this->tenancyWithCheckout($flow, 'cs_checkout_exact', ['amount' => 5000]);
+
+        $this->reconcile($flow, $surface, $t['tenant'], $t['reservation']);
+
+        $this->assertNotSame('Pending', $t['payment']->fresh()->status);
+    }
+
+    #[DataProvider('entryPoints')]
     public function test_settling_tells_the_conversation_and_funding_escrow_notifies_both_parties(string $flow, string $surface): void
     {
         $this->fakeSession('cs_checkout_notify', $this->paidSession('cs_checkout_notify'));
