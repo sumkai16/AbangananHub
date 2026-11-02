@@ -69,13 +69,13 @@
                             </a>
                         @endif
 
-                        <a href="{{ route('reports.create') }}"
-                            class="ml-auto h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 inline-flex items-center gap-1.5">
+                        <button type="button" x-data x-on:click="$dispatch('open-file-report')"
+                            class="ml-auto cursor-pointer h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 inline-flex items-center gap-1.5">
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
                             File a Report
-                        </a>
+                        </button>
                     </div>
                 </form>
 
@@ -90,13 +90,13 @@
                         </div>
                         <p class="text-[15px] font-semibold text-[#060D26]">No reports filed</p>
                         <p class="text-[13px] text-[#5B6A8E] mt-1 max-w-xs">Reports you submit against listings or users will be tracked here, from filing to resolution.</p>
-                        <a href="{{ route('reports.create') }}"
-                            class="mt-5 inline-flex items-center gap-1.5 h-10 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] transition-all duration-200">
+                        <button type="button" x-data x-on:click="$dispatch('open-file-report')"
+                            class="mt-5 cursor-pointer inline-flex items-center gap-1.5 h-10 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] transition-all duration-200">
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
                             File a Report
-                        </a>
+                        </button>
                     </div>
                 @else
                     <div class="space-y-3">
@@ -196,4 +196,6 @@
             </aside>
         </div>
     </div>
+
+    @include('landlord.complaints.partials._file-report-modal')
 @endsection

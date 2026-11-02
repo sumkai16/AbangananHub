@@ -183,14 +183,28 @@ class ContractController extends Controller
     /** Tenants on this landlord's list, for the Add lease picker: those without a live contract first. */
     private function tenantOptions()
     {
-        return LandlordTenant::where('landlord_id', Auth::id())->visible()
+        $rows = LandlordTenant::where('landlord_id', Auth::id())->visible()
             ->with('tenant:user_id,first_name,last_name')
-            ->get()
-            ->map(fn (LandlordTenant $row) => [
-                'id' => $row->landlord_tenant_id,
-                'label' => $row->code().' · '.trim($row->tenant?->first_name.' '.$row->tenant?->last_name),
-            ])
-            ->sortBy('label')
+            ->get();
+
+        // One query for every tenant's reservation statuses, so Pending / Active / Former can be shown per option.
+        $statuses = Reservation::whereIn('tenant_id', $rows->pluck('tenant_id'))
+            ->whereHas('property', fn ($q) => $q->where('landlord_id', Auth::id()))
+            ->get(['tenant_id', 'rental_status'])
+            ->groupBy('tenant_id');
+
+        return $rows
+            ->map(function (LandlordTenant $row) use ($statuses) {
+                $status = LandlordTenant::statusFrom(($statuses[$row->tenant_id] ?? collect())->pluck('rental_status'));
+
+                return [
+                    'status' => $status,
+                    'id' => $row->landlord_tenant_id,
+                    'label' => $row->code().' · '.trim($row->tenant?->first_name.' '.$row->tenant?->last_name).' ('.$status.')',
+                ];
+            })
+            // Pending (no lease yet) first, then the rest, each group by name.
+            ->sortBy(fn ($t) => ($t['status'] === 'Pending' ? '0' : '1').$t['label'])
             ->values();
     }
 

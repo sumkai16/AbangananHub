@@ -142,6 +142,14 @@ class LandlordPayouts
             ->exists();
     }
 
+    /** What AbangananHub still owes this landlord: waiting to be sent, or with PayMongo right now. */
+    public static function awaitingTotal(User $landlord): float
+    {
+        return round((float) Payment::awaitingPayout()
+            ->whereHas('reservation.property', fn ($q) => $q->where('landlord_id', $landlord->user_id))
+            ->sum('amount'), 2);
+    }
+
     /** @return Collection<int, int> landlord ids with money waiting to be sent */
     public static function landlordIdsWithMoneyOwed(): Collection
     {

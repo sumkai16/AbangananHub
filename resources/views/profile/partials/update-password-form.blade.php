@@ -1,3 +1,5 @@
+{{-- Inside Account Settings the x-settings-panel draws the card and the header; elsewhere (admin) this partial does. --}}
+@unless($inPanel ?? false)
 <div class="rounded-2xl ring-1 ring-[#5B6A8E]/10 shadow-[0_2px_12px_rgba(6,13,38,0.05)] bg-white p-4 sm:p-8">
 
     {{-- Section header --}}
@@ -12,6 +14,7 @@
             <p class="mt-0.5 text-sm text-[#5B6A8E]">Use a long, unique password you don't reuse elsewhere.</p>
         </div>
     </div>
+@endunless
 
     <form method="post" action="{{ route('password.update') }}" x-data="{ pw: '', confirm: '' }" novalidate>
         @csrf
@@ -116,4 +119,6 @@
             </button>
         </div>
     </form>
+@unless($inPanel ?? false)
 </div>
+@endunless

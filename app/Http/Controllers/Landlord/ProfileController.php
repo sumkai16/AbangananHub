@@ -249,10 +249,25 @@ class ProfileController extends Controller
 
         // The account name is checked against the landlord's name and verified ID. A mismatch does not block the
         // save (a spouse's or business GCash is legitimate), it tells them an admin will look at it.
-        if (filled($name) && LandlordPayouts::nameMatchesIdentity($user, $name) === false) {
-            return redirect()->route('profile.edit', [], 303)->with('warning', 'Saved. The name on your GCash account does not match the name on your verified ID, so an administrator will check it before your first payout. If you meant to use your own account, correct the name.');
+        // The forms that post here each carry only their own fields, so the others' stored values are left as they
+        // were: the GCash form on Payments > Payouts (return_to=payouts) and on Settings > Payments (return_to=settings),
+        // and the business sheet on My Profile (return_to=profile).
+        $returnTo = $request->input('return_to');
+        $back = match ($returnTo) {
+            'payouts' => route('landlord.payouts.index'),
+            'profile' => route('landlord.profile.me'),
+            'settings' => route('profile.edit').'#payments',
+            default => route('profile.edit'),
+        };
+
+        if ($returnTo === 'profile') {
+            return redirect($back, 303)->with('success', 'Business page saved.');
         }
 
-        return redirect()->route('profile.edit', [], 303)->with('success', 'Payout and business details saved.');
+        if (filled($name) && LandlordPayouts::nameMatchesIdentity($user, $name) === false) {
+            return redirect($back, 303)->with('warning', 'Saved. The name on your GCash account does not match the name on your verified ID, so an administrator will check it before your first payout. If you meant to use your own account, correct the name.');
+        }
+
+        return redirect($back, 303)->with('success', in_array($returnTo, ['payouts', 'settings'], true) ? 'Payout details saved.' : 'Payout and business details saved.');
     }
 }

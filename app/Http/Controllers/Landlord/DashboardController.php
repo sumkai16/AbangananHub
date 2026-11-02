@@ -11,6 +11,7 @@ use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use App\Models\Review;
 use App\Models\User;
+use App\Models\ViewingRequest;
 use App\Services\RentLedger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -20,6 +21,12 @@ class DashboardController extends Controller
 {
     /** Rows shown in the action queue before "and N more". */
     private const QUEUE_LIMIT = 6;
+
+    /** Days the dashboard's viewings card counts as "soon", today included. */
+    private const VIEWING_DAYS = 14;
+
+    /** Months the dashboard's viewing calendar holds: this one and the next two (the full calendar has the rest). */
+    private const VIEWING_MONTHS = 3;
 
     public function index(Request $request)
     {
@@ -97,6 +104,7 @@ class DashboardController extends Controller
             'actionQueueOverflow' => max(0, $actionQueue->count() - self::QUEUE_LIMIT),
             'greeting' => $greeting,
             'setupAlerts' => $setupAlerts,
+            'viewings' => $this->viewingSchedule($landlordId),
         ]);
     }
 
@@ -275,7 +283,7 @@ class DashboardController extends Controller
                 'level' => 'warn',
                 'text' => 'Add your GCash details so AbangananHub can send your payouts.',
                 'cta' => 'Add details',
-                'url' => route('profile.edit').'#payout',
+                'url' => route('landlord.payouts.index').'#payout-account',
             ]);
         }
         if ($counts['rejected'] > 0) {
@@ -412,5 +420,39 @@ class DashboardController extends Controller
             ->sortByDesc('timestamp')
             ->take(5)
             ->values();
+    }
+
+    /**
+     * The dashboard's viewings card and its calendar modal: every active (pending or confirmed) viewing from the
+     * start of this month to the end of the month after next, grouped by day. The card shows the next one, how many
+     * fall in the next two weeks and how many wait on the landlord's answer; the modal draws the months as a calendar.
+     * Blocked days, offline viewings and answering stay on Reservations > Viewings (Landlord\ViewingController).
+     *
+     * @return array{months: Collection, byDay: Collection, next: ?ViewingRequest, soon: int, toAnswer: int, needsAnswerDays: array<int, string>}
+     */
+    private function viewingSchedule(int $landlordId): array
+    {
+        $today = now()->startOfDay();
+        $firstMonth = $today->copy()->startOfMonth();
+        $months = collect(range(0, self::VIEWING_MONTHS - 1))->map(fn ($i) => $firstMonth->copy()->addMonthsNoOverflow($i));
+
+        $viewings = ViewingRequest::where('landlord_id', $landlordId)
+            ->active()
+            ->whereBetween('scheduled_at', [$firstMonth, $months->last()->copy()->endOfMonth()])
+            ->with(['tenant:user_id,first_name,last_name', 'property:property_id,title', 'unit:unit_id,unit_label'])
+            ->orderBy('scheduled_at')
+            ->get();
+
+        $awaiting = $viewings->filter(fn (ViewingRequest $v) => $v->isOpen() && $v->awaitsResponseFrom($landlordId));
+        $soonEnd = $today->copy()->addDays(self::VIEWING_DAYS);
+
+        return [
+            'months' => $months,
+            'byDay' => $viewings->groupBy(fn (ViewingRequest $v) => $v->scheduled_at->toDateString()),
+            'next' => $viewings->first(fn (ViewingRequest $v) => $v->scheduled_at->gte(now())),
+            'soon' => $viewings->filter(fn (ViewingRequest $v) => $v->scheduled_at->gte($today) && $v->scheduled_at->lt($soonEnd))->count(),
+            'toAnswer' => $awaiting->count(),
+            'needsAnswerDays' => $awaiting->map(fn (ViewingRequest $v) => $v->scheduled_at->toDateString())->unique()->values()->all(),
+        ];
     }
 }

@@ -10,7 +10,7 @@ use App\Services\LandlordPayouts;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * A landlord's own read-only view of what AbangananHub owes them and what it
+ * A landlord's own view (the Payouts tab of Payments) of what AbangananHub owes them, where it goes, and what it
  * has already sent — the other half of the manual-payout queue an admin works
  * from. See docs/specs/2026-07-26-landlord-payout-design.md.
  */
@@ -48,6 +48,8 @@ class PayoutController extends Controller
             'paidOut' => $paidOut,
             'paidOutTotal' => $paidOutTotal,
             'hasPayoutDestination' => Auth::user()->hasPayoutDestination(),
+            // The GCash form (landlord/payouts/partials/_account) reads the account from here.
+            'user' => Auth::user()->load('payoutAccount'),
             // Why nothing is going out right now, in the landlord's words, or null.
             'holdNotice' => $this->holdNotice(),
         ]);

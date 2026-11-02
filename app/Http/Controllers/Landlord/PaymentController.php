@@ -8,6 +8,7 @@ use App\Models\Notification;
 use App\Models\Payment;
 use App\Models\Property;
 use App\Models\Reservation;
+use App\Services\LandlordPayouts;
 use App\Services\RentLedger;
 use App\Services\RentPaymentRecorder;
 use App\Services\RentReminderNotifier;
@@ -182,6 +183,8 @@ class PaymentController extends Controller
             'hasDueThisMonth' => $hasDueThisMonth,
             'view'         => $view,
             'calendar'    => $calendar,
+            // The Payouts tab, and the "waiting to be sent" line pointing at it, only while payouts apply.
+            'awaitingPayout' => $request->user()->showsPayoutTools() ? LandlordPayouts::awaitingTotal($request->user()) : null,
         ]);
     }
 

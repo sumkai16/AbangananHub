@@ -1,3 +1,5 @@
+{{-- Inside Account Settings the x-settings-panel draws the card and the header; elsewhere (admin) this partial does. --}}
+@unless($inPanel ?? false)
 <div class="rounded-2xl ring-1 ring-[#5B6A8E]/10 shadow-[0_2px_12px_rgba(6,13,38,0.05)] bg-white p-4 sm:p-8">
 
     {{-- Section header --}}
@@ -12,6 +14,7 @@
             <p class="mt-0.5 text-sm text-[#5B6A8E]">Update your name, email, and contact details.</p>
         </div>
     </div>
+@endunless
 
     <form id="send-verification" method="post" action="{{ route('verification.send') }}">@csrf</form>
 
@@ -120,7 +123,8 @@
                 @enderror
             </div>
 
-            {{-- Bio --}}
+            {{-- Bio: shown on a tenant's profile only. A landlord's "about" is the business description on My Profile. --}}
+            @unless($user->usesLandlordShell())
             <div class="sm:col-span-2">
                 <label for="bio" class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#5B6A8E]">
                     Bio <span class="normal-case font-normal text-[#5B6A8E]/70">(Optional)</span>
@@ -132,23 +136,33 @@
                     <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
                 @enderror
             </div>
+            @endunless
 
             {{-- Profile visibility --}}
-            <div class="sm:col-span-2">
+            <div id="visibility" class="sm:col-span-2 scroll-mt-28">
                 <label for="profile_visibility"
                     class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#5B6A8E]">
                     Profile visibility
                 </label>
                 @php
                     $visibility = old('profile_visibility', $user->profile_visibility);
-                    $visibilityOptions = [
-                        'private' => 'Private — only you can see your profile',
-                        'landlords_only' => "Landlords only — visible to landlords you've reserved with",
-                        'public' => 'Public — visible to everyone',
-                    ];
+                    $visibilityOptions = $user->usesLandlordShell()
+                        ? [
+                            'private' => 'Private — only you can see your business page',
+                            'landlords_only' => 'Landlords only — other landlords can view it',
+                            'public' => 'Public — anyone can view it',
+                        ]
+                        : [
+                            'private' => 'Private — only you can see your profile',
+                            'landlords_only' => "Landlords only — visible to landlords you've reserved with",
+                            'public' => 'Public — visible to everyone',
+                        ];
                 @endphp
                 <x-styled-select name="profile_visibility" :options="$visibilityOptions" :selected="$visibility"
                     class="h-10 w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 text-sm text-[#060D26]" />
+                @if($user->usesLandlordShell())
+                    <p class="mt-1.5 text-[12px] leading-relaxed text-[#5B6A8E]">Only matters while you have no live listing. With a live listing your business page is always public.</p>
+                @endif
                 @error('profile_visibility')
                     <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
                 @enderror
@@ -163,4 +177,6 @@
             </button>
         </div>
     </form>
+@unless($inPanel ?? false)
 </div>
+@endunless

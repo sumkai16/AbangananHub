@@ -44,7 +44,9 @@
 
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
 
-        {{-- Header --}}
+        {{-- Header, then the Rent | Payouts tabs. On a phone the title lives in the top bar, so the tabs go
+             first and List / Calendar / Export (Rent-only actions) sit under them. --}}
+        <div class="flex flex-col">
         <x-page-header title="Payments" subtitle="Rent collection across all occupied units, with the most urgent payments shown first.">
             <x-slot:icon>
                 <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
@@ -87,6 +89,13 @@
                 </a>
             </x-slot:actions>
         </x-page-header>
+
+        @if ($awaitingPayout !== null)
+            <div class="max-sm:order-first">
+                @include('landlord.payments.partials._tabs', ['active' => 'rent', 'awaitingPayout' => $awaitingPayout])
+            </div>
+        @endif
+        </div>
 
         {{-- Summary: two different surfaces for two different questions.
              Left (navy, the page's one dark moment): how is this month going.

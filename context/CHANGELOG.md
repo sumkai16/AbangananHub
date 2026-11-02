@@ -2,23 +2,6 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
-## Nov 2 2026 — Browser security headers: CSP (report-only), Permissions-Policy, HSTS (branch `emman`)
-Why: the audit found no CSP or HSTS. **Ships in report-only mode: it logs what it would block and blocks nothing.**
-- `SecurityHeaders` middleware (web group) + `ContentSecurityPolicy` + `config/security.php`. `CSP_MODE=off|report-only|enforce`. Also Permissions-Policy (camera and location for this site only), Referrer-Policy, HSTS on https only.
-- `POST /csp-report` collects violations into `laravel.log` ("CSP violation"). Public, throttled, CSRF-exempt, fields clipped.
-- **Limit, said plainly:** it does not stop an injected inline script, because the app relies on inline scripts and Alpine's `eval` (`'unsafe-inline' 'unsafe-eval'`). It does stop other sites framing ours, plugins, `<base>` tricks, and limits form targets and outbound origins. The real fix (scripts to files, Alpine CSP build, nonces) is a separate piece of work.
-- **Checked in headless Edge (dev):** 8 public + 28 logged-in pages, 0 violations. It found one real problem first: the built chat client opens `wss://` while `.env` said `http`; the policy now allows both for the Reverb host.
-- **Before `CSP_MODE=enforce` on the server, by hand:** camera capture (ID, selfie, unit photos), property wizard, map picker, modals, PayMongo and Google/Facebook redirects. Set `TRUSTED_PROXIES` so HSTS is sent.
-- Tests: `SecurityHeadersTest`. Docs: ARCHITECTURE.md "Browser Security Headers", runbook nginx note.
-
-## Nov 2 2026 — Changing your email needs your current password (branch `emman`)
-Why: the audit noted a stolen session could swap the account email, which is where password resets go, and take the account over.
-- `ProfileUpdateRequest` asks for `current_password` only when the email actually changes (compared without case). Other profile edits are unchanged. The account is marked unverified again, as before.
-- The Account Settings form shows a "Current password" box once the email field is edited (`update-profile-information-form`).
-- Mobile API and admin profile never changed email, so they are unaffected.
-- **Known limit:** an account made only through Google or Facebook has a random password it never saw, so it must use "Forgot password" first. Deleting an account already works the same way.
-- Tests: `EmailChangePasswordTest`; `ProfileTest` now sends the password.
-
 ## Nov 2 2026 — Quiet reservations: one reminder, then auto-cancel (branch `emman`)
 Why: the audit found Inquiry, Under Negotiation and Pending Rental Agreement never expired. Pending Rental Agreement holds the unit, so a tenant who never signed could block it for good.
 - **New daily job** `reservations:process-stale` (08:30 Manila, `app/Console/Commands/ProcessStaleReservations.php`). Days of silence, in `config/rentals.php` → `stale_reservations`:
@@ -37,7 +20,92 @@ Why: an audit found three reproducible gaps. Authorization, mass assignment, web
 - **Throttles:** web `POST /register` 10/min and `POST /forgot-password` 6/min per IP (the mobile API already limited sign-up).
 - **ID-photo check:** `ocrCheck` now has the submit form's size cap and ID-type whitelist, a 20/min throttle, and the decoded bytes must be a real image (`VerificationController::decodeBase64Image`, also used on submit).
 - Tests: `InputHardeningTest`.
-- **Not done:** nothing left from the audit list (CSP is in report-only, see the entry above).
+- **Not done:** (stale reservations are now handled, see the entry above) changing email needs no password; no CSP/HSTS headers.
+
+## Nov 2 2026 — Analytics: deposits are not revenue; new "Deposits Held" card (branch `emman`)
+Why: Revenue summed every settled payment, so a security deposit (the tenant's money, owed back at move-out) counted as income and move-in months spiked. **Not checked in a browser yet.**
+- **Revenue** (card, 6-month line, by-property donut, Top Performing, CSV export) now leaves out `payment_type = 'Deposit'` rows (`AnalyticsController::NON_REVENUE_TYPES`) and adds non-voided `deposit_charges`, dated by `charged_at` (the part of a deposit the landlord kept is earned then). Card sub-label: "Rent collected, excl. deposits".
+- **Deposits Held** card (6th stat card, grid now `lg:3 / xl:6`): deposit collected minus kept, summed over tenancies in `Reservation::UNIT_HOLDING_STATUSES`. Point-in-time, no delta. A `Completed` tenancy counts as settled (there is no move-out refund record). Read through new `RentLedger::deposit()` (also used by `summary()`), so it matches the tenancy page.
+- **Known gap:** an older online checkout that charged deposit and rent in one `Initial` row still counts whole in Revenue, while Deposits Held counts its deposit share. New checkouts write a separate `Deposit` row, so this only affects legacy data.
+- Tests: `LandlordAnalyticsDepositTest`.
+- **Manual test (375px first):** as a landlord with a walk-in tenant (rent + deposit recorded), Analytics → Revenue shows rent only, Deposits Held shows the deposit. Add a deposit charge on the tenancy → Revenue rises by it, Deposits Held drops by it.
+
+## Nov 2 2026 — Viewings card on the landlord dashboard (branch `emman`)
+Why: the landlord asked for the viewing schedule on the dashboard. **Checked in headless Edge at 375px and 1440px, with sample viewings added in a rolled-back transaction (nothing saved); not clicked in a real browser.**
+- **`landlord/dashboard/_viewings`**: one slim card between the stat tiles and "Your properties". It shows the next viewing ("Next: Tomorrow · 10:00 AM · Ana Reyes"), a "N to answer" pill when tenants wait on the landlord, and the count for the next 2 weeks.
+- **Clicking the card opens "Viewing calendar"**: a bottom sheet on phones, a 768px dialog on desktop.
+  - **Month grid** (Sun–Sat) with prev/next across this month and the next two. Today is outlined in coral and the picked day is filled navy.
+  - **Markers:** a day with viewings has a coral dot, or a count when there are several. The marker is amber when one waits on the landlord's answer, with a legend under the grid.
+  - **Day list:** the picked day's viewings with time, visitor, status pill ("Needs your answer" / "Waiting for tenant" / "Confirmed" / "Done") and unit · property. It sits beside the grid on desktop and under it on phones.
+  - **Opens on** the month and day of the next viewing.
+  - **Links:** each row and "Open full calendar" go to Reservations › Viewings, where answering, rescheduling and adding a phone viewing live.
+- **Data:** `DashboardController::viewingSchedule()`, one query: active viewings from the 1st of this month to the end of the month after next, with tenant, property and unit eager-loaded. It returns the months, viewings by day, the next viewing, the count in the next 14 days, the "to answer" count and the days needing an answer.
+- Tests: new `LandlordDashboardViewingsTest` (statuses, "to answer" count, three-month range, declined hidden, other landlords' viewings hidden, empty state).
+
+## Nov 2 2026 — Rent ledger header decluttered (branch `emman`)
+- `landlord/payments/ledger`: the line under the tenant's name now reads "Bed A · property · TN-0004". It wraps onto two lines instead of truncating, since phones cut off the property name. The tenant code is plain grey at the end.
+- The status pill shows only when the tenancy is not Occupied (moved out, not moved in yet). Occupied is the normal case, and the Balance tile already shows the paid state.
+- More space under the header. **Checked in headless Edge at 375px and 1440px.**
+
+## Nov 2 2026 — Account Settings sections are collapsible panels (branch `emman`)
+Why: Settings was one long wall of forms. **Checked in headless Edge at 375px (closed, Payments open, `#visibility` link) and 1440px; panels not clicked in a real browser.**
+- **New `components/settings-panel`.** Each section is one row: icon, title, a one-line summary and a chevron. Tapping the row opens the form. All panels start closed.
+  - **Personal info:** shows name · email.
+  - **Payments** (landlords): shows the methods that are on and the last 4 GCash digits.
+  - **Password**, **Emergency contact & ID** (tenants), and **Danger zone** (red).
+- **When a panel opens by itself:** its form came back with errors; or the URL points at the panel or at something inside it. Examples: a save that returns to `#payments`, My Profile's `#visibility` link, and the tenant's `#emergency-contact` links. The page scrolls to the target.
+- **Smooth open and close.** The body height slides with a `grid-template-rows` 0fr→1fr transition (360ms, ease-out) while the content fades and the chevron turns. No plugin, no measuring. Content is clipped only while moving, so dropdowns inside (Profile visibility) are not cut off once open. A closed panel is `inert` (out of the tab order). With reduced motion it opens instantly.
+- **Landlords no longer see "Back to Profile".** Settings is its own sidebar item for them. Tenants keep the link.
+- **The section link list beside the forms is removed.** The panels are the menu now, and its scroll highlight is gone with it (it lit up Danger zone once the page stopped scrolling). The Account overview card stays on desktop.
+- **The partials (`update-profile-information-form`, `update-password-form`, `update-tenant-details-form`, `delete-user-form`, `landlord-payment-methods`) take `inPanel`.** With it they drop their own card and header. Admin profile still includes the password and delete partials without the flag, so it is unchanged. The GCash partial draws its own card on the Payouts tab and a divider inside Settings.
+
+## Nov 2 2026 — Landlords choose how tenants pay them (Settings › Payments) (branch `emman`)
+Why: the landlord asked to keep payment setup in Settings, and to choose the payment methods tenants are offered. Until now QR and cash always showed, and online was a checkbox hidden in the GCash form. **Checked in headless Edge at 375px as a landlord; not saved in a browser.**
+- **Settings › Payments** (landlords only), a new rail item between Personal info and Password:
+  - **"How tenants can pay you":** three buttons, **Online**, **Your QR** and **Cash** (`profile/partials/landlord-payment-methods`), saved by `Landlord\PaymentMethodController` (`PATCH landlord/payment-methods`). Online shows only while online payments are switched on, and can only be ticked once GCash is saved.
+  - **At least one must stay on.** Online alone counts only with GCash; otherwise the save is refused with a message.
+  - **The GCash form** is under the buttons. It is the same partial as the Payouts tab (`landlord/payouts/partials/_account`, now taking `$returnTo`). Saving it returns to `profile.edit#payments`. The online checkbox moved out of that form into the buttons, and the Payouts tab summary links to "Payment methods".
+- **Storage:**
+  - `users.accepts_qr_payments` and `users.accepts_cash_payments` (boolean, default 1; migration `2026_11_02_000100`). They live on `users` because a landlord without GCash still picks QR or cash.
+  - Online stays `user_payout_accounts.accepts_online`.
+- **One rule everywhere: `App\Support\PaymentMethods::forReservation()`** returns `{online, qr, cash}`.
+  - **Tenant pay choice** (`components/payment-route-choice`): move-in (agreement page) and monthly rent (tenancy page) show only those ways. One way means one pre-picked card; online plus one direct way means no QR/Cash switch.
+  - **API:** tenancy and agreement responses gain `payment_methods`, and `payment_qr` is null when QR is off.
+  - **Server:** `PaymentClaims::file()` refuses an "I've paid" report for a turned-off way.
+  - **No dead ends:** if online later drops out (GCash removed, switch off) and nothing is left, QR and cash come back. A month paid ahead with an online-only landlord shows a note instead.
+- **This partly reverses the previous entry:** the GCash form is back on Settings, as the same form the Payouts tab uses.
+- Tests: new `PaymentMethodsTest`; `OnlineRouteChoiceTest`, `PayoutsTabTest` updated; `SCHEMA.md` updated.
+- **Manual test (375px first):**
+  1. As a landlord, Settings › Payments: untick Cash, Save.
+  2. As that landlord's tenant, the agreement and tenancy pay choices show no cash.
+  3. Untick everything: the save is refused.
+  4. Change GCash from Settings: you land back on Settings.
+
+## Nov 2 2026 — Landlord My Profile vs Settings: business page on My Profile, Settings is the private account (branch `emman`)
+Why: the two Account items overlapped. The business page was edited on Settings but shown on My Profile, private details (email, personal number, GCash) sat on the page tenants see, and GCash showed in three places. Rule now: **My Profile is your business page as tenants see it, edited there; Settings is your private account.** Plan: `plans/landlord-profile-vs-settings.md`. **Checked in headless Edge at 375px and 1440px as a landlord (sheet open); not saved in a browser.**
+- **My Profile** (`landlord/profile/show`): "Edit business page" opens a sheet (`landlord/profile/partials/_business-sheet`) with logo, business name, about, business contact and address. It is a bottom sheet on phones and a dialog otherwise. It posts to `landlord.profile.update` with `return_to=profile` and lands back with "Business page saved."; GCash is left as it was, and an error reopens the sheet. The "No description yet" / "Add them" links open it too. A strip under the name says "This is what tenants see." plus who can open the page, linking to `profile.edit#visibility`. The email, personal number, visibility and GCash rows are gone.
+- **Settings** (`profile/edit`, landlord shell only): personal info (name, email, number, visibility with landlord wording and the live-listing note), password, danger zone. Removed for landlords: the business form (`profile/partials/update-landlord-business-form` deleted), the Payout pointer card (GCash is on Payments › Payouts only; supersedes the payouts-tab entry below), bio, profile strength, trust tip and the "Email status" row. Tenant Settings is unchanged.
+- **Leak fixed:** with no business logo, the landlord banner fell back to the landlord's own photo for everyone, because Blade drops a `null` prop and the component's default is the personal photo. It now gets `''` and shows the business initials. Also fixed a stray quote in `components/profile-banner` that left the avatar `<img>` unstyled.
+- Tests: new `LandlordBusinessSheetTest`; `ProfileSettingsPageTest`, `PayoutsTabTest`, `PublicIdentityTest` updated (owner details now asserted on Settings, plus a no-logo photo leak case).
+- **Manual test (375px first):** My Profile → Edit business page → change About → Save → back on My Profile with the new text. Settings shows no business, bio or GCash. As a tenant, Settings looks as before.
+- **Not done:** chat bubbles still show a landlord's personal photo to tenants.
+
+## Nov 2 2026 — Landlord sidebar: no "Report a Problem"; File a report is a modal (branch `emman`)
+Why: a landlord reports a listing from the listing itself, so a sidebar item for a report form was noise. **Checked in headless Edge at 375px and 1440px (modal open); not submitted in a browser.**
+- **Sidebar:** "Report a Problem" removed from the landlord Account group. My Complaints is lit on `reports.create` too (old links still open the page).
+- **File a report modal** on My Complaints (`landlord/complaints/partials/_file-report-modal`): both "File a Report" buttons open it (`$dispatch('open-file-report')`). Bottom sheet on phones, 512px dialog otherwise, fixed header and footer, 16px inputs on phones. "A person" (people you have messaged) is the default, then "A listing"; reason chips; optional details.
+- A plain form post to `reports.store` with `return_to=complaints`: success goes back to My Complaints with the new report and a success message; a validation error goes back with the modal reopened and the answers kept. The /reports page itself is unchanged (tenants and profile Report links still use it).
+- The pickers' lists are `App\Support\ReportTargets` (`properties()`, `users()`), shared by the page and the modal.
+- Tests: `LandlordFileReportModalTest`.
+
+## Nov 2 2026 — Payouts is a tab on Payments; GCash details live there (branch `emman`)
+Why: Payouts was a separate sidebar item for a mostly empty page, and the GCash form sat in Account Settings with its only Save button below the whole Business card, so landlords could not find it. **Checked in headless Edge at 375px and 1440px as a landlord (Rent tab, Payouts tab, open GCash form); not submitted in a browser.**
+- **One sidebar item.** Payouts is gone from the landlord sidebar; Payments is lit on both `landlord.payments.*` and `landlord.payouts.*`. The URLs and controllers stay separate (`PaymentController`, `PayoutController`); both pages share the "Payments" header and `landlord/payments/partials/_tabs` (Rent | Payouts, underline tabs). The tabs only show while `showsPayoutTools()` is true (online payments on, or money owed or paid out).
+- **Payouts tab shows what is owed.** The tab carries the amount waiting to be sent (`LandlordPayouts::awaitingTotal()`), so the Rent tab shows it without another banner. On phones the tabs sit first (the title is in the top bar), then List / Calendar / Export.
+- **GCash form on the Payouts tab** (`landlord/payouts/partials/_account`, "Where your payouts go") with its own **Save payout details** button. No GCash yet: the form is open and comes first on the page. Saved: one line (number · name, Approved badge, online on/off) with **Change**. It posts to the same `landlord.profile.update` with `return_to=payouts` (password check on a changed destination, name check, 48h hold all unchanged) and lands back on the tab; business fields are left as they were.
+- **Account Settings** keeps a "Payout details" card that links to the tab ("Add GCash" / "Open payouts"); its button now reads "Save business details". The dashboard alert and the landlord profile's "Add GCash details" link go to the tab.
+- Tests: new `PayoutsTabTest` (tabs and amount, no tabs while off, form shown, save returns and keeps the business, password still needed, Settings links out); `ProfileSettingsPageTest` updated.
+- **Manual test (375px first):** landlord with no GCash → Payments shows Rent | Payouts → Payouts shows the open form → save with number and name → back on the tab with the summary line and "Payout details saved." → Change, edit the number, the password field appears, save. Tenant's agreement page then shows **Pay online**.
 
 ## Nov 2 2026 — main's online reservation payments brought into emman (branch `emman`)
 Only the payment code was copied from `origin/main`. This is not a merge: main's Tenants/Contracts/Policies page, the Moved-in tab removal and other main work are **not** here, so a later full merge of main still brings them. Suite: 1036 passed, 1 skipped. **Not verified in a browser.** Background: main's Nov 1 "emman merged into joseph" entry and `plans/emman-joseph-payments-merge.md`.
