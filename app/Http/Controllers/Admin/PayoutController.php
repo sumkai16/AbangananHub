@@ -81,6 +81,8 @@ class PayoutController extends Controller
     {
         $data = $request->validate([
             'payout_reference' => ['required', 'string', 'max:255'],
+            // The total the admin was shown. Required: a payout is only recorded for the amount that was actually sent.
+            'expected_total' => ['required', 'numeric', 'min:0'],
         ]);
 
         DB::transaction(function () use ($data, $user) {
@@ -89,7 +91,7 @@ class PayoutController extends Controller
                 'paid_out_by' => auth()->id(),
                 'paid_out_at' => now(),
                 'resolved_at' => now(),
-            ]);
+            ], (float) $data['expected_total']);
 
             abort_if(! $payout, 409, 'Nothing is pending payout for this landlord.');
 

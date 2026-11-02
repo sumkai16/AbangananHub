@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Payments;
 
+use App\Models\Notification;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Models\User;
@@ -155,7 +156,7 @@ class TenantCheckoutTest extends TestCase
 
     private function paymentsOf(Reservation $reservation)
     {
-        return Payment::where("reservation_id", $reservation->reservation_id)->orderBy("payment_id")->get();
+        return Payment::where('reservation_id', $reservation->reservation_id)->orderBy('payment_id')->get();
     }
 
     // ─── (1) authorization: initial checkout ────────────────────
@@ -386,6 +387,26 @@ class TenantCheckoutTest extends TestCase
         $this->assertNull($payment->paid_at, 'Starting a checkout must not mark anything paid.');
         $this->assertSame('Pending', $payments->last()->status);
         $this->assertSame('0.00', (string) $payments->last()->service_fee, 'The fee, when there is one, sits on the rent row only.');
+    }
+
+    #[DataProvider('surfaces')]
+    public function test_the_initial_checkout_charges_every_advance_month_and_the_deposit_on_its_own_row(string $surface): void
+    {
+        $this->fakeCheckoutCreated('cs_checkout_advance');
+        // Two advance months agreed in the lease: the rent row is 2 x 5,000, the deposit stays its own row.
+        $t = $this->signedTenancy(['agreed_monthly_rent' => 5000, 'lease_snapshot' => ['advance_months' => 2, 'deposit' => 3000]]);
+
+        $this->startCheckout($surface, 'initial', $t['tenant'], $t['reservation']);
+
+        $attributes = $this->sentCheckoutAttributes();
+        $this->assertSame(1000000, $attributes['line_items'][0]['amount'], 'Two months of PHP 5,000 rent in centavos.');
+        $this->assertStringContainsString('2 months', $attributes['line_items'][0]['name']);
+        $this->assertSame(300000, $attributes['line_items'][1]['amount'], 'The PHP 3,000 deposit is its own line.');
+
+        $payments = $this->paymentsOf($t['reservation']);
+        $this->assertSame(['Initial', 'Deposit'], $payments->pluck('payment_type')->all());
+        $this->assertSame([10000.0, 3000.0], $payments->map(fn ($p) => (float) $p->amount)->all());
+        $this->assertSame(13000.0, $t['reservation']->fresh()->moveInDue(), 'The checkout adds up to what direct payment asks for.');
     }
 
     #[DataProvider('surfaces')]
@@ -706,6 +727,6 @@ class TenantCheckoutTest extends TestCase
         $this->startCheckout('web', 'initial', $t['tenant'], $t['reservation']);
         $this->startCheckout('web', 'initial', $t['tenant'], $t['reservation']);
 
-        $this->assertSame(1, \App\Models\Notification::where('user_id', $admin->user_id)->where('title', 'Online checkout is failing')->count());
+        $this->assertSame(1, Notification::where('user_id', $admin->user_id)->where('title', 'Online checkout is failing')->count());
     }
 }

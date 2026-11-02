@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Concerns;
 
 use App\Models\Payment;
 use App\Models\Reservation;
+use App\Services\LandlordPayouts;
 use App\Services\PaymentClaims;
 use App\Services\PaymongoCheckout;
 use App\Support\ServiceFee;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -67,10 +69,10 @@ trait ReconcilesPaymongoCheckout
      * What to tell the tenant when PayMongo refuses to open a checkout, by why. A rejected key is our problem, not
      * theirs: say so, point them at the ways that still work, and tell the admins once a day so it gets fixed.
      */
-    private function checkoutFailureMessage(\Illuminate\Http\Client\Response $response): string
+    private function checkoutFailureMessage(Response $response): string
     {
         if (in_array($response->status(), [401, 403], true)) {
-            \App\Services\LandlordPayouts::alertAdmins(
+            LandlordPayouts::alertAdmins(
                 'paymongo-checkout-refused',
                 'Online checkout is failing',
                 'PayMongo refused to open a checkout (HTTP '.$response->status().'). Check PAYMONGO_SECRET_KEY in .env, that it is the key for the mode you are in, and that the server was restarted after changing it.',
@@ -147,11 +149,26 @@ trait ReconcilesPaymongoCheckout
                 return null;
             }
 
+            // Re-checked under the lock: the checks in the caller ran before it, on a row that may have moved on.
+            if ($isMoveIn) {
+                if ($locked->rental_status !== 'Rental Agreement Signed') {
+                    throw ValidationException::withMessages(['payment' => ['Agreement must be signed before payment.']]);
+                }
+
+                if ($locked->hasSettledInitialPayment()) {
+                    throw ValidationException::withMessages(['payment' => ['The initial payment for this reservation has already been made.']]);
+                }
+
+                if ($locked->unitHeldByAnother(['Rental Agreement Signed', 'Reserved', 'Occupied'])) {
+                    throw ValidationException::withMessages(['payment' => ['This unit is no longer available. Please contact your landlord.']]);
+                }
+            }
+
             $this->assertNoPendingClaim($locked, $isMoveIn ? 'MoveIn' : 'Monthly', $billingPeriod);
 
             $existingPending = Payment::where('reservation_id', $locked->reservation_id)
+                // Any Pending row blocks, session id or not: a placeholder still waiting for its id is a live click.
                 ->where('status', 'Pending')
-                ->whereNotNull('paymongo_checkout_session_id')
                 ->when(! $isMoveIn, fn ($q) => $q->where('payment_type', 'Monthly')->whereDate('billing_period', $billingPeriod->toDateString()))
                 ->exists();
 

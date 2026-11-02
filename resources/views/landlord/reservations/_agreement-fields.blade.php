@@ -7,7 +7,7 @@
 --}}
 @php
     $p = $idPrefix ?? 'agreement';
-    $input = 'h-10 w-full rounded-lg border border-[#E2E4EC] bg-white px-3 text-[13px] text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/25 focus:border-[#FF8A66] transition-all duration-200';
+    $input = 'h-10 w-full rounded-lg border border-[#E2E4EC] bg-white px-3 text-[16px] sm:text-[13px] text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/25 focus:border-[#FF8A66] transition-all duration-200';
     $label = 'block text-[11px] font-semibold text-[#060D26] mb-1';
 @endphp
 

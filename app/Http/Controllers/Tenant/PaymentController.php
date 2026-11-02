@@ -8,8 +8,8 @@ use App\Models\Payment;
 use App\Models\Reservation;
 use App\Services\PaymongoCheckout;
 use App\Services\RentLedger;
-use App\Support\PaymentTerms;
 use App\Support\Payments;
+use App\Support\PaymentTerms;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
@@ -34,6 +34,11 @@ class PaymentController extends Controller
             return back()->withErrors(['payment' => 'This unit is no longer available. Please contact your landlord.']);
         }
 
+        // Paying holds the unit, so it cannot be paid for while someone else holds it (PaymentClaims does the same).
+        if ($reservation->unitHeldByAnother()) {
+            return back()->withErrors(['payment' => 'This unit is already taken by another tenant. Please contact your landlord.']);
+        }
+
         if ($reservation->hasSettledInitialPayment()) {
             return back()->withErrors(['payment' => 'The initial payment for this reservation has already been made.']);
         }
@@ -46,8 +51,8 @@ class PaymentController extends Controller
             $reservation,
             'Initial',
             null,
-            (float) $reservation->monthlyRent(),
-            rentLineName: $reservation->unit->unit_name . ' — First month’s rent',
+            $reservation->moveInRent(),
+            rentLineName: $reservation->unit->unit_name . ' — '.$reservation->moveInRentLabel(),
             description: 'Move-in payment for ' . $reservation->unit->unit_name,
             successUrl: route('payments.success', $reservation),
             cancelUrl: route('agreements.show', $reservation),

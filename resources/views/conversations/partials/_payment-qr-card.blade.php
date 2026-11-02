@@ -24,7 +24,7 @@
                 @endif
             </div>
             @if($share->isCurrent() && ! $mine)
-                <p class="border-t border-[#E2E4EC] bg-[#F7F8FC] px-4 py-2 text-[11px] text-[#5B6A8E]">Only pay to a QR your landlord shared here. After paying, tap &ldquo;I paid&rdquo; so they can confirm it.</p>
+                <p class="border-t border-[#E2E4EC] bg-[#F7F8FC] px-4 py-2 text-[11px] text-[#5B6A8E]">Only pay to a QR your landlord shared here. After paying, tap &ldquo;I've paid&rdquo; so they can confirm it.</p>
             @endif
         </div>
     </div>

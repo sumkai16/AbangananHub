@@ -157,9 +157,9 @@ class LandlordPayouts
      *
      * @param  array<string, mixed>  $attributes  extra columns for the payout row (an admin's reference, who sent it)
      */
-    public static function batch(User $landlord, string $status = 'Processing', array $attributes = []): ?Payout
+    public static function batch(User $landlord, string $status = 'Processing', array $attributes = [], ?float $expectedTotal = null): ?Payout
     {
-        return DB::transaction(function () use ($landlord, $status, $attributes) {
+        return DB::transaction(function () use ($landlord, $status, $attributes, $expectedTotal) {
             $payments = Payment::whereHas(
                 'reservation.property',
                 fn ($q) => $q->where('landlord_id', $landlord->user_id)
@@ -171,6 +171,13 @@ class LandlordPayouts
             if ($payments->isEmpty()) {
                 return null;
             }
+
+            // A payment released while the admin was sending GCash would be marked paid out but never sent.
+            abort_if(
+                $expectedTotal !== null && Payment::toCentavos($expectedTotal) !== Payment::toCentavos($payments->sum('amount')),
+                409,
+                'The amount owed changed while you were on this page. Reload and check the total before sending.'
+            );
 
             // Copied onto the payout: the record must keep saying where this transfer went even after the
             // landlord changes their payout account.

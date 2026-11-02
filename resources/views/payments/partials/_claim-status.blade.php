@@ -12,7 +12,7 @@
             <form method="POST" action="{{ route('paymentClaims.dispute', $rejected) }}" class="mt-2"
                 data-confirm="Send this to AbangananHub?" data-confirm-message="An admin will review your report against {{ $landlordName }}&rsquo;s answer. You can still report the payment again." data-confirm-button="Send for review">
                 @csrf
-                <button type="submit" class="h-9 rounded-lg border border-[#DC2626] bg-white px-3 text-[12px] font-bold text-[#DC2626] hover:bg-[#EF4444]/5 transition-colors">Send to AbangananHub for review</button>
+                <button type="submit" class="h-10 rounded-lg border border-[#DC2626] bg-white px-3 text-[12px] font-bold text-[#DC2626] hover:bg-[#EF4444]/5 transition-colors">Send to AbangananHub for review</button>
             </form>
         @elseif($rejected->disputed_at)
             <p class="mt-2 text-[12px] font-semibold text-[#5B6A8E]">Sent to AbangananHub for review on {{ $rejected->disputed_at->format('M j') }}.</p>
@@ -31,7 +31,7 @@
         <form method="POST" action="{{ route('paymentClaims.withdraw', $pending) }}" class="mt-2"
             data-confirm="Withdraw this report?" data-confirm-message="Use this if you entered it wrong. You can report again." data-confirm-button="Withdraw">
             @csrf @method('DELETE')
-            <button type="submit" class="h-8 rounded-lg border border-[#E2E4EC] bg-white px-3 text-[11px] font-bold text-[#060D26] hover:bg-[#F7F8FC] transition-colors">Withdraw</button>
+            <button type="submit" class="h-10 rounded-lg border border-[#E2E4EC] bg-white px-3 text-[12.5px] font-bold text-[#060D26] hover:bg-[#F7F8FC] transition-colors">Withdraw</button>
         </form>
     </div>
 @endif

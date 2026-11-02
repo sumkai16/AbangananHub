@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use App\Models\Reservation;
 use App\Models\TenantDetail;
+use App\Services\TenancyDocuments;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -41,7 +42,7 @@ class AgreementController extends Controller
 
         // Documents the lease asked for must be uploaded first. Reservation::signAgreement() refuses too (so the
         // mobile API is covered); this gives the tenant the reason.
-        if ($missing = \App\Services\TenancyDocuments::missing($reservation)->pluck('label')->all()) {
+        if ($missing = TenancyDocuments::missing($reservation)->pluck('label')->all()) {
             return back()->with('error', 'Upload these first: '.implode(', ', $missing).'.');
         }
 

@@ -175,7 +175,7 @@ class PaymentClaims
                 'payment',
                 'Payment confirmed',
                 'Your landlord confirmed your ₱'.number_format((float) $claim->amount, 2).' payment.',
-                $claim->claim_type === 'MoveIn' ? route('agreements.show', $locked) : route('tenancy.show', $locked),
+                $claim->claim_type === 'MoveIn' ? $locked->tenantAgreementUrl() : route('tenancy.show', $locked),
                 $locked->conversation_id,
             );
 
@@ -209,7 +209,7 @@ class PaymentClaims
                 'payment',
                 'Payment not confirmed',
                 'Your landlord could not confirm your ₱'.number_format((float) $claim->amount, 2).' payment: '.$reason,
-                $claim->claim_type === 'MoveIn' ? route('agreements.show', $locked) : route('tenancy.show', $locked),
+                $claim->claim_type === 'MoveIn' ? $locked->tenantAgreementUrl() : route('tenancy.show', $locked),
                 $locked->conversation_id,
             );
 
@@ -246,7 +246,7 @@ class PaymentClaims
                 'reporter_id' => $tenant->user_id,
                 'property_id' => $locked->property_id,
                 'reported_user_id' => $locked->property?->landlord_id,
-                'report_reason' => "Payment dispute: Scam or Fraud: tenant says they paid ₱".number_format((float) $claim->amount, 2)
+                'report_reason' => 'Payment dispute: Scam or Fraud: tenant says they paid ₱'.number_format((float) $claim->amount, 2)
                     ." ({$label}) {$how} on {$claim->paid_on->format('M j, Y')}; the landlord rejected it: \"{$claim->rejection_reason}\". Reservation #{$locked->reservation_id}.",
                 'report_status' => 'Pending',
             ]);
@@ -368,7 +368,7 @@ class PaymentClaims
                 'payment',
                 'Payment recorded',
                 'Your landlord recorded your ₱'.number_format((float) $data['initial_amount'], 2).' move-in payment.',
-                route('agreements.show', $locked),
+                $locked->tenantAgreementUrl(),
                 $locked->conversation_id,
             );
         });

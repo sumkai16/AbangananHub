@@ -2,19 +2,21 @@
 
 namespace Tests\Feature\Payments;
 
-use App\Mail\GcashChangedMail;
 use App\Jobs\SendLandlordPayout;
+use App\Mail\GcashChangedMail;
 use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\Payment;
 use App\Models\Payout;
-use App\Models\User;
+use App\Models\Setting;
 use App\Models\UserPayoutAccount;
 use App\Services\LandlordPayouts;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\Sanctum;
@@ -81,7 +83,7 @@ class AutomaticPayoutTest extends TestCase
         ]);
     }
 
-    private function sent(): \Illuminate\Support\Collection
+    private function sent(): Collection
     {
         return Http::recorded(fn (Request $r) => $r->url() === self::ENDPOINT)->map(fn ($pair) => $pair[0]);
     }
@@ -371,7 +373,7 @@ class AutomaticPayoutTest extends TestCase
         LandlordPayouts::sendFor($t['landlord']);
 
         // A fresh fake: the first one still answers the read-back with "pending", and the first matching fake wins.
-        Http::swap(new \Illuminate\Http\Client\Factory);
+        Http::swap(new Factory);
         Http::fake(['api.paymongo.com/v2/transfers/tr_abc123' => Http::response(['data' => ['id' => 'tr_abc123', 'status' => 'succeeded', 'provider_reference_number' => 'GC-998']], 200)]);
 
         $this->artisan('payouts:send')->assertSuccessful();
@@ -576,7 +578,7 @@ class AutomaticPayoutTest extends TestCase
         $admin = $this->makeUserWithRole('Admin');
         $t = $this->owed(2500);
 
-        $this->actingAs($admin)->post(route('admin.payouts.markPaidOut', $t['landlord']), ['payout_reference' => 'HAND-1'])->assertRedirect();
+        $this->actingAs($admin)->post(route('admin.payouts.markPaidOut', $t['landlord']), ['payout_reference' => 'HAND-1', 'expected_total' => 2500])->assertRedirect();
 
         $payout = Payout::sole();
         $this->assertSame('Sent', $payout->status);
@@ -588,7 +590,7 @@ class AutomaticPayoutTest extends TestCase
 
     // ─── never "Sent" without PayMongo's own record ─────────────
 
-    public function test_a_succeeded_answer_PayMongo_cannot_back_up_is_not_marked_sent(): void
+    public function test_a_succeeded_answer_pay_mongo_cannot_back_up_is_not_marked_sent(): void
     {
         // The create call says succeeded, but the transfer is not ours to read: the case that once recorded a payout as
         // Sent when nothing had left the wallet.
@@ -608,7 +610,7 @@ class AutomaticPayoutTest extends TestCase
         Http::assertSentCount(2);
     }
 
-    public function test_a_succeeded_answer_is_marked_sent_once_PayMongo_confirms_it(): void
+    public function test_a_succeeded_answer_is_marked_sent_once_pay_mongo_confirms_it(): void
     {
         $this->fakeTransfer('succeeded');
         $t = $this->owed();
@@ -644,7 +646,7 @@ class AutomaticPayoutTest extends TestCase
         $this->assertSame('Processing', Payout::sole()->status);
 
         config(['rentals.automatic_payouts_enabled' => false]);
-        Http::swap(new \Illuminate\Http\Client\Factory);
+        Http::swap(new Factory);
         Http::fake(['api.paymongo.com/v2/transfers/tr_abc123' => Http::response(['data' => ['id' => 'tr_abc123', 'status' => 'succeeded']], 200)]);
         Carbon::setTestNow(now()->addMinutes(10));
 
@@ -662,7 +664,7 @@ class AutomaticPayoutTest extends TestCase
         $this->actingAs($admin)->get(route('admin.payouts.index'))
             ->assertOk()->assertSee('Manual mode: automatic payouts are switched off')->assertSee('Mark Paid Out');
 
-        $this->actingAs($admin)->post(route('admin.payouts.markPaidOut', $t['landlord']), ['payout_reference' => 'HAND-2'])->assertRedirect();
+        $this->actingAs($admin)->post(route('admin.payouts.markPaidOut', $t['landlord']), ['payout_reference' => 'HAND-2', 'expected_total' => 2500])->assertRedirect();
 
         $this->assertSame('Sent', Payout::sole()->status);
         $this->assertSame('HAND-2', Payout::sole()->payout_reference);
@@ -680,13 +682,13 @@ class AutomaticPayoutTest extends TestCase
     public function test_the_admin_switch_asks_before_turning_automatic_payouts_off(): void
     {
         $admin = $this->makeUserWithRole('Admin');
-        \App\Models\Setting::put('automatic_payouts_enabled', '1');
+        Setting::put('automatic_payouts_enabled', '1');
 
         $html = $this->actingAs($admin)->get(route('admin.settings.edit'))->assertOk()->getContent();
 
         $this->assertMatchesRegularExpression('/id="toggle-automatic_payouts_enabled"[^>]*data-confirm="Turn off automatic payouts/s', $html);
 
         $this->actingAs($admin)->patch(route('admin.settings.update'), ['settings' => ['automatic_payouts_enabled' => '0']])->assertSessionHas('success');
-        $this->assertFalse(\App\Models\Setting::effective('automatic_payouts_enabled'));
+        $this->assertFalse(Setting::effective('automatic_payouts_enabled'));
     }
 }

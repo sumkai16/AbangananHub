@@ -11,13 +11,13 @@
     $claimable = $refundLead?->refund_status === 'processing' && is_string($claimLink) && str_starts_with($claimLink, 'https://');
 @endphp
 @if($refundLead)
-    <p class="basis-full text-[11.5px] leading-snug text-[#5B6A8E] sm:text-right">
+    <p class="basis-full text-[13px] leading-snug text-[#5B6A8E] sm:text-right">
         @if($refundLead->refund_status === 'failed')
             <span class="font-semibold text-[#DC2626]">Your &#8369;{{ number_format($refundTotal, 2) }} refund could not be completed.</span>
             An administrator is looking into it.
         @elseif($claimable)
             Your &#8369;{{ number_format($refundTotal, 2) }} was refunded.
-            <a href="{{ $claimLink }}" target="_blank" rel="noopener noreferrer" class="font-bold text-[#060D26] underline">Claim your refund</a>
+            <a href="{{ $claimLink }}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex h-10 items-center rounded-lg bg-[#FF8A66] px-4 font-bold text-[#060D26] no-underline hover:bg-[#E96F4F]">Claim your refund</a>
             within 3 days.
         @elseif($refundLead->refund_status === 'succeeded')
             &#8369;{{ number_format($refundTotal, 2) }} was refunded to you on {{ $refundLead->refunded_at?->format('M d, Y') }}.

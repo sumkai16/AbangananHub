@@ -4,6 +4,7 @@ namespace Tests\Feature\Payments;
 
 use App\Models\Payment;
 use App\Models\Reservation;
+use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Carbon;
@@ -33,7 +34,7 @@ class CheckoutResumeTest extends TestCase
         Carbon::setTestNow('2026-10-14 10:00:00');
     }
 
-    /** @return array{landlord: \App\Models\User, tenant: \App\Models\User, reservation: Reservation, payment: Payment} */
+    /** @return array{landlord: User, tenant: User, reservation: Reservation, payment: Payment} */
     private function signedWithOpenCheckout(): array
     {
         $t = $this->makeOnlineTenancy(['rental_status' => 'Rental Agreement Signed', 'agreed_at' => now(), 'agreed_ip' => '127.0.0.1']);

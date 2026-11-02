@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Landlord;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Landlord\SendAgreementRequest;
 use App\Models\Notification;
+use App\Models\PaymentClaim;
 use App\Models\Property;
 use App\Models\Reservation;
 use App\Models\ViewingRequest;
 use App\Support\LandlordTerms;
+use App\Support\LeaseTemplates;
 use App\Support\LeaseTerms;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -97,7 +99,7 @@ class ReservationController extends Controller
             'discussing' => $counts['discussing'],
             'waiting' => $counts['agreement'] + self::applyStage(clone $base, 'payment')->whereNot($withReport)->count(),
             'confirm' => (clone $toConfirm)->count(),
-            'confirmAmount' => (float) \App\Models\PaymentClaim::where('status', 'Pending')->where('claim_type', 'MoveIn')
+            'confirmAmount' => (float) PaymentClaim::where('status', 'Pending')->where('claim_type', 'MoveIn')
                 ->whereIn('reservation_id', (clone $toConfirm)->select('reservation_id'))->sum('amount'),
         ];
 
@@ -215,7 +217,7 @@ class ReservationController extends Controller
         }
 
         if (!$reservation->advanceToPendingAgreement($terms, $request->input('lease_body'))) {
-            return back()->withErrors(['reservation' => 'This reservation cannot move to Pending Rental Agreement right now.']);
+            return back()->withErrors(['reservation' => $reservation->agreementBlockedReason() ?? 'This reservation cannot move to Pending Rental Agreement right now.']);
         }
 
         $this->recordTermsAcceptance($request, $reservation);
@@ -278,7 +280,7 @@ class ReservationController extends Controller
 
         $data = $request->validate(['lease_body' => 'required|string|max:40000']);
 
-        $terms = LeaseTerms::snapshot($reservation, body: $data['lease_body'], template: \App\Support\LeaseTemplates::forReservation($reservation));
+        $terms = LeaseTerms::snapshot($reservation, body: $data['lease_body'], template: LeaseTemplates::forReservation($reservation));
 
         return response()->json(['html' => view('leases._document', ['terms' => $terms])->render()]);
     }

@@ -5,12 +5,11 @@ namespace Tests\Feature\Payments;
 use App\Models\Notification;
 use App\Models\Payment;
 use App\Models\Reservation;
+use App\Models\User;
 use App\Services\RentLedger;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Http\Client\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Tests\Support\CreatesMarketplaceFixtures;
 use Tests\Support\CreatesPaymentFixtures;
@@ -41,7 +40,7 @@ class CheckoutGroupTest extends TestCase
      * A signed agreement with a move-in checkout waiting on PayMongo: rent 5,000 (carrying a 110 fee) and a
      * 3,000 deposit, both Pending on $session.
      *
-     * @return array{landlord: \App\Models\User, tenant: \App\Models\User, reservation: Reservation, rent: Payment, deposit: Payment}
+     * @return array{landlord: User, tenant: User, reservation: Reservation, rent: Payment, deposit: Payment}
      */
     private function pendingGroup(string $session = 'cs_group', string $status = 'Pending'): array
     {
@@ -66,7 +65,7 @@ class CheckoutGroupTest extends TestCase
         return $t;
     }
 
-    private function paidEvent(string $session, ?int $centavos, array $payments = null): string
+    private function paidEvent(string $session, ?int $centavos, ?array $payments = null): string
     {
         return json_encode(['data' => ['attributes' => [
             'type' => 'checkout_session.payment.paid',

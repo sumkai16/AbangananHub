@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Payments;
 
+use App\Models\AuditLog;
 use App\Models\Conversation;
 use App\Models\Notification;
 use App\Models\Payment;
@@ -340,7 +341,7 @@ class DirectPaymentSafetyTest extends TestCase
 
         $this->actingAs($tenant)->post(route('paymentClaims.store', $reservation), $this->cashClaim());
 
-        $row = \App\Models\AuditLog::where('action', 'payment.terms_accepted')->latest('log_id')->first();
+        $row = AuditLog::where('action', 'payment.terms_accepted')->latest('log_id')->first();
         $this->assertNotNull($row);
         $this->assertSame('cash', $row->metadata['route']);
         $this->assertSame($tenant->user_id, $row->actor_id);

@@ -9,7 +9,7 @@
 @php
     $isMoveIn = $type === 'MoveIn';
     $landlordName = $reservation->property?->landlord?->first_name ?? 'your landlord';
-    $onlineAmount = $isMoveIn ? (float) $reservation->monthlyRent() : max(0, (float) ($period['balance'] ?? 0));
+    $onlineAmount = $isMoveIn ? $reservation->moveInRent() : max(0, (float) ($period['balance'] ?? 0));
     $deposit = $isMoveIn ? (float) $reservation->agreedDeposit() : 0.0;
     $fee = \App\Support\ServiceFee::for($onlineAmount);
     $onlineTotal = $onlineAmount + $deposit + $fee;
@@ -62,7 +62,7 @@
     <div class="grid gap-3 sm:grid-cols-2" role="group" aria-label="Payment method">
         @if($online)
             <button type="button" @click="route = 'online'" :aria-pressed="route === 'online'"
-                :class="route === 'online' ? 'border-[#FF8A66] bg-[#FF8A66]/[0.07]' : 'border-[#E2E4EC] bg-white hover:bg-[#F7F8FC]'"
+                :class="route === 'online' ? 'border-[#FF8A66] bg-[#FF8A66]/[0.07] ring-2 ring-[#FF8A66]' : 'border-[#E2E4EC] bg-white hover:bg-[#F7F8FC]'"
                 class="min-h-[44px] rounded-2xl border p-4 text-left transition-colors">
                 <span class="block text-[14px] font-bold text-[#060D26]">Pay online</span>
                 <span class="mt-0.5 block text-[12px] leading-relaxed text-[#5B6A8E]">
@@ -70,7 +70,7 @@
                 </span>
             </button>
             <button type="button" @click="route = (route === 'cash' ? 'cash' : 'direct')" :aria-pressed="route === 'direct' || route === 'cash'"
-                :class="route === 'direct' || route === 'cash' ? 'border-[#FF8A66] bg-[#FF8A66]/[0.07]' : 'border-[#E2E4EC] bg-white hover:bg-[#F7F8FC]'"
+                :class="route === 'direct' || route === 'cash' ? 'border-[#FF8A66] bg-[#FF8A66]/[0.07] ring-2 ring-[#FF8A66]' : 'border-[#E2E4EC] bg-white hover:bg-[#F7F8FC]'"
                 class="min-h-[44px] rounded-2xl border p-4 text-left transition-colors">
                 <span class="block text-[14px] font-bold text-[#060D26]">Pay {{ $landlordName }} directly</span>
                 <span class="mt-0.5 block text-[12px] leading-relaxed text-[#5B6A8E]">
@@ -79,7 +79,7 @@
             </button>
         @else
             <button type="button" @click="route = 'direct'" :aria-pressed="route === 'direct'"
-                :class="route === 'direct' ? 'border-[#FF8A66] bg-[#FF8A66]/[0.07]' : 'border-[#E2E4EC] bg-white hover:bg-[#F7F8FC]'"
+                :class="route === 'direct' ? 'border-[#FF8A66] bg-[#FF8A66]/[0.07] ring-2 ring-[#FF8A66]' : 'border-[#E2E4EC] bg-white hover:bg-[#F7F8FC]'"
                 class="min-h-[44px] rounded-2xl border p-4 text-left transition-colors">
                 <span class="block text-[14px] font-bold text-[#060D26]">Pay {{ $landlordName }} by QR</span>
                 <span class="mt-0.5 block text-[12px] leading-relaxed text-[#5B6A8E]">
@@ -87,7 +87,7 @@
                 </span>
             </button>
             <button type="button" @click="route = 'cash'" :aria-pressed="route === 'cash'"
-                :class="route === 'cash' ? 'border-[#FF8A66] bg-[#FF8A66]/[0.07]' : 'border-[#E2E4EC] bg-white hover:bg-[#F7F8FC]'"
+                :class="route === 'cash' ? 'border-[#FF8A66] bg-[#FF8A66]/[0.07] ring-2 ring-[#FF8A66]' : 'border-[#E2E4EC] bg-white hover:bg-[#F7F8FC]'"
                 class="min-h-[44px] rounded-2xl border p-4 text-left transition-colors">
                 <span class="block text-[14px] font-bold text-[#060D26]">Pay cash</span>
                 <span class="mt-0.5 block text-[12px] leading-relaxed text-[#5B6A8E]">
@@ -124,7 +124,7 @@
                 </div>
             @endif
             <dl class="space-y-1.5 text-[13px]">
-                <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">{{ $isMoveIn ? 'First month’s rent' : $period['label'] }}</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($onlineAmount, 2) }}</dd></div>
+                <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">{{ $isMoveIn ? $reservation->moveInRentLabel() : $period['label'] }}</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($onlineAmount, 2) }}</dd></div>
                 @if($deposit > 0)
                     <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Security deposit</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($deposit, 2) }}</dd></div>
                 @endif
@@ -141,6 +141,7 @@
                 class="mt-4 h-11 w-full rounded-xl bg-[#FF8A66] px-5 text-sm font-bold text-[#060D26] shadow-sm transition-all duration-200 hover:bg-[#E96F4F] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[#FF8A66]">
                 Pay &#8369;{{ number_format($onlineTotal, 2) }} online
             </button>
+            <p x-show="!agreed" x-cloak class="mt-1.5 text-center text-[12.5px] text-[#5B6A8E]">Tick the box above to continue.</p>
             <x-payment-test-notice class="mt-3" />
         </form>
     </div>
@@ -157,7 +158,7 @@
         <div class="rounded-2xl border border-[#E2E4EC] bg-white p-4 sm:p-5">
             <h3 class="text-[15px] font-normal text-[#060D26]">Pay {{ $landlordName }} in cash</h3>
             <p class="mt-1 text-2xl font-extrabold tabular-nums text-[#060D26]">&#8369;{{ number_format($cashAmount, 2) }}</p>
-            <p class="text-[12px] text-[#5B6A8E]">{{ $isMoveIn ? 'First month’s rent'.($deposit > 0 ? ' and security deposit' : '') : $period['label'] }}</p>
+            <p class="text-[12px] text-[#5B6A8E]">{{ $isMoveIn ? $reservation->moveInBreakdown() : $period['label'] }}</p>
             <ol class="mt-3 space-y-1.5 text-[13px] leading-relaxed text-[#060D26] list-decimal pl-5">
                 <li>Agree a time and place with {{ $landlordName }} in <a href="{{ $chatLink }}" class="font-bold underline">your chat</a>.</li>
                 <li>Hand over the exact amount and ask for a receipt.</li>
@@ -186,26 +187,27 @@
                     @endunless
                     @error('payment')<p class="rounded-lg bg-[#EF4444]/[0.06] px-3 py-2 text-[12.5px] text-[#DC2626]">{{ $message }}</p>@enderror
                     <p class="text-[12px] leading-relaxed text-[#5B6A8E]">Only report this after you actually handed the money over. {{ $landlordName }} is asked to confirm it.</p>
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label for="cash-amount-{{ $anchor }}" class="mb-1 block text-[12px] font-semibold text-[#060D26]">Amount you handed over</label>
                             <input id="cash-amount-{{ $anchor }}" name="amount" type="number" step="0.01" min="1" required inputmode="decimal"
                                 value="{{ old('payment_method') === 'Cash' ? old('amount') : number_format($cashAmount, 2, '.', '') }}"
-                                class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5 text-[14px] tabular-nums text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
+                                class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5 text-[16px] sm:text-[14px] tabular-nums text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
                         </div>
                         <div>
                             <label for="cash-date-{{ $anchor }}" class="mb-1 block text-[12px] font-semibold text-[#060D26]">Date handed over</label>
                             <input id="cash-date-{{ $anchor }}" name="paid_on" type="date" required max="{{ now()->toDateString() }}" value="{{ old('paid_on', now()->toDateString()) }}"
-                                class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5 text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
+                                class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5 text-[16px] sm:text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
                         </div>
                     </div>
                     <div>
                         <label for="cash-note-{{ $anchor }}" class="mb-1 block text-[12px] font-semibold text-[#060D26]">Note <span class="font-normal text-[#5B6A8E]">(optional, e.g. receipt number)</span></label>
                         <input id="cash-note-{{ $anchor }}" name="note" maxlength="500" value="{{ old('note') }}"
-                            class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5 text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
+                            class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5 text-[16px] sm:text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
                     </div>
                     <x-payment-agree route="cash" :landlord-name="$landlordName" :id="'agree-cash-'.$anchor" />
                     <button type="submit" :disabled="!agreed" class="h-11 w-full rounded-xl bg-[#FF8A66] text-[14px] font-bold text-[#060D26] hover:bg-[#E96F4F] transition-colors disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[#FF8A66]">Report cash to {{ $landlordName }}</button>
+                    <p x-show="!agreed" x-cloak class="mt-1.5 text-center text-[12.5px] text-[#5B6A8E]">Tick the box above to continue.</p>
                 </form>
             @endunless
         </div>

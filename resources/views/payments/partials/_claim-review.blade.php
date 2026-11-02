@@ -34,17 +34,17 @@
                 data-confirm="{{ $andMoveIn ? 'Confirm payment and move-in?' : 'Confirm this payment?' }}" data-confirm-message="{{ $andMoveIn ? 'It will count as paid, start the tenancy and the rent schedule, and your tenant is notified. Only confirm after you see the money in your account and hand over the keys.' : ($claim->isCash() ? 'It will count as paid and your tenant is notified. Only confirm if you received the cash.' : 'It will count as paid and your tenant is notified. Only confirm after you see the money in your account.') }}" data-confirm-button="{{ $andMoveIn ? 'Confirm & move in' : 'Confirm payment' }}">
                 @csrf
                 @if($andMoveIn)<input type="hidden" name="and_move_in" value="1">@endif
-                <button type="submit" class="h-9 rounded-xl bg-[#FF8A66] px-4 text-[12.5px] font-bold text-[#060D26] hover:bg-[#E96F4F] transition-colors">{{ $andMoveIn ? 'Confirm payment & move-in' : 'Confirm payment' }}</button>
+                <button type="submit" class="h-11 sm:h-10 rounded-xl bg-[#FF8A66] px-4 text-[12.5px] font-bold text-[#060D26] hover:bg-[#E96F4F] transition-colors">{{ $andMoveIn ? 'Confirm payment & move-in' : 'Confirm payment' }}</button>
             </form>
-            <button type="button" @click="reject = !reject" class="h-9 rounded-xl border border-[#EF4444] px-4 text-[12.5px] font-semibold text-[#EF4444] hover:bg-[#EF4444]/5 transition-colors">Not received</button>
+            <button type="button" @click="reject = !reject" class="h-11 sm:h-10 rounded-xl border border-[#EF4444] px-4 text-[12.5px] font-semibold text-[#EF4444] hover:bg-[#EF4444]/5 transition-colors">Not received</button>
         </div>
 
-        <form x-show="reject" x-cloak method="POST" action="{{ route('landlord.paymentClaims.reject', $claim) }}" class="mt-3 flex gap-2">
+        <form x-show="reject" x-cloak method="POST" action="{{ route('landlord.paymentClaims.reject', $claim) }}" class="mt-3 flex flex-col gap-2 sm:flex-row">
             @csrf
             <label for="reject-claim-{{ $claim->payment_claim_id }}" class="sr-only">Why not</label>
             <input id="reject-claim-{{ $claim->payment_claim_id }}" name="rejection_reason" required minlength="3" maxlength="255" placeholder="e.g. No payment with that reference in my account"
-                class="min-w-0 flex-1 rounded-lg border border-[#E2E4EC] bg-white px-3 py-2 text-[12.5px] text-[#060D26] placeholder-[#5B6A8E] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
-            <button type="submit" class="shrink-0 rounded-lg bg-[#EF4444] px-4 py-2 text-[12px] font-bold text-white hover:brightness-95 transition-all">Reject</button>
+                class="min-w-0 flex-1 rounded-lg border border-[#E2E4EC] bg-white px-3 py-2.5 text-[16px] sm:text-[12.5px] text-[#060D26] placeholder-[#5B6A8E] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
+            <button type="submit" class="h-11 shrink-0 rounded-lg bg-[#EF4444] px-4 text-[12px] sm:h-10 font-bold text-white hover:brightness-95 transition-all">Reject</button>
         </form>
     </div>
 @endforeach

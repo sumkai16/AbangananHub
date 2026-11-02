@@ -5,6 +5,7 @@ namespace Tests\Feature\Payments;
 use App\Support\Payments;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\Sanctum;
 use Tests\Support\CreatesMarketplaceFixtures;
 use Tests\Support\CreatesPaymentFixtures;
@@ -175,12 +176,12 @@ class OnlineRouteChoiceTest extends TestCase
 
     public function test_online_checkout_is_refused_without_the_tick_box_and_never_calls_paymongo(): void
     {
-        \Illuminate\Support\Facades\Http::fake();
+        Http::fake();
         $t = $this->makeOnlineTenancy(['rental_status' => 'Rental Agreement Signed']);
 
         $this->actingAs($t['tenant'])->post(route('payments.checkout', $t['reservation']))
             ->assertSessionHasErrors('accept_terms');
 
-        \Illuminate\Support\Facades\Http::assertNothingSent();
+        Http::assertNothingSent();
     }
 }

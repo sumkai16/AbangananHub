@@ -27,9 +27,7 @@ class SendLandlordPayout implements ShouldQueue
     /** Never retried by the queue: a retry after a half-finished send is the double-send we guard against. */
     public int $tries = 1;
 
-    public function __construct(public int $landlordId)
-    {
-    }
+    public function __construct(public int $landlordId) {}
 
     public function handle(): void
     {

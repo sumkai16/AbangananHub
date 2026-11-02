@@ -5,10 +5,27 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class Payment extends Model
 {
+    /**
+     * The status this row had before its last update. PaymentObserver runs after the enclosing
+     * transaction commits, by which time getOriginal('status') already holds the NEW value, so
+     * it cannot tell Pending -> Held from anything else. A plain property (not an attribute),
+     * so it is never saved.
+     */
+    public ?string $previousStatus = null;
+
+    protected static function booted(): void
+    {
+        static::updating(function (Payment $payment) {
+            $payment->previousStatus = $payment->getOriginal('status');
+        });
+    }
+
     protected $primaryKey = 'payment_id';
 
     protected $fillable = [
@@ -165,7 +182,7 @@ class Payment extends Model
      * one payment on PayMongo's side but several rows here (rent, deposit). A row with no session id is a group
      * of one. Anything that moves the money (settle, release, refund) must move the whole group together.
      */
-    public function checkoutGroup(): \Illuminate\Support\Collection
+    public function checkoutGroup(): Collection
     {
         if (! $this->paymongo_checkout_session_id) {
             return collect([$this]);
@@ -204,7 +221,7 @@ class Payment extends Model
     }
 
     /** The tenant's "I paid" report this row was written from, when a landlord confirmed one. */
-    public function claim(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function claim(): BelongsTo
     {
         return $this->belongsTo(PaymentClaim::class, 'payment_claim_id', 'payment_claim_id');
     }
@@ -240,6 +257,26 @@ class Payment extends Model
             : 5;
 
         return $this->created_at->lt(now()->subMinutes($minutes));
+    }
+
+    /**
+     * The one place a Pending checkout becomes settled. The webhook and the poll fallback can both see the same
+     * Pending row, so the row is re-read under a lock and only the first caller wins. Returns the settled row,
+     * or null when it was no longer Pending (a replayed webhook, a second poll): callers must then do nothing.
+     */
+    public function settlePending(array $attributes): ?Payment
+    {
+        return DB::transaction(function () use ($attributes) {
+            $locked = static::whereKey($this->getKey())->lockForUpdate()->first();
+
+            if (! $locked || $locked->status !== 'Pending') {
+                return null;
+            }
+
+            $locked->update($attributes);
+
+            return $locked;
+        });
     }
 
     /**

@@ -8,7 +8,7 @@
 <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] px-3 py-3">
     <label for="{{ $id }}" class="flex items-start gap-2.5 cursor-pointer">
         <input id="{{ $id }}" type="checkbox" name="accept_terms" value="1" x-model="agreed" required @checked(old('accept_terms'))
-            class="mt-0.5 h-4 w-4 shrink-0 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66] focus:ring-offset-0">
+            class="mt-0.5 h-5 w-5 shrink-0 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66] focus:ring-offset-0">
         <span class="text-[12.5px] leading-relaxed text-[#060D26]">
             @if($route === 'online')
                 @if($moveIn)

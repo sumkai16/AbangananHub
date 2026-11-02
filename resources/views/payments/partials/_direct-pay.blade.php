@@ -80,46 +80,47 @@
 
             @error('payment')<p class="rounded-lg bg-[#EF4444]/[0.06] px-3 py-2 text-[12.5px] text-[#DC2626]">{{ $message }}</p>@enderror
 
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label for="claim-amount-{{ $type }}" class="mb-1 block text-[12px] font-semibold text-[#060D26]">Amount you paid</label>
                     <input id="claim-amount-{{ $type }}" name="amount" type="number" step="0.01" min="1" required inputmode="decimal"
                         value="{{ old('amount', number_format($defaultAmount, 2, '.', '')) }}"
-                        class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5 text-[14px] tabular-nums text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
+                        class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5 text-[16px] sm:text-[14px] tabular-nums text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
                     @error('amount')<p class="mt-1 text-[12px] text-[#EF4444]">{{ $message }}</p>@enderror
                 </div>
                 <div>
                     <label for="claim-method-{{ $type }}" class="mb-1 block text-[12px] font-semibold text-[#060D26]">Paid from</label>
                     <select id="claim-method-{{ $type }}" name="payment_method" required
-                        class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5 text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
+                        class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5 text-[16px] sm:text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
                         @foreach(['GCash' => 'GCash', 'Maya' => 'Maya', 'GoTyme' => 'GoTyme', 'Bank Transfer' => 'Bank app', 'Other' => 'Other'] as $value => $label)
                             <option value="{{ $value }}" @selected(old('payment_method') === $value)>{{ $label }}</option>
                         @endforeach
                     </select>
                 </div>
             </div>
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label for="claim-ref-{{ $type }}" class="mb-1 block text-[12px] font-semibold text-[#060D26]">Reference number</label>
                     <input id="claim-ref-{{ $type }}" name="reference_no" required maxlength="100" value="{{ old('reference_no') }}" placeholder="From your receipt"
-                        class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5 text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
+                        class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5 text-[16px] sm:text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
                     @error('reference_no')<p class="mt-1 text-[12px] text-[#EF4444]">{{ $message }}</p>@enderror
                 </div>
                 <div>
                     <label for="claim-date-{{ $type }}" class="mb-1 block text-[12px] font-semibold text-[#060D26]">Date paid</label>
                     <input id="claim-date-{{ $type }}" name="paid_on" type="date" required max="{{ now()->toDateString() }}" value="{{ old('paid_on', now()->toDateString()) }}"
-                        class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5 text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
+                        class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5 text-[16px] sm:text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
                     @error('paid_on')<p class="mt-1 text-[12px] text-[#EF4444]">{{ $message }}</p>@enderror
                 </div>
             </div>
             <div>
                 <label for="claim-note-{{ $type }}" class="mb-1 block text-[12px] font-semibold text-[#060D26]">Note <span class="font-normal text-[#5B6A8E]">(optional)</span></label>
                 <input id="claim-note-{{ $type }}" name="note" maxlength="500" value="{{ old('note') }}"
-                    class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5 text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
+                    class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5 text-[16px] sm:text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
             </div>
-            <p class="text-[11.5px] text-[#5B6A8E]">Paid in cash? Choose <span class="font-bold">Pay cash</span> above instead. There is no reference number to report.</p>
+            <p class="text-[11.5px] text-[#5B6A8E]">Paid in cash? Use the <span class="font-bold">Cash</span> option above instead. There is no reference number to report.</p>
             <x-payment-agree route="qr" :landlord-name="$landlordName" :id="'agree-qr-'.$type" />
             <button type="submit" :disabled="!agreed" class="h-11 w-full rounded-xl bg-[#FF8A66] text-[14px] font-bold text-[#060D26] hover:bg-[#E96F4F] transition-colors disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[#FF8A66]">Send to {{ $landlordName }}</button>
+            <p x-show="!agreed" x-cloak class="mt-1.5 text-center text-[12.5px] text-[#5B6A8E]">Tick the box above to continue.</p>
         </form>
     @endunless
 </div>

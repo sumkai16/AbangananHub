@@ -48,7 +48,7 @@
             </a>
 
             <button type="button" onclick="window.print()"
-                class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E4EC] bg-white text-[12px] font-bold text-[#060D26] hover:bg-[#F7F8FC] cursor-pointer transition-all duration-200">
+                class="inline-flex items-center gap-1.5 px-3 py-2.5 min-h-[40px] rounded-xl border border-[#E2E4EC] bg-white text-[12px] font-bold text-[#060D26] hover:bg-[#F7F8FC] cursor-pointer transition-all duration-200">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" />
                 </svg>
@@ -104,9 +104,9 @@
                 </div>
 
                 @if($startDate && $endDate)
-                    <div class="grid grid-cols-[auto_1fr_auto] items-center gap-3 sm:gap-4">
+                    <div class="grid grid-cols-2 sm:grid-cols-[auto_1fr_auto] items-center gap-3 sm:gap-4">
                         <div><p class="text-[14px] text-[#5B6A8E]">Starts</p><p class="text-[17px] font-bold text-[#060D26]">{{ $startDate->format('F j, Y') }}</p></div>
-                        <div class="flex items-center gap-3 text-[14px] font-semibold text-[#060D26]"><span class="h-0.5 flex-1 rounded bg-[#E2E4EC]"></span><span class="whitespace-nowrap">{{ $lengthMonths }} {{ \Illuminate\Support\Str::plural('month', $lengthMonths) }}</span><span class="h-0.5 flex-1 rounded bg-[#E2E4EC]"></span></div>
+                        <div class="hidden sm:flex items-center gap-3 text-[14px] font-semibold text-[#060D26]"><span class="h-0.5 flex-1 rounded bg-[#E2E4EC]"></span><span class="whitespace-nowrap">{{ $lengthMonths }} {{ \Illuminate\Support\Str::plural('month', $lengthMonths) }}</span><span class="h-0.5 flex-1 rounded bg-[#E2E4EC]"></span></div>
                         <div class="text-right"><p class="text-[14px] text-[#5B6A8E]">Ends</p><p class="text-[17px] font-bold text-[#060D26]">{{ $endDate->format('F j, Y') }}</p></div>
                     </div>
                 @else
@@ -188,7 +188,7 @@
 
             {{-- What you are committing to, restated so the figures are in view while the controls are. The full
                  terms are in the Key terms card; this keeps only the money beside the buttons. --}}
-            <div class="rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5 mb-4">
+            <div class="rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5 mb-4 hidden lg:block">
                 <p class="text-[14px] font-medium text-[#5B6A8E]">Monthly rent</p>
                 <p class="mt-1 text-[30px] font-extrabold leading-none tracking-tight text-[#060D26] tabular-nums">&#8369;{{ number_format($terms['monthly_rent'], 2) }}<span class="ml-1 text-[15px] font-medium tracking-normal text-[#5B6A8E]">/ month</span></p>
                 <p class="mt-2 text-[14px] text-[#5B6A8E]">Due every {{ $ordinal((int) $terms['due_day']) }} · {{ $depositText }}</p>
@@ -201,12 +201,12 @@
                         class="rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5">
                         @csrf
 
-                        <div class="flex items-start gap-3 p-4 bg-[#EF4444]/10 border border-[#EF4444]/25 rounded-xl mb-5">
-                            <svg class="w-5 h-5 text-[#EF4444] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <div class="flex items-start gap-3 p-4 bg-[#ECEEF6] border border-[#E2E4EC] rounded-xl mb-5">
+                            <svg class="w-5 h-5 text-[#5B6A8E] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-8.99 3.75h.008v.008h-.008v-.008z" />
                             </svg>
-                            <p class="text-[12px] text-[#EF4444] leading-relaxed">
+                            <p class="text-[13px] text-[#060D26] leading-relaxed">
                                 Please read the entire agreement above before proceeding. Signing is a binding acknowledgment
                                 of the terms stated.
                             </p>
@@ -340,7 +340,7 @@
                                     <div class="rounded-lg border border-[#FF8A66]/25 bg-[#ECEEF6] p-4 mb-4">
                                         <p class="text-sm font-medium text-[#060D26]">Payment secured</p>
                                         <p class="mt-1 text-sm text-[#060D26]">
-                                            Your deposit is held safely and is not released until you confirm your move-in.
+                                            Your payment is held safely and is not released until you confirm your move-in.
                                             Your landlord will contact you to turn over the keys.
                                         </p>
                                     </div>
@@ -358,9 +358,9 @@
                                         </p>
                                         <p class="mt-1 text-sm {{ $daysLeft <= 1 ? 'text-[#DC2626]' : 'text-[#B45309]' }}">
                                             @if ($daysLeft < 0)
-                                                Your deadline of {{ $reservation->move_in_deadline_at->format('M j, Y') }} has passed. Your deposit has not been released yet, but it will be released to the landlord automatically. You can still confirm your move-in now &mdash; if something isn't right, use "I haven't received the keys" below.
+                                                Your deadline of {{ $reservation->move_in_deadline_at->format('M j, Y') }} has passed. Your payment has not been released yet, but it will be released to the landlord automatically. You can still confirm your move-in now &mdash; if something isn't right, use "I haven't received the keys" below.
                                             @else
-                                                Confirming releases your deposit to the landlord. If you don't confirm by
+                                                Confirming releases your payment to the landlord. If you don't confirm by
                                                 {{ $reservation->move_in_deadline_at->format('M j, Y') }}, it is released automatically.
                                             @endif
                                         </p>
@@ -375,11 +375,11 @@
                                     data-confirm-message="This releases your payment to the landlord and cannot be undone. Only confirm if you have physically moved in and verified the unit matches the listing."
                                     data-confirm-button="Yes, I have moved in">
                                     @csrf
-                                    <div class="flex items-start gap-3 p-3 bg-[#EF4444]/10 border border-[#EF4444]/25 rounded-xl mb-4">
-                                        <svg class="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <div class="flex items-start gap-3 p-3 bg-[#ECEEF6] border border-[#E2E4EC] rounded-xl mb-4">
+                                        <svg class="w-4 h-4 text-[#5B6A8E] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-8.99 3.75h.008v.008h-.008v-.008z" />
                                         </svg>
-                                        <p class="text-[12px] text-[#EF4444] leading-relaxed">
+                                        <p class="text-[13px] text-[#060D26] leading-relaxed">
                                             Only confirm after you have physically moved into the unit and verified it matches the listing. Once confirmed, the payment will be released to the landlord.
                                         </p>
                                     </div>
@@ -393,7 +393,7 @@
                             @if ($reservation->rental_status === 'Rental Agreement Signed' && ! $reservation->move_in_disputed_at)
                                 <div x-data="{ show: false }" class="mt-3 text-center">
                                     <button type="button" @click="show = true"
-                                            class="text-xs text-[#5B6A8E] underline hover:text-[#060D26] cursor-pointer">
+                                            class="px-2 py-2.5 text-xs text-[#5B6A8E] underline hover:text-[#060D26] cursor-pointer">
                                         I haven't received the keys
                                     </button>
 
@@ -412,13 +412,13 @@
                                                  x-transition:leave-end="opacity-0 scale-95 translate-y-4 motion-reduce:scale-100 motion-reduce:translate-y-0">
                                                 <h3 class="text-lg font-normal text-[#060D26] text-left">Report a move-in issue</h3>
                                                 <p class="mt-2 text-sm text-[#5B6A8E] text-left">
-                                                    Your deposit stays on hold and an administrator will review this. Your landlord will be notified.
+                                                    Your payment stays on hold and an administrator will review this. Your landlord will be notified.
                                                 </p>
 
                                                 <form action="{{ route('agreements.disputeMoveIn', $reservation) }}" method="POST" class="mt-4 text-left">
                                                     @csrf
                                                     <textarea name="reason" rows="4" required minlength="10"
-                                                              class="w-full rounded-xl border-[#E2E4EC] text-sm"
+                                                              class="w-full rounded-xl border-[#E2E4EC] text-[16px] sm:text-sm"
                                                               placeholder="Tell us what happened — for example, the landlord hasn't turned over the keys."></textarea>
                                                     @error('reason')
                                                         <p class="mt-1 text-sm text-[#EF4444]">{{ $message }}</p>
@@ -441,7 +441,7 @@
                                 <div class="mt-3 rounded-xl border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] p-4">
                                     <p class="text-sm font-bold text-[#B45309]">Move-in issue under review</p>
                                     <p class="mt-1 text-xs text-[#B45309]">
-                                        Reported {{ $reservation->move_in_disputed_at->diffForHumans() }}. Your deposit is on hold
+                                        Reported {{ $reservation->move_in_disputed_at->diffForHumans() }}. Your payment is on hold
                                         and the countdown is paused while an administrator reviews this.
                                     </p>
                                 </div>

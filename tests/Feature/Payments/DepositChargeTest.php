@@ -3,6 +3,7 @@
 namespace Tests\Feature\Payments;
 
 use App\Models\DepositCharge;
+use App\Support\BusinessTime;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\Support\CreatesMarketplaceFixtures;
 use Tests\Support\CreatesPaymentFixtures;
@@ -76,7 +77,7 @@ class DepositChargeTest extends TestCase
         $this->charge($t, ['amount' => 0])->assertSessionHasErrors('amount');
         $this->charge($t, ['category' => 'Nonsense'])->assertSessionHasErrors('category');
         $this->charge($t, ['description' => ''])->assertSessionHasErrors('description');
-        $this->charge($t, ['charged_at' => now()->addDay()->toDateString()])->assertSessionHasErrors('charged_at');
+        $this->charge($t, ['charged_at' => BusinessTime::now()->addDay()->toDateString()])->assertSessionHasErrors('charged_at');
     }
 
     public function test_a_voided_charge_frees_that_part_of_the_deposit_again(): void

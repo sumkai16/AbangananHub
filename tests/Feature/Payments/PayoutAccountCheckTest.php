@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Payments;
 
+use App\Jobs\SendLandlordPayout;
 use App\Models\AuditLog;
 use App\Models\LandlordVerification;
 use App\Models\UserPayoutAccount;
@@ -192,7 +193,7 @@ class PayoutAccountCheckTest extends TestCase
         $this->assertTrue($account->isApproved());
         $this->assertSame($admin->user_id, (int) $account->payout_approved_by);
         $this->assertSame(1, AuditLog::where('action', 'payout_account.approve')->count());
-        Queue::assertPushed(\App\Jobs\SendLandlordPayout::class, fn ($job) => $job->landlordId === $t['landlord']->user_id);
+        Queue::assertPushed(SendLandlordPayout::class, fn ($job) => $job->landlordId === $t['landlord']->user_id);
     }
 
     public function test_approving_twice_is_a_409_and_only_admins_can_approve(): void

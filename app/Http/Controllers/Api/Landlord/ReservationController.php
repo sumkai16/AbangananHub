@@ -25,21 +25,11 @@ class ReservationController extends Controller
             $query->where('landlord_id', $request->user()->user_id);
         });
 
-        $counts = [
-            'all'                      => (clone $base)->count(),
-            'Inquiry'                  => (clone $base)->where('rental_status', 'Inquiry')->count(),
-            'Under Negotiation'        => (clone $base)->where('rental_status', 'Under Negotiation')->count(),
-            'Pending Rental Agreement' => (clone $base)->where('rental_status', 'Pending Rental Agreement')->count(),
-            'Rental Agreement Signed'  => (clone $base)->where('rental_status', 'Rental Agreement Signed')->count(),
-            'Occupied'                 => (clone $base)->where('rental_status', 'Occupied')->count(),
-            'Cancelled'                => (clone $base)->where('rental_status', 'Cancelled')->count(),
-            'Rejected'                 => (clone $base)->where('rental_status', 'Rejected')->count(),
-        ];
+        $counts = Reservation::statusCounts($base, Reservation::STATUSES);
 
         $status = $request->query('status', 'all');
-        $validStatuses = ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied', 'Completed', 'Cancelled', 'Rejected'];
 
-        if (in_array($status, $validStatuses, true)) {
+        if (in_array($status, Reservation::STATUSES, true)) {
             $base->where('rental_status', $status);
         }
 
@@ -70,8 +60,8 @@ class ReservationController extends Controller
     /** Same final terms as the web form (SendAgreementRequest); all optional so older app builds keep working. */
     public function advanceToPendingAgreement(SendAgreementRequest $request, Reservation $reservation): JsonResponse
     {
-        if (! $reservation->advanceToPendingAgreement($request->validated())) {
-            throw ValidationException::withMessages(['reservation' => ['This reservation cannot move to Pending Rental Agreement right now.']]);
+        if (! $reservation->advanceToPendingAgreement($request->validated(), $request->input('lease_body'))) {
+            throw ValidationException::withMessages(['reservation' => [$reservation->agreementBlockedReason() ?? 'This reservation cannot move to Pending Rental Agreement right now.']]);
         }
 
         return response()->json(['data' => new ReservationResource($reservation->fresh())]);

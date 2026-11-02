@@ -193,6 +193,12 @@ class PaymongoCheckout
                 ]);
             }
 
+            // Paid to reserve: the unit now reads Reserved and leaves search, the same as a confirmed direct
+            // payment. Here, not in each caller, so the webhook and the return-page poll both do it.
+            if ($rows->first()->payment_type !== 'Monthly') {
+                $rows->first()->reservation?->holdUnit();
+            }
+
             return $rows;
         });
 
