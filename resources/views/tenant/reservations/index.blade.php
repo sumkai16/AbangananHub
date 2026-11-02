@@ -142,7 +142,13 @@
                             'landlord' => $landlordName !== '' ? $landlordName : 'Unknown',
                             'moveIn' => $moveIn,
                             'duration' => $r->duration_of_stay ?: 'Open-ended',
-                            'pill' => $statusPill[$r->rental_status] ?? [$r->rental_status, 'bg-[#ECEEF6] text-[#060D26]'],
+                            // A signed lease says where the money stands (the same answer as the primary button), not just "Signed".
+                            'pill' => match ($r->paymentState()) {
+                                'due' => ['Payment due', 'bg-[#FF8A66]/[0.14] text-[#9A3412]'],
+                                'reported' => ['Payment sent', 'bg-[#FBBF24]/[0.12] text-[#92400E]'],
+                                'paid' => ['Paid · move in', 'bg-[#22C55E]/[0.10] text-[#15803D]'],
+                                default => $statusPill[$r->rental_status] ?? [$r->rental_status, 'bg-[#ECEEF6] text-[#060D26]'],
+                            },
                             'closed' => $closed,
                             'canReview' => in_array($r->rental_status, ['Occupied', 'Completed'], true)
                                 && \App\Models\Review::canReview(auth()->id(), $r->property_id),
@@ -153,6 +159,7 @@
                                 'duration_of_stay' => $r->duration_of_stay,
                                 'occupants_count' => $r->occupants_count,
                                 'remarks' => $r->remarks,
+                                'rejection_reason' => $r->rental_status === 'Rejected' ? $r->rejection_reason : null,
                                 'rental_status' => $r->rental_status,
                                 'landlord_name' => $landlordName !== '' ? $landlordName : 'Unknown',
                                 'landlord_contact' => $landlord->contact_number ?? '—',
@@ -185,6 +192,9 @@
                                     <p class="mt-1 text-[12.5px] text-[#060D26] tabular-nums">
                                         Move-in: {{ $row['moveIn'] }} <span class="text-[#5B6A8E]">· {{ $row['duration'] }}</span>
                                     </p>
+                                    @if($row['details']['rejection_reason'])
+                                        <p class="mt-1 text-[12.5px] text-[#B91C1C]">Reason: {{ $row['details']['rejection_reason'] }}</p>
+                                    @endif
                                 </div>
                             </div>
                             <div class="flex flex-wrap items-center gap-2 mt-3">
@@ -220,6 +230,9 @@
                                         <div class="min-w-0">
                                             <p class="text-[14px] font-semibold truncate {{ $row['closed'] ? 'text-[#5B6A8E]' : 'text-[#060D26]' }}" title="{{ $row['r']->property->title }}">{{ $row['r']->property->title }}</p>
                                             <p class="text-[12.5px] text-[#5B6A8E] truncate">{{ $row['unit'] }} · {{ $row['landlord'] }}</p>
+                                            @if($row['details']['rejection_reason'])
+                                                <p class="text-[12.5px] text-[#B91C1C] truncate" title="{{ $row['details']['rejection_reason'] }}">Reason: {{ $row['details']['rejection_reason'] }}</p>
+                                            @endif
                                         </div>
                                     </div>
                                 </td>
@@ -315,13 +328,18 @@
                         </template>
 
                         <template x-if="selected.is_terminal">
-                            <div class="flex items-center gap-3 rounded-xl px-4 py-3"
+                            <div class="rounded-xl px-4 py-3"
                                 :class="selected.rental_status === 'Rejected' ? 'bg-[#EF4444]/[0.07]' : 'bg-[#5B6A8E]/10'">
-                                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                                    :class="selected.rental_status === 'Rejected' ? 'stroke-[#DC2626]' : 'stroke-[#5B6A8E]'">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                <p class="text-[13px] font-bold" :class="selected.rental_status === 'Rejected' ? 'text-[#DC2626]' : 'text-[#5B6A8E]'" x-text="'This reservation was ' + selected.rental_status.toLowerCase()"></p>
+                                <div class="flex items-center gap-3">
+                                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2" class="shrink-0"
+                                        :class="selected.rental_status === 'Rejected' ? 'stroke-[#DC2626]' : 'stroke-[#5B6A8E]'">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    <p class="text-[13px] font-bold" :class="selected.rental_status === 'Rejected' ? 'text-[#DC2626]' : 'text-[#5B6A8E]'" x-text="'This reservation was ' + selected.rental_status.toLowerCase()"></p>
+                                </div>
+                                <p x-show="selected.rejection_reason" class="mt-2 pl-[30px] text-[13px] text-[#060D26]">
+                                    <span class="font-semibold">Reason:</span> <span x-text="selected.rejection_reason"></span>
+                                </p>
                             </div>
                         </template>
 

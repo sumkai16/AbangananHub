@@ -143,6 +143,63 @@
         @endif
     </section>
 
+    {{-- Move-in money, before the move-in: has the tenant paid the advance rent and the deposit? A direct payment the
+         landlord confirmed (move_in_paid_at) settles both; otherwise each line is read from its own ledger row
+         (Initial = rent, Deposit = deposit), the same settled statuses moveInSettled() uses. --}}
+    @if(in_array($reservation->rental_status, ['Rental Agreement Signed', 'Reserved'], true))
+        @php
+            $settledStatuses = ['Held', 'Paid', 'Released'];
+            $paidDirectly = $reservation->move_in_paid_at !== null;
+            $moveInLines = collect([
+                ['label' => $reservation->moveInRentLabel(), 'type' => 'Initial', 'amount' => $reservation->moveInRent()],
+                ['label' => 'Security deposit', 'type' => 'Deposit', 'amount' => $deposit],
+            ])->filter(fn ($line) => $line['amount'] > 0)->map(function ($line) use ($reservation, $settledStatuses, $paidDirectly) {
+                $row = $reservation->payments
+                    ->where('payment_type', $line['type'])
+                    ->filter(fn ($p) => in_array($p->status, $settledStatuses, true))
+                    ->sortByDesc('paid_at')->first();
+                $line['paid'] = $paidDirectly || $row !== null;
+                $line['when'] = $row?->paid_at ?? ($paidDirectly ? $reservation->move_in_paid_at : null);
+
+                return $line;
+            })->values();
+            $paidCount = $moveInLines->where('paid', true)->count();
+            $moveInSummary = $paidCount === 0
+                ? ['label' => 'Not paid yet', 'class' => 'bg-[#ECEEF6] text-[#5B6A8E] border-[#E2E4EC]']
+                : ($paidCount === $moveInLines->count()
+                    ? ['label' => 'Paid in full', 'class' => 'bg-[#22C55E]/[0.10] text-[#15803D] border-[#22C55E]/25']
+                    : ['label' => 'Partly paid', 'class' => 'bg-[#FBBF24]/[0.12] text-[#B45309] border-[#FBBF24]/35']);
+        @endphp
+        @if($moveInLines->isNotEmpty())
+            <section aria-labelledby="move-in-payment">
+                <div class="mb-2 flex items-center justify-between gap-3">
+                    <h3 id="move-in-payment" class="{{ $label }}">Move-in payment</h3>
+                    <span class="inline-flex items-center h-6 px-2.5 rounded-full border text-[11px] font-bold {{ $moveInSummary['class'] }}">{{ $moveInSummary['label'] }}</span>
+                </div>
+                <ul class="rounded-2xl border border-[#E2E4EC] bg-white divide-y divide-[#E2E4EC]">
+                    @foreach($moveInLines as $line)
+                        <li class="flex items-center gap-3 px-4 py-3">
+                            @if($line['paid'])
+                                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#22C55E]/[0.12] text-[#15803D]" aria-hidden="true">
+                                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                </span>
+                            @else
+                                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-[#FBBF24]/60" aria-hidden="true"></span>
+                            @endif
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[13px] font-semibold text-[#060D26]">{{ $line['label'] }}</p>
+                                <p class="text-[12px] {{ $line['paid'] ? 'text-[#15803D]' : 'text-[#B45309]' }}">
+                                    {{ $line['paid'] ? 'Paid'.($line['when'] ? ' '.$line['when']->format('M j, Y') : '') : 'Not paid yet' }}
+                                </p>
+                            </div>
+                            <p class="shrink-0 text-[14px] font-semibold tabular-nums text-[#060D26]">₱{{ number_format($line['amount'], 2) }}</p>
+                        </li>
+                    @endforeach
+                </ul>
+            </section>
+        @endif
+    @endif
+
     {{-- The agreement: view or print it, and the signed copy to open or upload. --}}
     <section aria-labelledby="contract-documents">
         <h3 id="contract-documents" class="{{ $label }} mb-2">Agreement</h3>
@@ -370,6 +427,19 @@
             </form>
         @elseif($reservation->rental_status === 'Rental Agreement Signed')
             <p class="text-[12.5px] text-[#5B6A8E]">Waiting for {{ $tenant->first_name }}'s move-in payment.</p>
+            {{-- The unit is held for this tenant while they pay. Backing out is allowed until money is held or a checkout is open
+                 (Reservation::cancellationBlockedReason); in that window say why instead of showing a button that only fails. --}}
+            @if($blocked = $reservation->cancellationBlockedReason())
+                <p class="basis-full text-right text-[11.5px] leading-snug text-[#5B6A8E]">{{ $blocked }}</p>
+            @else
+                <form method="POST" action="{{ route('landlord.reservations.cancel', $reservation) }}"
+                    data-confirm="Cancel this lease?" data-confirm-type="warning"
+                    data-confirm-message="{{ $reservation->directPaymentNotice('you') ? $reservation->directPaymentNotice('you').' ' : '' }}{{ $tenant->first_name }} is told it was cancelled. The unit goes back to Available."
+                    data-confirm-button="Cancel lease" data-confirm-cancel="Keep it">
+                    @csrf @method('PATCH')
+                    <button type="submit" class="inline-flex items-center justify-center h-10 px-3 rounded-full text-[13px] font-semibold text-[#B91C1C] hover:bg-[#EF4444]/[0.07] transition-colors duration-200 cursor-pointer">Cancel lease</button>
+                </form>
+            @endif
             @if($reservation->conversation_id)
                 <a href="{{ route('conversations.index', ['active' => $reservation->conversation_id]) }}" class="{{ $ctaBtn }}">Open chat</a>
             @endif

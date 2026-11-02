@@ -49,12 +49,9 @@
 
 {{-- Reject (before an agreement) or Cancel (after), as a quiet text button so the next step stays the obvious one. --}}
 @if(in_array($status, ['Inquiry', 'Under Negotiation'], true))
-    <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST"
-        data-confirm="Reject this request?" data-confirm-type="warning"
-        data-confirm-message="{{ $tenantName }} is told the request was declined." data-confirm-button="Reject" data-confirm-cancel="Keep it">
-        @csrf @method('PATCH')
-        <button type="submit" class="{{ $quiet }}">Reject</button>
-    </form>
+    {{-- Opens the Reject dialog on the page (index.blade.php) so the tenant is told why. --}}
+    <button type="button" class="{{ $quiet }}"
+        @click="openReject('{{ route('landlord.reservations.reject', $reservation) }}', @js($tenantName))">Reject</button>
 @elseif(in_array($status, ['Pending Rental Agreement', 'Rental Agreement Signed'], true) && ($blocked = $reservation->cancellationBlockedReason()))
     {{-- Money held through the online checkout (PayMongo): say why there is no Cancel instead of a button that only fails. --}}
     <p class="basis-full max-w-[280px] text-[11.5px] leading-snug text-[#5B6A8E]">{{ $blocked }}</p>

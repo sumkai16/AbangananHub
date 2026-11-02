@@ -10,6 +10,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Tests\Support\CreatesMarketplaceFixtures;
+use Tests\Support\CreatesPaymentFixtures;
 use Tests\TestCase;
 
 /**
@@ -18,7 +19,7 @@ use Tests\TestCase;
  */
 class ContractsPageTest extends TestCase
 {
-    use CreatesMarketplaceFixtures, DatabaseTransactions;
+    use CreatesMarketplaceFixtures, CreatesPaymentFixtures, DatabaseTransactions;
 
     protected function setUp(): void
     {
@@ -169,6 +170,23 @@ class ContractsPageTest extends TestCase
         $this->actingAs($this->makeLandlord())->get(route('landlord.contracts.show', $contract))->assertForbidden();
     }
 
+    public function test_an_awaiting_move_in_lease_shows_whether_the_rent_and_deposit_are_paid(): void
+    {
+        $landlord = $this->makeLandlord();
+        $contract = $this->contract($this->makeUnit($this->makeProperty($landlord)), $this->makeTenant(), 'Reserved', [
+            'lease_snapshot' => ['deposit' => 4000],
+        ]);
+        $show = fn () => $this->actingAs($landlord)->get(route('landlord.contracts.show', $contract));
+
+        $show()->assertOk()->assertSee('Move-in payment')->assertSee('Not paid yet')->assertSee('Security deposit');
+
+        $this->makeRecordedPayment($contract, $landlord, ['payment_type' => 'Initial', 'amount' => 5000]);
+        $show()->assertSee('Partly paid')->assertSee('Paid Oct 14, 2026');
+
+        $this->makeRecordedPayment($contract, $landlord, ['payment_type' => 'Deposit', 'amount' => 4000]);
+        $show()->assertSee('Paid in full');
+    }
+
     public function test_status_reads_ending_soon_and_past_end_date(): void
     {
         $landlord = $this->makeLandlord();
@@ -181,6 +199,38 @@ class ContractsPageTest extends TestCase
         $this->assertSame('Ends in 30 days', $soon->contractStatus()['label']);
         $this->assertSame('Past end date', $past->contractStatus()['label']);
         $this->assertSame('Awaiting payment', $unpaid->contractStatus()['label']);
+    }
+
+    public function test_an_awaiting_payment_lease_can_be_cancelled_from_the_modal_and_frees_the_unit(): void
+    {
+        $landlord = $this->makeLandlord();
+        $unit = $this->makeUnit($this->makeProperty($landlord), ['availability_status' => 'Available']);
+        $contract = $this->contract($unit, $this->makeTenant(), 'Rental Agreement Signed');
+
+        $this->actingAs($landlord)->get(route('landlord.contracts.show', $contract))
+            ->assertOk()
+            ->assertSee('Cancel lease')
+            ->assertSee(route('landlord.reservations.cancel', $contract), false);
+
+        $this->actingAs($landlord)->patch(route('landlord.reservations.cancel', $contract))->assertSessionHas('success');
+
+        $this->assertSame('Cancelled', $contract->fresh()->rental_status);
+        $this->assertSame('Available', $unit->fresh()->availability_status);
+    }
+
+    public function test_an_awaiting_payment_lease_with_a_checkout_open_shows_why_there_is_no_cancel(): void
+    {
+        $landlord = $this->makeLandlord();
+        $contract = $this->contract($this->makeUnit($this->makeProperty($landlord)), $this->makeTenant(), 'Rental Agreement Signed');
+        $this->makePendingCheckout($contract, 'cs_open_1');
+
+        $this->actingAs($landlord)->get(route('landlord.contracts.show', $contract))
+            ->assertOk()
+            ->assertSee('A payment is being processed')
+            ->assertDontSee('Cancel lease');
+
+        $this->actingAs($landlord)->patch(route('landlord.reservations.cancel', $contract))->assertSessionHasErrors('reservation');
+        $this->assertSame('Rental Agreement Signed', $contract->fresh()->rental_status);
     }
 
     public function test_the_modal_holds_the_lease_documents_and_no_view_contract_button(): void

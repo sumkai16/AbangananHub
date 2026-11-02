@@ -454,7 +454,8 @@ class PaymentClaims
             ->exists();
     }
 
-    private static function decisionLink(Reservation $locked): string
+    /** Where the landlord answers a report: the chat when there is one, else the rent ledger. */
+    public static function decisionLink(Reservation $locked): string
     {
         return $locked->conversation_id
             ? route('conversations.index', ['active' => $locked->conversation_id])

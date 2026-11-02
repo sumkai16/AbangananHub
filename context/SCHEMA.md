@@ -587,6 +587,7 @@ A tenant's "I paid the landlord directly". Not money: nothing reads a claim as a
 | rejection_reason | varchar(255) | null | | Required on reject |
 | disputed_at | timestamp | null | | When the tenant sent a rejected report to an admin (once per claim) |
 | dispute_report_id | bigint unsigned | null | FK → reports, set null | The `reports` row created by the dispute |
+| reminders_sent | tinyint unsigned | NN, = 0 | | How many "still waiting for you" nudges `payment-claims:remind` has sent the landlord (config `rentals.claim_reminder_days`) |
 | created_at | timestamp | null | | |
 | updated_at | timestamp | null | | |
 

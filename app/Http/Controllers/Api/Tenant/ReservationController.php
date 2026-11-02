@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\Tenant;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreReservationRequest;
 use App\Http\Resources\ReservationResource;
-use App\Models\Conversation;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use Illuminate\Http\JsonResponse;
@@ -94,41 +93,17 @@ class ReservationController extends Controller
             throw ValidationException::withMessages(['property' => ['This property is not available.']]);
         }
 
-        $exists = Reservation::where('unit_id', $unit->unit_id)
-            ->where('tenant_id', $tenantId)
-            ->whereNotIn('rental_status', Reservation::TERMINAL_STATUSES)
-            ->exists();
-
-        if ($exists) {
-            throw ValidationException::withMessages(['unit' => ['You already have an active inquiry or reservation for this unit.']]);
-        }
-
-        // The tenant's one thread for this property, reopened if an earlier deal closed it (same as the web).
-        $conversation = Conversation::forInquiry($tenantId, $property, $unit);
-
-        $reservation = Reservation::create([
-            'property_id'          => $property->property_id,
-            'unit_id'              => $unit->unit_id,
-            'tenant_id'            => $tenantId,
-            'conversation_id'      => $conversation->conversation_id,
-            'reservation_date'     => now(),
-            'rental_status'        => 'Inquiry',
+        // Accepts either key for the first message, for client convenience.
+        $reservation = Reservation::startInquiry($unit, $tenantId, [
             'target_move_in_date'  => $request->target_move_in_date,
             'target_move_out_date' => $targetMoveOutDate,
             'occupants_count'      => $request->occupants_count,
             'remarks'              => $request->remarks,
-        ]);
+        ], $request->input('message', $request->input('remarks')) ?? '');
 
-        // First message is always the inquiry summary card — it carries the
-        // move-in/rent details the tenant just reviewed, so it's worth
-        // showing even when they left the note blank. Accepts either key
-        // for client convenience.
-        $firstMessage = $request->input('message', $request->input('remarks'));
-        $conversation->messages()->create([
-            'sender_id'           => $tenantId,
-            'message'             => $firstMessage ?? '',
-            'kind'                => 'inquiry_summary',
-        ]);
+        if (! $reservation) {
+            throw ValidationException::withMessages(['unit' => ['You already have an active inquiry or reservation for this unit.']]);
+        }
 
         return response()->json([
             'data' => new ReservationResource($reservation->load(['property.media', 'unit', 'conversation'])),

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreReservationRequest;
-use App\Models\Conversation;
 use App\Models\Property;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
@@ -55,41 +54,19 @@ class ReservationController extends Controller
             return back()->withInput()->with('error', 'This property is not currently available for inquiries.');
         }
 
-        // Check for existing active reservation on this unit by this tenant
-        $exists = Reservation::where('unit_id', $unit->unit_id)
-            ->where('tenant_id', Auth::id())
-            ->whereNotIn('rental_status', Reservation::TERMINAL_STATUSES)
-            ->exists();
+        $reservation = Reservation::startInquiry(
+            $unit,
+            Auth::id(),
+            $request->only(['target_move_in_date', 'target_move_out_date', 'occupants_count']),
+            $request->message ?? '',
+        );
 
-        if ($exists) {
+        // Null: this tenant already has an open inquiry or reservation on this unit.
+        if (! $reservation) {
             return back()->with('warning', 'You already have an active inquiry or reservation for this unit.');
         }
 
-        // The tenant's one thread for this property, reopened if an earlier deal closed it.
-        $conversation = Conversation::forInquiry(Auth::id(), $property, $unit);
-
-        Reservation::create([
-            'property_id'          => $property->property_id,
-            'unit_id'              => $unit->unit_id,
-            'tenant_id'            => Auth::id(),
-            'conversation_id'      => $conversation->conversation_id,
-            'reservation_date'     => now(),
-            'rental_status'        => 'Inquiry',
-            'target_move_in_date'  => $request->target_move_in_date,
-            'target_move_out_date' => $request->target_move_out_date,
-            'occupants_count'      => $request->occupants_count,
-        ]);
-
-        // First message is always the inquiry summary card — it carries the
-        // move-in/rent details the tenant just reviewed in the modal, so it's
-        // worth showing even when they left the note blank.
-        $conversation->messages()->create([
-            'sender_id'           => Auth::id(),
-            'message'             => $request->message ?? '',
-            'kind'                => 'inquiry_summary',
-        ]);
-
-        return redirect()->route('conversations.show', $conversation)
+        return redirect()->route('conversations.show', $reservation->conversation)
             ->with('success', 'Inquiry started — discuss the details with your landlord.');
     }
 

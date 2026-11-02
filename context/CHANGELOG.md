@@ -2,6 +2,28 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 2 2026 — Reservation flow audit: first fixes (branch `emman`)
+Why: an audit of the reservation flow (read from code, not clicked through) found 13 problems. These are the ones that needed no product decision. **Tests pass; the Reject dialog and the new pill are not checked in a browser yet.**
+- **A signed lease can no longer hold a unit forever.** `reservations:process-stale` has two new stages (`config/rentals.php` → `stale_reservations`):
+  - `signed` (unpaid): remind the tenant at 3 days (landlord told), cancel at 10, counted from the signature. Skipped while the landlord has a payment report to answer, and never touches held money or an open checkout.
+  - `paid` (paid straight to the landlord, move-in not confirmed): remind both at 3 days after the payment or the move-in date, whichever is later. Never cancelled. Online money in escrow keeps its own clocks.
+- **Unanswered payment reports are chased.** New `payment-claims:remind` (daily 08:45 Manila, `RemindPendingPaymentClaims`): nudges the landlord at 1 and 3 days (`rentals.claim_reminder_days`); the 3-day nudge also tells the tenant. New column `payment_claims.reminders_sent`.
+- **Landlord review no longer eats the tenant's 5-day signing clock.** Any document upload or review restarts it. If the tenant's documents are waiting for the landlord, the tenant is never cancelled and the landlord is reminded ("Documents waiting for your review").
+- **Double tap on Send inquiry.** `Reservation::startInquiry()` does the duplicate check, the reservation, the chat and its first message in one transaction behind a lock on the unit row. Used by the web and the mobile API.
+- **Reject asks why.** The row's Reject opens a dialog on the Reservations page (three quick reasons + optional note; `ReservationController::REJECT_REASONS`). The tenant sees the reason on the list and in Details. The mobile API's free-text `rejection_reason` still works.
+- **The tenant's "Signed" pill says where the money stands:** Payment due / Payment sent / Paid · move in, from the new `Reservation::paymentState()`, which the primary button now uses too.
+- Housekeeping: `PRD.md` reservation line updated; `tenantNextStep()` docblock put back above its method.
+- **Deploy:** run `php artisan migrate`; the VPS already runs `schedule:run`. The test DB needs the migration too (`DB_DATABASE=abanganan_hub_test php artisan migrate`).
+- Tests: `StaleReservationsTest` (+8), new `PaymentClaimRemindersTest`, `StartInquiryTest`, `RejectReasonTest`, `TenantPaymentStateTest`.
+- **Not done, needs a decision first:** cancel after confirmed money, withdrawing a sent lease, "Available" shown while an agreement is out, escrow release warnings by email, an in-app refund path, mobile API payment-report and viewing routes.
+- **Manual test (375px first):** as a landlord on Reservations, tap Reject on a new inquiry, pick a reason, add a note, submit. As that tenant, the list shows "Reason: …" and Details shows it too. Sign an agreement as a tenant and confirm the pill reads "Payment due".
+
+## Nov 2 2026 — Cancel lease on an "Awaiting payment" contract (branch `emman`)
+Why: the unit is held while the tenant has not paid, but the lease modal had no way out. Cancel only existed on the Reservations list.
+- `resources/views/landlord/contracts/partials/_details.blade.php`: the Awaiting payment footer now has **Cancel lease** (same route as the list: `landlord.reservations.cancel`). Unit goes back to Available, tenant is notified.
+- Hidden when money is held (that branch already has the keys step) or a checkout is open. In the open-checkout case the modal says why instead (`Reservation::cancellationBlockedReason`). A direct payment already settled adds the "paid directly, settle it with each other" warning to the confirm.
+- Tests: `ContractsPageTest` (2 new).
+
 ## Nov 2 2026 — Quiet reservations: one reminder, then auto-cancel (branch `emman`)
 Why: the audit found Inquiry, Under Negotiation and Pending Rental Agreement never expired. Pending Rental Agreement holds the unit, so a tenant who never signed could block it for good.
 - **New daily job** `reservations:process-stale` (08:30 Manila, `app/Console/Commands/ProcessStaleReservations.php`). Days of silence, in `config/rentals.php` → `stale_reservations`:
