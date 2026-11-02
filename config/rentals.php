@@ -142,4 +142,19 @@ return [
      * and the old session is expired first so it can never also pay.
      */
     'checkout_stale_minutes' => 30,
+
+    /*
+     * Quiet reservations (reservations:process-stale, daily). A reservation that waits on a person for too long is
+     * reminded once, then cancelled. Days of silence: Inquiry counts from the day it was sent (the landlord has not
+     * answered); Under Negotiation from the last chat message; Pending Rental Agreement from the day the agreement
+     * was sent (the tenant has not signed; it is the only one that blocks the unit, so it is the shortest).
+     * Anything with held money or an open checkout is never cancelled (Reservation::cancellationBlockedReason).
+     * auto_cancel off = reminders only.
+     */
+    'stale_reservations' => [
+        'auto_cancel' => env('STALE_AUTO_CANCEL', true),
+        'inquiry' => ['remind_days' => 2, 'cancel_days' => 7],
+        'negotiation' => ['remind_days' => 5, 'cancel_days' => 14],
+        'agreement' => ['remind_days' => 2, 'cancel_days' => 5],
+    ],
 ];

@@ -237,6 +237,12 @@ class ReservationObserver
                 break;
 
             case 'Cancelled':
+                // Closed by the daily stale check (no actor). It sends its own "Reservation closed" notices, so
+                // say nothing here rather than "the tenant cancelled".
+                if ($reservation->systemCancelReason !== null) {
+                    break;
+                }
+
                 // Notify whoever did not press the button. Falls back to
                 // telling both when there is no authenticated actor (CLI,
                 // scheduled job), which is better than telling neither.

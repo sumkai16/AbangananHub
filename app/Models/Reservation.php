@@ -35,6 +35,9 @@ class Reservation extends Model
         'Reserved', 'Occupied', 'Completed', 'Rejected', 'Cancelled',
     ];
 
+    /** Set (not saved) by reservations:process-stale just before it cancels, so the observer says why. */
+    public ?string $systemCancelReason = null;
+
     protected $fillable = [
         'property_id',
         'unit_id',
@@ -75,6 +78,7 @@ class Reservation extends Model
     protected function casts(): array
     {
         return [
+            'stale_reminder_sent_at' => 'datetime',
             'reservation_date' => 'date',
             'target_move_in_date' => 'date',
             'target_move_out_date' => 'date',

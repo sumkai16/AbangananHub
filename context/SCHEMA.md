@@ -458,6 +458,7 @@ One tenant's inquiry-to-tenancy record on one unit. `rental_status` walks Inquir
 | handover_proposed_by | bigint unsigned | null | FK → users, set null | The *other* party confirms |
 | handover_proposed_at | timestamp | null | | |
 | handover_confirmed_at | timestamp | null | | Only a confirmed slot moves `move_in_deadline_at` |
+| stale_reminder_sent_at | timestamp | null | | When `reservations:process-stale` last sent its "going quiet" reminder; sent once per quiet spell (compared with the clock the spell is measured from) |
 | remarks | text | null | | |
 | created_at | timestamp | null | | |
 | updated_at | timestamp | null | | |

@@ -35,3 +35,6 @@ Schedule::command('model:prune', ['--model' => [AiSearchLog::class]])->dailyAt('
 // Landlord payouts: the immediate job (SendLandlordPayout) does the work as money becomes payable; this sweep
 // polls transfers PayMongo has not confirmed and sends anything still owed (hold over, wallet was short, job missed).
 Schedule::command('payouts:send')->hourly()->withoutOverlapping()->onOneServer()->timezone(config('rentals.timezone'));
+
+// Inquiries, negotiations and unsigned agreements that went quiet: remind once, then cancel (config rentals.stale_reservations).
+Schedule::command('reservations:process-stale')->dailyAt('08:30')->timezone(config('rentals.timezone'));

@@ -2,6 +2,17 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 2 2026 — Quiet reservations: one reminder, then auto-cancel (branch `emman`)
+Why: the audit found Inquiry, Under Negotiation and Pending Rental Agreement never expired. Pending Rental Agreement holds the unit, so a tenant who never signed could block it for good.
+- **New daily job** `reservations:process-stale` (08:30 Manila, `app/Console/Commands/ProcessStaleReservations.php`). Days of silence, in `config/rentals.php` → `stale_reservations`:
+  - Inquiry: remind the landlord at 2, cancel at 7 (counted from when it was sent).
+  - Under Negotiation: remind both at 5, cancel at 14 (counted from the last chat message).
+  - Pending Rental Agreement: remind the tenant at 2 (landlord told), cancel at 5 (counted from when the agreement was sent).
+- Reminder goes out once per quiet spell (`reservations.stale_reminder_sent_at`, new column); new activity re-arms it. `STALE_AUTO_CANCEL=false` gives reminders only.
+- Cancel goes through `Reservation::cancel()`, so a reservation with held money or an open checkout is never cancelled. Walk-in tenants are skipped. Both people get a "Reservation closed" notice saying why, and the chat gets a system message. The observer stays quiet for these cancels (`Reservation::$systemCancelReason`) so nobody is told "the tenant cancelled".
+- **Deploy:** run `php artisan migrate`; the VPS already runs `schedule:run`. The test DB needs the migration too (`DB_DATABASE=abanganan_hub_test php artisan migrate`).
+- Tests: `StaleReservationsTest`.
+
 ## Nov 2 2026 — Security audit fixes: phone format, CSV formulas, sign-up throttle, ID-photo check (branch `emman`)
 Why: an audit found three reproducible gaps. Authorization, mass assignment, webhook signing and nested-route ownership were checked and are fine.
 - **Phone numbers:** one rule, `App\Support\Phone::RULE` (digits, `+`, spaces, dashes, brackets; 7 to 20 characters), now on every phone field. Before, only sign-up and the emergency contact checked the format, so "abc" could be saved; the profile form even allowed 255 characters.
@@ -9,7 +20,7 @@ Why: an audit found three reproducible gaps. Authorization, mass assignment, web
 - **Throttles:** web `POST /register` 10/min and `POST /forgot-password` 6/min per IP (the mobile API already limited sign-up).
 - **ID-photo check:** `ocrCheck` now has the submit form's size cap and ID-type whitelist, a 20/min throttle, and the decoded bytes must be a real image (`VerificationController::decodeBase64Image`, also used on submit).
 - Tests: `InputHardeningTest`.
-- **Not done, needs a decision:** Inquiry, Under Negotiation and Pending Rental Agreement never expire or remind (Pending Rental Agreement holds the unit); changing email needs no password; no CSP/HSTS headers.
+- **Not done:** (stale reservations are now handled, see the entry above) changing email needs no password; no CSP/HSTS headers.
 
 ## Nov 2 2026 — main's online reservation payments brought into emman (branch `emman`)
 Only the payment code was copied from `origin/main`. This is not a merge: main's Tenants/Contracts/Policies page, the Moved-in tab removal and other main work are **not** here, so a later full merge of main still brings them. Suite: 1036 passed, 1 skipped. **Not verified in a browser.** Background: main's Nov 1 "emman merged into joseph" entry and `plans/emman-joseph-payments-merge.md`.
