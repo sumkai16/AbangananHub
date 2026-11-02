@@ -83,7 +83,7 @@ class ProfileController extends Controller
 
         // Changing where the money goes needs the password, so a stolen token cannot redirect payouts.
         if (LandlordPayouts::changesDestination($user, $number, $name)) {
-            $request->validate(['current_password' => ['required', 'current_password:sanctum']]);
+            $request->validate(['current_password' => ['bail', 'required', 'string', 'current_password:sanctum']]);
         }
 
         $user->savePayoutAccount($number, $name);

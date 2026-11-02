@@ -20,7 +20,7 @@ class ReviewController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'property_id'    => 'required|exists:properties,property_id',
+            'property_id'    => 'bail|required|integer|exists:properties,property_id',
             'rating'         => 'required|integer|min:1|max:5',
             'review_comment' => 'nullable|string|max:1000',
         ]);

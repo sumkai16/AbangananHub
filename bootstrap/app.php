@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\DropArrayFilters;
 use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureLandlord;
@@ -20,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->web(append: [
+            DropArrayFilters::class,
             EnsureAccountActive::class,
         ]);
         $middleware->alias([

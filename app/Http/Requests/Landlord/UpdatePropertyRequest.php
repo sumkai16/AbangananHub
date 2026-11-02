@@ -41,7 +41,7 @@ class UpdatePropertyRequest extends FormRequest
                 'nullable',
                 'array',
                 function ($attribute, $value, $fail) use ($existingPhotoCount) {
-                    if ($existingPhotoCount + count($value) > 10) {
+                    if (is_array($value) && $existingPhotoCount + count($value) > 10) {
                         $fail('A property can have at most 10 photos total. Remove some before adding more.');
                     }
                 },

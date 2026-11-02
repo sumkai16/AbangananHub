@@ -24,6 +24,8 @@ class PropertyController extends Controller
 {
     public function index(Request $request)
     {
+        BrowseFilters::sanitize($request);
+
         // A described search ("room near USC under 5k"): the page shell loads at once and
         // resources/js/ai-search.js fills it in. See plans/ai-search.md.
         if (filled($request->query('q'))) {
@@ -134,6 +136,8 @@ class PropertyController extends Controller
      */
     public function count(Request $request): JsonResponse
     {
+        BrowseFilters::sanitize($request);
+
         return response()->json(['count' => $this->browseQuery($request)->paginate(1)->total()]);
     }
 

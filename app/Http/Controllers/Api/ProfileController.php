@@ -73,8 +73,8 @@ class ProfileController extends Controller
     public function updatePassword(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'current_password' => ['required', 'current_password:sanctum'],
-            'password'         => ['required', 'confirmed', Rules\Password::defaults()],
+            'current_password' => ['bail', 'required', 'string', 'current_password:sanctum'],
+            'password'         => ['bail', 'required', 'string', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $request->user()->update([

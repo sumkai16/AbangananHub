@@ -78,8 +78,8 @@ class ReportController extends Controller
     {
         $validated = $request->validate([
             'target_type' => 'required|in:property,user',
-            'property_id' => 'required_if:target_type,property|nullable|exists:properties,property_id',
-            'reported_user_id' => 'required_if:target_type,user|nullable|exists:users,user_id',
+            'property_id' => 'bail|required_if:target_type,property|nullable|integer|exists:properties,property_id',
+            'reported_user_id' => 'bail|required_if:target_type,user|nullable|integer|exists:users,user_id',
             'category' => 'required|in:' . implode(',', self::CATEGORIES),
             'details' => 'nullable|string|max:1000',
         ]);
