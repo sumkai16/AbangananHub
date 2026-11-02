@@ -468,6 +468,7 @@ Route::get('/properties/count', [PropertyController::class, 'count'])->middlewar
 Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
 // PayMongo webhook — no auth, CSRF excluded in bootstrap/app.php
 Route::post('/webhooks/paymongo', [PayMongoWebhookController::class, 'handle'])->name('webhooks.paymongo');
+Route::post('/csp-report', \App\Http\Controllers\CspReportController::class)->middleware('throttle:30,1')->name('csp.report');
 
 // Bridges a mobile WebView (Bearer token, no session) into a logged-in web
 // session — see Api\AuthController::webviewTicket. Outside the auth

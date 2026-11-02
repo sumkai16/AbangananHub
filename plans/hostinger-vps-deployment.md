@@ -301,6 +301,9 @@ server {
 
     add_header X-Frame-Options "SAMEORIGIN";
     add_header X-Content-Type-Options "nosniff";
+    # CSP, Permissions-Policy, Referrer-Policy and HSTS come from the app (SecurityHeaders middleware), not nginx.
+    # Start with CSP_MODE=report-only in .env, check the "CSP violation" lines in laravel.log, then CSP_MODE=enforce.
+    # HSTS only reaches the browser if TRUSTED_PROXIES is set, so the app can see the request was https.
 
     # --- Compression ---
     # Text (HTML, JS, CSS, JSON) shrinks 70-80%; the browse page HTML alone is ~350 KB.

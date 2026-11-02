@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
    ->withMiddleware(function (Middleware $middleware) {
       $middleware->web(append: [
             \App\Http\Middleware\EnsureAccountActive::class,
+            \App\Http\Middleware\SecurityHeaders::class,
         ]);
         $middleware->alias([
             'tenant'   => \App\Http\Middleware\EnsureTenant::class,
@@ -35,6 +36,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->validateCsrfTokens(except: [
             'webhooks/paymongo',
+            // The browser posts CSP reports without a CSRF token.
+            'csp-report',
         ]);
 
         // Behind a tunnel or a reverse proxy the browser speaks https to the proxy and the proxy speaks http to

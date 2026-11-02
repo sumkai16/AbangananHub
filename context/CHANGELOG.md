@@ -2,6 +2,15 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 2 2026 — Browser security headers: CSP (report-only), Permissions-Policy, HSTS (branch `emman`)
+Why: the audit found no CSP or HSTS. **Ships in report-only mode: it logs what it would block and blocks nothing.**
+- `SecurityHeaders` middleware (web group) + `ContentSecurityPolicy` + `config/security.php`. `CSP_MODE=off|report-only|enforce`. Also Permissions-Policy (camera and location for this site only), Referrer-Policy, HSTS on https only.
+- `POST /csp-report` collects violations into `laravel.log` ("CSP violation"). Public, throttled, CSRF-exempt, fields clipped.
+- **Limit, said plainly:** it does not stop an injected inline script, because the app relies on inline scripts and Alpine's `eval` (`'unsafe-inline' 'unsafe-eval'`). It does stop other sites framing ours, plugins, `<base>` tricks, and limits form targets and outbound origins. The real fix (scripts to files, Alpine CSP build, nonces) is a separate piece of work.
+- **Checked in headless Edge (dev):** 8 public + 28 logged-in pages, 0 violations. It found one real problem first: the built chat client opens `wss://` while `.env` said `http`; the policy now allows both for the Reverb host.
+- **Before `CSP_MODE=enforce` on the server, by hand:** camera capture (ID, selfie, unit photos), property wizard, map picker, modals, PayMongo and Google/Facebook redirects. Set `TRUSTED_PROXIES` so HSTS is sent.
+- Tests: `SecurityHeadersTest`. Docs: ARCHITECTURE.md "Browser Security Headers", runbook nginx note.
+
 ## Nov 2 2026 — Changing your email needs your current password (branch `emman`)
 Why: the audit noted a stolen session could swap the account email, which is where password resets go, and take the account over.
 - `ProfileUpdateRequest` asks for `current_password` only when the email actually changes (compared without case). Other profile edits are unchanged. The account is marked unverified again, as before.
@@ -28,7 +37,7 @@ Why: an audit found three reproducible gaps. Authorization, mass assignment, web
 - **Throttles:** web `POST /register` 10/min and `POST /forgot-password` 6/min per IP (the mobile API already limited sign-up).
 - **ID-photo check:** `ocrCheck` now has the submit form's size cap and ID-type whitelist, a 20/min throttle, and the decoded bytes must be a real image (`VerificationController::decodeBase64Image`, also used on submit).
 - Tests: `InputHardeningTest`.
-- **Not done:** no CSP/HSTS headers (the stale-reservation and email-change gaps are closed, see the entries above).
+- **Not done:** nothing left from the audit list (CSP is in report-only, see the entry above).
 
 ## Nov 2 2026 — main's online reservation payments brought into emman (branch `emman`)
 Only the payment code was copied from `origin/main`. This is not a merge: main's Tenants/Contracts/Policies page, the Moved-in tab removal and other main work are **not** here, so a later full merge of main still brings them. Suite: 1036 passed, 1 skipped. **Not verified in a browser.** Background: main's Nov 1 "emman merged into joseph" entry and `plans/emman-joseph-payments-merge.md`.
