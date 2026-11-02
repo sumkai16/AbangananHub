@@ -34,6 +34,7 @@ class ProfileTest extends TestCase
                 'first_name' => 'Test',
                 'last_name' => 'User',
                 'email' => 'test@example.com',
+                'current_password' => 'password',
             ]);
 
         $response

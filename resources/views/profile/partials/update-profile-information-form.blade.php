@@ -87,6 +87,23 @@
                 @endif
             </div>
 
+            {{-- Password: asked only once the email field is changed (ProfileUpdateRequest). --}}
+            <div class="sm:col-span-2" x-data="{ changed: false }"
+                x-init="const e = document.getElementById('email'); const o = @js(mb_strtolower($user->email)); const check = () => changed = e.value.trim().toLowerCase() !== o; e.addEventListener('input', check); check();"
+                x-show="changed || @js($errors->has('current_password'))" x-cloak>
+                <label for="current_password" class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#5B6A8E]">
+                    Current password
+                </label>
+                <input id="current_password" name="current_password" type="password" autocomplete="current-password"
+                    :required="changed" aria-describedby="current-password-hint"
+                    class="h-10 w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 text-sm text-[#060D26] outline-none transition
+                           focus:border-[#FF8A66] focus:bg-white focus:ring-2 focus:ring-[#FF8A66]/15 placeholder:text-[#5B6A8E]/50">
+                <p id="current-password-hint" class="mt-1.5 text-xs text-[#5B6A8E]">Needed to change your email address. We will ask you to verify the new one.</p>
+                @error('current_password')
+                    <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
+                @enderror
+            </div>
+
             {{-- Contact number --}}
             <div class="sm:col-span-2">
                 <label for="contact_number"

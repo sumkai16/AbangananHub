@@ -36,6 +36,21 @@ class ProfileUpdateRequest extends FormRequest
             'contact_number' => ['nullable', 'string', 'max:20', \App\Support\Phone::RULE],
             'bio' => ['nullable', 'string', 'max:1000'],
             'profile_visibility' => ['nullable', Rule::in(['public', 'landlords_only', 'private'])],
+            // Changing the email changes where password resets go, so a stolen session alone must not be enough.
+            'current_password' => $this->changesEmail() ? ['required', 'current_password'] : ['nullable'],
         ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'current_password.required' => 'Enter your current password to change your email address.',
+            'current_password.current_password' => 'That password is not right.',
+        ];
+    }
+
+    private function changesEmail(): bool
+    {
+        return mb_strtolower(trim((string) $this->input('email'))) !== mb_strtolower((string) $this->user()->email);
     }
 }
