@@ -75,7 +75,7 @@ class ConversationController extends Controller
             $query->whereNotIn('status', ['Cancelled', 'Resolved']);
         }
 
-        $conversations = $query->orderByDesc('updated_at')->get();
+        $conversations = $query->orderByDesc('updated_at')->orderByDesc('conversation_id')->paginate(20)->withQueryString();
 
         // Landlord property filter list
         $user = Auth::user();
@@ -123,8 +123,8 @@ class ConversationController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'property_id' => ['required', 'exists:properties,property_id'],
-            'unit_id' => ['nullable', 'exists:property_units,unit_id'],
+            'property_id' => ['bail', 'required', 'integer', 'exists:properties,property_id'],
+            'unit_id' => ['bail', 'nullable', 'integer', 'exists:property_units,unit_id'],
         ]);
 
         $property = Property::findOrFail($validated['property_id']);

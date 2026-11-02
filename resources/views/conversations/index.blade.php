@@ -258,10 +258,18 @@
                 </div>
 
                 @if($conversations->isNotEmpty())
-                    <div class="px-4 py-2 border-t border-[#5B6A8E]/10 flex-shrink-0">
-                        <p class="text-[11px] text-[#5B6A8E] text-center">
-                            Showing 1 to {{ $conversations->count() }} of {{ $conversations->count() }} {{ $isLandlord ? Str::plural('inquiry', $conversations->count()) : Str::plural('conversation', $conversations->count()) }}
+                    <div class="px-4 py-2 border-t border-[#5B6A8E]/10 flex-shrink-0 flex items-center justify-between gap-2">
+                        @if($conversations->hasPages())
+                            <a @if($conversations->onFirstPage()) aria-disabled="true" @else href="{{ $conversations->previousPageUrl() }}" @endif
+                                class="h-8 px-2.5 inline-flex items-center rounded-lg border border-[#E2E4EC] text-[12px] font-semibold {{ $conversations->onFirstPage() ? 'text-[#CBD5E1] cursor-not-allowed' : 'text-[#060D26] hover:bg-[#ECEEF6]' }}">Prev</a>
+                        @endif
+                        <p class="text-[11px] text-[#5B6A8E] text-center flex-1">
+                            Showing {{ $conversations->firstItem() }} to {{ $conversations->lastItem() }} of {{ $conversations->total() }} {{ $isLandlord ? Str::plural('inquiry', $conversations->total()) : Str::plural('conversation', $conversations->total()) }}
                         </p>
+                        @if($conversations->hasPages())
+                            <a @if($conversations->hasMorePages()) href="{{ $conversations->nextPageUrl() }}" @else aria-disabled="true" @endif
+                                class="h-8 px-2.5 inline-flex items-center rounded-lg border border-[#E2E4EC] text-[12px] font-semibold {{ $conversations->hasMorePages() ? 'text-[#060D26] hover:bg-[#ECEEF6]' : 'text-[#CBD5E1] cursor-not-allowed' }}">Next</a>
+                        @endif
                     </div>
                 @endif
             </div>

@@ -40,6 +40,9 @@
                 'isOverdue'    => $row['paymentStatus'] === 'overdue',
             ];
         });
+
+        // The summary strip and counts above read every tenancy; only the rows listed below are cut to a page.
+        $pageRows = \App\Support\Paging::collection($displayRows, 20);
     @endphp
 
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
@@ -292,7 +295,7 @@
                  since an 8-column min-w-[900px] table doesn't fit a tablet
                  viewport any better than a phone one. --}}
             <div class="lg:hidden space-y-3">
-                @foreach($displayRows as $item)
+                @foreach($pageRows as $item)
                     @php $reservation = $item['reservation']; $summary = $item['summary']; @endphp
                     <x-card class="!p-4">
                         <div class="flex items-start justify-between gap-3 mb-3">
@@ -386,7 +389,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#E2E4EC]">
-                            @foreach($displayRows as $item)
+                            @foreach($pageRows as $item)
                                 @php $reservation = $item['reservation']; $summary = $item['summary']; @endphp
                                 <tr class="hover:bg-[#ECEEF6] transition-colors duration-150 {{ $item['style']['label'] === 'Overdue' ? 'shadow-[inset_3px_0_0_#DC2626]' : '' }}">
                                     <td class="px-5 sm:px-6 py-4">
@@ -476,6 +479,10 @@
                     </table>
                 </div>
             </x-card>
+
+            @if($pageRows->hasPages())
+                <div class="mt-4">{{ $pageRows->links() }}</div>
+            @endif
         @endif
     </div>
 @endsection
