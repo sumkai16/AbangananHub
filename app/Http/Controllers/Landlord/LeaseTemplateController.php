@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Support\LeaseBody;
 use App\Support\LeaseTerms;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 
@@ -33,6 +34,33 @@ class LeaseTemplateController extends Controller
                 : redirect()->route('landlord.tenants.index', array_filter($request->only(['search', 'property'])));
         }
 
+        [$templates, $properties] = $this->policyLists($landlord);
+
+        $selected = $properties->firstWhere('property_id', $request->integer('property')) ?? $properties->first();
+
+        return view('landlord.leases.index', compact('templates', 'properties', 'selected'));
+    }
+
+    /**
+     * The body of the Lease policies modal on the Tenants page: every property with its policy and units, and the
+     * policy library. `open[]` says which property rows to show expanded (the first one when none is given).
+     */
+    public function panel(Request $request)
+    {
+        [$templates, $properties] = $this->policyLists($request->user());
+
+        // input(), not query(): `?open=abc` is not an array, and query() answers that with a 400.
+        $open = collect((array) $request->input('open', []))->filter(fn ($id) => is_int($id) || (is_string($id) && ctype_digit($id)))->map(fn ($id) => (int) $id);
+        if ($open->isEmpty() && ! $request->has('open')) {
+            $open = collect([$properties->first()?->property_id]);
+        }
+
+        return view('landlord.leases.partials._panel', ['templates' => $templates, 'properties' => $properties, 'open' => $open->all()]);
+    }
+
+    /** @return array{0: Collection, 1: Collection} the landlord's policies and properties (with units) */
+    private function policyLists(User $landlord): array
+    {
         $templates = LeaseTemplate::where('landlord_id', $landlord->user_id)
             ->withCount(['properties', 'units'])
             ->orderBy('name')
@@ -43,9 +71,7 @@ class LeaseTemplateController extends Controller
             ->orderBy('title')
             ->get(['property_id', 'landlord_id', 'title', 'property_type', 'lease_template_id']);
 
-        $selected = $properties->firstWhere('property_id', $request->integer('property')) ?? $properties->first();
-
-        return view('landlord.leases.index', compact('templates', 'properties', 'selected'));
+        return [$templates, $properties];
     }
 
     public function create(Request $request)
@@ -128,7 +154,14 @@ class LeaseTemplateController extends Controller
 
         $model->forceFill(['lease_template_id' => $data['lease_template_id'] ?? null])->save();
 
-        return back()->with('success', 'Policy updated. It applies to agreements you send from now on.');
+        $message = 'Policy updated. It applies to agreements you send from now on.';
+
+        // The Lease policies modal saves in place and reloads its own body.
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message]);
+        }
+
+        return back()->with('success', $message);
     }
 
     /**

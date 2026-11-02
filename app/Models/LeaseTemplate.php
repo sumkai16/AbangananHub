@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Support\HouseRules;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 /**
  * A named lease a landlord writes once and assigns to properties or units (plans/lease-templates-page.md).
@@ -13,6 +15,24 @@ class LeaseTemplate extends Model
     protected $primaryKey = 'lease_template_id';
 
     public const LATE_FEE_TYPES = ['none', 'fixed', 'percent'];
+
+    /** The few facts that matter about a policy, as short labels: late fee, notice, house rules, documents. */
+    public function summaryChips(): array
+    {
+        $chips = [];
+        $chips[] = match ($this->late_fee_type) {
+            'none' => 'No late fee',
+            'fixed' => '₱'.number_format((float) $this->late_fee_value, 2).' late fee',
+            'percent' => rtrim(rtrim(number_format($this->late_fee_value, 2), '0'), '.').'% late fee',
+            default => null,
+        };
+        $chips[] = ($this->notice_days ?? config('rentals.lease_notice_days')).' days notice';
+        $ruleCount = collect(HouseRules::visible($this->house_rule_sections))->sum(fn ($s) => count($s['rules']));
+        $chips[] = $ruleCount ? $ruleCount.' house '.Str::plural('rule', $ruleCount) : null;
+        $chips[] = $this->required_documents ? count($this->required_documents).' '.Str::plural('document', count($this->required_documents)) : null;
+
+        return array_values(array_filter($chips));
+    }
 
     protected $fillable = [
         'name',

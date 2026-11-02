@@ -3,25 +3,8 @@
 @section('content')
     @php
         $docIcon = 'M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z';
-        $peso = fn ($n) => '₱'.number_format((float) $n, 2);
         $templateById = $templates->keyBy('lease_template_id');
         $templateOptions = $templates->pluck('name', 'lease_template_id')->mapWithKeys(fn ($n, $id) => [(string) $id => $n])->all();
-        // The few facts that matter about a policy, as small chips.
-        $chipsFor = function ($t) use ($peso) {
-            $chips = [];
-            $chips[] = match ($t->late_fee_type) {
-                'none' => 'No late fee',
-                'fixed' => $peso($t->late_fee_value).' late fee',
-                'percent' => rtrim(rtrim(number_format($t->late_fee_value, 2), '0'), '.').'% late fee',
-                default => null,
-            };
-            $chips[] = ($t->notice_days ?? config('rentals.lease_notice_days')).' days notice';
-            $ruleCount = collect(\App\Support\HouseRules::visible($t->house_rule_sections))->sum(fn ($s) => count($s['rules']));
-            $chips[] = $ruleCount ? $ruleCount.' house '.\Illuminate\Support\Str::plural('rule', $ruleCount) : null;
-            $chips[] = $t->required_documents ? count($t->required_documents).' '.\Illuminate\Support\Str::plural('document', count($t->required_documents)) : null;
-
-            return array_values(array_filter($chips));
-        };
         $selectClass = 'h-10 w-full pl-3.5 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13px] text-[#060D26]';
     @endphp
 
@@ -69,7 +52,7 @@
                         </form>
                         @if($propertyPolicy)
                             <div class="mt-3 flex flex-wrap gap-1.5">
-                                @foreach($chipsFor($propertyPolicy) as $chip)
+                                @foreach($propertyPolicy->summaryChips() as $chip)
                                     <span class="rounded-full bg-[#ECEEF6] px-2.5 py-0.5 text-[11.5px] font-semibold text-[#060D26]">{{ $chip }}</span>
                                 @endforeach
                             </div>

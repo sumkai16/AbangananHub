@@ -230,6 +230,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/reservations/{reservation}/accept-and-send', [App\Http\Controllers\Landlord\ReservationController::class, 'acceptAndSendAgreement'])->name('reservations.acceptAndSend');
         // Leases page: lease template library and where each template is used (plans/lease-templates-page.md)
         Route::get('/leases', [LeaseTemplateController::class, 'index'])->name('leases.index');
+        Route::get('/leases/panel', [LeaseTemplateController::class, 'panel'])->name('leases.panel');
         Route::patch('/leases/assign', [LeaseTemplateController::class, 'assign'])->name('lease-templates.assign');
         Route::post('/leases/templates/preview', [LeaseTemplateController::class, 'preview'])->name('lease-templates.preview');
         Route::resource('leases/templates', LeaseTemplateController::class)

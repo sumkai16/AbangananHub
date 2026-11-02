@@ -11,6 +11,7 @@ use App\Models\TenantDetail;
 use App\Models\User;
 use App\Services\LeaseContractCreator;
 use App\Support\ContractFormOptions;
+use App\Support\Paging;
 use App\Support\TenantInvites;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -42,6 +43,8 @@ class TenantController extends Controller
         'none' => 'No contract',
         'former' => 'Former',
     ];
+
+    private const PER_PAGE = 20;
 
     /** Old Tenants-page filters (Active / Pending) from before the merge. */
     private const OLD_STATUS = ['active' => 'living', 'pending' => 'none'];
@@ -81,7 +84,8 @@ class TenantController extends Controller
         $waiting = $rows->filter(fn ($r) => $r['stage'] === 'none')->values();
 
         return view('landlord.tenants.index', [
-            'rows' => $filtered,
+            // Counts and chips above were taken over every tenant; only the rows shown are cut to a page.
+            'rows' => Paging::collection($filtered, self::PER_PAGE),
             'counts' => $counts,
             'stage' => $stage,
             'properties' => $properties,
