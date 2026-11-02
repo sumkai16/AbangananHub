@@ -311,6 +311,15 @@ class VerificationController extends Controller
             return null;
         }
 
+        // The camera sends text, so Laravel's file rules never see it. Check the bytes really are a photo before
+        // they are saved, shown to an admin or sent to the OCR service: a JPEG, PNG or WebP of a sane size.
+        $info = @getimagesizefromstring($decoded);
+
+        if ($info === false || ! in_array($info[2], [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_WEBP], true)
+            || $info[0] < 1 || $info[1] < 1 || $info[0] > 10000 || $info[1] > 10000) {
+            return null;
+        }
+
         return $decoded;
     }
 }
