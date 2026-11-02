@@ -214,14 +214,14 @@ class AnalyticsController extends Controller
         // Streamed, matching the existing export pattern (OccupancyController).
         return response()->streamDownload(function () use ($properties, $units, $revenueByPropertyId) {
             $out = fopen('php://output', 'w');
-            fputcsv($out, ['Property', 'Total Units', 'Occupied', 'Reserved', 'Available', 'Occupancy Rate (%)', 'Revenue (PHP)']);
+            \App\Support\Csv::put($out, ['Property', 'Total Units', 'Occupied', 'Reserved', 'Available', 'Occupancy Rate (%)', 'Revenue (PHP)']);
 
             foreach ($properties as $property) {
                 $propertyUnits = $units->where('property_id', $property->property_id);
                 $total = $propertyUnits->count();
                 $occupied = $propertyUnits->where('availability_status', 'Occupied')->count();
 
-                fputcsv($out, [
+                \App\Support\Csv::put($out, [
                     $property->title,
                     $total,
                     $occupied,

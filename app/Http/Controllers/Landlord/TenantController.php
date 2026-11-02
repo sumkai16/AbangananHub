@@ -195,10 +195,10 @@ class TenantController extends Controller
 
         return response()->streamDownload(function () use ($rows) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['Tenant ID', 'Tenant', 'Status', 'Email', 'Contact', 'Property', 'Unit', 'Has own login']);
+            \App\Support\Csv::put($handle, ['Tenant ID', 'Tenant', 'Status', 'Email', 'Contact', 'Property', 'Unit', 'Has own login']);
 
             foreach ($rows as $r) {
-                fputcsv($handle, [
+                \App\Support\Csv::put($handle, [
                     $r['code'], $r['name'], $r['status'], $r['tenant']->email ?? '', $r['tenant']->contact_number ?? '',
                     $r['current']?->property?->title ?? '', $r['current']?->unit?->unit_label ?? '',
                     $r['tenant']->is_walk_in ? 'No' : 'Yes',

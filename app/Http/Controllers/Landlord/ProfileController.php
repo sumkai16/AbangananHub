@@ -184,7 +184,7 @@ class ProfileController extends Controller
             'accepts_online' => ['nullable', 'boolean'],
             'business_name' => ['nullable', 'string', 'max:255'],
             'business_description' => ['nullable', 'string', 'max:1000'],
-            'business_contact' => ['nullable', 'string', 'max:20'],
+            'business_contact' => ['nullable', 'string', 'max:20', \App\Support\Phone::RULE],
             'business_address' => ['nullable', 'string', 'max:500'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);

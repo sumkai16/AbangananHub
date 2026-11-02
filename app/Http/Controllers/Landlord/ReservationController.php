@@ -139,7 +139,7 @@ class ReservationController extends Controller
 
         return response()->streamDownload(function () use ($query) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, [
+            \App\Support\Csv::put($handle, [
                 'Tenant', 'Email', 'Contact', 'Property', 'Unit', 'Status',
                 'Target Move In', 'Target Move Out', 'Occupants', 'Requested On',
             ]);
@@ -148,7 +148,7 @@ class ReservationController extends Controller
                 foreach ($reservations as $reservation) {
                     $tenant = $reservation->tenant;
 
-                    fputcsv($handle, [
+                    \App\Support\Csv::put($handle, [
                         $tenant ? trim($tenant->first_name . ' ' . $tenant->last_name) : '',
                         $tenant->email ?? '',
                         $tenant->contact_number ?? '',

@@ -2,6 +2,15 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 2 2026 — Security audit fixes: phone format, CSV formulas, sign-up throttle, ID-photo check (branch `emman`)
+Why: an audit found three reproducible gaps. Authorization, mass assignment, webhook signing and nested-route ownership were checked and are fine.
+- **Phone numbers:** one rule, `App\Support\Phone::RULE` (digits, `+`, spaces, dashes, brackets; 7 to 20 characters), now on every phone field. Before, only sign-up and the emergency contact checked the format, so "abc" could be saved; the profile form even allowed 255 characters.
+- **CSV exports:** all 14 now write through `App\Support\Csv::put`, which puts an apostrophe before any text cell that starts with `= + - @` so Excel does not run it as a formula. Plain numbers are untouched.
+- **Throttles:** web `POST /register` 10/min and `POST /forgot-password` 6/min per IP (the mobile API already limited sign-up).
+- **ID-photo check:** `ocrCheck` now has the submit form's size cap and ID-type whitelist, a 20/min throttle, and the decoded bytes must be a real image (`VerificationController::decodeBase64Image`, also used on submit).
+- Tests: `InputHardeningTest`.
+- **Not done, needs a decision:** Inquiry, Under Negotiation and Pending Rental Agreement never expire or remind (Pending Rental Agreement holds the unit); changing email needs no password; no CSP/HSTS headers.
+
 ## Nov 2 2026 — main's online reservation payments brought into emman (branch `emman`)
 Only the payment code was copied from `origin/main`. This is not a merge: main's Tenants/Contracts/Policies page, the Moved-in tab removal and other main work are **not** here, so a later full merge of main still brings them. Suite: 1036 passed, 1 skipped. **Not verified in a browser.** Background: main's Nov 1 "emman merged into joseph" entry and `plans/emman-joseph-payments-merge.md`.
 - **What was missing:** the axci merge (`f05fb0c`) dropped emman's "paying online reserves the unit" and "full move-in amount" work. Main kept both on top of the newer payment flow. emman now matches main.

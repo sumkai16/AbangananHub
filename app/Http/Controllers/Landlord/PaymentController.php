@@ -552,7 +552,7 @@ class PaymentController extends Controller
 
         return response()->streamDownload(function () use ($reservations) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, [
+            \App\Support\Csv::put($handle, [
                 'Tenant', 'Type', 'Property', 'Unit', 'Status', 'Monthly Rent', 'Due Date',
                 'Months Billed', 'Paid', 'Total Unpaid', 'Overdue Months', 'Overdue Amount',
             ]);
@@ -566,7 +566,7 @@ class PaymentController extends Controller
                 $row = $summary['oldestUnpaid'];
                 $dueOn = $row['due_on'] ?? null;
 
-                fputcsv($handle, [
+                \App\Support\Csv::put($handle, [
                     $tenant ? trim($tenant->first_name . ' ' . $tenant->last_name) : '',
                     $tenant?->is_walk_in ? 'Walk-in' : 'Platform',
                     $reservation->property->title ?? '',

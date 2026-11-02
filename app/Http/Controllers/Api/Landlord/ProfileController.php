@@ -41,7 +41,7 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'first_name'            => ['required', 'string', 'max:255'],
             'last_name'             => ['required', 'string', 'max:255'],
-            'contact_number'        => ['nullable', 'string', 'max:20'],
+            'contact_number'        => ['nullable', 'string', 'max:20', \App\Support\Phone::RULE],
             'gcash_number'          => ['nullable', 'string', 'max:20', function ($attribute, $value, $fail) {
                 if (filled($value) && GcashNumber::normalize($value) === null) {
                     $fail(GcashNumber::MESSAGE);
@@ -53,7 +53,7 @@ class ProfileController extends Controller
             'profile_picture'       => ['nullable', 'image', 'max:2048'],
             'business_name'         => ['nullable', 'string', 'max:255'],
             'business_description'  => ['nullable', 'string', 'max:1000'],
-            'business_contact'      => ['nullable', 'string', 'max:20'],
+            'business_contact'      => ['nullable', 'string', 'max:20', \App\Support\Phone::RULE],
             'business_address'      => ['nullable', 'string', 'max:500'],
             'logo'                  => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);

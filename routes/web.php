@@ -78,7 +78,7 @@ Route::middleware('auth')->group(function () {
     // Landlord verification — open to any authenticated user, no role gate
     Route::get('/landlord/apply', [VerificationController::class, 'create'])->name('landlord.verification.create');
     Route::post('/landlord/apply', [VerificationController::class, 'store'])->name('landlord.verification.store');
-    Route::post('/landlord/apply/ocr-check', [VerificationController::class, 'ocrCheck'])->name('landlord.verification.ocrCheck');
+    Route::post('/landlord/apply/ocr-check', [VerificationController::class, 'ocrCheck'])->middleware('throttle:20,1')->name('landlord.verification.ocrCheck');
     Route::post('/landlord/apply/send-email-link', [VerificationController::class, 'sendEmailLink'])
         ->name('landlord.verification.sendEmailLink')
         ->middleware('throttle:3,5');

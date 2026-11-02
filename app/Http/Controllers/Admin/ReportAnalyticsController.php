@@ -256,7 +256,7 @@ class ReportAnalyticsController extends Controller
         return function () use ($typeFilter, $statusFilter) {
             $handle = fopen('php://output', 'w');
 
-            fputcsv($handle, [
+            \App\Support\Csv::put($handle, [
                 'Property ID', 'Title', 'Type', 'Address',
                 'Verification Status', 'Total Units',
                 'Available', 'Reserved', 'Occupied',
@@ -276,7 +276,7 @@ class ReportAnalyticsController extends Controller
             $query->orderBy('created_at', 'desc')
                 ->chunk(200, function ($properties) use ($handle) {
                     foreach ($properties as $p) {
-                        fputcsv($handle, [
+                        \App\Support\Csv::put($handle, [
                             $p->property_id,
                             $p->title,
                             $p->property_type,
@@ -304,7 +304,7 @@ class ReportAnalyticsController extends Controller
         return function () use ($statusFilter, $timeFilter) {
             $handle = fopen('php://output', 'w');
 
-            fputcsv($handle, [
+            \App\Support\Csv::put($handle, [
                 'Reservation ID', 'Tenant', 'Tenant Email',
                 'Property', 'Unit', 'Status',
                 'Created At',
@@ -323,7 +323,7 @@ class ReportAnalyticsController extends Controller
             $query->orderBy('created_at', 'desc')
                 ->chunk(200, function ($reservations) use ($handle) {
                     foreach ($reservations as $r) {
-                        fputcsv($handle, [
+                        \App\Support\Csv::put($handle, [
                             $r->reservation_id,
                             $r->tenant ? $r->tenant->first_name . ' ' . $r->tenant->last_name : '',
                             $r->tenant?->email ?? '',
@@ -347,7 +347,7 @@ class ReportAnalyticsController extends Controller
         return function () use ($roleFilter, $statusFilter) {
             $handle = fopen('php://output', 'w');
 
-            fputcsv($handle, [
+            \App\Support\Csv::put($handle, [
                 'User ID', 'First Name', 'Last Name', 'Email',
                 'Role', 'Account Status', 'Verification Status',
                 'Registered At',
@@ -367,7 +367,7 @@ class ReportAnalyticsController extends Controller
                         $role  = $u->roles->pluck('role')->join(', ') ?: '';
                         $verif = $u->verificationApplication?->verification_status ?? '';
 
-                        fputcsv($handle, [
+                        \App\Support\Csv::put($handle, [
                             $u->user_id,
                             $u->first_name,
                             $u->last_name,

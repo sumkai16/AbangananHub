@@ -41,7 +41,7 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'first_name'      => ['sometimes', 'required', 'string', 'max:255'],
             'last_name'       => ['sometimes', 'required', 'string', 'max:255'],
-            'contact_number'  => ['nullable', 'string', 'max:20'],
+            'contact_number'  => ['nullable', 'string', 'max:20', \App\Support\Phone::RULE],
             'bio'             => ['nullable', 'string', 'max:1000'],
             'profile_picture' => ['nullable', 'image', 'max:2048'],
         ]);

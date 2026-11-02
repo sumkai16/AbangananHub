@@ -148,14 +148,14 @@ class PropertyCatalogueController extends Controller
 
         return response()->streamDownload(function () use ($query) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, [
+            \App\Support\Csv::put($handle, [
                 'Title', 'Type', 'Address', 'Landlord', 'Verification Status',
                 'Units', 'Has Coordinates', 'Created', 'Last Updated',
             ]);
 
             $query->chunk(200, function ($properties) use ($handle) {
                 foreach ($properties as $property) {
-                    fputcsv($handle, [
+                    \App\Support\Csv::put($handle, [
                         $property->title,
                         $property->property_type,
                         $property->address,
