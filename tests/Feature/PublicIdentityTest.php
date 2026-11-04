@@ -102,24 +102,13 @@ class PublicIdentityTest extends TestCase
             ->assertDontSee('09171110000');
     }
 
-    public function test_a_logged_in_tenant_can_reveal_the_business_number_but_never_the_personal_one(): void
+    public function test_the_listing_page_shows_no_phone_number_at_all(): void
     {
-        $tenant = $this->makeTenant();
-
-        $this->actingAs($tenant)->get(route('properties.show', $this->property))
-            ->assertOk()
-            ->assertSee('Show phone number')
-            ->assertSee('09171110000')
-            ->assertDontSee('09179998888');
-    }
-
-    public function test_no_business_number_means_no_reveal_button(): void
-    {
-        $this->landlord->rentalBusiness()->update(['contact_number' => null]);
-
+        // Nov 4 2026: a number on the listing lets a deal leave the platform, so the page has no reveal button.
         $this->actingAs($this->makeTenant())->get(route('properties.show', $this->property))
             ->assertOk()
             ->assertDontSee('Show phone number')
+            ->assertDontSee('09171110000')
             ->assertDontSee('09179998888');
     }
 
@@ -150,14 +139,14 @@ class PublicIdentityTest extends TestCase
             ->assertDontSee('Dela Cruz');
     }
 
-    public function test_the_business_page_needs_a_login_and_the_number_needs_a_tap(): void
+    public function test_the_business_page_needs_a_login_and_never_shows_the_number_to_others(): void
     {
         $this->get(route('landlord.profile.show', $this->landlord))->assertRedirect(route('login'));
 
         $this->actingAs($this->makeTenant())->get(route('landlord.profile.show', $this->landlord))
             ->assertOk()
-            ->assertSee('Show phone number')
-            ->assertSee('09171110000');
+            ->assertDontSee('Show phone number')
+            ->assertDontSee('09171110000');
     }
 
     public function test_the_owners_personal_details_are_on_settings_not_on_their_business_page(): void
@@ -230,7 +219,7 @@ class PublicIdentityTest extends TestCase
         $this->assertStringNotContainsString('09179998888', json_encode($json));
     }
 
-    public function test_the_business_number_in_the_api_needs_a_token(): void
+    public function test_the_business_number_is_not_in_the_listing_api_for_anyone(): void
     {
         $tenant = $this->makeTenant();
 
@@ -238,7 +227,7 @@ class PublicIdentityTest extends TestCase
         $this->assertArrayNotHasKey('business_contact_number', $guest);
 
         $authed = $this->actingAs($tenant, 'sanctum')->getJson("/api/v1/properties/{$this->property->property_id}")->json('data.landlord');
-        $this->assertSame('09171110000', $authed['business_contact_number']);
+        $this->assertArrayNotHasKey('business_contact_number', $authed);
     }
 
     public function test_the_browse_api_nests_the_business_too(): void
@@ -262,9 +251,10 @@ class PublicIdentityTest extends TestCase
         $this->assertSame('Juan D.', $guest['reviews'][0]['tenant']['short_name']);
 
         $viewer = $this->actingAs($this->makeTenant(), 'sanctum')->getJson("/api/v1/landlord/{$this->landlord->user_id}/profile")->json('data');
-        $this->assertSame('09171110000', $viewer['business']['contact_number']);
+        $this->assertArrayNotHasKey('contact_number', $viewer['business']);
 
         $owner = $this->actingAs($this->landlord, 'sanctum')->getJson("/api/v1/landlord/{$this->landlord->user_id}/profile")->json('data');
         $this->assertSame('Maria', $owner['user']['first_name']);
+        $this->assertSame('09171110000', $owner['business']['contact_number']);
     }
 }

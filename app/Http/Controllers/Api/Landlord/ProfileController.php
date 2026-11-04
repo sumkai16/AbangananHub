@@ -174,13 +174,12 @@ class ProfileController extends Controller
 
         return response()->json([
             'data' => [
-                // The owner sees their own record; everyone else gets the business only, with the phone
-                // number behind a token (the web page puts it behind a login).
+                // The owner sees their own record; everyone else gets the business only, never its phone number.
                 'user' => $isOwner
                     ? $user->only(['user_id', 'first_name', 'last_name', 'profile_picture', 'bio', 'created_at'])
                     : ['user_id' => $user->user_id, 'business_name' => $user->publicName(), 'created_at' => $user->created_at],
                 'is_owner'        => $isOwner,
-                'business'        => $isOwner || $viewer
+                'business'        => $isOwner
                     ? $user->rentalBusiness
                     : $user->rentalBusiness?->only(['business_id', 'business_name', 'description', 'logo_url', 'business_address']),
                 'is_verified'     => (bool) $user->rentalBusiness,

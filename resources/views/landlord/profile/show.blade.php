@@ -162,23 +162,12 @@
                                         @if($business->business_address)
                                             <p class="mt-0.5 text-[13.5px] text-[#5B6A8E]">{{ $business->business_address }}</p>
                                         @endif
-                                        @if($business->contact_number)
-                                            {{-- The page itself needs a login, and the number needs one more tap, so it is not
-                                                 sitting in the open on a page someone left on screen. --}}
-                                            @if($isOwner)
-                                                <p class="mt-0.5 text-[13.5px] text-[#5B6A8E]">
-                                                    <a href="tel:{{ preg_replace('/[^\d+]/', '', $business->contact_number) }}" class="hover:text-[#B35A3D] hover:underline">{{ $business->contact_number }}</a>
-                                                </p>
-                                            @else
-                                                <div class="mt-1.5" x-data="{ shown: false }">
-                                                    <button type="button" x-show="!shown" x-on:click="shown = true"
-                                                        class="inline-flex h-9 items-center gap-2 rounded-xl border border-[#E2E4EC] bg-white px-3.5 text-[13px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] cursor-pointer transition-colors duration-200">
-                                                        Show phone number
-                                                    </button>
-                                                    <a x-show="shown" x-cloak href="tel:{{ preg_replace('/[^\d+]/', '', $business->contact_number) }}"
-                                                        class="text-[13.5px] font-semibold text-[#060D26] hover:text-[#B35A3D] hover:underline">{{ $business->contact_number }}</a>
-                                                </div>
-                                            @endif
+                                        {{-- Only the owner sees the business number, on their own page. Everyone else gets it in the
+                                             chat or agreement once there is a deal (Nov 4 2026), so contact stays on the platform. --}}
+                                        @if($isOwner && $business->contact_number)
+                                            <p class="mt-0.5 text-[13.5px] text-[#5B6A8E]">
+                                                <a href="tel:{{ preg_replace('/[^\d+]/', '', $business->contact_number) }}" class="hover:text-[#B35A3D] hover:underline">{{ $business->contact_number }}</a>
+                                            </p>
                                         @endif
                                     </div>
                                 </div>
