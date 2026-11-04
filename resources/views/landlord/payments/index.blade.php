@@ -47,7 +47,9 @@
 
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
 
-        {{-- Header --}}
+        {{-- Header, then the Rent | Payouts tabs. On a phone the title lives in the top bar, so the tabs go
+             first and List / Calendar / Export (Rent-only actions) sit under them. --}}
+        <div class="flex flex-col">
         <x-page-header title="Payments" subtitle="Rent collection across all occupied units, with the most urgent payments shown first.">
             <x-slot:icon>
                 <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
@@ -90,6 +92,13 @@
                 </a>
             </x-slot:actions>
         </x-page-header>
+
+        @if ($awaitingPayout !== null)
+            <div class="max-sm:order-first">
+                @include('landlord.payments.partials._tabs', ['active' => 'rent', 'awaitingPayout' => $awaitingPayout])
+            </div>
+        @endif
+        </div>
 
         {{-- Summary: two different surfaces for two different questions.
              Left (navy, the page's one dark moment): how is this month going.
@@ -244,7 +253,7 @@
                 </div>
                 <p class="text-[14px] font-semibold text-[#060D26]">Nothing to collect yet</p>
                 <p class="text-[13px] text-[#5B6A8E] mt-1 max-w-md">
-                    Rent tracking starts once a unit is occupied, either through an online booking or a contract you add.
+                    Rent tracking starts once a unit is occupied, either through an online booking or a lease you add.
                 </p>
                 <a href="{{ route('landlord.tenants.index', ['new' => 1]) }}"
                     class="mt-5 inline-flex items-center justify-center h-11 px-5 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">

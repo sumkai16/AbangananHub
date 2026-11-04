@@ -12,6 +12,14 @@
         <div class="flex flex-col {{ $wide ? 'gap-4' : 'overflow-hidden '.$cardClass }}"
             style="height: calc(100vh - 110px); height: calc(100dvh - 110px); min-height: 560px;">
 
+        {{-- A refused action (e.g. "Send agreement" while another reservation holds the unit) redirects back here
+             with an error. Without this the page just reloads and looks like nothing happened. --}}
+        @if($errors->any())
+            <div role="alert" class="flex-shrink-0 rounded-xl border border-[#EF4444]/25 bg-[#EF4444]/[0.07] px-4 py-3 text-[13px] font-medium text-[#DC2626]">
+                {{ $errors->first() }}
+            </div>
+        @endif
+
         {{-- Header (the landlord shell shows the title in its mobile top bar instead) --}}
         @push('mobile-title')<x-page-icon class="!h-7 !w-7 !rounded-lg" path="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /><span class="truncate text-[15px] font-semibold tracking-tight text-[#060D26]">{{ $box === 'tenancy' ? ($isLandlord ? 'Tenants' : 'My home') : ($isLandlord ? 'Inquiries' : 'Messages') }}</span>@endpush
         <div class="flex items-center justify-between gap-3 flex-shrink-0 px-1 {{ auth()->user()->usesLandlordShell() ? '' : 'max-sm:hidden' }} {{ $isLandlord && $landlordProperties->isNotEmpty() ? '' : 'page-header-bare' }}">

@@ -35,6 +35,9 @@ class Reservation extends Model
         'Reserved', 'Occupied', 'Completed', 'Rejected', 'Cancelled',
     ];
 
+    /** Set (not saved) by reservations:process-stale just before it cancels, so the observer says why. */
+    public ?string $systemCancelReason = null;
+
     protected $fillable = [
         'property_id',
         'unit_id',
@@ -75,6 +78,7 @@ class Reservation extends Model
     protected function casts(): array
     {
         return [
+            'stale_reminder_sent_at' => 'datetime',
             'reservation_date' => 'date',
             'target_move_in_date' => 'date',
             'target_move_out_date' => 'date',
@@ -947,6 +951,55 @@ class Reservation extends Model
         return 'Another reservation on this unit already has an agreement in progress, or the unit is occupied. Cancel or complete that one first.';
     }
 
+    /**
+     * Start an inquiry: the reservation, the tenant's chat thread and its first message, all or nothing. Returns null
+     * when the tenant already has an open reservation on this unit.
+     *
+     * The unit row is the lock that two taps of the same Send button serialise on (the same row
+     * advanceToPendingAgreement() locks), so the check below and the create cannot both pass twice. Before this the
+     * check and the writes were separate, and a failure after the chat was created left an empty thread behind.
+     * Shared by the web and the mobile API so they cannot drift apart.
+     *
+     * @param  array<string, mixed>  $fields  target_move_in_date, target_move_out_date, occupants_count, remarks
+     */
+    public static function startInquiry(PropertyUnit $unit, int $tenantId, array $fields, string $firstMessage): ?Reservation
+    {
+        return DB::transaction(function () use ($unit, $tenantId, $fields, $firstMessage) {
+            PropertyUnit::whereKey($unit->unit_id)->lockForUpdate()->first();
+
+            $open = static::where('unit_id', $unit->unit_id)
+                ->where('tenant_id', $tenantId)
+                ->whereNotIn('rental_status', self::TERMINAL_STATUSES)
+                ->exists();
+
+            if ($open) {
+                return null;
+            }
+
+            // The tenant's one thread for this property, reopened if an earlier deal closed it.
+            $conversation = Conversation::forInquiry($tenantId, $unit->property, $unit);
+
+            $reservation = static::create($fields + [
+                'property_id' => $unit->property_id,
+                'unit_id' => $unit->unit_id,
+                'tenant_id' => $tenantId,
+                'conversation_id' => $conversation->conversation_id,
+                'reservation_date' => now(),
+                'rental_status' => 'Inquiry',
+            ]);
+
+            // First message is always the inquiry summary card: it carries the move-in and rent details the tenant
+            // just reviewed, so it is worth showing even when they left the note blank.
+            $conversation->messages()->create([
+                'sender_id' => $tenantId,
+                'message' => $firstMessage,
+                'kind' => 'inquiry_summary',
+            ]);
+
+            return $reservation;
+        });
+    }
+
     public function advanceToNegotiation(): bool
     {
         if ($this->rental_status !== 'Inquiry') {
@@ -1261,13 +1314,6 @@ class Reservation extends Model
     }
 
     /**
-     * The one thing this tenant should do next on a reservation, for the list's primary button (label + url),
-     * or null when there is nothing to do. Before this the list offered only Cancel and Chat on an agreement
-     * waiting to be signed or paid, and the agreement was reachable only from inside the chat.
-     *
-     * @return array{label: string, url: string}|null
-     */
-    /**
      * Where a tenant notification about the agreement should land. The agreement page 404s once a reservation is
      * rejected or cancelled, so those fall back to the reservations list instead of a dead end.
      */
@@ -1278,18 +1324,45 @@ class Reservation extends Model
             : route('reservations.index');
     }
 
-    public function tenantNextStep(): ?array
+    /**
+     * Where the money stands on a signed agreement, for the tenant's list: 'due' (nothing paid or reported),
+     * 'reported' (a direct-payment report the landlord has not answered), 'paid' (settled, waiting for move-in).
+     * Null for any other status. One answer for the status pill and the primary button, so they cannot disagree.
+     */
+    public function paymentState(): ?string
     {
-        $paid = $this->moveInSettled();
+        if ($this->rental_status !== 'Rental Agreement Signed') {
+            return null;
+        }
+
+        if ($this->moveInSettled()) {
+            return 'paid';
+        }
 
         // A direct-payment report the landlord has not answered yet: do not invite the tenant to pay again.
-        $reported = ! $paid && $this->rental_status === 'Rental Agreement Signed' && ($this->relationLoaded('paymentClaims')
+        $reported = $this->relationLoaded('paymentClaims')
             ? $this->paymentClaims->contains(fn ($c) => $c->status === 'Pending')
-            : $this->paymentClaims()->pending()->exists());
+            : $this->paymentClaims()->pending()->exists();
 
+        return $reported ? 'reported' : 'due';
+    }
+
+    /**
+     * The one thing this tenant should do next on a reservation, for the list's primary button (label + url),
+     * or null when there is nothing to do. Before this the list offered only Cancel and Chat on an agreement
+     * waiting to be signed or paid, and the agreement was reachable only from inside the chat.
+     *
+     * @return array{label: string, url: string}|null
+     */
+    public function tenantNextStep(): ?array
+    {
         return match ($this->rental_status) {
             'Pending Rental Agreement' => ['label' => 'Review & sign', 'url' => route('agreements.show', $this)],
-            'Rental Agreement Signed'  => ['label' => $reported ? 'Waiting for landlord' : ($paid ? 'Confirm move-in' : (Payments::onlineFor($this) ? 'Pay now' : 'Pay your landlord')), 'url' => route('agreements.show', $this)],
+            'Rental Agreement Signed'  => ['label' => match ($this->paymentState()) {
+                'reported' => 'Waiting for landlord',
+                'paid' => 'Confirm move-in',
+                default => Payments::onlineFor($this) ? 'Pay now' : 'Pay your landlord',
+            }, 'url' => route('agreements.show', $this)],
             'Occupied'                 => ['label' => 'Rent & payments', 'url' => route('tenancy.show', $this)],
             'Completed'                => ['label' => 'View tenancy', 'url' => route('tenancy.show', $this)],
             default                    => null,

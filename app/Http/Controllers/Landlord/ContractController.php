@@ -51,8 +51,8 @@ class ContractController extends Controller
         return redirect()
             ->route('landlord.tenants.index', ['open' => $reservation->reservation_id])
             ->with('success', $reservation->rental_status === 'Occupied'
-                ? 'Contract added. The unit is now occupied.'
-                : 'Contract added. The unit is reserved until '.$row->tenant->first_name.' moves in.');
+                ? 'Lease added. The unit is now occupied.'
+                : 'Lease added. The unit is reserved until '.$row->tenant->first_name.' moves in.');
     }
 
     /** The contract's details, rendered for the view modal (fetched when it opens, not embedded per row). */
@@ -125,7 +125,7 @@ class ContractController extends Controller
 
             AuditLog::record(
                 'contract.renew',
-                'Contract renewed to '.Carbon::parse($data['new_move_out_date'])->format('M j, Y').' on '.($locked->property?->title ?? 'a property'),
+                'Lease renewed to '.Carbon::parse($data['new_move_out_date'])->format('M j, Y').' on '.($locked->property?->title ?? 'a property'),
                 $locked,
                 null,
                 ['new_monthly_rent' => (float) $data['new_monthly_rent'], 'rent_effective_from' => $data['rent_effective_from']],
@@ -135,8 +135,8 @@ class ContractController extends Controller
                 Notification::notify(
                     $locked->tenant_id,
                     'reservation',
-                    'Your contract was renewed',
-                    'Your contract now runs until '.$renewal->new_move_out_date->format('M j, Y').'. Rent from '
+                    'Your lease was renewed',
+                    'Your lease now runs until '.$renewal->new_move_out_date->format('M j, Y').'. Rent from '
                         .$renewal->rent_effective_from->format('F Y').' is ₱'.number_format((float) $renewal->new_monthly_rent, 2).'.',
                     route('tenancy.show', $locked),
                 );
@@ -146,10 +146,10 @@ class ContractController extends Controller
         });
 
         if (! $renewed) {
-            return back()->with('error', 'This contract can no longer be renewed.');
+            return back()->with('error', 'This lease can no longer be renewed.');
         }
 
         return redirect()->route('landlord.tenants.index', ['open' => $reservation->reservation_id])
-            ->with('success', 'Contract renewed until '.$renewed->new_move_out_date->format('M j, Y').'.');
+            ->with('success', 'Lease renewed until '.$renewed->new_move_out_date->format('M j, Y').'.');
     }
 }

@@ -14,10 +14,21 @@
             agreementAction: '',
             // The final terms for the Send-agreement modal (_agreement-fields), from Reservation::agreementDefaults().
             agreement: {},
-            openAgreement(action, defaults) {
+            // The tenant's chat, where the lease editor lives (the modal has no room for it).
+            agreementChatUrl: '',
+            openAgreement(action, defaults, chatUrl) {
                 this.agreementAction = action;
                 this.agreement = { ...defaults };
                 this.agreementOpen = true;
+            },
+            // Reject dialog: the tenant is told the reason picked here.
+            rejectOpen: false,
+            rejectAction: '',
+            rejectName: '',
+            openReject(action, name) {
+                this.rejectAction = action;
+                this.rejectName = name;
+                this.rejectOpen = true;
             },
         }">
 
@@ -58,7 +69,7 @@
             ['label' => 'Payment to confirm', 'value' => $strip['confirm'], 'note' => $strip['confirm'] > 0 ? '₱'.number_format($strip['confirmAmount'], 2).' reported' : 'Nothing reported', 'dot' => $strip['confirm'] > 0 ? '#FF8A66' : null, 'href' => $stageUrl('payment'), 'active' => $stage === 'payment'],
         ]" />
 
-        {{-- Search + filters --}}
+        {{-- Search + filters: bare, the same as the other landlord lists --}}
         <form method="GET" action="{{ route('landlord.reservations.index') }}"
             class="mb-5 flex flex-col lg:flex-row lg:items-center gap-3">
             @if($stage !== 'open')
@@ -533,6 +544,48 @@
             </div>
         </template>
 
+        {{-- Reject modal: a quick reason and an optional note, so the tenant is not left guessing --}}
+        <template x-teleport="body">
+            <div x-show="rejectOpen" x-cloak class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4"
+                @keydown.escape.window="rejectOpen = false">
+                <div @click="rejectOpen = false" class="absolute inset-0 bg-black/40"></div>
+                <div class="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full max-w-md max-h-[92vh] overflow-y-auto p-6" x-show="rejectOpen" x-transition>
+                    <div class="flex items-start justify-between mb-1">
+                        <h2 class="text-lg font-normal text-[#060D26]">Reject this request?</h2>
+                        <button type="button" @click="rejectOpen = false" aria-label="Close" class="text-[#5B6A8E] hover:text-[#060D26] cursor-pointer">
+                            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <p class="mb-4 text-[13px] text-[#5B6A8E]"><span x-text="rejectName"></span> is told the request was declined, with the reason you pick.</p>
+
+                    <form :action="rejectAction" method="POST">
+                        @csrf @method('PATCH')
+                        <fieldset class="space-y-2 mb-4">
+                            <legend class="sr-only">Reason</legend>
+                            @foreach(\App\Http\Controllers\Landlord\ReservationController::REJECT_REASONS as $i => $reason)
+                                <label for="reject_reason_{{ $i }}" class="flex items-center gap-2.5 min-h-[44px] px-3 rounded-xl ring-1 ring-[#E2E4EC] cursor-pointer has-[:checked]:ring-[#FF8A66] has-[:checked]:bg-[#FF8A66]/[0.08]">
+                                    <input type="radio" name="reason_preset" id="reject_reason_{{ $i }}" value="{{ $reason }}"
+                                        class="w-4 h-4 border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66]">
+                                    <span class="text-[13px] text-[#060D26]">{{ $reason }}</span>
+                                </label>
+                            @endforeach
+                        </fieldset>
+                        <label for="reject_reason_note" class="block text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-1">Note <span class="normal-case tracking-normal font-semibold">· optional</span></label>
+                        <textarea name="reason_note" id="reject_reason_note" rows="2" maxlength="300"
+                            class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-[16px] sm:text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none mb-4"></textarea>
+                        <div class="flex gap-2">
+                            <button type="button" @click="rejectOpen = false"
+                                class="flex-1 h-11 rounded-lg border border-[#E2E4EC] text-[13px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] cursor-pointer transition-colors duration-200">Keep it</button>
+                            <button type="submit"
+                                class="flex-1 h-11 rounded-lg bg-[#DC2626] text-white text-[13px] font-semibold hover:bg-[#B91C1C] cursor-pointer transition-colors duration-200">Reject request</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </template>
+
         {{-- Send agreement modal --}}
         <template x-teleport="body">
             <div x-show="agreementOpen" x-cloak class="fixed inset-0 z-[200] flex items-center justify-center p-4">
@@ -555,6 +608,7 @@
                                 Sends your lease template, or the standard rental agreement if you have not written one.
                                 <a x-show="agreement.chat_url" :href="agreement.chat_url" class="font-bold text-[#060D26] underline underline-offset-2">Edit the agreement for this tenant in the chat</a>
                             </p>
+                            {{-- Asked once per payment route (LandlordTerms), the same as the chat's Send agreement. --}}
                             @if(\App\Support\LandlordTerms::needed(auth()->user()))
                                 <label class="flex items-start gap-2.5 cursor-pointer group mb-3">
                                     <input type="checkbox" name="accept_tc" required
@@ -564,7 +618,7 @@
                                     </span>
                                 </label>
                             @else
-                                <p class="mb-3 text-xs text-[#5B6A8E]">You accepted the payment terms on {{ auth()->user()->landlord_terms_accepted_at->format('M j, Y') }}.</p>
+                                <p class="mb-3 text-[11px] text-[#5B6A8E]">You accepted the payment terms on {{ auth()->user()->landlord_terms_accepted_at->format('M j, Y') }}.</p>
                             @endif
                             <button type="submit"
                                 class="w-full h-9 rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200">

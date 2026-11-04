@@ -73,20 +73,18 @@ class OnlineRouteChoiceTest extends TestCase
 
     // ─── the landlord's opt-out ─────────────────────────────────
 
-    public function test_account_settings_show_the_toggle_and_it_saves(): void
+    public function test_the_online_choice_is_a_payment_method_on_settings(): void
     {
         $landlord = $this->makeLandlord();
-        $this->actingAs($landlord)->get(route('profile.edit'))->assertOk()->assertSee('Let tenants pay me online');
+        $landlord->savePayoutAccount('09171112222', 'Maria Santos');
+        // The toggle moved off the GCash form into Settings > Payments (PaymentMethodsTest covers the rest).
+        $this->actingAs($landlord)->get(route('landlord.payouts.index'))->assertOk()->assertDontSee('Let tenants pay me online');
 
-        $this->patch(route('landlord.profile.update'), [
-            'gcash_number' => '09171112222', 'gcash_account_name' => 'Maria Santos', 'accepts_online' => '0',
-        ])->assertRedirect(route('profile.edit'));
+        $this->patch(route('landlord.paymentMethods.update'), ['accepts_online' => '0', 'accepts_qr' => '1', 'accepts_cash' => '1'])
+            ->assertRedirect(route('profile.edit').'#payments');
         $this->assertFalse($landlord->fresh()->acceptsOnlinePayments());
-        $this->assertFalse($landlord->fresh()->payoutAccount->accepts_online);
 
-        $this->patch(route('landlord.profile.update'), [
-            'gcash_number' => '09171112222', 'gcash_account_name' => 'Maria Santos', 'accepts_online' => '1',
-        ]);
+        $this->patch(route('landlord.paymentMethods.update'), ['accepts_online' => '1', 'accepts_qr' => '1', 'accepts_cash' => '1']);
         $this->assertTrue($landlord->fresh()->acceptsOnlinePayments());
     }
 

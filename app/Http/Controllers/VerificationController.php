@@ -80,9 +80,8 @@ class VerificationController extends Controller
     public function ocrCheck(Request $request, OcrService $ocr)
     {
         $request->validate([
-            // Base64 string: 7,000,000 chars is roughly a 5 MB image.
-            'id_image' => ['required', 'string', 'max:7000000'],
-            'id_type'  => ['required', 'string', 'max:50'],
+            'id_image' => ['required', 'string', 'max:8000000'],
+            'id_type'  => ['required', 'string', 'in:PhilSys,Professional ID Card,Driver\'s License,Passport,UMID,Postal ID,SSS ID'],
         ]);
 
         $imageData = $this->decodeBase64Image($request->input('id_image'));
@@ -307,7 +306,8 @@ class VerificationController extends Controller
 
         $decoded = base64_decode($base64, true);
 
-        if ($decoded === false || strlen($decoded) < 100) {
+        // Must be a real picture, not just any bytes: the file is stored as the applicant's ID.
+        if ($decoded === false || strlen($decoded) < 100 || @getimagesizefromstring($decoded) === false) {
             return null;
         }
 

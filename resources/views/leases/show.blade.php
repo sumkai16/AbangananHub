@@ -1,4 +1,5 @@
-@extends($isLandlordView ? 'layouts.landlord' : 'layouts.app', $isLandlordView ? [] : ['searchBar' => false])
+{{-- ?embed=1: shown inside the agreement modal on the Leases page, which has its own Close and Print buttons. --}}
+@extends(request()->boolean('embed') ? 'layouts.embed' : ($isLandlordView ? 'layouts.landlord' : 'layouts.app'), $isLandlordView || request()->boolean('embed') ? [] : ['searchBar' => false])
 
 {{--
     The printable lease, shared by both parties (Landlord\LeaseController and
@@ -12,14 +13,17 @@
 @php
     $signedOnline = $reservation->agreed_at !== null;
     $backUrl = $isLandlordView
-        ? ($reservation->rental_status === 'Occupied'
-            ? route('landlord.tenancies.show', $reservation)
+        // Back to the lease modal for anything on the Leases page (Signed onward); earlier stages are reservations.
+        ? (in_array($reservation->rental_status, ['Rental Agreement Signed', 'Reserved', 'Occupied', 'Completed'], true)
+            ? route('landlord.contracts.index', ['open' => $reservation->reservation_id])
             : route('landlord.reservations.index'))
         : route('tenancy.show', $reservation);
 @endphp
 
+@php $embed = request()->boolean('embed'); @endphp
 <x-print-document>
 <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10 print:max-w-none print:mx-0 print:p-0">
+    @unless ($embed)
     <div class="flex items-center justify-between gap-3 mb-5 print:hidden">
         <a href="{{ $backUrl }}" class="inline-flex items-center text-sm font-semibold text-[#5B6A8E] hover:text-[#060D26] transition-colors">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
@@ -31,20 +35,23 @@
             Print / Save PDF
         </button>
     </div>
+    @endunless
 
-    <div class="mb-5">
+    {{-- Screen only: the printed document opens with its own cover page (title + reference). Printed, this heading
+         pushed the cover past one sheet and left page 2 blank. --}}
+    <div class="mb-5 print:hidden">
         <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1.5">
             <h1 class="text-xl sm:text-2xl font-semibold text-[#060D26] tracking-tight">Rental Agreement</h1>
             <p class="text-[11px] font-bold text-[#5B6A8E] tracking-wider tabular-nums border border-[#E2E4EC] rounded-full px-2.5 py-1">{{ $terms['reference'] }}</p>
         </div>
-        @unless ($signedOnline)
+        @unless ($signedOnline || $embed)
             <p class="text-sm text-[#5B6A8E] mt-1 print:hidden">
-                Print this, have both parties sign and date it, then upload the signed copy on the tenancy page.
+                Print this, have both parties sign and date it, then upload the signed copy from the lease on the Leases page.
             </p>
         @endunless
     </div>
 
-    <x-card flush class="p-5 sm:p-8 print:border-none print:shadow-none print:p-0">
+    <x-card flush class="p-5 sm:p-8 print:border-none print:shadow-none print:p-0 {{ $embed ? 'border-none shadow-none !p-0' : '' }}">
         @include('leases._document', ['terms' => $terms])
 
         @if ($signedOnline)

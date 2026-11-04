@@ -1,36 +1,29 @@
 @extends('layouts.landlord')
 
-@section('page-title', 'Payouts')
+@section('page-title', 'Payments')
 
 @section('content')
-    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 pb-10">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
 
-        <div class="mb-6">
-            <x-page-header title="Payouts" subtitle="What AbangananHub owes you, and what it has already sent to your GCash.">
-                <x-slot:icon>
-                    <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
-                    </svg>
-                </x-slot:icon>
-            </x-page-header>
-        </div>
+        {{-- The Payouts tab of Payments: same header and tabs as Rent (landlord/payments/index). --}}
+        <x-page-header title="Payments" subtitle="What AbangananHub owes you from online payments, and what it has already sent to your GCash.">
+            <x-slot:icon>
+                <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
+            </x-slot:icon>
+        </x-page-header>
+
+        @include('landlord.payments.partials._tabs', ['active' => 'payouts', 'awaitingPayout' => $pendingTotal])
 
         @if ($holdNotice)
-            <div class="mb-6 flex items-start gap-3 rounded-2xl border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] p-4 text-[13px] leading-6 text-[#B45309]">{{ $holdNotice }}</div>
+            <div class="mb-6 rounded-2xl border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] p-4 text-[13px] leading-6 text-[#92600A]" role="status">{{ $holdNotice }}</div>
         @endif
 
+        {{-- No GCash yet: setting it up is the one thing to do here, so it comes first. --}}
         @unless ($hasPayoutDestination)
-            <div class="mb-6 flex items-start gap-3 rounded-2xl border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] p-4">
-                <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FBBF24]/[0.10] text-[#B45309]">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3.75h.01M11.48 3.5l8.808 15.3A1.5 1.5 0 0 1 18.908 21H5.092a1.5 1.5 0 0 1-1.388-2.2L12.52 3.5a1.5 1.5 0 0 1 2.96 0Z" />
-                    </svg>
-                </div>
-                <div class="text-[13px] leading-6 text-[#B45309]">
-                    No GCash number on file — AbangananHub can't send you a payout until you add one in
-                    <a href="{{ route('profile.edit') }}#payout" class="font-semibold underline decoration-2 underline-offset-2">Account Settings</a>.
-                </div>
-            </div>
+            @include('landlord.payouts.partials._account')
         @endunless
 
         <div class="stat-chips mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -53,6 +46,10 @@
                 </x-slot:icon>
             </x-stat-card>
         </div>
+
+        @if ($hasPayoutDestination)
+            @include('landlord.payouts.partials._account')
+        @endif
 
         {{-- Pending --}}
         <x-card flush class="mb-6">

@@ -223,7 +223,7 @@
                         </div>
                     </x-form-section>
 
-                    <x-form-section title="Rent rules" description="Private to you. Each contract keeps the rules that were in force when it was sent.">
+                    <x-form-section title="Rent rules" description="Private to you. Each lease keeps the rules that were in force when it was sent.">
                         <x-slot:icon>{!! $ico('M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z') !!}</x-slot:icon>
 
                         <div x-data="{

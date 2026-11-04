@@ -13,6 +13,211 @@ Suite: 1369 passed. **Desktop checked in a browser for the search bars and the m
 - **Lease policies modal.** Opens from the Tenants button: Assign (one row per property, expandable, units with switches) and Your policies in two columns, tabs below `lg`. Saves in place and keeps open rows and scroll. `GET /landlord/leases/panel`, the assign endpoint answers JSON for the modal. `/landlord/leases` stays. `LeaseTemplate::summaryChips()` builds the chips for both.
 - **Not done:** business-logic abuse (paying twice, skipping a status step) is untested; no Content-Security-Policy; `APP_DEBUG` must be `false` in production; the landlord dashboard and Payments still load `late_fee_waivers` and `lease_renewals` once per row (about 24 extra queries each).
 - **Manual test guide.** (1) Browse: type `' OR '1'='1` in the location box, expect no results; open `/properties?amenities=abc`, expect the normal page. (2) Reservations and Tenants at 375px: the bar stays on one line, Filter is an icon, the date button truncates. (3) Tenants with more than 20 tenants: page links appear, chip counts stay the same on page 2. (4) Payments: the "owing" strip does not change on page 2. (5) Conversations: open a chat from page 2. (6) Tenants → Lease policies: pick a policy for a property, see "Policy updated", the row stays open; flip a unit switch on, pick a policy, flip it off; Escape and the backdrop close it; at 375px the two tabs show. (7) Change a password, delete-account with a password, send a report, start a conversation, write a review, edit a property with photos. (8) Landlord application: take an ID photo and a selfie as normal; it must still submit.
+## Nov 2 2026 — Reservation flow audit: first fixes (branch `emman`)
+Why: an audit of the reservation flow (read from code, not clicked through) found 13 problems. These are the ones that needed no product decision. **Tests pass; the Reject dialog and the new pill are not checked in a browser yet.**
+- **A signed lease can no longer hold a unit forever.** `reservations:process-stale` has two new stages (`config/rentals.php` → `stale_reservations`):
+  - `signed` (unpaid): remind the tenant at 3 days (landlord told), cancel at 10, counted from the signature. Skipped while the landlord has a payment report to answer, and never touches held money or an open checkout.
+  - `paid` (paid straight to the landlord, move-in not confirmed): remind both at 3 days after the payment or the move-in date, whichever is later. Never cancelled. Online money in escrow keeps its own clocks.
+- **Unanswered payment reports are chased.** New `payment-claims:remind` (daily 08:45 Manila, `RemindPendingPaymentClaims`): nudges the landlord at 1 and 3 days (`rentals.claim_reminder_days`); the 3-day nudge also tells the tenant. New column `payment_claims.reminders_sent`.
+- **Landlord review no longer eats the tenant's 5-day signing clock.** Any document upload or review restarts it. If the tenant's documents are waiting for the landlord, the tenant is never cancelled and the landlord is reminded ("Documents waiting for your review").
+- **Double tap on Send inquiry.** `Reservation::startInquiry()` does the duplicate check, the reservation, the chat and its first message in one transaction behind a lock on the unit row. Used by the web and the mobile API.
+- **Reject asks why.** The row's Reject opens a dialog on the Reservations page (three quick reasons + optional note; `ReservationController::REJECT_REASONS`). The tenant sees the reason on the list and in Details. The mobile API's free-text `rejection_reason` still works.
+- **The tenant's "Signed" pill says where the money stands:** Payment due / Payment sent / Paid · move in, from the new `Reservation::paymentState()`, which the primary button now uses too.
+- Housekeeping: `PRD.md` reservation line updated; `tenantNextStep()` docblock put back above its method.
+- **Deploy:** run `php artisan migrate`; the VPS already runs `schedule:run`. The test DB needs the migration too (`DB_DATABASE=abanganan_hub_test php artisan migrate`).
+- Tests: `StaleReservationsTest` (+8), new `PaymentClaimRemindersTest`, `StartInquiryTest`, `RejectReasonTest`, `TenantPaymentStateTest`.
+- **Not done, needs a decision first:** cancel after confirmed money, withdrawing a sent lease, "Available" shown while an agreement is out, escrow release warnings by email, an in-app refund path, mobile API payment-report and viewing routes.
+- **Manual test (375px first):** as a landlord on Reservations, tap Reject on a new inquiry, pick a reason, add a note, submit. As that tenant, the list shows "Reason: …" and Details shows it too. Sign an agreement as a tenant and confirm the pill reads "Payment due".
+
+## Nov 2 2026 — Cancel lease on an "Awaiting payment" contract (branch `emman`)
+Why: the unit is held while the tenant has not paid, but the lease modal had no way out. Cancel only existed on the Reservations list.
+- `resources/views/landlord/contracts/partials/_details.blade.php`: the Awaiting payment footer now has **Cancel lease** (same route as the list: `landlord.reservations.cancel`). Unit goes back to Available, tenant is notified.
+- Hidden when money is held (that branch already has the keys step) or a checkout is open. In the open-checkout case the modal says why instead (`Reservation::cancellationBlockedReason`). A direct payment already settled adds the "paid directly, settle it with each other" warning to the confirm.
+- Tests: `ContractsPageTest` (2 new).
+
+## Nov 2 2026 — Quiet reservations: one reminder, then auto-cancel (branch `emman`)
+Why: the audit found Inquiry, Under Negotiation and Pending Rental Agreement never expired. Pending Rental Agreement holds the unit, so a tenant who never signed could block it for good.
+- **New daily job** `reservations:process-stale` (08:30 Manila, `app/Console/Commands/ProcessStaleReservations.php`). Days of silence, in `config/rentals.php` → `stale_reservations`:
+  - Inquiry: remind the landlord at 2, cancel at 7 (counted from when it was sent).
+  - Under Negotiation: remind both at 5, cancel at 14 (counted from the last chat message).
+  - Pending Rental Agreement: remind the tenant at 2 (landlord told), cancel at 5 (counted from when the agreement was sent).
+- Reminder goes out once per quiet spell (`reservations.stale_reminder_sent_at`, new column); new activity re-arms it. `STALE_AUTO_CANCEL=false` gives reminders only.
+- Cancel goes through `Reservation::cancel()`, so a reservation with held money or an open checkout is never cancelled. Walk-in tenants are skipped. Both people get a "Reservation closed" notice saying why, and the chat gets a system message. The observer stays quiet for these cancels (`Reservation::$systemCancelReason`) so nobody is told "the tenant cancelled".
+- **Deploy:** run `php artisan migrate`; the VPS already runs `schedule:run`. The test DB needs the migration too (`DB_DATABASE=abanganan_hub_test php artisan migrate`).
+- Tests: `StaleReservationsTest`.
+
+## Nov 2 2026 — Security audit fixes: phone format, CSV formulas, sign-up throttle, ID-photo check (branch `emman`)
+Why: an audit found three reproducible gaps. Authorization, mass assignment, webhook signing and nested-route ownership were checked and are fine.
+- **Phone numbers:** one rule, `App\Support\Phone::RULE` (digits, `+`, spaces, dashes, brackets; 7 to 20 characters), now on every phone field. Before, only sign-up and the emergency contact checked the format, so "abc" could be saved; the profile form even allowed 255 characters.
+- **CSV exports:** all 14 now write through `App\Support\Csv::put`, which puts an apostrophe before any text cell that starts with `= + - @` so Excel does not run it as a formula. Plain numbers are untouched.
+- **Throttles:** web `POST /register` 10/min and `POST /forgot-password` 6/min per IP (the mobile API already limited sign-up).
+- **ID-photo check:** `ocrCheck` now has the submit form's size cap and ID-type whitelist, a 20/min throttle, and the decoded bytes must be a real image (`VerificationController::decodeBase64Image`, also used on submit).
+- Tests: `InputHardeningTest`.
+- **Not done:** (stale reservations are now handled, see the entry above) changing email needs no password; no CSP/HSTS headers.
+
+## Nov 2 2026 — Analytics: deposits are not revenue; new "Deposits Held" card (branch `emman`)
+Why: Revenue summed every settled payment, so a security deposit (the tenant's money, owed back at move-out) counted as income and move-in months spiked. **Not checked in a browser yet.**
+- **Revenue** (card, 6-month line, by-property donut, Top Performing, CSV export) now leaves out `payment_type = 'Deposit'` rows (`AnalyticsController::NON_REVENUE_TYPES`) and adds non-voided `deposit_charges`, dated by `charged_at` (the part of a deposit the landlord kept is earned then). Card sub-label: "Rent collected, excl. deposits".
+- **Deposits Held** card (6th stat card, grid now `lg:3 / xl:6`): deposit collected minus kept, summed over tenancies in `Reservation::UNIT_HOLDING_STATUSES`. Point-in-time, no delta. A `Completed` tenancy counts as settled (there is no move-out refund record). Read through new `RentLedger::deposit()` (also used by `summary()`), so it matches the tenancy page.
+- **Known gap:** an older online checkout that charged deposit and rent in one `Initial` row still counts whole in Revenue, while Deposits Held counts its deposit share. New checkouts write a separate `Deposit` row, so this only affects legacy data.
+- Tests: `LandlordAnalyticsDepositTest`.
+- **Manual test (375px first):** as a landlord with a walk-in tenant (rent + deposit recorded), Analytics → Revenue shows rent only, Deposits Held shows the deposit. Add a deposit charge on the tenancy → Revenue rises by it, Deposits Held drops by it.
+
+## Nov 2 2026 — Viewings card on the landlord dashboard (branch `emman`)
+Why: the landlord asked for the viewing schedule on the dashboard. **Checked in headless Edge at 375px and 1440px, with sample viewings added in a rolled-back transaction (nothing saved); not clicked in a real browser.**
+- **`landlord/dashboard/_viewings`**: one slim card between the stat tiles and "Your properties". It shows the next viewing ("Next: Tomorrow · 10:00 AM · Ana Reyes"), a "N to answer" pill when tenants wait on the landlord, and the count for the next 2 weeks.
+- **Clicking the card opens "Viewing calendar"**: a bottom sheet on phones, a 768px dialog on desktop.
+  - **Month grid** (Sun–Sat) with prev/next across this month and the next two. Today is outlined in coral and the picked day is filled navy.
+  - **Markers:** a day with viewings has a coral dot, or a count when there are several. The marker is amber when one waits on the landlord's answer, with a legend under the grid.
+  - **Day list:** the picked day's viewings with time, visitor, status pill ("Needs your answer" / "Waiting for tenant" / "Confirmed" / "Done") and unit · property. It sits beside the grid on desktop and under it on phones.
+  - **Opens on** the month and day of the next viewing.
+  - **Links:** each row and "Open full calendar" go to Reservations › Viewings, where answering, rescheduling and adding a phone viewing live.
+- **Data:** `DashboardController::viewingSchedule()`, one query: active viewings from the 1st of this month to the end of the month after next, with tenant, property and unit eager-loaded. It returns the months, viewings by day, the next viewing, the count in the next 14 days, the "to answer" count and the days needing an answer.
+- Tests: new `LandlordDashboardViewingsTest` (statuses, "to answer" count, three-month range, declined hidden, other landlords' viewings hidden, empty state).
+
+## Nov 2 2026 — Rent ledger header decluttered (branch `emman`)
+- `landlord/payments/ledger`: the line under the tenant's name now reads "Bed A · property · TN-0004". It wraps onto two lines instead of truncating, since phones cut off the property name. The tenant code is plain grey at the end.
+- The status pill shows only when the tenancy is not Occupied (moved out, not moved in yet). Occupied is the normal case, and the Balance tile already shows the paid state.
+- More space under the header. **Checked in headless Edge at 375px and 1440px.**
+
+## Nov 2 2026 — Account Settings sections are collapsible panels (branch `emman`)
+Why: Settings was one long wall of forms. **Checked in headless Edge at 375px (closed, Payments open, `#visibility` link) and 1440px; panels not clicked in a real browser.**
+- **New `components/settings-panel`.** Each section is one row: icon, title, a one-line summary and a chevron. Tapping the row opens the form. All panels start closed.
+  - **Personal info:** shows name · email.
+  - **Payments** (landlords): shows the methods that are on and the last 4 GCash digits.
+  - **Password**, **Emergency contact & ID** (tenants), and **Danger zone** (red).
+- **When a panel opens by itself:** its form came back with errors; or the URL points at the panel or at something inside it. Examples: a save that returns to `#payments`, My Profile's `#visibility` link, and the tenant's `#emergency-contact` links. The page scrolls to the target.
+- **Smooth open and close.** The body height slides with a `grid-template-rows` 0fr→1fr transition (360ms, ease-out) while the content fades and the chevron turns. No plugin, no measuring. Content is clipped only while moving, so dropdowns inside (Profile visibility) are not cut off once open. A closed panel is `inert` (out of the tab order). With reduced motion it opens instantly.
+- **Landlords no longer see "Back to Profile".** Settings is its own sidebar item for them. Tenants keep the link.
+- **The section link list beside the forms is removed.** The panels are the menu now, and its scroll highlight is gone with it (it lit up Danger zone once the page stopped scrolling). The Account overview card stays on desktop.
+- **The partials (`update-profile-information-form`, `update-password-form`, `update-tenant-details-form`, `delete-user-form`, `landlord-payment-methods`) take `inPanel`.** With it they drop their own card and header. Admin profile still includes the password and delete partials without the flag, so it is unchanged. The GCash partial draws its own card on the Payouts tab and a divider inside Settings.
+
+## Nov 2 2026 — Landlords choose how tenants pay them (Settings › Payments) (branch `emman`)
+Why: the landlord asked to keep payment setup in Settings, and to choose the payment methods tenants are offered. Until now QR and cash always showed, and online was a checkbox hidden in the GCash form. **Checked in headless Edge at 375px as a landlord; not saved in a browser.**
+- **Settings › Payments** (landlords only), a new rail item between Personal info and Password:
+  - **"How tenants can pay you":** three buttons, **Online**, **Your QR** and **Cash** (`profile/partials/landlord-payment-methods`), saved by `Landlord\PaymentMethodController` (`PATCH landlord/payment-methods`). Online shows only while online payments are switched on, and can only be ticked once GCash is saved.
+  - **At least one must stay on.** Online alone counts only with GCash; otherwise the save is refused with a message.
+  - **The GCash form** is under the buttons. It is the same partial as the Payouts tab (`landlord/payouts/partials/_account`, now taking `$returnTo`). Saving it returns to `profile.edit#payments`. The online checkbox moved out of that form into the buttons, and the Payouts tab summary links to "Payment methods".
+- **Storage:**
+  - `users.accepts_qr_payments` and `users.accepts_cash_payments` (boolean, default 1; migration `2026_11_02_000100`). They live on `users` because a landlord without GCash still picks QR or cash.
+  - Online stays `user_payout_accounts.accepts_online`.
+- **One rule everywhere: `App\Support\PaymentMethods::forReservation()`** returns `{online, qr, cash}`.
+  - **Tenant pay choice** (`components/payment-route-choice`): move-in (agreement page) and monthly rent (tenancy page) show only those ways. One way means one pre-picked card; online plus one direct way means no QR/Cash switch.
+  - **API:** tenancy and agreement responses gain `payment_methods`, and `payment_qr` is null when QR is off.
+  - **Server:** `PaymentClaims::file()` refuses an "I've paid" report for a turned-off way.
+  - **No dead ends:** if online later drops out (GCash removed, switch off) and nothing is left, QR and cash come back. A month paid ahead with an online-only landlord shows a note instead.
+- **This partly reverses the previous entry:** the GCash form is back on Settings, as the same form the Payouts tab uses.
+- Tests: new `PaymentMethodsTest`; `OnlineRouteChoiceTest`, `PayoutsTabTest` updated; `SCHEMA.md` updated.
+- **Manual test (375px first):**
+  1. As a landlord, Settings › Payments: untick Cash, Save.
+  2. As that landlord's tenant, the agreement and tenancy pay choices show no cash.
+  3. Untick everything: the save is refused.
+  4. Change GCash from Settings: you land back on Settings.
+
+## Nov 2 2026 — Landlord My Profile vs Settings: business page on My Profile, Settings is the private account (branch `emman`)
+Why: the two Account items overlapped. The business page was edited on Settings but shown on My Profile, private details (email, personal number, GCash) sat on the page tenants see, and GCash showed in three places. Rule now: **My Profile is your business page as tenants see it, edited there; Settings is your private account.** Plan: `plans/landlord-profile-vs-settings.md`. **Checked in headless Edge at 375px and 1440px as a landlord (sheet open); not saved in a browser.**
+- **My Profile** (`landlord/profile/show`): "Edit business page" opens a sheet (`landlord/profile/partials/_business-sheet`) with logo, business name, about, business contact and address. It is a bottom sheet on phones and a dialog otherwise. It posts to `landlord.profile.update` with `return_to=profile` and lands back with "Business page saved."; GCash is left as it was, and an error reopens the sheet. The "No description yet" / "Add them" links open it too. A strip under the name says "This is what tenants see." plus who can open the page, linking to `profile.edit#visibility`. The email, personal number, visibility and GCash rows are gone.
+- **Settings** (`profile/edit`, landlord shell only): personal info (name, email, number, visibility with landlord wording and the live-listing note), password, danger zone. Removed for landlords: the business form (`profile/partials/update-landlord-business-form` deleted), the Payout pointer card (GCash is on Payments › Payouts only; supersedes the payouts-tab entry below), bio, profile strength, trust tip and the "Email status" row. Tenant Settings is unchanged.
+- **Leak fixed:** with no business logo, the landlord banner fell back to the landlord's own photo for everyone, because Blade drops a `null` prop and the component's default is the personal photo. It now gets `''` and shows the business initials. Also fixed a stray quote in `components/profile-banner` that left the avatar `<img>` unstyled.
+- Tests: new `LandlordBusinessSheetTest`; `ProfileSettingsPageTest`, `PayoutsTabTest`, `PublicIdentityTest` updated (owner details now asserted on Settings, plus a no-logo photo leak case).
+- **Manual test (375px first):** My Profile → Edit business page → change About → Save → back on My Profile with the new text. Settings shows no business, bio or GCash. As a tenant, Settings looks as before.
+- **Not done:** chat bubbles still show a landlord's personal photo to tenants.
+
+## Nov 2 2026 — Landlord sidebar: no "Report a Problem"; File a report is a modal (branch `emman`)
+Why: a landlord reports a listing from the listing itself, so a sidebar item for a report form was noise. **Checked in headless Edge at 375px and 1440px (modal open); not submitted in a browser.**
+- **Sidebar:** "Report a Problem" removed from the landlord Account group. My Complaints is lit on `reports.create` too (old links still open the page).
+- **File a report modal** on My Complaints (`landlord/complaints/partials/_file-report-modal`): both "File a Report" buttons open it (`$dispatch('open-file-report')`). Bottom sheet on phones, 512px dialog otherwise, fixed header and footer, 16px inputs on phones. "A person" (people you have messaged) is the default, then "A listing"; reason chips; optional details.
+- A plain form post to `reports.store` with `return_to=complaints`: success goes back to My Complaints with the new report and a success message; a validation error goes back with the modal reopened and the answers kept. The /reports page itself is unchanged (tenants and profile Report links still use it).
+- The pickers' lists are `App\Support\ReportTargets` (`properties()`, `users()`), shared by the page and the modal.
+- Tests: `LandlordFileReportModalTest`.
+
+## Nov 2 2026 — Payouts is a tab on Payments; GCash details live there (branch `emman`)
+Why: Payouts was a separate sidebar item for a mostly empty page, and the GCash form sat in Account Settings with its only Save button below the whole Business card, so landlords could not find it. **Checked in headless Edge at 375px and 1440px as a landlord (Rent tab, Payouts tab, open GCash form); not submitted in a browser.**
+- **One sidebar item.** Payouts is gone from the landlord sidebar; Payments is lit on both `landlord.payments.*` and `landlord.payouts.*`. The URLs and controllers stay separate (`PaymentController`, `PayoutController`); both pages share the "Payments" header and `landlord/payments/partials/_tabs` (Rent | Payouts, underline tabs). The tabs only show while `showsPayoutTools()` is true (online payments on, or money owed or paid out).
+- **Payouts tab shows what is owed.** The tab carries the amount waiting to be sent (`LandlordPayouts::awaitingTotal()`), so the Rent tab shows it without another banner. On phones the tabs sit first (the title is in the top bar), then List / Calendar / Export.
+- **GCash form on the Payouts tab** (`landlord/payouts/partials/_account`, "Where your payouts go") with its own **Save payout details** button. No GCash yet: the form is open and comes first on the page. Saved: one line (number · name, Approved badge, online on/off) with **Change**. It posts to the same `landlord.profile.update` with `return_to=payouts` (password check on a changed destination, name check, 48h hold all unchanged) and lands back on the tab; business fields are left as they were.
+- **Account Settings** keeps a "Payout details" card that links to the tab ("Add GCash" / "Open payouts"); its button now reads "Save business details". The dashboard alert and the landlord profile's "Add GCash details" link go to the tab.
+- Tests: new `PayoutsTabTest` (tabs and amount, no tabs while off, form shown, save returns and keeps the business, password still needed, Settings links out); `ProfileSettingsPageTest` updated.
+- **Manual test (375px first):** landlord with no GCash → Payments shows Rent | Payouts → Payouts shows the open form → save with number and name → back on the tab with the summary line and "Payout details saved." → Change, edit the number, the password field appears, save. Tenant's agreement page then shows **Pay online**.
+
+## Nov 2 2026 — main's online reservation payments brought into emman (branch `emman`)
+Only the payment code was copied from `origin/main`. This is not a merge: main's Tenants/Contracts/Policies page, the Moved-in tab removal and other main work are **not** here, so a later full merge of main still brings them. Suite: 1036 passed, 1 skipped. **Not verified in a browser.** Background: main's Nov 1 "emman merged into joseph" entry and `plans/emman-joseph-payments-merge.md`.
+- **What was missing:** the axci merge (`f05fb0c`) dropped emman's "paying online reserves the unit" and "full move-in amount" work. Main kept both on top of the newer payment flow. emman now matches main.
+- **Online checkout charges the full move-in amount:** `Initial` row = advance months of rent (`Reservation::moveInRent()`, `moveInRentLabel()`), `Deposit` row = the deposit. `moveInBreakdown()` shows the split next to Pay buttons. `RentLedger::platformInitialSplit()` spreads that payment over the months it covers, so the second advance month no longer reads unpaid.
+- **One agreement per unit:** `unitHeldByAnother()` blocks sending an agreement (`advanceToPendingAgreement` locks the unit row), starting a checkout (web + API `PaymentController`), confirming move-in and the auto-release in `ProcessMoveInDeadlines` while another reservation holds the unit. The landlord sees `agreementBlockedReason()`.
+- **Unit marked Reserved when the money settles:** `holdUnit()` inside `PaymongoCheckout::settle()`, so the webhook and the return-page poll both do it. `Payment::settlePending()` lets only the first of the two settle a row.
+- **Also from main:** broadcast failure no longer breaks the webhook (`PaymentObserver`), a "rent paid online" notification, a tenant notification when the landlord records rent, gateway and payout ids hidden from tenants (`PaymentResource`), payout total pin, ledger rounding, `BusinessTime` (Manila "today" in date rules; scheduled commands use `rentals.timezone`), `tenantNextStep()` says "Waiting for landlord" after a direct-payment report, admin reservations list counts Reserved and Completed (`Reservation::STATUSES`), 44px money buttons on phones.
+- **Unchanged on purpose:** online payment is still behind `ONLINE_PAYMENTS_ENABLED` (off by default), and the tenant still picks online, QR or cash. emman's own Reservations page, Leases wording, tenant reservations list and inquiry-thread code (`Conversation::forInquiry`) stay.
+- Tests brought over: `CheckoutDoubleClickTest`, `SettleOnceTest`, `PayoutPinTest`, `UnitExclusivityTest`, `RentLedgerRoundingTest`, `RentPaidNotificationTest`, `PaymentResourceVisibilityTest`, `BusinessTimeTest`, 3 new cases in `OnlineReservationPipelineTest`, 2 in `RentLedgerInitialTest`.
+- **Manual test (375px first):** turn online payments on, landlord with GCash details; send an agreement with 2 advance months; tenant signs and pays online in PayMongo test mode. Check the checkout shows two rent months + deposit, the unit reads Reserved afterwards, the tenancy ledger shows both months paid, and a second tenant on the same unit cannot be sent an agreement or pay.
+
+## Nov 1 2026 — Unsigned paper leases follow Policies; agreement opens in a print modal (branch `emman`)
+Why: editing a property's policy did not change a lease that was added before it and never signed. **Not verified in a browser.**
+- `LeaseTerms::followsPolicy()`: a lease added from the Leases page (Reserved/Occupied), no signed copy uploaded, not signed online. `LeaseTerms::for()` / `rentRules()` then rebuild its policy parts (house rules, wording, required documents, welcome, and, only when a policy is assigned, notice, grace and late fee) from the unit's current policy. Parties, unit, dates, rent, deposit, advance, extra terms, reference and issue date stay as issued.
+- Uploading the signed copy freezes the terms that were printed (`Landlord\LeaseController::upload`). Leases signed online never change.
+- Lease modal: "View & print agreement" opens `leases.show?embed=1` (new `layouts/embed`) in a modal with a Print button. The printed heading above the cover page is now screen-only (it pushed the cover onto two sheets).
+
+## Nov 1 2026 — Landlord tenancy page removed; End lease moved into the lease modal (branch `emman`)
+Why: everything on `landlord/tenancies/{id}` was already in the lease modal except ending the tenancy. **Not verified in a browser.**
+- Deleted `landlord/tenancies/show` and `_tenant-details`. The GET `landlord.tenancies.show` now redirects to `landlord.contracts.index?open={id}` (old links open the lease modal).
+- Lease modal (`contracts/partials/_details`): "End lease" opens a move-out date + confirm in place; posts to the unchanged `landlord.tenancies.end`, which now returns to the Leases page.
+- Removed the walk-in "edit emergency contact & ID" endpoint (`tenancies.tenantDetails.update`, `ReservationPolicy::editWalkInDetails`); the Tenants page's Edit tenant saves the same fields.
+- The lease document's Back link returns to the lease modal.
+
+## Nov 1 2026 — Lease house rules come from Policies only (branch `emman`)
+Why: rules were set in two places, and the lease printed the listing's checkboxes as a "Property rules" block on top of the policy's. **Not verified in a browser.**
+- `LeaseTerms::snapshot()` takes `house_rules` / `house_rule_sections` from the policy's visible sections only; `HouseRules::forSnapshot()` removed. No policy = no house-rules clause.
+- The property's checkbox rules stay on the property: the public listing and the search filters (`BrowseFilters`, AI search) still use them.
+- Policies editor says so ("The lease prints only the rules you write here…"), and still shows the listing's rules for reference.
+- Leases already sent keep their frozen rules, "Property rules" included.
+
+## Nov 1 2026 — Inquiry reopens a Resolved thread; Send agreement is a modal (branch `emman`)
+- `Conversation::forInquiry()` (web + mobile API): a new inquiry reopens the tenant's thread for that property when it was Cancelled **or Resolved** (closed by an earlier move-in), so it shows in the landlord's Active list. The API used to try a second row and hit the unique key.
+- Chat "Send agreement" opens a modal (bottom sheet on phones, 640px dialog otherwise; fixed header/footer).
+
+## Nov 1 2026 — axci merged into emman; axci's payment flow wins (branch `emman`)
+Plan: `plans/merge-axci-into-emman.md`. 12 migrations come in from axci. **Not verified in a browser.**
+- **Payments are axci's, start to finish:** checkout (`PaymongoCheckout`, rent `Initial` + `Deposit` rows, optional fee), webhook, return-page reconcile, refunds, payouts, cash and disputes. emman's own checkout (one row for `moveInDue()`, `RentLedger::platformInitialSplit()`, `Reservation::moveInBreakdown()`) is gone.
+- **Kept from emman, read-side only:** `moveInSettled()` / `scopeMoveInSettled()` / `paidOnline()`, so Reservations and Leases show an online payment as settled. **Gap:** an online payment no longer flips the unit's listing to Reserved, and checkout no longer refuses a unit another tenant holds (axci never had either).
+- **Agreement sending combines both:** emman's agreed terms (`SendAgreementRequest`, deposit/advance overrides) + axci's lease templates and per-tenant wording (`lease_body`). `LeaseTerms::snapshot()` takes `body`, `template` and `overrides`. The terms checkbox is asked once per landlord (`LandlordTerms`) everywhere, including the Reservations modal.
+- **Kept from emman:** Tenants, Leases (contracts), Reservations pipeline pages and their row actions; web walk-in controller stays deleted (Add lease uses the template via `LeaseContractCreator`). Agreement page title stays "Rental Agreement"; the document says "agreement" (DESIGN.md §6t).
+- **From axci on those pages:** the bare filter-bar style (Tenants, Reservations) and a **Policies** sidebar link next to Leases.
+
+## Nov 1 2026 — Add lease modal redesigned (branch `emman`)
+`landlord/contracts/partials/_add-modal`. Same field names and controller; view only. **Not verified in a browser.**
+- Header and footer stay put; only the form scrolls (the Create button used to scroll off the bottom). Phones: bottom sheet, full-width buttons.
+- Desktop (`lg+`): 960px wide, two plain columns that fit without scrolling. No section headings, step numbers, dividers or helper paragraphs: labels and spacing carry the structure. Left: tenant, property + unit, dates, rent / due day / occupants. Right: additional terms, signed agreement, payment. `overflow-y-auto` stays only as a fallback for short windows. Phones and tablets: one scrolling column, same order.
+- Property and Unit are two dropdowns: Unit lists only that property's free units, is disabled until a property is picked, and auto-picks a property's only free unit. The form blocks submit with "Choose a unit." when none is picked. One muted line under them shows the unit's listed rent, deposit and occupancy limit.
+- Signed agreement is a two-option segmented toggle (Upload later / Upload now); Upload now adds a one-line file picker.
+- Move-in payment is one row, "Tenant already paid me" + a switch (a required notice instead once the move-in date has passed). The explanation and "Use ₱X (deposit + 1 month)" appear only once it is on.
+- The footer shows rent and lease length.
+
+## Nov 1 2026 — "Contract" renamed "Lease" in the UI (branch `emman`)
+Why: requested; "lease" is the word renters know. Same split as before (DESIGN.md §6t): **lease** = the arrangement, **rental agreement** = the paper. UI text only: routes, URLs (`/landlord/contracts`), classes, events and columns keep "contract".
+- Landlord: sidebar and page "Leases", Add / Create / Cancel / End / Renew lease, "Lease details", "Back to lease", the tenancy page's "Lease" heading and "Lease progress", Tenants page ("Have a lease", "No lease yet", the Leases section, delete warnings), Payments and Property empty states, Reservations links, the Rent rules hint.
+- Messages: "Lease added", "Lease renewed", the renewal notification ("Your lease was renewed"), the add/agreement validation errors, the tenant-delete errors, the `Reservation` hint "On the Leases page".
+- Public: About page, invite email and accept-invite page ("your lease and rent").
+- Tests updated: `ContractsPageTest`, `ContractRenewalTest`. **Not verified in a browser.** `TenantConcernsTest` has 3 failures (chat panel returns 500) that predate this change.
+
+## Nov 1 2026 — Agreement page redesign, layout 1 (branch `axci`)
+Chosen from five mockups. **Not verified in a browser yet.** Files: `resources/views/agreements/show.blade.php`, `leases/_document.blade.php`, `components/sticky-rail.blade.php`, `payment-route-choice`, `payment-agree`, `payment-safety-tips`.
+- **Header card** with the property, address, reference and a 4-step progress bar (Review lease, Sign, Pay, Move in). Labels collapse to the current step on phones.
+- **Key terms card** replaces the boxed summary: rent big with "due every Nth · deposit", a Starts / length / Ends row, the unit and address, then the parties under one hairline. No boxes inside the card.
+- **The lease** and **Signatures** are their own cards; the rail's At a glance card is now just the monthly rent and deposit line.
+- **Pay choices:** two cards (Pay online / Pay {landlord} directly) with QR and Cash inside "directly"; tick-box with route wording before every pay or report; safety tips collapsed; the right rail is a `<x-sticky-rail>` that pins only while it fits the window.
+- **Shorter lease on screen:** the eight standard clauses are collapsible rows (title and a one-line gist when closed, full text when open). The first clause starts open and an **Expand all / Collapse all** button sits in the card header. A closed `<details>` prints nothing, so `<x-lease-clause>` also renders a print-only plain copy: the printed lease always has every clause in full. Clause sentences are bullets on screen and one paragraph in print and on other pages, from one `items` list per clause (`<x-lease-clause :items>`), so the wording cannot drift. Fixed a numbering bug found in testing (the counter was bumped twice, giving 1, 3, 5). A landlord's own wording (one block) is not collapsed. Only the agreement page passes `$screenSummary`; the tenant rent page and landlord lease page still show plain clauses.
+- Print is unchanged: `_document` takes `$screenSummary`, which hides its parties and summary table on screen only. The landlord lease page and tenant tenancy page do not pass it.
+- Text sizes raised for readability (labels 14px, values 16.5-17px, lease text 15px).
+- Manual test: tenant at Signed, desktop and 375px: header and progress bar, key terms (dates row, parties), rail pins and unpins, Print / Save PDF still shows cover, parties and summary table once each.
+
+## Oct 31 2026 — axci merged; online (PayMongo) reservation payments work in the pipeline (branch `emman`)
+Plan: `plans/axci-merge-online-reservation-payments.md`. No migrations. **Not verified in a browser.**
+- **Merge of `origin/axci`:** phone layouts and "Remind overdue" on Payments come in; emman's Tenants, Contracts, Payments (ledger links) and Reservations win. The walk-in wizard and rate-tenant page stay deleted.
+- **One "settled" check** (`Reservation::moveInSettled()` / `scopeMoveInSettled()`): paid directly or paid online. Used by the stage tabs, the unit hold, `contractStatus()`, `requestStage()` ("Paid online"), `markOccupied()` and the move-in policies. Money an admin released before the keys were handed over can now be moved in (it used to be stuck).
+- **Paying online reserves the unit** (webhook and return-page poll call `holdUnit()`); both checkouts refuse a unit another tenant holds, before calling PayMongo.
+- **The checkout charges `moveInDue()`** (advance months + deposit), described with `moveInBreakdown()`. `RentLedger::platformInitialSplit()` splits the one escrow row on read: advance months, then the deposit ("Deposit held"). Old one-month rows read as before. Tenant text: the Pay box, and the inquiry summary on the listing and in chat.
+- **Contract modal:** an online-paid contract shows "₱X paid online · held by AbangananHub", Open ledger, Open chat and **Mark keys turned over** (then "Keys handed over … released automatically on …"). The dashboard's "Turn over the keys" task lists only reservations with money held.
+- Tests: `OnlineReservationPipelineTest` (10), `RentLedgerInitialTest` (+2), `TenantCheckoutTest` amounts updated. The direct-pay suites are unchanged and green.
 
 ## Nov 2 2026 — Reservations: no second list of moved-in tenants, new Details popup (branch `feat/reservations-cleanup`)
 Suite: 1109 passed. **Checked in a browser at desktop; not on a phone.**
@@ -89,6 +294,42 @@ Chosen from five mockups. **Not verified in a browser yet.** Files: `resources/v
 - Text sizes raised for readability (labels 14px, values 16.5-17px, lease text 15px).
 - Manual test: tenant at Signed, desktop and 375px: header and progress bar, key terms (dates row, parties), rail pins and unpins, Print / Save PDF still shows cover, parties and summary table once each.
 
+## Oct 31 2026 — Lease documents in the contract modal; "View contract" removed from it (branch `emman`)
+- **The contract modal has a Documents section:** lease status (Lease missing / Signed copy uploaded / Signed online), View & print lease (the printable page, new tab), Open signed copy, and Upload / Replace signed copy. The "Signed lease: On file" row and the **View contract** button are gone from the modal; the full contract page is still reached from End contract and the ledger's View contract.
+- `LeaseController::upload` takes `from=contracts`: success and validation errors both return to `contracts.index?open={id}` (error through the flash modal), because the modal body is fetched after the page loads and session field errors would be lost. Without it, the contract page's own upload works as before.
+- Tests: 4 in `ContractsPageTest`; `PaymentsLedgerSplitTest` now asserts the modal has no View contract. **Not verified in a browser.**
+
+## Oct 31 2026 — Payments is money only; each tenancy's ledger moved under Payments (branch `emman`)
+Plan: `plans/payments-ledger-split.md`. No migrations. **Not verified in a browser** (both pages at 375px and desktop).
+- **Sidebar "Rent & Payments" → "Payments".** New page `/landlord/payments/ledger/{reservation}` (`landlord.payments.ledger`, `Landlord\LedgerController`), lit under Payments: header with Record payment, Remind tenant (the reminder had no web button left after the Tenants rework) and View contract; then the money sections moved unchanged from the tenancy page (tiles, rent calendar, payment reports, ledger with late-fee waive, transactions, voided, deposit charges). The four money modals moved to `landlord/payments/partials/`.
+- **The tenancy page is now the contract page** (`landlord/tenancies/show`, same URL, lit under Contracts): tenant, lease document, tenant details, unit, End tenancy / Confirm move-in, and a balance strip with Open ledger. `TenancyController::show` loads only what that needs.
+- **Links:** the contract modal offers View contract and Open ledger. Money links go to the ledger: the Payments list and calendar, receipt "Back to ledger", dashboard overdue items and recent payments, rent-reminder notifications, walk-in payment-report notifications, admin deposit-charge reversal notices. Money actions still post to their old routes and return to the page they came from.
+- Tests: `PaymentsLedgerSplitTest` (5); `DirectPaymentPagesTest` and `LateFeeWaiverTest` now read the ledger page. DESIGN.md §6r.
+
+## Oct 31 2026 — Contract renewal with a new rent from a chosen month, phase 4 (branch `emman`)
+Plan: `plans/landlord-tenants-contracts-direct-payments.md`. No migrations (`lease_renewals` came in phase 1). **Not verified in a browser** (the Renew form in the contract view).
+- **Renew** in the contract view, offered on an Occupied contract within `rentals.renewal_window_days` (60) of its end or past it: new end date (must be later than the current one), monthly rent, and the month the new rent starts (this month or later, never past). `ContractController::renew` locks the row, writes `lease_renewals`, moves `target_move_out_date`, audit-logs `contract.renew`, and notifies a tenant who has a login. Errors come back through the flash modal with the contract reopened (`RenewContractRequest::failedValidation`), because the form lives in a modal fetched after the page loads.
+- **Rent is per billing month now.** `Reservation::rentFor($month)` = the newest renewal whose rent has started, else the agreed rent; `currentRent()` = this month's. `RentLedger::periods()` bills each month at its own rent (late fees follow), the summary and pay-ahead use it, `RentPaymentAllocator` takes a per-month rent for months the ledger has no row for, and the payments calendar uses it. `monthlyRent()` stays the original agreed rent, so the frozen lease and move-in money are unchanged.
+- Tests: `ContractRenewalTest` (8).
+
+## Oct 31 2026 — Tenants page rebuilt on the tenant list, email invites, walk-in wizard retired, phase 3 (branch `emman`)
+Plan: `plans/landlord-tenants-contracts-direct-payments.md`. No migrations. **Not verified in a browser** (Tenants list at 375px and desktop, Add/Edit/View modals, the invite email in Mailtrap, the accept-invite page).
+- **`/landlord/tenants` lists the landlord's tenant list, not reservation rows.** Columns: Tenant ID, name, contact, current unit, status (Pending / Active / Former, derived). Icons: View (modal fetched from `tenants.show`, emergency contact and masked ID, contract history, Resend invite, Add contract with the tenant preselected), Edit (only tenants added by hand who have not accepted an invite, `LandlordTenantPolicy::update`), Message (the tenancy chat; disabled with the reason for walk-ins and tenants not moved in), Delete. Filters: search (name, email, Tenant ID), property, status. Export is now the list (Tenant ID, status, contact, current unit).
+- **Add Tenant** (`TenantRequest`): name, email, mobile (required without email), emergency contact and ID (optional). Creates the same placeholder account walk-ins always had (inactive, `is_walk_in`, unknowable password). An email that already has an AbangananHub account is refused: they book online, so a landlord can never attach someone else's account to their list.
+- **Invites.** With an email, the tenant gets "Set my password" (`TenantInviteMail`, broker `passwords.invites`, 7 days, same token table). Accepting (`/invite/{token}`, `TenantInviteController`) sets the password, `is_walk_in = false`, `account_status = active`, verifies the email and logs them in; from then on the normal tenant paths apply (tenancy chat, payment reports, reminders). Changing a pending tenant's email sends a new invite.
+- **Delete** is refused while anything is in progress with that tenant (inquiry through Occupied). A tenant added by hand with no reservations at all is deleted; anyone else is archived (`archived_at`), because deleting the account would cascade away payments (RULES.md).
+- **Walk-in wizard retired:** web `WalkInTenantController` and `landlord/tenants/walk-in/create.blade.php` removed; `/landlord/tenants/walk-in/create` redirects to Add contract. The property menu and the empty Rent & Payments page link to Add contract; the tenancy page breadcrumb reads Contracts. The mobile walk-in endpoint is unchanged.
+- Tests: `TenantsPageTest` (11); `LeaseTest` and `TenantDetailsTest` moved off the walk-in route onto Add contract / Add Tenant. Suite: 642 passed, 3 failed (the `intl` extension, see the entry below).
+
+## Oct 31 2026 — Tenant list (Tenant IDs) and the Contracts page, phases 1–2 (branch `emman`)
+Plan: `plans/landlord-tenants-contracts-direct-payments.md`. One migration (`2026_10_30_000000`), rollback tested on `abanganan_hub_test`. **Not verified in a browser** (Contracts list at 375px and desktop, Add contract modal, view modal). PayMongo is untouched: it stays behind the admin switch, off (decided Oct 30; deleting it waits until after the demo).
+- **`landlord_tenants`**: each landlord's own tenant list with a per-landlord Tenant ID (`TN-0001`). Status is derived, never stored (`LandlordTenant::statusFrom()`: Active = Signed / Reserved / Occupied, Former = only Completed, else Pending). Backfilled from walk-ins and anyone who reached a signed lease; `ReservationObserver` adds new ones. `ensureFor()` numbers under a lock with the unique index as the guard.
+- **`lease_renewals`** table created for phase 4 (no UI yet).
+- **The unit is held once move-in money is settled.** Confirming a move-in report or recording move-in money (`PaymentClaims`) now sets the unit to Reserved, and refuses when another tenant already holds it. `Reservation::scopeHoldingUnit()` defines "holds" (Reserved, Occupied, or Signed with `move_in_paid_at`); `releaseUnitIfUnclaimed()` uses it, so cancelling an inquiry no longer keeps a unit off the market just because another plain inquiry exists, and never frees a unit held for someone else.
+- **Contracts page** (`/landlord/contracts`, new sidebar item; the per-tenancy page now lights Contracts, not Tenants). Every lease from Signed on, online and walk-in, grouped by property; cards below `lg`, table above. Status pills from `Reservation::contractStatus()` (Awaiting payment, Awaiting move-in, Active, Ends in N days within `rentals.renewal_window_days` = 60, Past end date, Ended). View modal fetched from `contracts.show` (emergency contact only via `viewTenantDetails`), with Confirm move-in / Cancel / Open ledger / End contract. **Add contract** picks a tenant from the list and a free unit; `StoreContractRequest` extends the walk-in rules and requires an end date.
+- **`LeaseContractCreator`**: the walk-in creation logic moved out of `WalkInTenantController` (web) so Add contract, the walk-in form and the mobile walk-in endpoint share it. The mobile endpoint now also freezes a lease snapshot, which it never did. Added contracts can carry extra lease terms (`agreement_terms_notes`).
+- Tests: `LandlordTenantRosterTest` (7), `ContractsPageTest` (8). Suite: 3 failures, all `TenantConcernsTest`, caused by the local PHP missing the `intl` extension (`Number::ordinal` in `tenancy-panel`), not by this change.
+- **Dev setup after pulling `main`:** run `php artisan migrate` (dev and `abanganan_hub_test`) and `npm install` (`jsqr` is new).
 ## Oct 31 2026 — Direct payments: scam protection (branch `axci`)
 Plan: `plans/direct-payment-scam-protection.md` (has the numbered browser test guide). Direct payments (QR, cash) can't be made scam-proof since AbangananHub never holds the money; this leaves a record on both sides and a route to an admin.
 - **Cash can be reported.** The cash panel has **I've handed over the cash** (amount, date, note, no reference). Same claim flow: `PaymentClaim::METHODS` gains `Cash`, `reference_no` is nullable, the landlord sees "handed you ₱X in cash" and confirms or rejects (`_claim-review`). Web only.

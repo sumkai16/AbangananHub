@@ -68,13 +68,16 @@ class LeaseController extends Controller
                 $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();
                 $old = $locked->lease_file_path;
 
+                // Freeze what was printed and signed: an unsigned paper lease has been following the current
+                // policy (LeaseTerms::followsPolicy), so its terms are taken now, before the upload ends that.
+                // A tenancy issued before snapshots existed gets one now too.
+                $terms = $locked->lease_snapshot ? LeaseTerms::for($locked) : LeaseTerms::snapshot($locked);
+
                 $locked->update([
                     'lease_file_path'   => $path,
                     'lease_file_name'   => $file->getClientOriginalName(),
                     'lease_uploaded_at' => now(),
-                    // A tenancy issued before snapshots existed gets one now,
-                    // so the printable lease matches what was just attached.
-                    'lease_snapshot'    => $locked->lease_snapshot ?: LeaseTerms::snapshot($locked),
+                    'lease_snapshot'    => $terms,
                 ]);
 
                 return $old;

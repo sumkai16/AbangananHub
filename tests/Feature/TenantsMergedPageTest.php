@@ -176,7 +176,7 @@ class TenantsMergedPageTest extends TestCase
         $row = $this->tenantWith($landlord, null);
 
         $this->actingAs($landlord)->get(route('landlord.tenants.show', $row))
-            ->assertOk()->assertSee('No contracts yet')->assertSee('Add contract')
+            ->assertOk()->assertSee('No leases yet')->assertSee('Add lease')
             ->assertSee(route('landlord.tenants.index', ['new' => 1, 'tenant' => $row->landlord_tenant_id]));
     }
 

@@ -9,6 +9,7 @@ use App\Models\PaymentClaim;
 use App\Models\Report;
 use App\Models\Reservation;
 use App\Models\User;
+use App\Support\PaymentMethods;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -69,6 +70,13 @@ class PaymentClaims
 
             if (self::hasPending($locked, $type, $billingPeriod)) {
                 self::fail('You already reported this payment. Wait for your landlord to confirm it, or withdraw it first.');
+            }
+
+            // The landlord chose which ways they take (Settings > Payments); a report for one they turned off is refused.
+            if (! PaymentMethods::allowsClaim($locked, $data['payment_method'])) {
+                self::fail($data['payment_method'] === 'Cash'
+                    ? 'Your landlord does not take cash. Choose another way to pay.'
+                    : 'Your landlord does not take payments to their own QR. Choose another way to pay.');
             }
 
             $isCash = $data['payment_method'] === 'Cash';
@@ -446,7 +454,8 @@ class PaymentClaims
             ->exists();
     }
 
-    private static function decisionLink(Reservation $locked): string
+    /** Where the landlord answers a report: the chat when there is one, else the rent ledger. */
+    public static function decisionLink(Reservation $locked): string
     {
         return $locked->conversation_id
             ? route('conversations.index', ['active' => $locked->conversation_id])

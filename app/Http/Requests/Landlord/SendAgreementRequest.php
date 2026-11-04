@@ -55,7 +55,7 @@ class SendAgreementRequest extends FormRequest
             $moveOut = $this->input('target_move_out_date');
 
             if ($moveIn && $moveOut && Carbon::parse($moveOut)->lt(Carbon::parse($moveIn)->addMonthNoOverflow())) {
-                $v->errors()->add('target_move_out_date', 'The contract runs at least a month. Pick a move-out date on or after '
+                $v->errors()->add('target_move_out_date', 'The lease runs at least a month. Pick a move-out date on or after '
                     .Carbon::parse($moveIn)->addMonthNoOverflow()->format('M j, Y').'.');
             }
 

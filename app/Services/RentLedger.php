@@ -239,18 +239,7 @@ class RentLedger
         // An online checkout's deposit share counts as a deposit, the same as a direct move-in's Deposit row.
         $platformDeposit = $this->platformInitialDeposit();
         $otherCollected = (float) $this->otherCharges()->sum(fn (Payment $p) => (float) $p->amount) + $platformDeposit;
-        // The security deposit on its own: it is held, not earned, and is
-        // returned at move-out, so it must not read as rent income.
-        $depositCollected = (float) $this->otherCharges()
-            ->where('payment_type', 'Deposit')
-            ->sum(fn (Payment $p) => (float) $p->amount) + $platformDeposit;
-
-        // Claims a landlord has made against the held deposit (damage,
-        // cleaning, etc.) — a voided charge no longer counts against it.
-        $depositCharged = (float) $this->depositCharges
-            ->reject(fn (DepositCharge $c) => $c->isVoided())
-            ->sum(fn (DepositCharge $c) => (float) $c->amount);
-        $depositRemaining = max(0, $depositCollected - $depositCharged);
+        ['collected' => $depositCollected, 'charged' => $depositCharged, 'remaining' => $depositRemaining] = $this->deposit();
 
         // The current calendar month's own row, if this tenancy is billed at
         // all this month — absent for a tenancy that starts later or already
@@ -554,6 +543,30 @@ class RentLedger
         }
 
         return $this->initialSplits[$key] = ['months' => $months, 'deposit' => $deposit];
+    }
+
+    /**
+     * The security deposit on its own, without building the rent periods. It is held, not earned, and
+     * returned at move-out, so it must not read as rent income. `charged` is what the landlord kept
+     * against it (damage, cleaning, etc.); a voided charge no longer counts.
+     *
+     * @return array{collected: float, charged: float, remaining: float}
+     */
+    public function deposit(): array
+    {
+        $collected = (float) $this->otherCharges()
+            ->where('payment_type', 'Deposit')
+            ->sum(fn (Payment $p) => (float) $p->amount) + $this->platformInitialDeposit();
+
+        $charged = (float) $this->depositCharges
+            ->reject(fn (DepositCharge $c) => $c->isVoided())
+            ->sum(fn (DepositCharge $c) => (float) $c->amount);
+
+        return [
+            'collected' => $collected,
+            'charged'   => $charged,
+            'remaining' => max(0, $collected - $charged),
+        ];
     }
 
     /** The deposit part of every settled platform Initial payment. */

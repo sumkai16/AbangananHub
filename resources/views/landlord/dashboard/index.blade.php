@@ -155,6 +155,52 @@
             @endif
         </div>
 
+        {{-- 2b. Needs your attention: overdue rent, key handovers, inquiries, unread messages. Full width, right under the numbers. --}}
+        <div class="mb-8">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="font-sans text-[17px] font-semibold text-[#060D26]">Needs your attention</h2>
+                @if($actionQueue->isNotEmpty())
+                    <span class="text-[12.5px] text-[#5B6A8E]">{{ $actionQueue->count() + $actionQueueOverflow }} open</span>
+                @endif
+            </div>
+
+            @if($actionQueue->isEmpty())
+                <x-card class="flex items-center gap-3 !py-4" role="status">
+                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#22C55E]/10">
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#15803D" stroke-width="2.5" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                        </svg>
+                    </span>
+                    <p class="text-[13.5px] text-[#5B6A8E]"><span class="font-semibold text-[#060D26]">You're all caught up.</span> No overdue rent, key handovers, inquiries or unread messages.</p>
+                </x-card>
+            @else
+                <x-card flush>
+                    <ul class="divide-y divide-[#5B6A8E]/10">
+                        @foreach($actionQueue as $item)
+                            <li>
+                                <a href="{{ $item['url'] }}" title="{{ $item['cta'] }}"
+                                    class="group flex items-center gap-3 px-4 py-3.5 hover:bg-[#F7F8FC] active:bg-[#ECEEF6] transition-colors duration-200">
+                                    <span class="w-2 h-2 rounded-full shrink-0 {{ $item['level'] === 'danger' ? 'bg-[#EF4444]' : 'bg-[#FBBF24]' }}"></span>
+                                    <span class="sr-only">{{ $item['level'] === 'danger' ? 'Urgent:' : 'Needs action:' }}</span>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-[14px] font-semibold text-[#060D26] truncate">{{ $item['title'] }}</p>
+                                        <p class="text-[12.5px] text-[#5B6A8E] truncate mt-0.5">{{ $item['meta'] }}</p>
+                                    </div>
+                                    <svg class="shrink-0 text-[#B35A3D] group-hover:text-[#060D26] transition-colors duration-200" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                                    </svg>
+                                    <span class="sr-only">{{ $item['cta'] }}</span>
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                    @if($actionQueueOverflow > 0)
+                        <p class="border-t border-[#5B6A8E]/10 px-5 py-3 text-center text-[12.5px] text-[#5B6A8E]">and {{ $actionQueueOverflow }} more</p>
+                    @endif
+                </x-card>
+            @endif
+        </div>
+
         {{-- 3. Your properties — a photo row: the emptiest listings first, since those are the ones worth a look. --}}
         <div class="mb-8">
             <div class="flex items-center justify-between mb-3">
@@ -245,55 +291,12 @@
             @endif
         </div>
 
-        {{-- 4. Needs your attention · Recent activity, side by side. With nothing to do, the left column is a calm
-             "all caught up" card instead of an empty list. --}}
+        {{-- 4. Viewings · Recent activity, side by side.
+             --}}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
 
-            {{-- Needs your attention --}}
-            <div>
-                <div class="flex items-center justify-between mb-3">
-                    <h2 class="font-sans text-[17px] font-semibold text-[#060D26]">Needs your attention</h2>
-                    @if($actionQueue->isNotEmpty())
-                        <span class="text-[12.5px] text-[#5B6A8E]">{{ $actionQueue->count() + $actionQueueOverflow }} open</span>
-                    @endif
-                </div>
-
-                @if($actionQueue->isEmpty())
-                    <x-card class="flex items-center gap-3 !py-4" role="status">
-                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#22C55E]/10">
-                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#15803D" stroke-width="2.5" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                            </svg>
-                        </span>
-                        <p class="text-[13.5px] text-[#5B6A8E]"><span class="font-semibold text-[#060D26]">You're all caught up.</span> No overdue rent, key handovers, inquiries or unread messages.</p>
-                    </x-card>
-                @else
-                    <x-card flush>
-                        <ul class="divide-y divide-[#5B6A8E]/10">
-                            @foreach($actionQueue as $item)
-                                <li>
-                                    <a href="{{ $item['url'] }}" title="{{ $item['cta'] }}"
-                                        class="group flex items-center gap-3 px-4 py-3.5 hover:bg-[#F7F8FC] active:bg-[#ECEEF6] transition-colors duration-200">
-                                        <span class="w-2 h-2 rounded-full shrink-0 {{ $item['level'] === 'danger' ? 'bg-[#EF4444]' : 'bg-[#FBBF24]' }}"></span>
-                                        <span class="sr-only">{{ $item['level'] === 'danger' ? 'Urgent:' : 'Needs action:' }}</span>
-                                        <div class="min-w-0 flex-1">
-                                            <p class="text-[14px] font-semibold text-[#060D26] truncate">{{ $item['title'] }}</p>
-                                            <p class="text-[12.5px] text-[#5B6A8E] truncate mt-0.5">{{ $item['meta'] }}</p>
-                                        </div>
-                                        <svg class="shrink-0 text-[#B35A3D] group-hover:text-[#060D26] transition-colors duration-200" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                                        </svg>
-                                        <span class="sr-only">{{ $item['cta'] }}</span>
-                                    </a>
-                                </li>
-                            @endforeach
-                        </ul>
-                        @if($actionQueueOverflow > 0)
-                            <p class="border-t border-[#5B6A8E]/10 px-5 py-3 text-center text-[12.5px] text-[#5B6A8E]">and {{ $actionQueueOverflow }} more</p>
-                        @endif
-                    </x-card>
-                @endif
-            </div>
+            {{-- Viewings (replaces the old "Needs your attention" list) --}}
+            @include('landlord.dashboard._viewings')
 
             {{-- Recent activity --}}
             <div>

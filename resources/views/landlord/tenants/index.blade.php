@@ -272,6 +272,7 @@
                 <div class="mt-4">{{ $rows->links() }}</div>
             @endif
         @endif
+        </div>
 
         @include('landlord.contracts.partials._view-modal', ['event' => 'open-contract', 'label' => 'Tenant and contract details'])
         @include('landlord.contracts.partials._add-modal')

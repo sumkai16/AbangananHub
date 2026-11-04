@@ -76,7 +76,11 @@ class LeaseTest extends TestCase
     public function test_sending_the_agreement_freezes_the_lease(): void
     {
         $property = $this->unit->property;
-        $property->update(['house_rules' => ['No Smoking']]);
+        // House rules on the lease come from the property's policy (Policies page).
+        $policy = new \App\Models\LeaseTemplate(['name' => 'House policy', 'house_rule_sections' => [['title' => 'Rules', 'rules' => ['No Smoking']]]]);
+        $policy->landlord_id = $property->landlord_id;
+        $policy->save();
+        $property->forceFill(['lease_template_id' => $policy->lease_template_id])->save();
         $reservation = $this->negotiatingReservation();
 
         $this->actingAs($this->landlord)->patch(route('landlord.reservations.advanceAgreement', $reservation), [

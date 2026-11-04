@@ -46,6 +46,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->validateCsrfTokens(except: [
             'webhooks/paymongo',
+            // The browser posts CSP reports without a CSRF token.
+            'csp-report',
         ]);
 
         // Behind a tunnel or a reverse proxy the browser speaks https to the proxy and the proxy speaks http to

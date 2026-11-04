@@ -264,6 +264,14 @@ set a grace period to `-5` or `banana` and cannot introduce a key the app doesn'
 Changes write a `settings.update` audit row with before/after per changed key — the dependency that
 made the audit trail the correct first build.
 
+### Browser Security Headers (Nov 2 2026)
+`App\Http\Middleware\SecurityHeaders` (web group) sends Content-Security-Policy, Permissions-Policy (camera and location for this site only), Referrer-Policy, and HSTS on https requests. The policy text is `App\Support\ContentSecurityPolicy`; the mode is `CSP_MODE` (`off` | `report-only` | `enforce`, config `security.csp_mode`). X-Frame-Options and nosniff come from nginx, not the app, so they are not sent twice.
+- **Report-only first.** Violations are posted to `POST /csp-report` (`CspReportController`, public, throttled 30/min, CSRF-exempt) and written to `laravel.log` as `CSP violation`. Go live in this order: report-only, click through the pages, read the log, fix the policy, then `CSP_MODE=enforce`.
+- **What it does not do:** stop an injected inline script. The app uses inline `<script>`, inline `on*` handlers and Alpine (which evaluates expressions), so `script-src` carries `'unsafe-inline' 'unsafe-eval'`. Fixing that means moving scripts to files and Alpine's CSP build with nonces. Until then, output escaping is the script defence; the CSP covers framing, plugins, `<base>`, form targets and outbound origins.
+- **Checked (dev, headless Edge, report-only):** 8 public pages and 28 logged-in landlord, tenant and admin pages, 0 violations. **Not covered:** the camera capture screens, property wizard, map picker clicks, modals opened by interaction, and the PayMongo and Google/Facebook redirects (`form-action` allows their hosts). Do those by hand before enforcing.
+- **Chat websocket:** the Echo client's scheme is fixed at build time and can differ from `.env` (a bundle built for `wss` with `REVERB_SCHEME=http` happened locally), so `connect-src` allows `ws` and `wss` for the one Reverb host.
+- HSTS is 6 months, no `includeSubDomains`, no `preload`. It needs `TRUSTED_PROXIES` behind nginx so the app sees https.
+
 ## 6. Key Decisions Log
 
 | Decision | Reason | Date |

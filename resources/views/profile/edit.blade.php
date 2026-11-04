@@ -7,6 +7,9 @@
 @section('content')
 
     @php
+        // Landlords keep only their private account here. Their public face is the business page, edited on My Profile;
+        // Payments holds the payment methods and the GCash payout form (shared with Payments > Payouts). Bio, profile strength and the trust tip are about a tenant's own profile.
+        $isLandlord = $user->usesLandlordShell();
         $role = $user->hasRole('Landlord') ? 'Landlord' : ($user->hasRole('Tenant') ? 'Tenant' : ($user->hasRole('Admin') ? 'Admin' : 'Member'));
 
         // Profile strength: four things a person can actually fill in, 25% each. Email is not
@@ -24,7 +27,9 @@
 
     <div class="{{ auth()->user()->shellContainerClass(auth()->user()->hasRole('Admin')) }} mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-10 min-h-[calc(100vh-72px)]">
 
-        {{-- Back to profile --}}
+        {{-- Back to profile: tenants reach Settings from their profile page. A landlord has Settings as its own
+             sidebar item next to My Profile, so there is nothing to go back to. --}}
+        @unless($isLandlord)
         <a href="{{ route('profile.show') }}"
             class="inline-flex items-center gap-1.5 text-sm font-semibold text-[#060D26] hover:brightness-90 transition-all mb-3 sm:mb-5">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -32,6 +37,7 @@
             </svg>
             Back to Profile
         </a>
+        @endunless
 
         {{-- ID-card hero --}}
         <div class="relative overflow-hidden rounded-2xl sm:rounded-[28px] bg-[#060D26] p-4 sm:p-8 mb-4 sm:mb-8 shadow-[0_12px_36px_rgba(21,111,140,0.28)]"
@@ -97,6 +103,7 @@
                 </div>
 
                 {{-- Profile strength meter --}}
+                @unless($isLandlord)
                 <div class="w-full md:w-[190px] flex-shrink-0 bg-white/10 rounded-xl sm:rounded-2xl p-3 sm:p-4 backdrop-blur-sm">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-[10px] font-bold uppercase tracking-widest text-white/70">Profile strength</span>
@@ -113,107 +120,20 @@
                         @endif
                     </p>
                 </div>
+                @endunless
             </div>
         </div>
 
         <div class="grid grid-cols-1 gap-4 sm:gap-8 lg:grid-cols-[210px_1fr]">
 
-            {{-- Sidebar rail --}}
-            <aside class="lg:sticky lg:top-24 h-fit flex flex-col gap-4">
-                <div class="bg-white rounded-2xl ring-1 ring-[#5B6A8E]/10 shadow-[0_2px_12px_rgba(6,13,38,0.05)] p-2 relative max-lg:overflow-x-auto max-lg:[scrollbar-width:none]">
-                    <div id="nav-indicator"
-                        class="max-lg:hidden absolute left-2 right-2 rounded-xl bg-[#ECEEF6] transition-all duration-300 ease-out pointer-events-none"
-                        style="top: 8px; height: 58px;"></div>
-                    <nav class="relative flex flex-col max-lg:flex-row gap-0.5">
-                        <a href="#personal-info"
-                            class="sidebar-link relative z-10 group flex items-start max-lg:items-center max-lg:shrink-0 max-lg:whitespace-nowrap max-lg:[&.font-semibold]:bg-[#ECEEF6] gap-2.5 rounded-xl px-3 py-2.5 max-lg:py-2 transition-colors hover:text-[#060D26]"
-                            data-section="personal-info">
-                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
-                                class="shrink-0 mt-0.5 opacity-60 group-hover:opacity-100">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                            <span>
-                                <span class="block text-sm font-medium leading-tight">Personal info</span>
-                                <span class="block max-lg:hidden text-[11px] opacity-60 leading-tight mt-0.5">Name, contact, bio</span>
-                            </span>
-                        </a>
-                        <a href="#security"
-                            class="sidebar-link relative z-10 group flex items-start max-lg:items-center max-lg:shrink-0 max-lg:whitespace-nowrap max-lg:[&.font-semibold]:bg-[#ECEEF6] gap-2.5 rounded-xl px-3 py-2.5 max-lg:py-2 transition-colors hover:text-[#060D26]"
-                            data-section="security">
-                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
-                                class="shrink-0 mt-0.5 opacity-60 group-hover:opacity-100">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                            </svg>
-                            <span>
-                                <span class="block text-sm font-medium leading-tight">Password</span>
-                                <span class="block max-lg:hidden text-[11px] opacity-60 leading-tight mt-0.5">Login &amp; security</span>
-                            </span>
-                        </a>
-                        @if($user->usesLandlordShell())
-                            @if($user->showsPayoutTools())
-                            <a href="#payout"
-                                class="sidebar-link relative z-10 group flex items-start max-lg:items-center max-lg:shrink-0 max-lg:whitespace-nowrap max-lg:[&.font-semibold]:bg-[#ECEEF6] gap-2.5 rounded-xl px-3 py-2.5 max-lg:py-2 transition-colors hover:text-[#060D26]"
-                                data-section="payout">
-                                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
-                                    class="shrink-0 mt-0.5 opacity-60 group-hover:opacity-100">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
-                                </svg>
-                                <span>
-                                    <span class="block text-sm font-medium leading-tight">Payout details</span>
-                                    <span class="block max-lg:hidden text-[11px] opacity-60 leading-tight mt-0.5">GCash for payouts</span>
-                                </span>
-                            </a>
-                            @endif
-                            <a href="#business"
-                                class="sidebar-link relative z-10 group flex items-start max-lg:items-center max-lg:shrink-0 max-lg:whitespace-nowrap max-lg:[&.font-semibold]:bg-[#ECEEF6] gap-2.5 rounded-xl px-3 py-2.5 max-lg:py-2 transition-colors hover:text-[#060D26]"
-                                data-section="business">
-                                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
-                                    class="shrink-0 mt-0.5 opacity-60 group-hover:opacity-100">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" />
-                                </svg>
-                                <span>
-                                    <span class="block text-sm font-medium leading-tight">Business</span>
-                                    <span class="block max-lg:hidden text-[11px] opacity-60 leading-tight mt-0.5">Public business page</span>
-                                </span>
-                            </a>
-                        @endif
-                        @if($user->hasRole('Tenant'))
-                            <a href="#emergency-contact"
-                                class="sidebar-link relative z-10 group flex items-start max-lg:items-center max-lg:shrink-0 max-lg:whitespace-nowrap max-lg:[&.font-semibold]:bg-[#ECEEF6] gap-2.5 rounded-xl px-3 py-2.5 max-lg:py-2 transition-colors hover:text-[#060D26]"
-                                data-section="emergency-contact">
-                                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
-                                    class="shrink-0 mt-0.5 opacity-60 group-hover:opacity-100">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
-                                </svg>
-                                <span>
-                                    <span class="block text-sm font-medium leading-tight">Emergency contact</span>
-                                    <span class="block max-lg:hidden text-[11px] opacity-60 leading-tight mt-0.5">Contact &amp; ID on file</span>
-                                </span>
-                            </a>
-                        @endif
-                        <a href="#danger-zone"
-                            class="sidebar-link relative z-10 group flex items-start max-lg:items-center max-lg:shrink-0 max-lg:whitespace-nowrap max-lg:[&.font-semibold]:bg-[#ECEEF6] gap-2.5 rounded-xl px-3 py-2.5 max-lg:py-2 transition-colors hover:text-[#DC2626]"
-                            data-section="danger-zone">
-                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
-                                class="shrink-0 mt-0.5 opacity-60 group-hover:opacity-100">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                            <span>
-                                <span class="block text-sm font-medium leading-tight">Danger zone</span>
-                                <span class="block max-lg:hidden text-[11px] opacity-60 leading-tight mt-0.5">Delete account</span>
-                            </span>
-                        </a>
-                    </nav>
-                </div>
-
+            {{-- Side column (desktop only): account facts. The collapsible panels are the section menu, so there is no
+                 separate list of section links any more. --}}
+            <aside class="max-lg:hidden lg:sticky lg:top-24 h-fit flex flex-col gap-4">
                 {{-- Account overview --}}
                 <div class="max-lg:hidden bg-white rounded-2xl ring-1 ring-[#5B6A8E]/10 shadow-[0_2px_12px_rgba(6,13,38,0.05)] p-5">
                     <h3 class="text-[11px] font-normal uppercase tracking-widest text-[#5B6A8E] mb-3.5">Account overview</h3>
                     <dl class="flex flex-col gap-3.5">
+                        @unless($isLandlord)
                         <div class="flex items-center gap-2.5">
                             <div class="w-7 h-7 rounded-lg bg-[#ECEEF6] flex items-center justify-center shrink-0">
                                 @if($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && $user->hasVerifiedEmail())
@@ -233,6 +153,7 @@
                                 </dd>
                             </div>
                         </div>
+                        @endunless
                         <div class="flex items-center gap-2.5">
                             <div class="w-7 h-7 rounded-lg bg-[#ECEEF6] flex items-center justify-center shrink-0">
                                 <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2.5">
@@ -259,6 +180,7 @@
                 </div>
 
                 {{-- Trust tip --}}
+                @unless($isLandlord)
                 <div class="max-lg:hidden rounded-2xl bg-[#ECEEF6] p-5">
                     <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center mb-3 shadow-sm">
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.8">
@@ -270,26 +192,74 @@
                         Landlords and tenants are more likely to respond to accounts with a photo, bio, and verified email.
                     </p>
                 </div>
+                @endunless
             </aside>
 
             {{-- Main content --}}
-            <div class="flex flex-col gap-4 sm:gap-6">
-                <div id="personal-info" class="scroll-mt-28" data-animate>
-                    @include('profile.partials.update-profile-information-form')
+            {{-- Each section is a collapsible panel (x-settings-panel): closed, the page is a short list with a one-line
+                 summary per section; tapping a header (or its rail link) opens the form. A section whose form came back
+                 with errors opens on its own, and a redirect to #payments opens Payments. --}}
+            @php
+                $icon = fn (string $d, string $stroke = '#060D26') => '<svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="'.$stroke.'" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="'.$d.'" /></svg>';
+                $personalSummary = trim($user->first_name.' '.$user->last_name).' · '.$user->email;
+                if ($isLandlord) {
+                    $ways = array_keys(array_filter([
+                        'Online' => \App\Support\Payments::online() && $user->acceptsOnlinePayments(),
+                        'QR' => $user->accepts_qr_payments ?? true,
+                        'Cash' => $user->accepts_cash_payments ?? true,
+                    ]));
+                    $waysText = $ways ? implode(', ', $ways) : 'None';
+                    $gcashText = $user->showsPayoutTools()
+                        ? ($user->hasPayoutDestination() ? 'GCash ••••'.substr((string) $user->payoutAccount->gcash_number, -4) : 'No GCash yet')
+                        : null;
+                    $paymentsSummary = $waysText.($gcashText ? ' · '.$gcashText : '');
+                }
+                $detail = $user->hasRole('Tenant') ? $user->tenantDetail : null;
+            @endphp
+            <div class="flex flex-col gap-3 sm:gap-4">
+                <div data-animate>
+                    <x-settings-panel id="personal-info" title="Personal info" :subtitle="$personalSummary"
+                        :open="$errors->hasAny(['first_name', 'last_name', 'email', 'contact_number', 'bio', 'profile_visibility'])">
+                        <x-slot:icon>{!! $icon('M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z') !!}</x-slot:icon>
+                        @include('profile.partials.update-profile-information-form', ['inPanel' => true])
+                    </x-settings-panel>
                 </div>
-                <div id="security" class="scroll-mt-28" data-animate>
-                    @include('profile.partials.update-password-form')
-                </div>
-                @if($user->usesLandlordShell())
-                    @include('profile.partials.update-landlord-business-form')
-                @endif
-                @if($user->hasRole('Tenant'))
-                    <div id="emergency-contact" class="scroll-mt-28" data-animate>
-                        @include('profile.partials.update-tenant-details-form')
+                @if($isLandlord)
+                    {{-- How tenants can pay, then where online money is paid out (the same GCash form as Payments > Payouts). --}}
+                    <div data-animate>
+                        <x-settings-panel id="payments" title="Payments" :subtitle="$paymentsSummary"
+                            :open="$errors->hasAny(['payment_methods', 'accepts_online', 'accepts_qr', 'accepts_cash', 'gcash_number', 'gcash_account_name', 'current_password'])">
+                            <x-slot:icon>{!! $icon('M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z') !!}</x-slot:icon>
+                            @include('profile.partials.landlord-payment-methods', ['inPanel' => true])
+                            @if($user->showsPayoutTools())
+                                @include('landlord.payouts.partials._account', ['returnTo' => 'settings'])
+                            @endif
+                        </x-settings-panel>
                     </div>
                 @endif
-                <div id="danger-zone" class="scroll-mt-28" data-animate>
-                    @include('profile.partials.delete-user-form')
+                <div data-animate>
+                    <x-settings-panel id="security" title="Password" subtitle="Change your password"
+                        :open="$errors->updatePassword->isNotEmpty()">
+                        <x-slot:icon>{!! $icon('M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z') !!}</x-slot:icon>
+                        @include('profile.partials.update-password-form', ['inPanel' => true])
+                    </x-settings-panel>
+                </div>
+                @if($user->hasRole('Tenant'))
+                    <div data-animate>
+                        <x-settings-panel id="emergency-contact" title="Emergency contact & ID"
+                            :subtitle="$detail?->emergency_contact_name ? $detail->emergency_contact_name.' · '.($detail->id_type ?? 'No ID yet') : 'Your landlord keeps these on file'"
+                            :open="$errors->hasAny(['emergency_contact_name', 'emergency_contact_relationship', 'emergency_contact_number', 'id_type', 'id_number'])">
+                            <x-slot:icon>{!! $icon('M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z') !!}</x-slot:icon>
+                            @include('profile.partials.update-tenant-details-form', ['inPanel' => true])
+                        </x-settings-panel>
+                    </div>
+                @endif
+                <div data-animate>
+                    <x-settings-panel id="danger-zone" title="Danger zone" subtitle="Delete your account" tone="danger"
+                        :open="$errors->userDeletion->isNotEmpty()">
+                        <x-slot:icon>{!! $icon('M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16', '#DC2626') !!}</x-slot:icon>
+                        @include('profile.partials.delete-user-form', ['inPanel' => true])
+                    </x-settings-panel>
                 </div>
             </div>
         </div>
@@ -307,64 +277,6 @@
         }
     </style>
 
-    @push('scripts')
-        <script>
-            (function () {
-                // Whatever links the sidebar shows for this role, in page order, so adding a section never needs a second list.
-                const sections = [...document.querySelectorAll('.sidebar-link')].map(link => link.dataset.section);
-                const indicator = document.getElementById('nav-indicator');
-
-                function setActive(id) {
-                    document.querySelectorAll('.sidebar-link').forEach(link => {
-                        const active = link.dataset.section === id;
-                        link.classList.toggle('text-[#060D26]', active);
-                        link.classList.toggle('font-semibold', active);
-                        link.classList.toggle('text-[#DC2626]', active && id === 'danger-zone');
-                        link.classList.toggle('text-[#5B6A8E]', !active);
-
-                        if (active && indicator) {
-                            indicator.style.top = link.offsetTop + 'px';
-                            indicator.style.height = link.offsetHeight + 'px';
-                            indicator.classList.toggle('bg-[#EF4444]/[0.07]', id === 'danger-zone');
-                            indicator.classList.toggle('bg-[#ECEEF6]', id !== 'danger-zone');
-                        }
-                    });
-                }
-
-                // A clicked link stays highlighted even when the page cannot scroll far enough to bring its section
-                // to the top (the last sections sit at the bottom). Real scrolling by the user releases it.
-                let picked = null;
-
-                document.querySelectorAll('.sidebar-link').forEach(link => {
-                    link.addEventListener('click', () => {
-                        picked = link.dataset.section;
-                        setActive(picked);
-                    });
-                });
-                ['wheel', 'touchmove', 'keydown'].forEach(type => {
-                    window.addEventListener(type, () => { picked = null; }, { passive: true });
-                });
-
-                function sync() {
-                    if (picked) return setActive(picked);
-
-                    let current = sections[0];
-                    sections.forEach(id => {
-                        const el = document.getElementById(id);
-                        if (el && el.getBoundingClientRect().top <= 140) current = id;
-                    });
-                    // At the very bottom the last section may never reach the top, so it would never light up.
-                    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
-                        current = sections[sections.length - 1];
-                    }
-                    setActive(current);
-                }
-
-                window.addEventListener('scroll', sync, { passive: true });
-                sync();
-            })();
-        </script>
-    @endpush
     @push('scripts')
         <script>
             (function () {

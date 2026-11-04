@@ -123,7 +123,7 @@ class UnitCatalogueController extends Controller
 
         return response()->streamDownload(function () use ($query) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, [
+            \App\Support\Csv::put($handle, [
                 'Property', 'Unit', 'Monthly Rent', 'Capacity',
                 'Availability Status', 'Verification Status', 'Tenant',
                 'Vacated At', 'Rejection Reason', 'Last Updated',
@@ -131,7 +131,7 @@ class UnitCatalogueController extends Controller
 
             $query->chunk(200, function ($units) use ($handle) {
                 foreach ($units as $unit) {
-                    fputcsv($handle, [
+                    \App\Support\Csv::put($handle, [
                         $unit->property->title ?? '',
                         $unit->unit_label,
                         $unit->rental_fee,

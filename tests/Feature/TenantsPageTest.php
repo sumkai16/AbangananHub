@@ -70,7 +70,7 @@ class TenantsPageTest extends TestCase
 
         $row = LandlordTenant::where('landlord_id', $landlord->user_id)->where('tenant_id', $tenant->user_id)->firstOrFail();
         $this->assertSame('TN-0001', $row->code());
-        Mail::assertSent(TenantInviteMail::class, fn ($mail) => $mail->hasTo('ana.santos.tenant@example.test'));
+        Mail::assertQueued(TenantInviteMail::class, fn ($mail) => $mail->hasTo('ana.santos.tenant@example.test'));
 
         $this->actingAs($landlord)->get(route('landlord.tenants.index'))
             ->assertOk()->assertSee('TN-0001')->assertSee('Ana')->assertSee('Pending');
@@ -99,7 +99,7 @@ class TenantsPageTest extends TestCase
         $this->assertSame($unit->unit_id, $contract->unit_id);
         $this->assertSame('Reserved', $unit->fresh()->availability_status);
         $this->assertNotNull($contract->lease_snapshot);
-        Mail::assertSent(TenantInviteMail::class);
+        Mail::assertQueued(TenantInviteMail::class);
     }
 
     public function test_a_failed_add_reopens_with_what_was_typed_and_says_what_to_fix(): void
@@ -119,7 +119,7 @@ class TenantsPageTest extends TestCase
         $page = $this->get(route('landlord.tenants.index'));
 
         $page->assertSee('Nothing was saved', false)
-            ->assertSee('Enter the date the contract ends.')
+            ->assertSee('Enter the date the lease ends.')
             ->assertSee('pendingReopen: true', false)
             ->assertSee('Ana')
             ->assertSee(now()->addDays(10)->toDateString(), false);
@@ -255,7 +255,7 @@ class TenantsPageTest extends TestCase
         $tenant = $row->tenant->fresh();
         $this->assertSame('Ana Marie', $tenant->first_name);
         $this->assertSame('Liza Santos', TenantDetail::find($tenant->user_id)->emergency_contact_name, 'Blank keeps what is saved.');
-        Mail::assertSent(TenantInviteMail::class, fn ($mail) => $mail->hasTo('ana.new@example.test'));
+        Mail::assertQueued(TenantInviteMail::class, fn ($mail) => $mail->hasTo('ana.new@example.test'));
     }
 
     public function test_a_tenant_with_their_own_login_cannot_be_edited_by_the_landlord(): void

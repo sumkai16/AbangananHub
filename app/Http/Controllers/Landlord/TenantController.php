@@ -163,8 +163,8 @@ class TenantController extends Controller
         if ($reservation) {
             return redirect()->route('landlord.tenants.index', ['open' => $reservation->reservation_id])
                 ->with('success', $row->code().' added. '.($reservation->rental_status === 'Occupied'
-                    ? 'The contract is in and the unit is now occupied.'
-                    : 'The contract is in and the unit is reserved until '.$row->tenant->first_name.' moves in.').$note);
+                    ? 'The lease is in and the unit is now occupied.'
+                    : 'The lease is in and the unit is reserved until '.$row->tenant->first_name.' moves in.').$note);
         }
 
         return redirect()->route('landlord.tenants.index')->with('success', $row->code().' added as Pending.'.$note);
@@ -193,7 +193,8 @@ class TenantController extends Controller
         return view('landlord.tenants.partials._details', [
             'row' => $landlordTenant,
             'tenant' => $landlordTenant->tenant,
-            'reservations' => $reservations,
+            // Cancelled leases are hidden from the list; status still reads every reservation.
+            'reservations' => $reservations->where('rental_status', '!=', 'Cancelled')->values(),
             'status' => LandlordTenant::statusFrom($reservations->pluck('rental_status')),
             'canEdit' => Gate::allows('update', $landlordTenant),
             'canInvite' => Gate::allows('invite', $landlordTenant),
@@ -262,9 +263,9 @@ class TenantController extends Controller
         });
 
         return match ($result) {
-            'live' => back()->with('error', 'This tenant has a contract or booking in progress. End or cancel it on the Tenants page first.'),
+            'live' => back()->with('error', 'This tenant has a lease or booking in progress. End or cancel it on the Tenants page first.'),
             'deleted' => back()->with('success', 'Tenant deleted.'),
-            default => back()->with('success', 'Tenant removed from your list. Their past contracts and payments stay in your records.'),
+            default => back()->with('success', 'Tenant removed from your list. Their past leases and payments stay in your records.'),
         };
     }
 
@@ -275,10 +276,10 @@ class TenantController extends Controller
 
         return response()->streamDownload(function () use ($rows) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['Tenant ID', 'Tenant', 'Status', 'Email', 'Contact', 'Property', 'Unit', 'Has own login']);
+            \App\Support\Csv::put($handle, ['Tenant ID', 'Tenant', 'Status', 'Email', 'Contact', 'Property', 'Unit', 'Has own login']);
 
             foreach ($rows as $r) {
-                fputcsv($handle, [
+                \App\Support\Csv::put($handle, [
                     $r['code'], $r['name'], $r['status'], $r['tenant']->email ?? '', $r['tenant']->contact_number ?? '',
                     $r['current']?->property?->title ?? '', $r['current']?->unit?->unit_label ?? '',
                     $r['tenant']->is_walk_in ? 'No' : 'Yes',

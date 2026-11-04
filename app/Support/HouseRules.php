@@ -3,8 +3,8 @@
 namespace App\Support;
 
 /**
- * Titled sections of house rules on a policy (Curfew, Visitors, ...). The property's own listed rules always come
- * first and are never replaced; a policy only adds sections after them.
+ * Titled sections of house rules on a policy (Curfew, Visitors, ...). These are the only house rules a lease prints;
+ * the property's checkbox rules are for the public listing and search filters.
  */
 class HouseRules
 {
@@ -55,22 +55,8 @@ class HouseRules
     }
 
     /**
-     * What a lease shows: the listing's rules first, then the policy's sections that are not hidden.
-     *
-     * @param  list<string>  $listed
-     * @param  list<array{title:string,rules:list<string>}>|null  $sections
-     * @return list<array{title:string,rules:list<string>}>
-     */
-    public static function forSnapshot(array $listed, ?array $sections): array
-    {
-        $listed = array_values(array_filter($listed));
-        $out = $listed ? [['title' => 'Property rules', 'rules' => $listed]] : [];
-
-        return [...$out, ...self::visible($sections)];
-    }
-
-    /**
-     * The sections a lease prints (hidden ones left out), without the `hidden` flag.
+     * The sections a lease prints (hidden ones left out), without the `hidden` flag. This is all a lease prints:
+     * the listing's checkbox rules stay on the listing (see LeaseTerms::snapshot()).
      *
      * @return list<array{title:string,rules:list<string>}>
      */

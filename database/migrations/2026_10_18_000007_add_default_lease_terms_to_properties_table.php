@@ -14,7 +14,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('properties', function (Blueprint $table) {
-            $table->text('default_lease_terms')->nullable()->after('house_rules');
+            $column = $table->text('default_lease_terms')->nullable();
+
+            // house_rules was dropped by 2026_10_18_000001; a database built before that still has it.
+            if (Schema::hasColumn('properties', 'house_rules')) {
+                $column->after('house_rules');
+            }
         });
     }
 

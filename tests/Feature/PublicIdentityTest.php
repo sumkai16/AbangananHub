@@ -160,13 +160,29 @@ class PublicIdentityTest extends TestCase
             ->assertSee('09171110000');
     }
 
-    public function test_the_owner_still_sees_their_personal_details_marked_private(): void
+    public function test_the_owners_personal_details_are_on_settings_not_on_their_business_page(): void
     {
+        // My Profile is the page as tenants see it, so the private rows are gone from it.
         $this->actingAs($this->landlord)->get(route('landlord.profile.me'))
             ->assertOk()
+            ->assertSee('This is what tenants see.')
+            ->assertDontSee('09179998888')
+            ->assertDontSee('Only you can see this');
+
+        $this->get(route('profile.edit'))
+            ->assertOk()
             ->assertSee('maria.private@example.test')
-            ->assertSee('09179998888')
-            ->assertSee('Only you can see this');
+            ->assertSee('09179998888');
+    }
+
+    public function test_a_business_with_no_logo_shows_initials_not_the_landlords_own_photo(): void
+    {
+        // The banner used to fall back to the personal photo when the logo was null (Blade dropped the null prop).
+        $this->landlord->forceFill(["profile_picture" => "https://img.test/maria-face.jpg"])->save();
+
+        $this->actingAs($this->makeTenant())->get(route("landlord.profile.show", $this->landlord))
+            ->assertOk()
+            ->assertDontSee("maria-face.jpg");
     }
 
     public function test_a_private_landlord_with_a_live_listing_still_has_a_business_page(): void

@@ -94,9 +94,17 @@ class ReservationObserver
      */
     private function syncRoster(Reservation $reservation): void
     {
-        $landlordId = $reservation->property?->landlord_id;
+        if (! in_array($reservation->rental_status, LandlordTenant::ACTIVE_STATUSES, true)) {
+            return;
+        }
 
-        if ($landlordId && in_array($reservation->rental_status, LandlordTenant::ACTIVE_STATUSES, true)) {
+        // Queried, not read through the relation: caching the property on the model here would leave the caller
+        // holding a stale copy (e.g. a lease template assigned after the reservation was created).
+        $landlordId = $reservation->relationLoaded('property')
+            ? $reservation->property?->landlord_id
+            : $reservation->property()->value('landlord_id');
+
+        if ($landlordId) {
             LandlordTenant::ensureFor($landlordId, $reservation->tenant_id);
         }
     }
@@ -230,6 +238,12 @@ class ReservationObserver
                 break;
 
             case 'Cancelled':
+                // Closed by the daily stale check (no actor). It sends its own "Reservation closed" notices, so
+                // say nothing here rather than "the tenant cancelled".
+                if ($reservation->systemCancelReason !== null) {
+                    break;
+                }
+
                 // Notify whoever did not press the button. Falls back to
                 // telling both when there is no authenticated actor (CLI,
                 // scheduled job), which is better than telling neither.

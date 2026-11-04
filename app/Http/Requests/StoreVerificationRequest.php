@@ -29,7 +29,7 @@ class StoreVerificationRequest extends FormRequest
             'business_name'    => ['required', 'string', 'max:255'],
             'description'      => ['nullable', 'string', 'max:1000'],
             'logo'             => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
-            'contact_number'   => ['required', 'string', 'max:20'],
+            'contact_number'   => ['required', 'string', 'max:20', \App\Support\Phone::RULE],
             'business_address' => ['required', 'string', 'max:255'],
         ];
     }

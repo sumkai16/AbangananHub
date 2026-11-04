@@ -27,6 +27,7 @@ use App\Http\Controllers\Landlord\DepositChargeController;
 use App\Http\Controllers\Landlord\LeaseTemplateController;
 use App\Http\Controllers\Landlord\LedgerController;
 use App\Http\Controllers\Landlord\PaymentClaimController;
+use App\Http\Controllers\Landlord\PaymentMethodController;
 use App\Http\Controllers\Landlord\PayoutController;
 use App\Http\Controllers\Landlord\PropertyController as LandlordPropertyController;
 use App\Http\Controllers\Landlord\PropertyDocumentController as LandlordPropertyDocumentController;
@@ -267,6 +268,8 @@ Route::middleware('auth')->group(function () {
         // details are its own sections). The old URL stays as a redirect for bookmarks.
         Route::get('/profile/edit', fn () => redirect()->route('profile.edit'))->name('profile.edit');
         Route::patch('/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'update'])->name('profile.update');
+        // Settings > Payments: which ways tenants may pay (online, QR, cash).
+        Route::patch('/payment-methods', [PaymentMethodController::class, 'update'])->name('paymentMethods.update');
 
         // Tenant Ratings
         Route::get('/reservations/{reservation}/rate-tenant', [TenantRatingController::class, 'create'])->name('reservations.rateTenant');
@@ -292,8 +295,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/tenants/{landlordTenant}', [TenantController::class, 'destroy'])->name('tenants.destroy');
         Route::post('/tenants/{landlordTenant}/invite', [TenantController::class, 'invite'])->middleware('throttle:6,1')->name('tenants.invite');
 
-        // A single tenancy and its rent ledger. Serves walk-in and platform
-        // tenancies alike — the escrow only ever covered the initial payment.
+        // A single tenancy's actions. Serves walk-in and platform tenancies alike — the escrow only ever covered the
+        // initial payment. The GET is the removed tenancy page's address: it now opens the lease modal.
         Route::get('/tenancies/{reservation}', [App\Http\Controllers\Landlord\TenancyController::class, 'show'])->name('tenancies.show');
         Route::post('/tenancies/{reservation}/end', [App\Http\Controllers\Landlord\TenancyController::class, 'endTenancy'])->name('tenancies.end');
         Route::patch('/tenancies/{reservation}/tenant-details', [App\Http\Controllers\Landlord\TenancyController::class, 'updateTenantDetails'])->name('tenancies.tenantDetails.update');
@@ -475,6 +478,7 @@ Route::get('/properties/count', [PropertyController::class, 'count'])->middlewar
 Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
 // PayMongo webhook — no auth, CSRF excluded in bootstrap/app.php
 Route::post('/webhooks/paymongo', [PayMongoWebhookController::class, 'handle'])->name('webhooks.paymongo');
+Route::post('/csp-report', \App\Http\Controllers\CspReportController::class)->middleware('throttle:30,1')->name('csp.report');
 
 // Bridges a mobile WebView (Bearer token, no session) into a logged-in web
 // session — see Api\AuthController::webviewTicket. Outside the auth
