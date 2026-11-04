@@ -10,7 +10,8 @@
             Back
         </a>
     </x-slot>
-    <div class="flex-1 flex flex-col justify-center w-full max-w-lg mx-auto px-6 sm:px-8 py-10">
+    <div class="flex-1 flex flex-col justify-center w-full max-w-lg mx-auto px-6 sm:px-8 py-10"
+        x-data="registerForm({ emailUrl: @js(route('register.emailAvailable')), steps: 1 })">
 
         {{-- Branding --}}
         <a href="/" class="group inline-flex items-center gap-2 self-start">
@@ -20,7 +21,7 @@
         <h2 class="mt-8 font-jakarta text-[28px] sm:text-[32px] font-extrabold text-[#060D26] tracking-tight leading-tight">Create your account</h2>
         <p class="mt-1.5 text-[15px] text-[#5B6A8E]">Join AbangananHub and find your place to stay.</p>
 
-        <form method="POST" action="{{ route('register') }}" class="mt-7 space-y-4" novalidate>
+        <form method="POST" action="{{ route('register') }}" class="mt-7 space-y-4" novalidate x-on:submit="onSubmit($event)">
             @csrf
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -47,11 +48,17 @@
             <div>
                 <label for="email" class="block font-jakarta text-[13px] font-bold text-[#060D26] mb-1.5">Email address</label>
                 <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="username"
-                    placeholder="you@example.com"
+                    placeholder="you@example.com" x-on:input="onEmailInput()" x-on:blur="onEmailBlur()"
                     class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[16px] sm:text-[15px] text-[#060D26] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/25 focus:outline-none transition-colors" />
                 @error('email')
                     <p class="mt-1 text-[12.5px] text-[#EF4444] font-semibold">{{ $message }}</p>
                 @enderror
+                <p class="mt-1 text-[12.5px] text-[#5B6A8E]" x-show="emailState === 'checking'" x-cloak aria-live="polite">Checking this email…</p>
+                <p class="mt-1 text-[12.5px] font-semibold text-[#15803D]" x-show="emailState === 'ok'" x-cloak aria-live="polite">This email is available.</p>
+                <p class="mt-1 text-[12.5px] font-semibold text-[#EF4444]" x-show="emailState === 'taken'" x-cloak aria-live="polite">
+                    This email is already registered.
+                    <a href="{{ route('login') }}" class="underline text-[#060D26] hover:text-[#B35A3D]">Log in instead</a>
+                </p>
             </div>
 
             <div>
@@ -125,11 +132,13 @@
         </p>
 
         <p class="mt-3 text-center text-[13px] text-[#5B6A8E]">
-            Listing a property? Create an account first, then apply as a landlord.
+            Become a landlord?
+            <a href="{{ route('register.landlord') }}" class="font-bold text-[#060D26] hover:text-[#B35A3D] hover:underline">Sign up here.</a>
         </p>
     </div>
 </x-guest-layout>
 
+<script src="{{ asset('js/register-form.js') }}"></script>
 <script>
     function togglePassword(fieldId, btn) {
         const input = document.getElementById(fieldId);

@@ -821,6 +821,10 @@
                             Already have an account? <a href="#" onclick="openAuthModal('login'); return false;"
                                 class="text-[#060D26] font-bold hover:underline">Log in</a>
                         </p>
+                        <p class="text-[13px] text-center text-[#5B6A8E] mt-2">
+                            Become a landlord? <a href="{{ route('register.landlord') }}"
+                                class="text-[#060D26] font-bold hover:underline">Sign up here.</a>
+                        </p>
                     </div>
 
                     {{-- Forgot Password View --}}

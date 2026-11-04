@@ -13,9 +13,19 @@ use App\Http\Controllers\Auth\TenantInviteController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
+// Landlord sign-up lives on ONE address for the whole flow: a guest sees the account steps, and once the account
+// exists the same page shows the ID and face check (step 3). Open to both, so it sits outside the guest group.
+Route::get('register/landlord', [RegisteredUserController::class, 'createLandlord'])->name('register.landlord');
+
 Route::middleware('guest')->group(function () {
     Route::get('register', [RegisteredUserController::class, 'create'])
         ->name('register');
+
+    // Live "is this email free?" for the sign-up forms. Throttled: it is the same fact the form's own
+    // "email has already been taken" error gives away, but a loop must not be able to list accounts quickly.
+    Route::get('register/email-available', [RegisteredUserController::class, 'emailAvailable'])
+        ->middleware('throttle:30,1')
+        ->name('register.emailAvailable');
 
     // Throttled per IP: sign-up sends a verification email and creates a row, so it is a spam target (the mobile API already is).
     Route::post('register', [RegisteredUserController::class, 'store'])->middleware('throttle:10,1');

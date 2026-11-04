@@ -6,6 +6,7 @@ use App\Http\Requests\StoreVerificationRequest;
 use App\Mail\VerificationLinkMail;
 use App\Models\LandlordVerification;
 use App\Models\User;
+use App\Services\FaceMatch;
 use App\Services\OcrService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\Storage;
 
 class VerificationController extends Controller
 {
-    public function create()
+    public function create(bool $signupFlow = false)
     {
         $verification = auth()->user()->verificationApplication;
 
@@ -25,10 +26,11 @@ class VerificationController extends Controller
         // Pending applicants have nothing to redo — show what they submitted
         // instead of a blank wizard whose store() would overwrite it.
         if ($verification?->isPending()) {
-            return redirect()->route('landlord.verification.show');
+            // From the sign-up, show the status as step 4 on the same address instead of leaving it.
+            return $signupFlow ? $this->show(signupFlow: true) : redirect()->route('landlord.verification.show');
         }
 
-        return view('landlord.verification.create', compact('verification'));
+        return view('landlord.verification.create', compact('verification', 'signupFlow'));
     }
 
     /**
@@ -120,7 +122,7 @@ class VerificationController extends Controller
         }
     }
 
-    public function store(StoreVerificationRequest $request, OcrService $ocr)
+    public function store(StoreVerificationRequest $request, OcrService $ocr, FaceMatch $faceMatch)
     {
         $user = $request->user();
 
@@ -183,6 +185,9 @@ class VerificationController extends Controller
         $nameResult = $ocr->matchName($extractedText, $user->first_name, $user->last_name);
         $idNumber = $ocr->extractIdNumber($extractedText, $request->input('id_type'));
 
+        // ── Face on the ID against the selfie (a signal for the admin, never a reject) ──
+        $face = $faceMatch->compare($idImageData, $selfieData);
+
         // ── ID number dedup ───────────────────────────────────
         if ($idNumber) {
             $idNumberDupe = LandlordVerification::where('id_number', $idNumber)
@@ -219,6 +224,8 @@ class VerificationController extends Controller
                 'ocr_name'            => $nameResult['name'],
                 'ocr_confidence'      => $nameResult['confidence'],
                 'ocr_status'          => $nameResult['status'],
+                'face_match_status'   => $face['status'],
+                'face_match_score'    => $face['similarity'],
                 'business_name'       => $request->validated('business_name'),
                 'description'         => $request->validated('description'),
                 'logo_url'            => $logoPath,
@@ -232,19 +239,20 @@ class VerificationController extends Controller
             ]
         );
 
-        return redirect()->route('landlord.verification.show')
+        // From the landlord sign-up the answer (step 4, admin review) stays on the same address.
+        return redirect()->route($request->boolean('signup_flow') ? 'register.landlord' : 'landlord.verification.show')
             ->with('status', "Application submitted. We'll review it shortly.");
     }
 
-    public function show()
+    public function show(bool $signupFlow = false)
     {
         $verification = auth()->user()->verificationApplication;
 
         if (! $verification) {
-            return redirect()->route('landlord.verification.create');
+            return redirect()->route($signupFlow ? 'register.landlord' : 'landlord.verification.create');
         }
 
-        return view('landlord.verification.show', compact('verification'));
+        return view('landlord.verification.show', compact('verification', 'signupFlow'));
     }
 
     public function download(LandlordVerification $verification)

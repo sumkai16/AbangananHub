@@ -1,4 +1,4 @@
-@extends('layouts.app', ['searchBar' => false])
+@extends(!empty($signupFlow) ? 'layouts.signup' : 'layouts.app', ['searchBar' => false])
 
 @section('content')
     <div class="min-h-[calc(100vh-72px)] py-8 px-4 sm:px-6 lg:px-8">
@@ -8,6 +8,15 @@
 
             {{-- Page-level notices — capped to a readable measure above the grid --}}
             <div class="max-w-3xl mx-auto">
+            {{-- Reached from the landlord sign-up: the same title and four-step indicator as the account steps,
+                 now on step 3. The layout (layouts.signup) is the sign-up shell, not the site menu. --}}
+            @if(!empty($signupFlow))
+                <div class="max-w-lg mx-auto mt-2 mb-8 px-6 sm:px-0" x-data="{ step: 3 }">
+                    <h2 class="font-jakarta text-[28px] sm:text-[32px] font-extrabold text-[#060D26] tracking-tight leading-tight">Sign up as a landlord</h2>
+                    <p class="mt-1.5 text-[15px] text-[#5B6A8E]">Four short steps, so tenants can trust who they rent from.</p>
+                    <div class="mt-6"><x-landlord-signup-steps /></div>
+                </div>
+            @endif
             {{-- Rejection Banner --}}
             @if($verification && $verification->verification_status === 'Rejected')
                 <div class="mb-6 rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/[0.07] p-4">
@@ -60,6 +69,9 @@
             <form method="POST" action="{{ route('landlord.verification.store') }}" enctype="multipart/form-data"
                 x-ref="form" @submit.prevent="submitForm()">
                 @csrf
+                @if(!empty($signupFlow))
+                    <input type="hidden" name="signup_flow" value="1">
+                @endif
 
                 <input type="hidden" name="id_type" :value="idType">
                 <input type="hidden" name="id_image" :value="idImageBase64">
@@ -153,7 +165,7 @@
                 {{-- STEPS 1–5 — rail + stage --}}
                 {{-- ═══════════════════════════════════════════════ --}}
                 <div x-show="step > 0" x-transition:enter.duration.200ms
-                    class="grid lg:grid-cols-[248px_minmax(0,1fr)] lg:gap-11">
+                    class="grid grid-cols-1 lg:grid-cols-[248px_minmax(0,1fr)] lg:gap-11">
 
                     @include('landlord.verification._stepper')
 
@@ -239,7 +251,7 @@
 
                     {{-- ── Active capture area ─────────────────── --}}
                     <div x-show="idCapturePhase !== 'choose'" class="mt-6 max-w-4xl">
-                        <div class="grid xl:grid-cols-[minmax(0,1fr)_300px] gap-8 items-start">
+                        <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_300px] gap-8 items-start">
 
                             {{-- Stage --}}
                             <div class="max-w-2xl">
@@ -270,7 +282,7 @@
                                             <span class="text-xs text-[#5B6A8E]"
                                                 x-text="needsBack ? 'Front' : 'ID Photo'"></span>
                                             <button type="button" @click="retakePhoto('id')"
-                                                class="text-xs text-[#B35A3D] hover:underline">Retake</button>
+                                                class="inline-flex items-center min-h-[44px] px-2 -mx-2 text-[13px] font-semibold text-[#B35A3D] hover:underline">Retake</button>
                                         </div>
                                     </div>
                                     <div x-show="needsBack" class="relative">
@@ -293,7 +305,7 @@
                                                 <div class="flex items-center justify-between mt-1.5">
                                                     <span class="text-xs text-[#5B6A8E]">Back</span>
                                                     <button type="button" @click="retakePhoto('idBack')"
-                                                        class="text-xs text-[#B35A3D] hover:underline">Retake</button>
+                                                        class="inline-flex items-center min-h-[44px] px-2 -mx-2 text-[13px] font-semibold text-[#B35A3D] hover:underline">Retake</button>
                                                 </div>
                                             </div>
                                         </template>
@@ -322,6 +334,12 @@
                                     </div>
                                 </div>
                             </div>
+
+                            {{-- Soft hint, never a block: a soft photo reads worse, and the card text is what the check needs. --}}
+                            <p x-show="idCapturePhase === 'done' && (idBlurry || idBackBlurry)" x-cloak
+                                class="mb-3 rounded-xl bg-[#FBBF24]/[0.10] px-3 py-2 text-[13px] text-[#060D26]">
+                                One of your ID photos looks a little blurry. Tap <strong>Retake</strong>, wait a second for the camera to focus, and keep the card flat and well lit.
+                            </p>
 
                             {{-- OCR results --}}
                             <div x-show="idCapturePhase === 'done' && (ocrLoading || ocrResult || ocrError)" class="mb-4">
@@ -361,7 +379,7 @@
                                         </div>
                                         <div class="space-y-2">
                                             <div class="flex items-start gap-2.5 p-3 rounded-xl"
-                                                :class="ocrResult?.status === 'pass' ? 'bg-[#22C55E]/[0.07]' : (ocrResult?.status === 'partial' ? 'bg-[#FBBF24]/[0.10]' : 'bg-[#EF4444]/[0.07]')">
+                                                :class="ocrResult?.status === 'pass' ? 'bg-[#22C55E]/[0.07]' : (['partial', 'unreadable'].includes(ocrResult?.status) ? 'bg-[#FBBF24]/[0.10]' : 'bg-[#EF4444]/[0.07]')">
                                                 <template x-if="ocrResult?.status === 'pass'">
                                                     <svg class="w-4 h-4 text-[#22C55E] mt-0.5 shrink-0"
                                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -372,7 +390,7 @@
                                                 </template>
                                                 <template x-if="ocrResult?.status !== 'pass'">
                                                     <svg class="w-4 h-4 mt-0.5 shrink-0"
-                                                        :class="ocrResult?.status === 'partial' ? 'text-[#FBBF24]' : 'text-[#EF4444]'"
+                                                        :class="['partial', 'unreadable'].includes(ocrResult?.status) ? 'text-[#FBBF24]' : 'text-[#EF4444]'"
                                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                         stroke-width="1.5" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -381,11 +399,15 @@
                                                 </template>
                                                 <div>
                                                     <p class="text-sm font-semibold text-[#060D26]"
-                                                        x-text="ocrResult?.status === 'pass' ? 'We found your name on this ID' : (ocrResult?.status === 'partial' ? 'Partial name match' : 'Name not found on this ID')">
+                                                        x-text="ocrResult?.status === 'pass' ? 'We found your name on this ID' : (ocrResult?.status === 'partial' ? 'Partial name match' : (ocrResult?.status === 'unreadable' ? 'We could not read the text on this photo' : 'Name not found on this ID'))">
                                                     </p>
                                                     <p class="text-xs text-[#5B6A8E] mt-1"
                                                         x-show="ocrResult?.status === 'partial'">Close but not exact. Try
                                                         retaking with better lighting, or continue — our team will verify.
+                                                    </p>
+                                                    <p class="text-xs text-[#5B6A8E] mt-1"
+                                                        x-show="ocrResult?.status === 'unreadable'">The text came out too faint to read. Hold the
+                                                        phone steady in good light and retake, or continue and our team will check it by eye.
                                                     </p>
                                                     <p class="text-xs text-[#5B6A8E] mt-1"
                                                         x-show="ocrResult?.status === 'fail'">Make sure text is clear and
@@ -592,10 +614,10 @@
 
                     {{-- ── Camera selfie capture with liveness ──── --}}
                     <div x-show="selfieCapturePhase === 'camera' && !selfieBase64" class="mt-6 max-w-2xl">
-                        <div class="grid xl:grid-cols-[380px_minmax(0,1fr)] gap-8 items-start">
+                        <div class="grid grid-cols-1 xl:grid-cols-[380px_minmax(0,1fr)] gap-8 items-start">
 
                             {{-- Stage --}}
-                            <div class="max-w-[380px]">
+                            <div class="w-full max-w-[380px] mx-auto xl:mx-0">
                             <template x-if="cameraError">
                                 <div class="mb-4 rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/[0.07] p-3">
                                     <p class="text-sm text-[#EF4444]" x-text="cameraError"></p>
@@ -814,7 +836,7 @@
                                 <label for="business_name" class="block text-sm font-medium text-[#060D26] mb-1">Business
                                     name <span class="text-[#EF4444]">*</span></label>
                                 <input type="text" id="business_name" name="business_name" x-model="businessName"
-                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] outline-none transition-colors"
+                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-3 sm:py-2.5 text-[16px] sm:text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] outline-none transition-colors"
                                     placeholder="e.g. Sunrise Boarding House">
                             </div>
                             <div>
@@ -822,7 +844,7 @@
                                     <span class="text-[#5B6A8E] text-xs font-normal">(optional)</span></label>
                                 <textarea id="description" name="description" rows="3" x-model="description"
                                     maxlength="1000"
-                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] outline-none transition-colors resize-none"
+                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-3 sm:py-2.5 text-[16px] sm:text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] outline-none transition-colors resize-none"
                                     placeholder="Brief description of your rental business"></textarea>
                                 <p class="mt-1 text-xs text-[#5B6A8E]" x-text="(description?.length || 0) + '/1000'"></p>
                             </div>
@@ -836,14 +858,14 @@
                                 <label for="contact_number" class="block text-sm font-medium text-[#060D26] mb-1">Contact
                                     number <span class="text-[#EF4444]">*</span></label>
                                 <input type="text" id="contact_number" name="contact_number" x-model="contactNumber"
-                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] outline-none transition-colors"
+                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-3 sm:py-2.5 text-[16px] sm:text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] outline-none transition-colors"
                                     placeholder="09XX XXX XXXX">
                             </div>
                             <div>
                                 <label for="business_address" class="block text-sm font-medium text-[#060D26] mb-1">Business
                                     address <span class="text-[#EF4444]">*</span></label>
                                 <input type="text" id="business_address" name="business_address" x-model="businessAddress"
-                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] outline-none transition-colors"
+                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-3 sm:py-2.5 text-[16px] sm:text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] outline-none transition-colors"
                                     placeholder="Full address of your rental property/business">
                             </div>
                         </div>
@@ -877,7 +899,7 @@
                             <p class="text-xs font-semibold text-[#5B6A8E] mb-3">Verification checks</p>
                             <div x-show="ocrResult" class="space-y-2">
                                 <div class="flex items-center gap-2 px-3 py-2.5 rounded-xl"
-                                    :class="ocrResult?.status === 'pass' ? 'bg-[#22C55E]/[0.07]' : (ocrResult?.status === 'partial' ? 'bg-[#FBBF24]/[0.10]' : 'bg-[#EF4444]/[0.07]')">
+                                    :class="ocrResult?.status === 'pass' ? 'bg-[#22C55E]/[0.07]' : (['partial', 'unreadable'].includes(ocrResult?.status) ? 'bg-[#FBBF24]/[0.10]' : 'bg-[#EF4444]/[0.07]')">
                                     <template x-if="ocrResult?.status === 'pass'">
                                         <svg class="w-4 h-4 text-[#22C55E] shrink-0" xmlns="http://www.w3.org/2000/svg"
                                             fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -887,7 +909,7 @@
                                     </template>
                                     <template x-if="ocrResult?.status !== 'pass'">
                                         <svg class="w-4 h-4 shrink-0"
-                                            :class="ocrResult?.status === 'partial' ? 'text-[#FBBF24]' : 'text-[#EF4444]'"
+                                            :class="['partial', 'unreadable'].includes(ocrResult?.status) ? 'text-[#FBBF24]' : 'text-[#EF4444]'"
                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -895,7 +917,7 @@
                                         </svg>
                                     </template>
                                     <span class="text-xs text-[#060D26]"
-                                        x-text="ocrResult?.status === 'pass' ? 'Name found on ID' : (ocrResult?.status === 'partial' ? 'Partial name match — team will verify' : 'Name not verified — team will check')"></span>
+                                        x-text="ocrResult?.status === 'pass' ? 'Name found on ID' : (ocrResult?.status === 'partial' ? 'Partial name match — team will verify' : (ocrResult?.status === 'unreadable' ? 'Text not read — team will check by eye' : 'Name not verified — team will check'))"></span>
                                 </div>
                                 <div class="flex items-center gap-2 px-3 py-2.5 rounded-xl"
                                     :class="ocrResult?.type_match === 'match' ? 'bg-[#22C55E]/[0.07]' : 'bg-[#FBBF24]/[0.10]'">

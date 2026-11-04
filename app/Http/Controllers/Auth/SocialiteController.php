@@ -28,6 +28,13 @@ class SocialiteController extends Controller
      */
     public function redirect(string $provider): RedirectResponse
     {
+        // A landlord sign-up page asks for ?intent=landlord so the provider round trip ends in the verification wizard.
+        if (request()->query('intent') === 'landlord') {
+            session(['auth.intent' => 'landlord']);
+        } else {
+            session()->forget('auth.intent');
+        }
+
         return Socialite::driver($provider)->redirect();
     }
 
@@ -36,6 +43,8 @@ class SocialiteController extends Controller
      */
     public function callback(string $provider): RedirectResponse
     {
+        $intent = session()->pull('auth.intent');
+
         try {
             $socialUser = Socialite::driver($provider)->user();
         } catch (InvalidStateException|\Exception $e) {
@@ -58,6 +67,10 @@ class SocialiteController extends Controller
 
         Auth::login($user, remember: true);
         request()->session()->regenerate();
+
+        if ($intent === 'landlord' && ! $user->hasRole('Landlord')) {
+            return redirect()->route('register.landlord');
+        }
 
         return redirect($user->homeRoute());
     }
