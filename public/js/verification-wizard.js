@@ -42,6 +42,8 @@ function verificationWizard(config) {
 
         ocrLoading: false,
         ocrResult: null,
+        idBlurry: false,
+        idBackBlurry: false,
         backOcrResult: null,
         ocrError: false,
 
@@ -89,6 +91,9 @@ function verificationWizard(config) {
 
         init() {
             this.$watch('step', (newStep) => {
+                // Start fetching the face models while the applicant photographs the ID, so the selfie step opens ready.
+                if (newStep === 2) this._initFaceApi().catch(() => {});
+
                 this.stopCamera();
                 this.stopLiveness();
                 this.cameraError = '';
@@ -142,7 +147,12 @@ function verificationWizard(config) {
             this.livenessInstruction = 'Preparing face detection...';
 
             try {
-                await this._initFaceApi();
+                // A slow or blocked CDN must not leave "Preparing face detection..." spinning for good: after 20s the
+                // applicant falls back to a manual capture (liveness stays unverified and the admin sees it).
+                await Promise.race([
+                    this._initFaceApi(),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Face detection took too long to load')), 20000)),
+                ]);
                 this._startLivenessLoop(this.$refs.videoSelfie);
             } catch (err) {
                 console.error('Liveness init failed:', err);
@@ -154,20 +164,31 @@ function verificationWizard(config) {
 
         // ── face-api.js initialization ────────────────────────
 
-        async _initFaceApi() {
-            if (this._faceApiReady) return;
+        // One shared load: the early preload and the selfie step both wait on the same promise, so the second
+        // caller never sees `faceapi` before the script has finished loading.
+        _initFaceApi() {
+            if (this._faceApiReady) return Promise.resolve();
 
-            // Load face-api.js library
-            await this._loadScript(
-                'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js'
-            );
+            if (!this._faceApiPromise) {
+                this._faceApiPromise = (async () => {
+                    // Load face-api.js library
+                    await this._loadScript(
+                        'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js'
+                    );
 
-            // Load detection models
-            const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights';
-            await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-            await faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL);
+                    // Load detection models
+                    const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights';
+                    await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+                    await faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL);
 
-            this._faceApiReady = true;
+                    this._faceApiReady = true;
+                })().catch((err) => {
+                    this._faceApiPromise = null; // allow a retry
+                    throw err;
+                });
+            }
+
+            return this._faceApiPromise;
         },
 
         _loadScript(src) {
@@ -460,10 +481,21 @@ function verificationWizard(config) {
             this.cameraError = '';
             if (videoEl) videoEl.srcObject = null;
             try {
+                // The back camera photographs the ID, where small print has to survive OCR: ask for more pixels.
+                // The front camera only needs enough for a face.
+                const idShot = facingMode === 'environment';
                 this.cameraStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode, width: { ideal: 1280 }, height: { ideal: 960 } },
+                    video: {
+                        facingMode,
+                        width: { ideal: idShot ? 1920 : 1280 },
+                        height: { ideal: idShot ? 1440 : 960 },
+                    },
                     audio: false,
                 });
+                // Keep refocusing while the card is held up (Android Chrome); ignored where unsupported.
+                if (idShot) {
+                    this.cameraStream.getVideoTracks()[0]?.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(() => {});
+                }
                 videoEl.srcObject = this.cameraStream;
                 await videoEl.play();
                 this.cameraActive = true;
@@ -473,6 +505,34 @@ function verificationWizard(config) {
                 else if (err.name === 'NotFoundError') this.cameraError = 'No camera found on this device. Photos must be taken live — please continue on a phone or a device with a camera.';
                 else this.cameraError = 'Could not access camera. Close any other app using it and try again.';
             }
+        },
+
+        // How sharp a photo is: the variance of its Laplacian on a 480px grayscale copy. Low means soft edges (blur or
+        // motion). A hint only; the cut-off is a starting point and nothing is blocked on it.
+        _sharpness(source) {
+            const w = 480;
+            const h = Math.max(3, Math.round(source.height * (w / source.width)));
+            const c = document.createElement('canvas');
+            c.width = w;
+            c.height = h;
+            const ctx = c.getContext('2d', { willReadFrequently: true });
+            ctx.drawImage(source, 0, 0, w, h);
+            const px = ctx.getImageData(0, 0, w, h).data;
+            const g = new Float32Array(w * h);
+            for (let i = 0, j = 0; i < px.length; i += 4, j++) g[j] = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
+
+            let sum = 0, sumSq = 0, n = 0;
+            for (let y = 1; y < h - 1; y++) {
+                for (let x = 1; x < w - 1; x++) {
+                    const k = y * w + x;
+                    const lap = -4 * g[k] + g[k - 1] + g[k + 1] + g[k - w] + g[k + w];
+                    sum += lap;
+                    sumSq += lap * lap;
+                    n++;
+                }
+            }
+            const mean = sum / n;
+            return sumSq / n - mean * mean;
         },
 
         stopCamera() {
@@ -498,7 +558,11 @@ function verificationWizard(config) {
             const ctx = canvas.getContext('2d');
             if (type === 'selfie') { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
             ctx.drawImage(video, 0, 0);
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+            // ID photos keep more detail (less compression); the selfie does not need it.
+            const dataUrl = canvas.toDataURL('image/jpeg', type === 'selfie' ? 0.85 : 0.92);
+
+            if (type === 'id') this.idBlurry = this._sharpness(canvas) < 45;
+            if (type === 'idBack') this.idBackBlurry = this._sharpness(canvas) < 45;
 
             if (type === 'id') {
                 this.idImageBase64 = dataUrl;
@@ -530,6 +594,8 @@ function verificationWizard(config) {
             if (type === 'id') {
                 this.idImageBase64 = '';
                 this.idBackBase64 = '';
+                this.idBlurry = false;
+                this.idBackBlurry = false;
                 this.ocrResult = null;
                 this.backOcrResult = null;
                 this.ocrError = false;
@@ -538,6 +604,7 @@ function verificationWizard(config) {
                 this.$nextTick(() => setTimeout(() => this.startCamera('environment', this.$refs.videoId), 500));
             } else if (type === 'idBack') {
                 this.idBackBase64 = '';
+                this.idBackBlurry = false;
                 this.duplicateSideWarning = false;
                 this.ocrResult = null;
                 this.backOcrResult = null;
