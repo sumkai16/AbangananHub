@@ -339,31 +339,15 @@ html.dark .to-\[\#F7F8FC\] { --tw-gradient-to: #0A1029 var(--tw-gradient-to-posi
 html.dark :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="submit"]):not([type="button"]), select, textarea) { background-color: #111A3A; border-color: rgba(255, 255, 255, 0.16); }
 html.dark :where([type="checkbox"], [type="radio"]) { background-color: #1A2448; border-color: rgba(255, 255, 255, 0.3); }
 
-/* ── Smooth navigation & interaction ─────────────────────────────────────────
-   1. Cross-document view transitions: the browser cross-fades the old and new
-      page instead of flashing white. Chrome/Edge/Safari 18.2+; other browsers
-      simply navigate as before (the page-enter fade below covers them).
-   2. The site header keeps its own transition name so it stays put while the
-      page body fades underneath it.
-   3. Buttons and links ease colour/shadow/press changes; :active uses the
-      independent `scale` property so it never fights Tailwind's translate. */
-@view-transition { navigation: auto; }
-
-@keyframes page-fade-out { to { opacity: 0; } }
-@keyframes page-fade-in { from { opacity: 0; transform: translateY(6px); } }
+/* ── Interaction ─────────────────────────────────────────────────────────────
+   No page transition on purpose (removed Nov 4 2026): the cross-fade added about
+   400ms to every navigation and made the sidebar morph. Buttons and links still
+   ease colour/shadow; :active uses the independent `scale` property so it never
+   fights Tailwind's translate. */
 
 /* Gentle float for small white trust/status chips over a photo or dark ground
    (auth modal brand panel, landlord CTA figure on properties/index). */
 @keyframes owner-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-
-::view-transition-old(root) { animation: 140ms ease-in both page-fade-out; }
-::view-transition-new(root) { animation: 260ms ease-out both page-fade-in; }
-#site-header { view-transition-name: site-header; }
-::view-transition-group(site-header) { animation-duration: 0s; }
-
-@supports not (view-transition-name: none) {
-    main, #main { animation: page-fade-in 260ms ease-out both; }
-}
 
 @media (prefers-reduced-motion: no-preference) {
     html { scroll-behavior: smooth; }
@@ -373,10 +357,6 @@ html.dark :where([type="checkbox"], [type="radio"]) { background-color: #1A2448;
     [role="button"]:active { scale: 0.97; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-    @view-transition { navigation: none; }
-    main, #main { animation: none !important; }
-}
 
 /* The landlord shell's mobile top bar carries the page title (@push('mobile-title')), so the
    in-page title block (icon, title, subtitle) is dropped below lg and the content starts higher.

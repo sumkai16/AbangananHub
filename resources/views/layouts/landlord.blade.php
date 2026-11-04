@@ -25,26 +25,6 @@
             }
         }
 
-        /* Cross-fade between landlord pages; the sidebar keeps its own layer so it never blinks. */
-        @view-transition {
-            navigation: auto;
-        }
-
-        #landlord-sidebar {
-            view-transition-name: landlord-sidebar;
-        }
-
-        ::view-transition-old(root),
-        ::view-transition-new(root) {
-            animation-duration: 140ms;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            @view-transition {
-                navigation: none;
-            }
-        }
-
         @media (min-width: 1024px) {
             .sidebar-pre-collapsed #landlord-sidebar {
                 width: 5rem;
@@ -103,7 +83,7 @@
         {{-- ============ SIDEBAR ============ --}}
         <aside id="landlord-sidebar" x-cloak
             :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-            class="print:hidden fixed inset-y-0 left-0 z-50 w-64 lg:w-64 bg-[#060D26] border-r border-white/[0.06] flex flex-col transition-all duration-300 lg:translate-x-0">
+            class="print:hidden fixed inset-y-0 left-0 z-50 w-64 lg:w-64 bg-[#060D26] border-r border-white/[0.06] flex flex-col transition-[width,transform] duration-200 lg:translate-x-0">
 
             {{-- Collapse toggle --}}
             <button @click="sidebarCollapsed = !sidebarCollapsed"
