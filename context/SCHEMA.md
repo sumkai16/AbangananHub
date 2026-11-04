@@ -184,6 +184,8 @@ One application per landlord. Government ID, selfie and ID back live on the **pr
 | ocr_name | varchar(255) | null | | |
 | ocr_confidence | tinyint unsigned | null | | |
 | ocr_status | varchar(255) | null | | |
+| face_match_status | varchar(20) | null | | `match` (at or above 80%), `review` (60 to 80%, similar: compare by eye), `mismatch` (below 60%), `no_face` or `unavailable` (no keys or an AWS error). Set by `App\Services\FaceMatch` when the application is submitted; an admin signal, never an automatic decision. Null on older applications |
+| face_match_score | decimal(5,2) | null | | Similarity percent of the best match, 0 on a mismatch, null when not checked |
 | business_name | varchar(255) | null | | Copied to `rental_businesses` on approval |
 | description | text | null | | |
 | logo_url | varchar(255) | null | | |

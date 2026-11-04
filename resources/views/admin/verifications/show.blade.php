@@ -253,18 +253,43 @@
                         <h2 class="text-[14px] font-normal text-[#060D26]">OCR results</h2>
                     </div>
 
+                    {{-- Face on the ID against the live selfie (App\Services\FaceMatch). A signal, never a decision: bad light
+                         or an old ID photo can fail a real person, and a match does not prove the ID is genuine. --}}
+                    @if ($verification->face_match_status)
+                        @php
+                            $fm = $verification->face_match_status;
+                            $fmTone = match ($fm) {
+                                'match' => 'bg-[#22C55E]/[0.07]',
+                                'review' => 'bg-[#FBBF24]/[0.10]',
+                                'mismatch' => 'bg-[#EF4444]/[0.07]',
+                                'no_face' => 'bg-[#FBBF24]/[0.10]',
+                                default => 'bg-[#F7F8FC]',
+                            };
+                            $fmText = match ($fm) {
+                                'match' => 'Face match: <strong>'.rtrim(rtrim(number_format((float) $verification->face_match_score, 2), '0'), '.').'%</strong> similar to the selfie',
+                                'review' => 'Faces look <strong>somewhat similar</strong> ('.rtrim(rtrim(number_format((float) $verification->face_match_score, 2), '0'), '.').'%). Compare the photos by eye',
+                                'mismatch' => 'Faces <strong>do not match</strong> ('.rtrim(rtrim(number_format((float) $verification->face_match_score, 2), '0'), '.').'%). Compare the photos by eye',
+                                'no_face' => 'No clear face found in the ID or the selfie. Compare the photos by eye',
+                                default => 'Face match not checked. Compare the photos by eye',
+                            };
+                        @endphp
+                        <div class="mb-1.5 flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] {{ $fmTone }}">
+                            <span class="text-[#060D26]">{!! $fmText !!}</span>
+                        </div>
+                    @endif
+
                     @if ($verification->ocr_status)
                         <div class="space-y-1.5">
                             <div
                                 class="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px]
-                                    {{ $verification->ocr_status === 'pass' ? 'bg-[#22C55E]/[0.07]' : ($verification->ocr_status === 'partial' ? 'bg-[#FBBF24]/[0.10]' : 'bg-[#EF4444]/[0.07]') }}">
+                                    {{ $verification->ocr_status === 'pass' ? 'bg-[#22C55E]/[0.07]' : (in_array($verification->ocr_status, ['partial', 'unreadable'], true) ? 'bg-[#FBBF24]/[0.10]' : 'bg-[#EF4444]/[0.07]') }}">
                                 @if ($verification->ocr_status === 'pass')
                                     <svg class="w-3.5 h-3.5 text-[#22C55E] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                     </svg>
-                                @elseif ($verification->ocr_status === 'partial')
+                                @elseif (in_array($verification->ocr_status, ['partial', 'unreadable'], true))
                                     <svg class="w-3.5 h-3.5 text-[#FBBF24] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -283,6 +308,8 @@
                                     @elseif ($verification->ocr_status === 'partial')
                                         Partial: <strong>{{ $verification->ocr_name }}</strong>
                                         ({{ $verification->ocr_confidence }}%)
+                                    @elseif ($verification->ocr_status === 'unreadable')
+                                        Text could not be read automatically. Check the ID by eye
                                     @else
                                         Name not found on ID
                                     @endif

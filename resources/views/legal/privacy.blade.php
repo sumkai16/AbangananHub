@@ -67,6 +67,7 @@
                         'Service providers that help us run the platform, such as hosting, email delivery and payment processing. They may use your data only to provide their service to us.',
                         'Authorities and legal advisers, when required by law, court order or to protect rights and safety.',
                     ]],
+                    'Landlord verification checks: the photo of your ID and your selfie are sent to an image-analysis service (Google Cloud Vision to read the ID text, Amazon Rekognition to compare the face on the ID with your selfie). They are used only for that check and the result is shown to our administrators, who make the decision.',
                     'We do not share verification documents with tenants or the public.',
                 ],
             ],
