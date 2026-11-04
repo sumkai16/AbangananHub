@@ -127,6 +127,7 @@ apply the deltas below. Full template:
 APP_NAME=AbangananHub
 APP_ENV=production
 APP_DEBUG=false
+DEBUGBAR_ENABLED=false                   # adds ~100 KB to every page and slows it; never true in production
 APP_KEY=base64:...                       # keep the existing key, or php artisan key:generate
 APP_URL=https://abangananhub.com
 

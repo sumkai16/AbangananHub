@@ -36,16 +36,16 @@ In Cebu, Philippines (Talisay, Minglanilla, Naga City), tenants and landlords re
 - [x] End of Tenancy (Completed terminal status returns the unit to the available pool; before this an Occupied reservation had no exit)
 - [x] Rent Reminders (nightly `reservations:process-rent-reminders` notifies the landlord about upcoming/overdue rent for every tenancy, and the platform tenant too; walk-in tenants can't log in so the landlord reminder is their only channel — idempotent, catch-up-safe)
 - [x] Overall Ratings (aggregation of existing reviews + tenant_ratings: admin `/admin/ratings` platform overview with per-relationship averages, distributions, leaderboards and a 6-month trend; role-separated received-rating badges on tenant/landlord profiles and admin user detail. Property-grain; tenant→unit deferred — reviews carry no `unit_id`)
-- [x] Landlord Payouts (money released/paid to a landlord lands in the platform's own PayMongo wallet and is sent on to the landlord's GCash automatically through PayMongo Send Money: immediately when it becomes payable, with an hourly retry. 48-hour hold after a GCash change (current password required), admin pause/retry, manual mark-as-paid kept as a fallback. Needs the wallet env vars, a queue worker and the GCash institution code before going live. See `plans/online-and-direct-payments.md`)
+- [x] Landlord Payouts (money released/paid to a landlord lands in the platform's own PayMongo wallet and is sent on to the landlord's GCash automatically through PayMongo Send Money: immediately when it becomes payable, with an hourly retry. 48-hour hold after a GCash change (current password required), admin pause/retry, manual mark-as-paid kept as a fallback. **Currently in manual mode** (Oct 31 2026): PayMongo's Send Money to GCash does not work on our account yet (support case open), so the admin pays by hand and presses Mark Paid Out. Needs the wallet env vars, a queue worker and the GCash institution code before going live. See `plans/online-and-direct-payments.md`)
 
 ## 4. Explicitly Out of Scope
 - Legal dispute handling between landlords and tenants (the move-in dispute flow only freezes the deposit and queues it for an admin — it renders no judgment)
-- **Refunds.** Nothing in the app writes `payments.status = 'Refunded'`; PayMongo's programmatic refund support is unverified. A landlord who never turns over the keys is escalated to admin review, and that queue drains only by releasing to the landlord. Closing this is Phase 2 of the move-in spec and requires confirming PayMongo first
+- **Refunds of direct payments.** An admin can refund a *held online* payment through PayMongo (`PaymentRefunds`, Oct 31 2026), which cancels the reservation and frees the unit; this has **not yet been verified against real PayMongo** (run one small test before presenting it as working). It is refused once the tenant has moved in. Direct payments (QR, cash) are never held by the platform, so they cannot be refunded; a disputed one goes to admin review only
 - Offline mode (map and real-time features require stable internet)
 - ~~Native mobile app~~ — **no longer out of scope as of July 27 2026.** A React Native + Expo client for Tenant + Landlord is planned in `plans/mobile-app.md`; the server-side unblocking (Phase 0) is done. Admin stays web-only. Note this is *additive* to the defense scope — every module below is already demonstrable on web, so mobile is upside, not a dependency
 - Property types beyond bedspace, room, apartment, house
 - Coverage area beyond Cebu, Philippines
-- Live production PayMongo merchant account (sandbox only for capstone)
+- Full production rollout of PayMongo (sandbox for the capstone; one small live payment was tested Oct 31 2026)
 - Auto-generated legally binding rental contracts
 - Multi-occupant identity sub-table tracking
 - 3D/video keyframing for photo verification

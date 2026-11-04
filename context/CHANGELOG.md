@@ -2,6 +2,16 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 4 2026 — Page transition removed, one Back link, bedspace seat box (branch `axci`)
+PM feedback before the defense. Plans: `plans/page-speed-back-links-bedspace-seats.md` and `plans/bedspace-pick-bar-and-hide-phone.md` (both have the manual test guide). Suite: 1453 passed. **Not checked in a browser.**
+- **No page fade.** `@view-transition` and the 140/260ms fade (with the sidebar morphing) are gone from `app.css` and `layouts/landlord.blade.php`; the sidebar animates width/transform only. Saves about 400ms per navigation.
+- **One Back control.** `<x-back-link href to tone>`: chevron + "Back", destination read aloud only (`sr-only`). Replaced 17 page-level links (admin, landlord, wizard, receipts, settings), plus agreements, notifications, auth pages (`tone="light"`) and the listing `backNav`. Left alone: wizard/pagination "Previous", and home buttons (404, legal page, payment pending).
+- **Seat box** on `properties/show` for Bedspace and Boarding House with more than one unit: one tile per unit (green available, grey taken, coral pick), same `selectedUnit` as the cards.
+- Not measured yet: page weight on a throttled connection (`PerformanceBaselineTest` is skipped here).
+- **Beds section moved up**, directly after "About this property", so picking a bed comes before amenities, rules and the map.
+- **Seat box is now the only picker (mockup option 5)** for Bedspace and Boarding House with more than one unit: big tiles (two per row on a phone, four on desktop), the unit cards are gone in this mode. The pick shows in the sticky contact card (photo, floor, specs, three amenities, "Photos & details") and in the phone bottom bar (new **Details** button). Labels follow the type: beds, rooms, units (`$unitNoun`). Plan: `plans/bedspace-pick-bar-and-hide-phone.md`. Tests: `BedSeatPickerTest`.
+- **"Show phone number" removed from the listing page.** It let a deal leave the platform and the number was in the page source for every signed-in user. **Also removed (decided Nov 5):** the landlord business page no longer shows the number to anyone but its owner, the listing API drops `business_contact_number`, and the landlord profile API returns the business without `contact_number` unless the viewer is the owner. The number is for the chat or agreement once there is a deal. `PublicIdentityTest` updated. Suite: 1453 passed.
+
 ## Nov 3 2026 — Security audit, paging, search bars and the Lease policies modal (branch `axci`)
 Suite: 1369 passed. **Desktop checked in a browser for the search bars and the modal; not yet on a phone, and no policy was saved in the browser.** Commits: `1a38105` security, `f50e325` paging, `50411f4` Tenants, then the uploads and docs commits after it.
 - **SQL injection: none found.** About 45 raw-SQL calls read; none take user input. Time-delay probes (`SLEEP`) on browse, login, admin search and the AI search never slowed a page. `sort` uses an allowlist.
