@@ -14,26 +14,27 @@
 <div x-data="messageNotifications()" x-cloak x-on:open-messages-panel.window="openBubblePanel()">
 
     {{-- Toast container --}}
-    <div style="position: fixed; bottom: 80px; right: 20px; z-index: 9998; display: flex; flex-direction: column-reverse; gap: 8px; pointer-events: none;">
+    {{-- Phone: a small toast at the TOP under the header (a bottom one sits under the browser bar). Desktop: bottom right as before. --}}
+    <div class="fixed inset-x-3 top-[calc(env(safe-area-inset-top,0px)+68px)] lg:inset-x-auto lg:top-auto lg:bottom-20 lg:right-5 z-[9998] flex flex-col lg:flex-col-reverse gap-2 pointer-events-none">
         <template x-for="toast in toasts" :key="toast.id">
             <div @click="openConversation(toast.conversation_id)"
                 x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="opacity-0 translate-y-4"
+                x-transition:enter-start="opacity-0 translate-y-4 max-lg:-translate-y-2"
                 x-transition:enter-end="opacity-100 translate-y-0"
                 x-transition:leave="transition ease-in duration-200"
                 x-transition:leave-start="opacity-100 translate-y-0"
-                x-transition:leave-end="opacity-0 translate-y-4"
-                class="pointer-events-auto cursor-pointer w-[calc(100vw-2.5rem)] max-w-[340px] bg-white border border-[#5B6A8E]/20 rounded-2xl p-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.16)] transition-shadow duration-200">
-                <div class="flex gap-3 items-start">
-                    <div class="w-10 h-10 rounded-full bg-[#060D26] flex items-center justify-center shrink-0">
-                        <span class="text-white text-[14px] font-bold" x-text="toast.sender_initial"></span>
+                x-transition:leave-end="opacity-0 translate-y-4 max-lg:-translate-y-2"
+                class="pointer-events-auto cursor-pointer w-full max-w-[340px] mx-auto lg:mx-0 bg-white border border-[#5B6A8E]/20 rounded-2xl p-2.5 lg:p-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.16)] transition-shadow duration-200">
+                <div class="flex gap-2.5 lg:gap-3 items-start">
+                    <div class="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-[#060D26] flex items-center justify-center shrink-0">
+                        <span class="text-white text-[12px] lg:text-[14px] font-bold" x-text="toast.sender_initial"></span>
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between gap-2 mb-0.5">
                             <span class="text-[13px] font-bold text-[#060D26] truncate" x-text="toast.sender_name"></span>
                             <span class="text-[11px] text-[#5B6A8E] shrink-0">now</span>
                         </div>
-                        <div class="text-[11px] text-[#5B6A8E] truncate mb-1" x-show="toast.property_title">
+                        <div class="max-lg:hidden text-[11px] text-[#5B6A8E] truncate mb-1" x-show="toast.property_title">
                             <span x-text="toast.property_title"></span>
                             <template x-if="toast.unit_label">
                                 <span> · <span x-text="toast.unit_label"></span></span>

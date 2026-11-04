@@ -395,17 +395,17 @@
         <div x-show="previewOpen" x-cloak class="fixed inset-0 z-[80] flex items-stretch justify-center bg-[#060D26]/60 sm:p-6" role="dialog" aria-modal="true" aria-label="Policy preview"
             @keydown.escape.window="previewOpen = false">
             <div class="flex w-full max-w-3xl flex-col overflow-hidden bg-white sm:rounded-2xl sm:shadow-2xl">
-                <div class="flex items-center justify-between gap-3 border-b border-[#E2E4EC] px-4 py-3">
+                <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-[#E2E4EC] px-4 py-3">
                     <div class="min-w-0">
                         <p class="text-[14px] font-semibold text-[#060D26]">Preview as tenant</p>
                         <p class="text-[11.5px] text-[#B45309]">Sample tenant. Rent, deposit and dates come from the property's first unit.</p>
                     </div>
-                    <div class="flex shrink-0 items-center gap-2">
+                    <div class="flex w-full sm:w-auto sm:shrink-0 items-center gap-2">
                         <label class="sr-only" for="lease-preview-property">Fill the preview in with</label>
-                        <select id="lease-preview-property" x-model="propertyId" @change="preview()" class="h-10 max-w-[180px] rounded-xl border border-[#E2E4EC] bg-white px-3 text-[12.5px] text-[#060D26]">
+                        <select id="lease-preview-property" x-model="propertyId" @change="preview()" class="h-11 sm:h-10 min-w-0 flex-1 sm:flex-none max-w-full sm:max-w-[180px] rounded-xl border border-[#E2E4EC] bg-white px-3 text-[12.5px] text-[#060D26]">
                             @foreach($properties as $p)<option value="{{ $p->property_id }}">{{ $p->title }}</option>@endforeach
                         </select>
-                        <button type="button" @click="previewOpen = false" class="h-10 rounded-xl border border-[#E2E4EC] px-4 text-[13px] font-semibold text-[#060D26]">Close</button>
+                        <button type="button" @click="previewOpen = false" class="h-11 sm:h-10 rounded-xl border border-[#E2E4EC] px-4 text-[13px] font-semibold text-[#060D26]">Close</button>
                     </div>
                 </div>
                 <div class="min-h-0 flex-1 overflow-y-auto px-5 py-4">
