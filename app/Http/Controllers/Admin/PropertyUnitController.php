@@ -1,10 +1,13 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
+
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\Property;
 use App\Models\PropertyUnit;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -34,7 +37,16 @@ class PropertyUnitController extends Controller
         ];
         $counts['All'] = array_sum($counts);
 
-        return view('admin.units.index', compact('units', 'status', 'counts'));
+        $since = now()->subDays(30);
+        $summary = [
+            'oldest'   => ($o = PropertyUnit::where('verification_status', 'Pending')->min('created_at')) ? Carbon::parse($o) : null,
+            'approved' => PropertyUnit::where('verification_status', 'Approved')->where('updated_at', '>=', $since)->count(),
+            'rejected' => PropertyUnit::where('verification_status', 'Rejected')->where('updated_at', '>=', $since)->count(),
+            'no_photo' => PropertyUnit::where('verification_status', 'Pending')->whereDoesntHave('media')->count(),
+        ];
+        $recent = PropertyUnit::with('property')->whereIn('verification_status', ['Approved', 'Rejected'])->latest('updated_at')->limit(5)->get();
+
+        return view('admin.units.index', compact('units', 'status', 'counts', 'summary', 'recent'));
     }
 
     public function show(Property $property, PropertyUnit $unit)
@@ -43,6 +55,7 @@ class PropertyUnitController extends Controller
             abort(404);
         }
         $unit->load(['property.landlord', 'media']);
+
         return view('admin.units.show', compact('property', 'unit'));
     }
 
@@ -88,7 +101,7 @@ class PropertyUnitController extends Controller
             abort(404);
         }
         $validated = $request->validate([
-           'rejection_reason' => 'required|string|max:500',
+            'rejection_reason' => 'required|string|max:500',
         ]);
 
         DB::transaction(function () use ($unit, $validated, $property) {

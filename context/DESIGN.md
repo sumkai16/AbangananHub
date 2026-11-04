@@ -1,7 +1,7 @@
 # DESIGN.md — Design System
 
 ## 0. The three defaults to actively avoid
-None of the three AI-default looks apply. AbangananHub uses a teal-forward identity with flat, structured cards — distinct from cream/serif, dark-mode acid, and broadsheet layouts. The risk to watch since the July 2026 flattening is a *fourth* default: generic admin-template Tailwind. What keeps it off that: the locked teal palette, color used only for status, and dense purpose-built data views rather than boxes of evenly-spaced widgets.
+None of the three AI-default looks apply. AbangananHub uses a navy and coral identity with flat, structured cards — distinct from cream/serif, dark-mode acid, and broadsheet layouts. The risk to watch since the July 2026 flattening is a *fourth* default: generic admin-template Tailwind. What keeps it off that: the locked navy and coral palette, color used only for status, and dense purpose-built data views rather than boxes of evenly-spaced widgets.
 
 ## 0b. Device priority: mobile-first for Tenant + Landlord, desktop-oriented for Admin (Aug 20 2026)
 The main goal here is not the PC/desktop view — real usage skews toward a phone in hand. Tenants
@@ -44,7 +44,7 @@ What this changes in practice:
 ## 2. Brief → Token System
 - Subject: A rental accommodation marketplace for tenants and landlords in Cebu. The page's job varies by role: tenants browse/search/reserve; landlords manage listings/units/reservations; admin verifies/approves/monitors.
 - Tone: **Trustworthy.** What it should NOT feel like: playful, startup-trendy, or corporate enterprise.
-- Signature element: Flat white cards with a hairline `#E2E8F0` border and a soft 1px shadow, sitting on a quiet `#F7FCFC` page background. Structure and hierarchy do the work; color is reserved for status. (Superseded the glassmorphism signature in July 2026 — see §6.)
+- Signature element: Flat white cards with a hairline `#E2E4EC` border and a soft 1px shadow, sitting on a quiet `#F7F8FC` page background. Structure and hierarchy do the work; color is reserved for status. (Superseded the glassmorphism signature in July 2026 — see §6.)
 
 ## 3. Color Palette
 
@@ -590,16 +590,21 @@ This is the same failure mode as the sed incident above and is *not* caught by t
 
 Order any future bulk substitution slash-opacity-variants first, then `\b`-anchored bases, so `-50` can never match inside `-500`.
 
-## 12. Admin panel index-page pattern (established July 2026)
-Applies to the admin review/moderation queues: Landlord Verifications, Property Verifications, Unit Approvals, Payments, Reports, Reviews, Conversations, and (Aug 2026) Property Documents (`admin/documents/index.blade.php` → `admin/documents/show.blade.php`) — the last one shipped directly against this pattern rather than being migrated onto it later, having learned from the Catalogue → Properties → show page's original document-review block that a review queue belongs at the Verification & Approvals level, not nested inside an unrelated index's detail page.
-- Container: `max-w-[1600px] mx-auto` — the work-area width from §5. Previously mixed (`max-w-5xl`, `max-w-[1400px]`, `max-w-[1600px]`), then briefly over-corrected to `max-w-7xl` without `mx-auto`, which stranded ~320px of dead space on the right at 1920px.
-- Header row: title + subtitle on the left; an optional "N awaiting review" coral/amber pill on the right when a pending count > 0.
-- Stat summary: a `grid grid-cols-2 sm:grid-cols-4` (or fewer columns if fewer statuses) row of glass cards above the tabs, one per status plus a Total. Each card: small dot + uppercase label, then a large bold count in a status-tinted color (amber/emerald/red/gold family), clickable to that filter. Active filter gets `ring-2 ring-[#DA8E77]`.
-- Tabs: existing pill-tab pattern, now with a live count suffix per tab (`text-[11px]` in a muted tone).
-- List body: dense multi-column tables were replaced with a single-card, `divide-y divide-[#E2E4EC]` row-list where each row is one full-row `<a>` (avatar/thumb, key fields with `text-[11px] uppercase text-[#94A3B8]` micro-labels, status badge, trailing chevron that shifts right on hover). Kept as a genuine `<table>` only where a page needs a row-level form action inline (Payments' Release button, Property Verifications' Approve/Reject — no detail page to link to yet).
-- Empty states: icon in an `bg-[#ECEEF6]` circle with `text-[#A8573F]` icon (not gray), bold title + muted subtitle.
-- Fixed straggling off-palette classes across these views: banned `#1A1A2E`, raw Tailwind `gray-*`/`blue-*`/`amber-*`/`emerald-*`/`slate-*` utilities were swapped for the DESIGN.md token set (`#1F2937`, `#64748B`, `#94A3B8`, `#E2E8F0`, `#F7FCFC`, `#EEF8F8`, plus the status colors `#FBBF24`/`#22C55E`/`#EF4444`/`#156F8C`/`#2AA7A1`).
-- New controller convention for these pages: alongside the paginated/filtered query, also compute a `$counts` array (one query per status, cheap at current scale) and pass it to the view for the stat cards + tab badges. See `Admin\VerificationController`, `Admin\PropertyUnitController`, `Admin\ListingController`, `Admin\PaymentController`, `Admin\ReportController` for the pattern.
+## 12. Admin pages: a dense work tool, not a template (rewritten Nov 2026)
+The admin side is one administrator clearing queues on a desktop. The July 2026 pattern (a row of stat tiles, then tabs repeating the same counts, then a row-list with micro-labels) read as a generic admin template, the fourth default §0 warns about, so it was replaced. Shared pieces live in `resources/views/components/admin/`.
+
+- **Container:** `max-w-[1600px] mx-auto` for lists and the dashboard; `max-w-5xl mx-auto` for detail pages (§12a).
+- **Header:** `<x-page-header>`, bare on the page, keeping its navy icon tile (`icon-path`; `PageIconTest` holds this). The title matches the sidebar label. A subtitle only when it says something the title does not; no "View and manage…" filler and no greeting.
+- **One number, one place.** A list with tabs has no stat row and no "N awaiting review" pill: `<x-admin.tabs>` carries the counts. A list without tabs may use one `<x-stat-strip>`. Payments keeps a strip of **peso sums only**, because its tabs show counts. `<x-stat-card>` is not used on admin pages (landlord and tenant pages still share it, so do not restyle it for admin).
+- **Lists are real tables** inside `<x-card flush>`: `<x-admin.th>` headers, rows `px-4 py-3`, money and counts `text-right tabular-nums`, plain "Review" or "View" links, quiet `hover:bg-[#F7F8FC]`, no initials circles, no lift or image zoom.
+- **Status:** `<x-admin.status>` is the one chip (`rounded-md`, one status-to-colour map). Green is settled, amber is open, red is refused or failed, grey is over. `kind="unit"` keeps the unit colours from §7. `tone` is for text that is not a status, such as audit actions.
+- **Empty:** `<x-admin.empty>`, one short line inside the card. No tinted icon circle and no tall panel.
+- **Filters:** sit bare on the page, controls `h-10`, fields white. The Filter button is neutral; coral is for the page's one primary action.
+- **Risky actions** (approve, suspend, resolve with a sanction) use `data-confirm` with wording that says what will happen. White text never sits on `#22C55E` or `#FBBF24`: green buttons are `#15803D`, amber takes navy text.
+- **Dashboard:** "Needs you" comes first (one row per queue, in a fixed order, with the age of the oldest item; empty rows stay in place, muted), then money, totals and activity. New queues get a row in `DashboardController::queue()`.
+- **Sidebar:** `<x-admin.nav-item>` rows; the active row is a soft white fill with a coral icon (the coral left border was dropped Nov 2026: it curved around the rounded corner and read as decoration).
+- **Text colour:** `#5B6A8E` for secondary text. `#94A3B8` fails contrast on white and is kept for placeholders and disabled states only.
+- **Controller convention (unchanged):** alongside the paginated query, compute a `$counts` array for the tabs.
 
 ### 12a. Missing-container defect (found and fixed July 21, 2026)
 `admin/verifications/show.blade.php` and `admin/reports/show.blade.php` had **no width cap on their root `@section('content')` div at all** — not "wrong width," genuinely absent. On a wide monitor behind the admin sidebar shell this rendered edge-to-edge instead of stopping at a reading-appropriate width. Both are detail pages inside a work area, so per §5's table they now get `max-w-5xl mx-auto`. When auditing a page for width issues, check that a `max-w-*` class exists at all before checking whether it's the *right* `max-w-*` — the migration audit greps in §11b only catch known-wrong values, not absence.

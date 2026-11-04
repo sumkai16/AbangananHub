@@ -8,6 +8,7 @@ use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\Property;
 use App\Models\PropertyDocument;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -48,7 +49,16 @@ class PropertyDocumentController extends Controller
         ];
         $counts['All'] = array_sum($counts);
 
-        return view('admin.documents.index', compact('documents', 'status', 'counts'));
+        $since = now()->subDays(30);
+        $summary = [
+            'oldest'   => ($o = PropertyDocument::where('status', 'Pending')->whereNotNull('file_path')->min('updated_at')) ? Carbon::parse($o) : null,
+            'verified' => PropertyDocument::where('status', 'Verified')->where('verified_at', '>=', $since)->count(),
+            'rejected' => PropertyDocument::where('status', 'Rejected')->where('updated_at', '>=', $since)->count(),
+            'expiring' => PropertyDocument::where('status', 'Verified')->whereNotNull('expiry_date')->whereBetween('expiry_date', [now()->toDateString(), now()->addDays(30)->toDateString()])->count(),
+        ];
+        $recent = PropertyDocument::with(['property', 'verifier'])->whereIn('status', ['Verified', 'Rejected'])->whereNotNull('file_path')->latest('updated_at')->limit(5)->get();
+
+        return view('admin.documents.index', compact('documents', 'status', 'counts', 'summary', 'recent'));
     }
 
     public function show(PropertyDocument $document)

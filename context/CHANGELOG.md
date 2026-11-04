@@ -2,6 +2,21 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 5 2026 — Admin design pass: the template look removed (branch `joseph`)
+Why: the admin side read as a generic admin template (identical stat tiles, then tabs repeating the same counts, pills everywhere, thin headings). All 33 admin views were reworked. Plan: `plans/admin-design-pass.md`. Rules: DESIGN.md §12, rewritten. **Not checked in a browser yet, light or dark.** Tenant and landlord pages are unchanged.
+- **Dashboard rebuilt, work queue first.** "Needs you" lists six queues with counts and the age of the oldest item, then money held and owed, a totals strip, the activity chart and recent reservations (`Admin\DashboardController::queue()`). Removed: greeting, six tiles, Quick Actions, pending tables, the fake date control.
+- **Bug fixed with it:** the user donut added unverified landlords on top of all landlords, so its percentages double-counted. The donut is gone.
+- **New shared pieces** in `components/admin/`: `nav-item`, `tabs`, `status`, `th`, `empty`. The sidebar went from 563 to 278 lines. Admin no longer uses `x-stat-card` (landlord and tenant pages still do; it is unchanged).
+- **List pages:** tab counts replace stat tiles and "awaiting review" pills. Verifications, documents, unit approvals, reports and property verifications are now real tables. Money is right-aligned. Catalogue pages default to the table view (a saved grid choice is kept).
+- **`verifications/show`:** ID and selfie sit side by side as whole images (`object-contain`, they were cropped), with the face-match result above them.
+- **Safety:** suspending a user and approving a listing now ask first. White-on-green and white-on-amber buttons fixed for contrast.
+- **One status colour:** `x-admin.status`. "Rejected" was navy and red on one page; "Approved" was grey and green across two. A `Reserved` reservation no longer shows an all-grey pipeline on its detail page.
+- **Titles match the sidebar:** Payments, Ratings, Analytics, Payouts, and Users / Landlords / Tenants by role. The sidebar's one-link "Reservations" group became **Rentals**, the "Reports & Analytics" group became **Insights**, and the dead "Rental Businesses / Soon" row is gone.
+- **Bug fixed:** `conversations/show` read `unit_number`, which does not exist, so it printed a blank unit. It said "Read-only" while offering a refund; now "Admin view".
+- **Not changed:** routes, permissions and business logic, other than the dashboard's read queries. Search on the eight queues that have none, sticky table headers and a shared filter-bar component were left out.
+- Tests: `AdminDesignPagesTest` loads every admin page with data, checks the queue numbers, the confirm prompts and the status colours.
+- **Manual test (desktop, then dark mode):** (1) Dashboard with and without pending items; each row opens its queue. (2) Sidebar collapsed and expanded. (3) A queue such as Landlord Verifications: tabs, Review link, empty tab. (4) Payments: peso strip, right-aligned amounts, Refund and Release. (5) Analytics, all three sections. (6) A verification: compare ID and selfie, then Approve asks first. (7) A user: Suspend asks first.
+
 ## Nov 5 2026 — Landlord sign-up path and ID-to-selfie face match (branch `axci`)
 PM feedback on registration and landlord verification. Plan: `plans/landlord-signup-and-face-match.md` (has the manual test guide and the AWS and Facebook checklists). Suite: 1469 passed. **Not checked in a browser; the face match has not run against real AWS.**
 - **"Become a landlord? Sign up here."** under the tenant sign-up, in the popup (`layouts/app`) and on `/register`. It opens **`/register/landlord`**: the same account form with a three-step header (Account, Verify ID and face, Admin review). Submitting continues into the existing wizard `/landlord/apply`. The account stays a Tenant until an admin approves. `RegisteredUserController::createLandlord`, hidden `as_landlord`.

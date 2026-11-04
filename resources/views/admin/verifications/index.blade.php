@@ -5,161 +5,127 @@
 @section('content')
 <div class="max-w-[1600px] mx-auto">
 
-    {{-- Page header --}}
-    <x-page-header title="Landlord Verifications" subtitle="Review identity verification applications submitted by landlords.">
-        @if ($counts['Pending'] > 0)
-            <x-slot:actions>
-                <span class="inline-flex items-center gap-1.5 rounded-full bg-[#FBBF24]/15 px-3 py-1.5 text-xs font-semibold text-[#92600A]">
-                    <svg class="h-3.5 w-3.5 text-[#FBBF24]" viewBox="0 0 24 24" fill="currentColor">
-                        <path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
-                    </svg>
-                    {{ $counts['Pending'] }} awaiting review
-                </span>
-            </x-slot:actions>
-        @endif
-    </x-page-header>
+    <x-page-header icon-path="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" title="Landlord Verifications" subtitle="Check each applicant's ID and selfie before they can list properties." />
 
-    {{-- Stat summary --}}
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        @php
-            $stats = [
-                'Pending' => ['label' => 'Pending', 'value' => $counts['Pending'], 'valueColor' => '#B45309', 'iconBg' => 'rgba(251,191,36,0.10)', 'iconColor' => '#B45309'],
-                'Approved' => ['label' => 'Approved', 'value' => $counts['Approved'], 'valueColor' => '#15803D', 'iconBg' => 'rgba(34,197,94,0.07)', 'iconColor' => '#059669'],
-                'Rejected' => ['label' => 'Rejected', 'value' => $counts['Rejected'], 'valueColor' => '#B91C1C', 'iconBg' => 'rgba(239,68,68,0.07)', 'iconColor' => '#DC2626'],
-                'All' => ['label' => 'Total', 'value' => $counts['All'], 'valueColor' => '#060D26', 'iconBg' => '#ECEEF6', 'iconColor' => '#060D26'],
-            ];
-        @endphp
-        @foreach ($stats as $key => $stat)
-            <x-stat-card :label="$stat['label']" :value="$stat['value']" :value-color="$stat['valueColor']" :icon-bg="$stat['iconBg']"
-                :href="route('admin.verifications.index', ['status' => $key])"
-                :class="$status === $key ? 'ring-2 ring-[#FF8A66]' : ''">
-                <x-slot:icon>
-                    @switch($key)
-                        @case('Pending')
-                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $stat['iconColor'] }}" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m5-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            @break
-                        @case('Approved')
-                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $stat['iconColor'] }}" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            @break
-                        @case('Rejected')
-                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $stat['iconColor'] }}" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            @break
-                        @default
-                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $stat['iconColor'] }}" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M9 17V9m4 8V5m4 12v-6" />
-                            </svg>
-                    @endswitch
-                </x-slot:icon>
-            </x-stat-card>
-        @endforeach
-    </div>
+    <x-stat-strip class="mb-5" :cells="[
+        ['label' => 'Waiting', 'value' => number_format($counts['Pending']), 'note' => $summary['oldest'] ? 'Oldest sent '.$summary['oldest']->diffForHumans() : 'Nothing in the queue'],
+        ['label' => 'Need a closer look', 'value' => number_format($summary['flagged']), 'note' => 'Face match did not clear'],
+        ['label' => 'Approved', 'value' => number_format($summary['approved']), 'note' => 'Last 30 days'],
+        ['label' => 'Rejected', 'value' => number_format($summary['rejected']), 'note' => 'Last 30 days'],
+    ]" />
 
-    {{-- Tabs --}}
-    <div class="flex items-center gap-0.5 border-b border-[#E2E4EC] mb-6 overflow-x-auto">
-        @foreach (['Pending', 'Approved', 'Rejected', 'All'] as $tab)
-            <a href="{{ route('admin.verifications.index', ['status' => $tab]) }}"
-                class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                    {{ $status === $tab ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
-                {{ $tab }}
-                <span class="ml-1 text-[11px] {{ $status === $tab ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $counts[$tab] }}</span>
-            </a>
-        @endforeach
-    </div>
+    <x-admin.tabs class="mb-4" :tabs="collect(['Pending', 'Approved', 'Rejected', 'All'])->map(fn ($tab) => [
+        'label' => $tab,
+        'count' => $counts[$tab],
+        'href' => route('admin.verifications.index', ['status' => $tab]),
+        'active' => $status === $tab,
+    ])->all()" />
 
-    @if ($verifications->isEmpty())
-        <div class="bg-white border border-[#E2E4EC] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
-            <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] border border-[#E2E4EC] flex items-center justify-center mx-auto mb-4">
-                <svg class="w-7 h-7 text-[#B35A3D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-                </svg>
+    <x-card flush>
+        @if ($verifications->isEmpty())
+            <x-admin.empty :title="$status === 'Pending' ? 'No applications waiting' : 'No applications here'" :note="$status === 'Pending' ? 'New landlord applications will show up here.' : null" />
+        @else
+            <div class="overflow-x-auto scrollbar-thin-light">
+                <table class="min-w-full">
+                    <thead>
+                        <tr class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
+                            <x-admin.th>Applicant</x-admin.th>
+                            <x-admin.th>Business</x-admin.th>
+                            <x-admin.th>ID checks</x-admin.th>
+                            <x-admin.th>Status</x-admin.th>
+                            <x-admin.th>Submitted</x-admin.th>
+                            <th class="px-4 py-2.5"><span class="sr-only">Open</span></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[#E2E4EC]">
+                        @foreach ($verifications as $verification)
+                            @php
+                                $face = match ($verification->face_match_status) {
+                                    'match' => ['Face match', 'green'],
+                                    'review' => ['Face: compare', 'amber'],
+                                    'mismatch' => ['Face mismatch', 'red'],
+                                    'no_face' => ['No face found', 'amber'],
+                                    default => ['Face not checked', 'neutral'],
+                                };
+                                $text = match ($verification->ocr_status) {
+                                    'pass' => ['ID text read', 'green'],
+                                    'partial', 'unreadable' => ['ID text unclear', 'amber'],
+                                    'mismatch' => ['Name differs', 'red'],
+                                    default => null,
+                                };
+                            @endphp
+                            <tr class="hover:bg-[#F7F8FC] transition-colors duration-200">
+                                <td class="px-4 py-3">
+                                    <a href="{{ route('admin.verifications.show', $verification) }}" class="text-[13.5px] font-semibold text-[#060D26] underline-offset-2 hover:underline">{{ $verification->user->first_name }} {{ $verification->user->last_name }}</a>
+                                    <p class="text-[12.5px] text-[#5B6A8E]">{{ $verification->user->email }}</p>
+                                    @if($verification->contact_number)<p class="text-[12.5px] tabular-nums text-[#5B6A8E]">{{ $verification->contact_number }}</p>@endif
+                                </td>
+                                <td class="px-4 py-3">
+                                    <p class="text-[13.5px] text-[#060D26]">{{ $verification->business_name ?: '—' }}</p>
+                                    @if($verification->business_address)<p class="max-w-[16rem] truncate text-[12.5px] text-[#5B6A8E]" title="{{ $verification->business_address }}">{{ $verification->business_address }}</p>@endif
+                                </td>
+                                <td class="px-4 py-3">
+                                    <p class="mb-1 text-[12.5px] text-[#5B6A8E]">{{ $verification->id_type ?: 'ID type not given' }}</p>
+                                    <div class="flex flex-wrap gap-1">
+                                        <x-admin.status :status="$face[0]" :tone="$face[1]" />
+                                        @if($text)<x-admin.status :status="$text[0]" :tone="$text[1]" />@endif
+                                        @unless($verification->liveness_passed)<x-admin.status status="No liveness check" tone="amber" />@endunless
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3"><x-admin.status :status="$verification->verification_status" /></td>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <p class="text-[13.5px] text-[#060D26]">{{ $verification->submitted_at?->format('M j, Y') }}</p>
+                                    <p class="text-[12px] text-[#5B6A8E]">{{ $verification->submitted_at?->diffForHumans() }}</p>
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <a href="{{ route('admin.verifications.show', $verification) }}" class="inline-flex h-9 items-center rounded-lg border border-[#E2E4EC] bg-white px-3 text-[12.5px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#F7F8FC]">{{ $verification->verification_status === 'Pending' ? 'Review' : 'View' }}</a>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
-            <p class="text-[15px] font-bold text-[#060D26]">No applications here</p>
-            <p class="text-[13px] text-[#5B6A8E] mt-1">No applications match this tab right now.</p>
-        </div>
-    @else
-        <x-card flush class="divide-y divide-[#E2E4EC]">
-            @foreach ($verifications as $verification)
-                @php
-                    $initials = strtoupper(substr($verification->user->first_name ?? '?', 0, 1)) . strtoupper(substr($verification->user->last_name ?? '', 0, 1));
-                    $submittedDate = \Carbon\Carbon::parse($verification->submitted_at)->format('M d, Y');
-                @endphp
+            @if ($verifications->hasPages())
+                <div class="border-t border-[#E2E4EC] px-4 py-3">{{ $verifications->links() }}</div>
+            @endif
+        @endif
+    </x-card>
 
-                {{-- Desktop / tablet: single-row layout. --}}
-                <a href="{{ route('admin.verifications.show', $verification) }}"
-                    class="hidden sm:flex items-center gap-4 px-6 py-4 hover:bg-[#F7F8FC]/70 transition-all duration-200 group">
-                    <div class="w-11 h-11 rounded-full bg-[#060D26] flex items-center justify-center shrink-0">
-                        <span class="text-white text-[13px] font-bold">{{ $initials }}</span>
-                    </div>
-
-                    <div class="min-w-0 flex-1 basis-56">
-                        <p class="text-[13.5px] font-semibold text-[#060D26] truncate">
-                            {{ $verification->user->first_name }} {{ $verification->user->last_name }}
-                        </p>
-                        <p class="text-[12px] text-[#5B6A8E] truncate">{{ $verification->user->email }}</p>
-                    </div>
-
-                    <div class="min-w-0 flex-1 basis-40">
-                        <p class="text-[11px] font-semibold uppercase tracking-wider text-[#94A3B8]">Business</p>
-                        <p class="text-[13px] text-[#060D26] font-medium truncate">{{ $verification->business_name ?? '—' }}</p>
-                    </div>
-
-                    <div class="shrink-0">
-                        <x-verification-status-badge :status="$verification->verification_status" />
-                    </div>
-
-                    <div class="shrink-0 text-right w-24">
-                        <p class="text-[11px] font-semibold uppercase tracking-wider text-[#94A3B8]">Submitted</p>
-                        <p class="text-[13px] text-[#5B6A8E]">{{ $submittedDate }}</p>
-                    </div>
-
-                    <svg class="w-4 h-4 text-[#94A3B8] group-hover:text-[#B35A3D] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                </a>
-
-                {{-- Mobile: dedicated stacked card — the desktop row's flex-wrap
-                     fallback split labels from their values across lines with no
-                     visual grouping, so this is a purpose-built layout instead. --}}
-                <a href="{{ route('admin.verifications.show', $verification) }}"
-                    class="sm:hidden flex flex-col gap-3 px-4 py-4 hover:bg-[#F7F8FC]/70 transition-all duration-200 active:bg-[#F7F8FC]">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-[#060D26] flex items-center justify-center shrink-0">
-                            <span class="text-white text-[12.5px] font-bold">{{ $initials }}</span>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <p class="text-[13.5px] font-semibold text-[#060D26] truncate">
-                                {{ $verification->user->first_name }} {{ $verification->user->last_name }}
-                            </p>
-                            <p class="text-[12px] text-[#5B6A8E] truncate">{{ $verification->user->email }}</p>
-                        </div>
-                        <x-verification-status-badge :status="$verification->verification_status" />
-                    </div>
-
-                    <div class="flex items-end justify-between gap-3 pl-[52px]">
-                        <div class="min-w-0">
-                            <p class="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">Business</p>
-                            <p class="text-[12.5px] text-[#060D26] font-medium truncate">{{ $verification->business_name ?? '—' }}</p>
-                        </div>
-                        <div class="shrink-0 text-right">
-                            <p class="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">Submitted</p>
-                            <p class="text-[12.5px] text-[#5B6A8E]">{{ $submittedDate }}</p>
-                        </div>
-                    </div>
-                </a>
-            @endforeach
+    <div class="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-5">
+        <x-card flush class="lg:col-span-3">
+            <div class="border-b border-[#E2E4EC] px-5 py-3.5">
+                <h2 class="text-[15px] font-semibold text-[#060D26]">Recently decided</h2>
+            </div>
+            @if($recent->isEmpty())
+                <x-admin.empty title="No decisions yet" />
+            @else
+                <ul class="divide-y divide-[#E2E4EC]">
+                    @foreach($recent as $item)
+                        <li>
+                            <a href="{{ route('admin.verifications.show', $item) }}" class="flex items-center justify-between gap-3 px-5 py-3 transition-colors duration-200 hover:bg-[#F7F8FC]">
+                                <span class="min-w-0">
+                                    <span class="block truncate text-[13.5px] font-semibold text-[#060D26]">{{ $item->user->first_name }} {{ $item->user->last_name }}</span>
+                                    <span class="block truncate text-[12.5px] text-[#5B6A8E]">{{ $item->reviewed_at?->diffForHumans() }}@if($item->reviewer) by {{ $item->reviewer->first_name }} {{ $item->reviewer->last_name }}@endif</span>
+                                </span>
+                                <x-admin.status :status="$item->verification_status" class="shrink-0" />
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
         </x-card>
-        @if ($verifications->hasPages())
-            <div class="mt-4 bg-white border border-[#E2E4EC] rounded-2xl px-6 py-3 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
-                {{ $verifications->links() }}
-            </div>
-        @endif
-    @endif
+
+        <x-card class="lg:col-span-2">
+            <h2 class="text-[15px] font-semibold text-[#060D26]">Before you approve</h2>
+            <ol class="mt-3 space-y-2.5 text-[13.5px] text-[#060D26]">
+                <li class="flex gap-3"><span class="font-bold tabular-nums text-[#FF8A66]">1</span><span>The face on the ID is the face in the selfie.</span></li>
+                <li class="flex gap-3"><span class="font-bold tabular-nums text-[#FF8A66]">2</span><span>The name on the ID matches the applicant's account.</span></li>
+                <li class="flex gap-3"><span class="font-bold tabular-nums text-[#FF8A66]">3</span><span>The ID is a real card, not a screen or a photocopy.</span></li>
+                <li class="flex gap-3"><span class="font-bold tabular-nums text-[#FF8A66]">4</span><span>No liveness check or a weak face match means you compare by eye.</span></li>
+            </ol>
+            <p class="mt-4 text-[12.5px] text-[#5B6A8E]">A rejection needs a reason; the applicant will see it.</p>
+        </x-card>
+    </div>
 
 </div>
 @endsection

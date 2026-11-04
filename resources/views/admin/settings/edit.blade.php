@@ -56,7 +56,7 @@
 
         @foreach($definitions->groupBy('group', preserveKeys: true) as $group => $fields)
             <x-card>
-                <h2 class="text-[15px] font-normal text-[#060D26]">{{ $group }}</h2>
+                <h2 class="text-[15px] font-semibold text-[#060D26]">{{ $group }}</h2>
                 <p class="text-[12.5px] text-[#5B6A8E] mt-0.5">
                     {{ match ($group) {
                         App\Models\Setting::GROUP_ESCROW => 'Deadlines that govern turnover, move-in confirmation, and when a deposit is released or escalated.',
@@ -82,11 +82,11 @@
                                 <label for="setting-{{ $key }}" class="block text-[13.5px] font-semibold text-[#060D26]">
                                     {{ $definition['label'] }}
                                     @if($isOverridden)
-                                        <span class="ml-1.5 inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-[#ECEEF6] text-[#060D26] align-middle">Customized</span>
+                                        <span class="ml-1.5 inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide bg-[#ECEEF6] text-[#060D26] align-middle">Customized</span>
                                     @endif
                                 </label>
                                 <p class="text-[12.5px] text-[#5B6A8E] mt-1 leading-relaxed">{{ $definition['help'] }}</p>
-                                <p class="text-[11.5px] text-[#94A3B8] mt-1">
+                                <p class="text-[11.5px] text-[#5B6A8E] mt-1">
                                     Default: <span class="font-semibold text-[#5B6A8E]">{{ App\Models\Setting::display($key, $default) }}</span>
                                     {{ $definition['unit'] }}@if($definition['type'] !== 'boolean') · clear the field to go back to it @endif
                                 </p>
@@ -119,13 +119,13 @@
                                         placeholder="{{ App\Models\Setting::display($key, $default) }}" />
                                     @endif
                                 </div>
-                                <p class="text-[11px] text-[#94A3B8] mt-1">{{ $definition['type'] === 'boolean' ? 'saves as soon as you click' : $definition['unit'] }}</p>
+                                <p class="text-[11px] text-[#5B6A8E] mt-1">{{ $definition['type'] === 'boolean' ? 'saves as soon as you click' : $definition['unit'] }}</p>
 
                                 @error("settings.$key")
-                                    <p class="text-[12px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                    <p class="text-[12px] text-[#DC2626] mt-1">{{ $message }}</p>
                                 @enderror
                                 @foreach($errors->get("settings.$key.*") as $itemErrors)
-                                    <p class="text-[12px] text-[#EF4444] mt-1">{{ $itemErrors[0] }}</p>
+                                    <p class="text-[12px] text-[#DC2626] mt-1">{{ $itemErrors[0] }}</p>
                                 @endforeach
                             </div>
                         </div>

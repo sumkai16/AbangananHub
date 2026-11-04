@@ -3,20 +3,9 @@
 @section('page-title', 'Ratings')
 
 @section('content')
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-12">
+    <div class="max-w-[1600px] mx-auto">
 
-        {{-- Header --}}
-        <div class="flex items-center gap-3.5 mb-6">
-            <div class="w-11 h-11 rounded-xl bg-[#060D26] flex items-center justify-center shrink-0">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FBBF24" stroke="none">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
-            </div>
-            <div>
-                <h1 class="text-2xl font-normal text-[#060D26] leading-tight">Overall Ratings</h1>
-                <p class="text-sm text-[#5B6A8E] mt-0.5">Platform-wide averages across how tenants, landlords and properties are rated.</p>
-            </div>
-        </div>
+        <x-page-header icon-path="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" title="Ratings" subtitle="Platform-wide averages across how tenants, landlords and properties are rated." />
 
         {{-- Headline --}}
         <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 mb-4">
@@ -29,7 +18,7 @@
                     </div>
                     <p class="text-[12px] text-[#5B6A8E] mt-2">from {{ number_format($totalCount) }} ratings</p>
                 @else
-                    <p class="text-3xl font-extrabold text-[#94A3B8] leading-none">—</p>
+                    <p class="text-3xl font-extrabold text-[#5B6A8E] leading-none">—</p>
                     <p class="text-[12px] text-[#5B6A8E] mt-3">No ratings yet</p>
                 @endif
             </x-card>
@@ -38,7 +27,7 @@
                 @foreach($relationships as $rel)
                     <x-card class="!p-4 flex flex-col">
                         <p class="text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">{{ $rel['label'] }}</p>
-                        <p class="text-[11.5px] text-[#94A3B8] mt-0.5 leading-snug">{{ $rel['sub'] }}</p>
+                        <p class="text-[11.5px] text-[#5B6A8E] mt-0.5 leading-snug">{{ $rel['sub'] }}</p>
                         <div class="mt-auto pt-3">
                             @if($rel['avg'] !== null)
                                 <div class="flex items-baseline gap-2">
@@ -47,8 +36,8 @@
                                 </div>
                                 <div class="mt-1.5"><x-star-rating :rating="$rel['avg']" :show-value="false" /></div>
                             @else
-                                <span class="text-2xl font-extrabold text-[#94A3B8]">—</span>
-                                <p class="text-[11.5px] text-[#94A3B8] mt-1">No ratings yet</p>
+                                <span class="text-2xl font-extrabold text-[#5B6A8E]">—</span>
+                                <p class="text-[11.5px] text-[#5B6A8E] mt-1">No ratings yet</p>
                             @endif
                         </div>
                     </x-card>
@@ -60,7 +49,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
             {{-- Distributions --}}
             <x-card>
-                <h2 class="text-[15px] font-normal text-[#060D26] mb-4">Rating distribution</h2>
+                <h2 class="text-[15px] font-semibold text-[#060D26] mb-4">Rating distribution</h2>
                 <div class="space-y-5">
                     @foreach($relationships as $rel)
                         @continue($rel['key'] === 'tenant_landlord') {{-- same source as tenant_property; don't double-draw --}}
@@ -90,13 +79,13 @@
 
             {{-- Trend --}}
             <x-card>
-                <h2 class="text-[15px] font-normal text-[#060D26] mb-1">Average rating — last 6 months</h2>
+                <h2 class="text-[15px] font-semibold text-[#060D26] mb-1">Average rating — last 6 months</h2>
                 <p class="text-[12px] text-[#5B6A8E] mb-4">Combined across all rating types, by the month each rating was left.</p>
                 @php $hasTrend = collect($trend)->contains(fn ($p) => $p['value'] !== null); @endphp
                 @if($hasTrend)
                     <div class="h-[220px]"><canvas id="ratingTrendChart"></canvas></div>
                 @else
-                    <div class="h-[220px] flex items-center justify-center text-[13px] text-[#94A3B8]">
+                    <div class="h-[220px] flex items-center justify-center text-[13px] text-[#5B6A8E]">
                         Not enough dated ratings to chart a trend yet.
                     </div>
                 @endif

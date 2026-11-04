@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-[1600px] mx-auto">
 
-    <x-page-header title="Landlord Payouts" icon-path="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3"
+    <x-page-header icon-path="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3" title="Payouts"
         subtitle="Money the platform owes landlords. {{ $automatic ? 'It is sent to their GCash automatically; PayMongo charges about ₱10 per transfer (one free a week).' : 'Automatic payouts are off: pay landlords by hand.' }}" />
 
     @if (! $automatic)
@@ -57,15 +57,7 @@
     @endif
 
     @if ($pending->isEmpty())
-        <div class="bg-white border border-[#E2E4EC] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(6,13,38,0.06)] mb-8">
-            <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] border border-[#E2E4EC] flex items-center justify-center mx-auto mb-4">
-                <svg class="w-7 h-7 text-[#B35A3D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
-                </svg>
-            </div>
-            <p class="text-[15px] font-bold text-[#060D26]">Nothing pending payout</p>
-            <p class="text-[13px] text-[#5B6A8E] mt-1">Every released and paid rent payment has been sent to its landlord.</p>
-        </div>
+        <x-card flush><x-admin.empty title="Nothing pending payout" note="Every released and paid rent payment has been sent to its landlord." /></x-card>
     @else
         <div class="space-y-4 mb-8">
             @foreach ($pending as $row)
@@ -73,11 +65,6 @@
                 <x-card flush>
                     <div class="px-6 py-4 border-b border-[#E2E4EC] flex items-center justify-between flex-wrap gap-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-full bg-[#060D26] flex items-center justify-center shrink-0">
-                                <span class="text-white text-[12px] font-bold">
-                                    {{ strtoupper(substr($landlord->first_name ?? '?', 0, 1)) }}{{ strtoupper(substr($landlord->last_name ?? '', 0, 1)) }}
-                                </span>
-                            </div>
                             <div>
                                 <p class="text-[13.5px] font-semibold text-[#060D26]">
                                     {{ trim(($landlord->first_name ?? '').' '.($landlord->last_name ?? '')) ?: '—' }}
@@ -123,20 +110,20 @@
                         <table class="min-w-full">
                             <thead>
                                 <tr class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
-                                    <th class="px-6 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Tenant</th>
-                                    <th class="px-6 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Type</th>
-                                    <th class="px-6 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Amount</th>
-                                    <th class="px-6 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Settled</th>
+                                    <x-admin.th>Tenant</x-admin.th>
+                                    <x-admin.th>Type</x-admin.th>
+                                    <x-admin.th>Amount</x-admin.th>
+                                    <x-admin.th>Settled</x-admin.th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-[#E2E4EC]">
                                 @foreach ($row['payments'] as $payment)
                                     @php $tenant = $payment->reservation?->tenant; @endphp
-                                    <tr class="hover:bg-[#ECEEF6] transition-colors duration-200">
-                                        <td class="px-6 py-3 text-[13px] text-[#060D26]">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</td>
-                                        <td class="px-6 py-3 text-[13px] text-[#5B6A8E]">{{ $payment->payment_type }}</td>
-                                        <td class="px-6 py-3 text-[13px] font-semibold text-[#060D26]">₱{{ number_format($payment->amount, 2) }}</td>
-                                        <td class="px-6 py-3 text-[13px] text-[#5B6A8E]">{{ ($payment->released_at ?? $payment->paid_at)?->format('M d, Y') ?? '—' }}</td>
+                                    <tr class="hover:bg-[#F7F8FC] transition-colors duration-200">
+                                        <td class="px-4 py-2.5 text-[13px] text-[#060D26]">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</td>
+                                        <td class="px-4 py-2.5 text-[13px] text-[#5B6A8E]">{{ $payment->payment_type }}</td>
+                                        <td class="px-4 py-2.5 text-[13px] font-semibold text-[#060D26]">₱{{ number_format($payment->amount, 2) }}</td>
+                                        <td class="px-4 py-2.5 text-[13px] text-[#5B6A8E]">{{ ($payment->released_at ?? $payment->paid_at)?->format('M d, Y') ?? '—' }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -159,44 +146,37 @@
                 <table class="min-w-full">
                     <thead>
                         <tr class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
-                            <th class="px-6 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Landlord</th>
-                            <th class="px-6 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Amount</th>
-                            <th class="px-6 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Status</th>
-                            <th class="px-6 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Reference</th>
-                            <th class="px-6 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Sent</th>
-                            <th class="px-6 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]"></th>
+                            <x-admin.th>Landlord</x-admin.th>
+                            <x-admin.th>Amount</x-admin.th>
+                            <x-admin.th>Status</x-admin.th>
+                            <x-admin.th>Reference</x-admin.th>
+                            <x-admin.th>Sent</x-admin.th>
+                            <x-admin.th></x-admin.th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#E2E4EC]">
                         @foreach ($payouts as $payout)
-                            @php
-                                $landlord = $payout->landlord;
-                                $badge = match ($payout->status) {
-                                    'Sent' => 'bg-[#22C55E]/10 text-[#15803D]',
-                                    'Failed' => 'bg-[#EF4444]/10 text-[#B91C1C]',
-                                    default => 'bg-[#FBBF24]/15 text-[#B45309]',
-                                };
-                            @endphp
-                            <tr class="hover:bg-[#ECEEF6] transition-colors duration-200 align-top">
-                                <td class="px-6 py-3 text-[13px] text-[#060D26]">{{ $landlord ? trim($landlord->first_name.' '.$landlord->last_name) : '—' }}</td>
-                                <td class="px-6 py-3 text-[13px] font-semibold text-[#060D26]">
+                            @php $landlord = $payout->landlord; @endphp
+                            <tr class="hover:bg-[#F7F8FC] transition-colors duration-200 align-top">
+                                <td class="px-4 py-2.5 text-[13px] text-[#060D26]">{{ $landlord ? trim($landlord->first_name.' '.$landlord->last_name) : '—' }}</td>
+                                <td class="px-4 py-2.5 text-[13px] font-semibold text-[#060D26]">
                                     ₱{{ number_format($payout->amount, 2) }}
                                     <span class="block text-[11px] font-normal text-[#5B6A8E]">{{ $payout->payments_count }} {{ Str::plural('payment', $payout->payments_count) }}</span>
                                 </td>
-                                <td class="px-6 py-3 text-[13px]">
-                                    <span class="inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold {{ $badge }}">{{ $payout->status }}</span>
+                                <td class="px-4 py-2.5 text-[13px]">
+                                    <x-admin.status :status="$payout->status" />
                                     @if ($payout->failure_reason)
                                         <span class="mt-1 block max-w-[260px] text-[11.5px] text-[#5B6A8E]">{{ $payout->failure_reason }}</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-3 text-[13px] text-[#5B6A8E]">
+                                <td class="px-4 py-2.5 text-[13px] text-[#5B6A8E]">
                                     {{ $payout->payout_reference ?? '—' }}
                                     @if ($payout->paidOutBy)
                                         <span class="block text-[11px]">by {{ $payout->paidOutBy->first_name }} (by hand)</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-3 text-[13px] text-[#5B6A8E]">{{ $payout->paid_out_at?->format('M d, Y g:i A') ?? '—' }}</td>
-                                <td class="px-6 py-3 text-right">
+                                <td class="px-4 py-2.5 text-[13px] text-[#5B6A8E]">{{ $payout->paid_out_at?->format('M d, Y g:i A') ?? '—' }}</td>
+                                <td class="px-4 py-2.5 text-right">
                                     @if ($payout->isFailed() && ! $payout->resolved_at)
                                         <form method="POST" action="{{ route('admin.payouts.retry', $payout) }}"
                                             data-confirm="Send this payout again?" data-confirm-message="Check the landlord's GCash number and name first. The money goes out again on the next run." data-confirm-button="Retry">
@@ -232,7 +212,7 @@
             x-show="open" x-cloak
             class="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 px-4">
             <div x-show="open" x-on:click.outside="open = false" class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
-                <h3 class="text-[15px] font-normal text-[#060D26] mb-1">Mark payout sent</h3>
+                <h3 class="text-[15px] font-semibold text-[#060D26] mb-1">Mark payout sent</h3>
                 <p class="text-[13px] text-[#5B6A8E] mb-4">
                     Confirm you have sent <span x-text="'₱' + amount"></span> via GCash to
                     <span x-text="name" class="font-semibold"></span>, then record the reference below.

@@ -14,8 +14,8 @@
                 <span class="text-[#060D26] text-[14px] font-extrabold">{{ $initials }}</span>
             </div>
             <div>
-                <h1 class="text-[18px] font-normal text-[#060D26] tracking-tight">Edit User</h1>
-                <p class="text-[13px] text-[#94A3B8]">{{ $user->email }}</p>
+                <h1 class="text-[18px] font-semibold text-[#060D26] tracking-tight">Edit User</h1>
+                <p class="text-[13px] text-[#5B6A8E]">{{ $user->email }}</p>
             </div>
         </div>
 
