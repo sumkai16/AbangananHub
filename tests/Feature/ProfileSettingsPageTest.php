@@ -63,7 +63,7 @@ class ProfileSettingsPageTest extends TestCase
         $this->actingAs($this->makeTenant())->get(route('profile.edit'))
             ->assertOk()->assertDontSee('Payout details')->assertDontSee('Business information')
             // A tenant's Settings is unchanged.
-            ->assertSee('name="bio"', false)->assertSee('Profile strength')->assertSee('reserved with')->assertDontSee('other landlords can view it')->assertSee('Back to Profile');
+            ->assertSee('name="bio"', false)->assertSee('Profile strength')->assertSee('reserved with')->assertDontSee('other landlords can view it')->assertSee(route('profile.show'), false)->assertSee('to profile');
     }
 
     private function fakeUploader(): void

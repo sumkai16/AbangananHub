@@ -87,10 +87,8 @@
 
             @if($backNavData)
                 <a href="{{ $backNavData['url'] }}"
-                    class="hidden xl:inline-flex items-center gap-2 text-[13.5px] font-semibold text-[#060D26] hover:text-[#B35A3D] transition-colors duration-200">
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
-                    </svg>
+                    class="hidden xl:inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-[#060D26] hover:text-[#B35A3D] transition-colors duration-200">
+                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
                     {{ $backNavData['label'] }}
                 </a>
 
