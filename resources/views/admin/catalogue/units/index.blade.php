@@ -4,17 +4,6 @@
 
 @section('content')
 @php
-    $availabilityBadge = [
-        'Available'   => 'bg-[#22C55E]/[0.07] text-[#15803D] ring-[#22C55E]/25',
-        'Reserved'    => 'bg-[#FBBF24]/[0.10] text-[#B45309] ring-[#FBBF24]/35',
-        'Occupied'    => 'bg-[#EF4444]/[0.07] text-[#DC2626] ring-[#EF4444]/25',
-        'Maintenance' => 'bg-[#ECEEF6] text-[#060D26] ring-[#FF8A66]/25',
-    ];
-    $verificationBadge = [
-        'Approved' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
-        'Pending'  => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
-        'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626]',
-    ];
     $healthOptions = [
         ''                  => 'All health',
         'long-vacant'       => 'Vacant 60+ days',
@@ -34,12 +23,12 @@
 
 <div class="max-w-[1600px] mx-auto"
     x-data="{
-        view: localStorage.getItem('adminUnitsView') || 'grid',
+        view: localStorage.getItem('adminUnitsView') || 'table',
         setView(v) { this.view = v; localStorage.setItem('adminUnitsView', v); }
     }">
 
     {{-- Header --}}
-    <x-page-header title="Units" subtitle="Full inventory of every unit on the platform, across all statuses.">
+    <x-page-header title="Units" :subtitle="'Every unit, in every status. '.$counts['occupancy_rate'].'% occupied.'">
         <x-slot:icon>
             <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm0 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0115.75 3.75H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zm0 9.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
@@ -47,7 +36,7 @@
         </x-slot:icon>
         <x-slot:actions>
             <a href="{{ route('admin.catalogue.units.export', request()->query()) }}"
-                class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full border border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-sm font-semibold transition-all duration-200 shrink-0">
+                class="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl border border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-sm font-semibold transition-all duration-200 shrink-0">
                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                 </svg>
@@ -56,86 +45,37 @@
         </x-slot:actions>
     </x-page-header>
 
-    {{-- Occupancy stat cards --}}
-    @php
-        $availPct = $counts['total'] > 0 ? round($counts['available'] / $counts['total'] * 100) : 0;
-        $reservedPct = $counts['total'] > 0 ? round($counts['reserved'] / $counts['total'] * 100) : 0;
-        $occupiedPct = $counts['total'] > 0 ? round($counts['occupied'] / $counts['total'] * 100) : 0;
-    @endphp
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <x-stat-card label="Total Units" :value="number_format($counts['total'])" :sub="$counts['occupancy_rate'].'% occupied'">
-            <x-slot:icon>
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm0 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25z" />
-                </svg>
-            </x-slot:icon>
-        </x-stat-card>
-
-        <x-stat-card label="Available" :value="number_format($counts['available'])" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)"
-            :percent="$availPct" bar-color="#22C55E" :sub="$availPct.'% of total units'">
-            <x-slot:icon>
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                </svg>
-            </x-slot:icon>
-        </x-stat-card>
-
-        <x-stat-card label="Reserved" :value="number_format($counts['reserved'])" value-color="#B45309" icon-bg="rgba(251,191,36,0.10)"
-            :percent="$reservedPct" bar-color="#FBBF24" :sub="$reservedPct.'% of total units'">
-            <x-slot:icon>
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B45309" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                </svg>
-            </x-slot:icon>
-        </x-stat-card>
-
-        <x-stat-card label="Occupied" :value="number_format($counts['occupied'])" value-color="#DC2626" icon-bg="rgba(239,68,68,0.07)"
-            :percent="$occupiedPct" bar-color="#EF4444" :sub="$occupiedPct.'% occupancy rate'">
-            <x-slot:icon>
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0zM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                </svg>
-            </x-slot:icon>
-        </x-stat-card>
-    </div>
 
     {{-- Search + filters + view toggle --}}
-    <form method="GET" action="{{ route('admin.catalogue.units.index') }}"
-        class="bg-white rounded-2xl p-4 mb-5 shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
+    <form method="GET" action="{{ route('admin.catalogue.units.index') }}" class="mb-4">
         <input type="hidden" name="availability_status" value="{{ $availability }}">
         <div class="flex flex-col lg:flex-row lg:items-center gap-3">
             <div class="relative flex-1 min-w-[200px]">
-                <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" width="15" height="15" fill="none"
+                <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B6A8E]" width="15" height="15" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
                 </svg>
                 <input type="text" name="search" value="{{ $search }}"
                     placeholder="Search by unit, property, or landlord…" aria-label="Search units"
                     x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                    class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all">
+                    class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-white focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all">
             </div>
 
             <div class="flex flex-wrap items-center gap-2.5">
                 <x-styled-select name="verification_status" :options="$verificationOptions" :selected="$filters['verification_status'] ?? ''"
-                    class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26] max-w-[180px]" />
+                    class="h-10 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13.5px] text-[#060D26] max-w-[180px]" />
 
                 <x-styled-select name="health" :options="$healthOptions" :selected="$filters['health'] ?? ''"
-                    class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26] max-w-[200px]" />
+                    class="h-10 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13.5px] text-[#060D26] max-w-[200px]" />
 
                 <x-styled-select name="sort" :options="$sortOptions" :selected="$filters['sort'] ?? 'newest'"
-                    class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26]" />
+                    class="h-10 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13.5px] text-[#060D26]" />
 
-                <button type="submit"
-                    class="h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 inline-flex items-center gap-1.5">
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-                    </svg>
-                    Filter
-                </button>
+                <button type="submit" class="h-10 rounded-xl border border-[#E2E4EC] bg-white px-4 text-[13.5px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#F7F8FC]">Filter</button>
 
                 @if($search || ($filters['verification_status'] ?? '') || ($filters['health'] ?? '') || (($filters['sort'] ?? 'newest') !== 'newest'))
                     <a href="{{ route('admin.catalogue.units.index', ['availability_status' => $availability]) }}"
-                        class="h-11 px-4 rounded-xl border border-[#5B6A8E]/25 text-[13.5px] text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 inline-flex items-center gap-1.5">
+                        class="h-10 px-4 rounded-xl border border-[#5B6A8E]/25 text-[13.5px] text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 inline-flex items-center gap-1.5">
                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                         </svg>
@@ -144,7 +84,7 @@
                 @endif
 
                 {{-- View toggle --}}
-                <div class="flex items-center gap-0.5 h-11 p-1 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC]">
+                <div class="flex items-center gap-0.5 h-10 p-1 rounded-xl border border-[#5B6A8E]/25 bg-white">
                     <button type="button" x-on:click="setView('grid')" aria-label="Grid view"
                         :class="view === 'grid' ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E] hover:text-[#060D26]'"
                         class="h-9 w-9 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
@@ -165,34 +105,16 @@
     </form>
 
     {{-- Availability tabs --}}
-    <div class="flex items-center gap-0.5 border-b border-[#E2E4EC] mb-6 overflow-x-auto">
-        <a href="{{ route('admin.catalogue.units.index', array_filter(['search' => $search])) }}"
-            class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                {{ $availability === '' ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
-            All
-            <span class="ml-1 text-[11px] {{ $availability === '' ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $counts['total'] }}</span>
-        </a>
-        @foreach(['Available' => $counts['available'], 'Reserved' => $counts['reserved'], 'Occupied' => $counts['occupied'], 'Maintenance' => $counts['maintenance']] as $key => $count)
-            <a href="{{ route('admin.catalogue.units.index', array_filter(['availability_status' => $key, 'search' => $search])) }}"
-                class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                    {{ $availability === $key ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
-                {{ $key }}
-                <span class="ml-1 text-[11px] {{ $availability === $key ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $count }}</span>
-            </a>
-        @endforeach
-    </div>
+    <x-admin.tabs class="mb-4" :tabs="collect(['' => ['All', $counts['total']], 'Available' => ['Available', $counts['available']], 'Reserved' => ['Reserved', $counts['reserved']], 'Occupied' => ['Occupied', $counts['occupied']], 'Maintenance' => ['Maintenance', $counts['maintenance']]])->map(fn ($tab, $key) => [
+        'label' => $tab[0],
+        'count' => $tab[1],
+        'href' => route('admin.catalogue.units.index', array_filter(['availability_status' => $key, 'search' => $search])),
+        'active' => $availability === (string) $key,
+    ])->values()->all()" />
 
     {{-- Empty state --}}
     @if($units->isEmpty())
-        <div class="rounded-2xl border border-dashed border-[#5B6A8E]/30 bg-white flex flex-col items-center justify-center py-16 text-center">
-            <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] flex items-center justify-center mb-4">
-                <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6z" />
-                </svg>
-            </div>
-            <p class="text-sm font-semibold text-[#060D26]">No units found</p>
-            <p class="text-xs text-[#5B6A8E] mt-1">{{ $search || array_filter($filters) ? 'Try adjusting your search or filters.' : 'No units have been created yet.' }}</p>
-        </div>
+        <x-card flush><x-admin.empty title="No units found" :note="$search || array_filter($filters) ? 'Try a different search or filter.' : null" /></x-card>
     @else
         @php
             $derived = [];
@@ -206,15 +128,15 @@
         @endphp
 
         {{-- Grid view --}}
-        <div x-show="view === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div x-show="view === 'grid'" x-cloak class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             @foreach($units as $unit)
                 @php extract($derived[$unit->unit_id]); @endphp
-                <article class="group flex flex-col rounded-2xl overflow-hidden bg-white ring-1 ring-[#5B6A8E]/10 shadow-[0_2px_12px_rgba(6,13,38,0.05)] hover:shadow-[0_8px_28px_rgba(6,13,38,0.1)] hover:-translate-y-0.5 transition-all duration-300">
+                <article class="flex flex-col rounded-2xl overflow-hidden bg-white ring-1 ring-[#5B6A8E]/15">
                     <a href="{{ route('admin.units.show', ['property' => $unit->property_id, 'unit' => $unit->unit_id]) }}"
                         class="relative block aspect-[16/10] overflow-hidden bg-[#ECEEF6] shrink-0">
                         @if($thumb)
                             <img src="{{ $thumb->media_url }}" alt="{{ $unit->unit_label }}" loading="lazy"
-                                class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out">
+                                class="w-full h-full object-cover transition-transform duration-500 ease-out">
                         @else
                             <div class="w-full h-full flex flex-col items-center justify-center gap-2">
                                 <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2" class="text-[#5B6A8E]/60">
@@ -223,37 +145,28 @@
                                 <span class="text-[11px] text-[#5B6A8E]/70">No photo</span>
                             </div>
                         @endif
-                        <span class="absolute top-3 left-3 inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full ring-1 {{ $availabilityBadge[$unit->availability_status] ?? 'bg-[#ECEEF6] text-[#5B6A8E] ring-[#5B6A8E]/20' }}">
-                            <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
-                            {{ $unit->availability_status }}
-                        </span>
-                        <span class="absolute top-3 right-3 inline-flex items-center text-[10.5px] font-semibold px-2 py-1 rounded-full {{ $verificationBadge[$unit->verification_status] ?? 'bg-[#ECEEF6] text-[#5B6A8E]' }}">
-                            {{ $unit->verification_status }}
-                        </span>
+                        <div class="absolute top-3 left-3 flex gap-1.5">
+                            <x-admin.status :status="$unit->availability_status" kind="unit" />
+                            <x-admin.status :status="$unit->verification_status" />
+                        </div>
                     </a>
 
                     <div class="flex flex-col flex-1 p-4 gap-3">
                         <div>
-                            <p class="text-[15px] font-bold text-[#060D26] leading-snug">{{ $unit->unit_label }}</p>
+                            <p class="text-[15px] font-semibold text-[#060D26] leading-snug">{{ $unit->unit_label }}</p>
                             <p class="text-[12px] text-[#5B6A8E] mt-0.5 line-clamp-1">{{ $unit->property->title ?? '—' }}</p>
                             @if($unit->rejection_reason)
                                 <p class="text-[11px] text-[#DC2626] mt-0.5 line-clamp-1" title="{{ $unit->rejection_reason }}">{{ $unit->rejection_reason }}</p>
                             @endif
                         </div>
 
-                        <div class="flex items-center justify-between rounded-xl bg-[#ECEEF6]/60 px-3.5 py-2.5">
-                            <div>
-                                <p class="text-[15px] font-bold text-[#060D26]">₱{{ number_format($unit->rental_fee, 0) }}</p>
-                                <p class="text-[10px] text-[#5B6A8E]">per month</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-[13px] font-semibold text-[#060D26]">{{ $tenantName ?? '—' }}</p>
-                                <p class="text-[10px] text-[#5B6A8E]">tenant</p>
-                            </div>
+                        <div class="flex items-baseline justify-between gap-3 text-[13px]">
+                            <p class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($unit->rental_fee, 2) }} <span class="font-normal text-[#5B6A8E]">/ month</span></p>
+                            <p class="truncate text-[#5B6A8E]">{{ $tenantName ?? 'No tenant' }}</p>
                         </div>
 
                         <a href="{{ route('admin.units.show', ['property' => $unit->property_id, 'unit' => $unit->unit_id]) }}"
-                            class="mt-auto h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
+                            class="mt-auto h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[#E2E4EC] text-[#060D26] text-[12.5px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
                             View Details
                         </a>
                     </div>
@@ -264,23 +177,23 @@
         {{-- Table view --}}
         <x-card flush x-show="view === 'table'" x-cloak>
             <div class="overflow-x-auto">
-                <table class="w-full min-w-[980px] text-left">
+                <table class="w-full min-w-[980px]">
                     <thead>
-                        <tr class="border-b border-[#E2E4EC]">
-                            <th class="px-5 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Unit</th>
-                            <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Property / Landlord</th>
-                            <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Rent</th>
-                            <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Tenant</th>
-                            <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Availability</th>
-                            <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Verification</th>
-                            <th class="px-5 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide text-right">Actions</th>
+                        <tr class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
+                            <x-admin.th>Unit</x-admin.th>
+                            <x-admin.th>Property / Landlord</x-admin.th>
+                            <x-admin.th align="right">Rent</x-admin.th>
+                            <x-admin.th>Tenant</x-admin.th>
+                            <x-admin.th>Availability</x-admin.th>
+                            <x-admin.th>Verification</x-admin.th>
+                            <x-admin.th align="right">Actions</x-admin.th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#E2E4EC]">
                         @foreach($units as $unit)
                             @php extract($derived[$unit->unit_id]); @endphp
-                            <tr class="hover:bg-[#ECEEF6] transition-colors duration-200">
-                                <td class="px-5 py-3.5">
+                            <tr class="hover:bg-[#F7F8FC] transition-colors duration-200">
+                                <td class="px-4 py-3">
                                     <div class="flex items-center gap-3">
                                         <div class="w-12 h-12 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0">
                                             @if($thumb)
@@ -301,36 +214,25 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-4 py-3.5">
+                                <td class="px-4 py-3">
                                     <p class="text-[12.5px] font-semibold text-[#060D26] truncate max-w-[180px]">{{ $unit->property->title ?? '—' }}</p>
                                     <p class="text-[11px] text-[#5B6A8E] truncate max-w-[180px]">
                                         {{ trim(($unit->property->landlord->first_name ?? '') . ' ' . ($unit->property->landlord->last_name ?? '')) ?: '—' }}
                                     </p>
                                 </td>
-                                <td class="px-4 py-3.5">
-                                    <p class="text-[13px] font-bold text-[#060D26] whitespace-nowrap">₱{{ number_format($unit->rental_fee, 0) }}</p>
-                                    <p class="text-[11px] text-[#5B6A8E]">per month</p>
-                                </td>
-                                <td class="px-4 py-3.5 text-[12.5px] text-[#060D26]">{{ $tenantName ?? '—' }}</td>
-                                <td class="px-4 py-3.5">
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full ring-1 text-[11px] font-semibold whitespace-nowrap {{ $availabilityBadge[$unit->availability_status] ?? 'bg-[#ECEEF6] text-[#5B6A8E] ring-[#5B6A8E]/20' }}">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
-                                        {{ $unit->availability_status }}
-                                    </span>
+                                <td class="px-4 py-3 text-right text-[13.5px] font-semibold tabular-nums whitespace-nowrap text-[#060D26]">&#8369;{{ number_format($unit->rental_fee, 2) }}</td>
+                                <td class="px-4 py-3 text-[12.5px] text-[#060D26]">{{ $tenantName ?? '—' }}</td>
+                                <td class="px-4 py-3">
+                                    <x-admin.status :status="$unit->availability_status" kind="unit" />
                                     @if($unit->availability_status === 'Available' && $unit->vacated_at && $unit->vacated_at->lt(now()->subDays(60)))
                                         <p class="mt-1 text-[11px] text-[#B45309]">Vacant {{ $unit->vacated_at->diffForHumans() }}</p>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3.5">
-                                    <span class="inline-flex px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap {{ $verificationBadge[$unit->verification_status] ?? 'bg-[#ECEEF6] text-[#5B6A8E]' }}">
-                                        {{ $unit->verification_status }}
-                                    </span>
+                                <td class="px-4 py-3">
+                                    <x-admin.status :status="$unit->verification_status" />
                                 </td>
-                                <td class="px-5 py-3.5 text-right">
-                                    <a href="{{ route('admin.units.show', ['property' => $unit->property_id, 'unit' => $unit->unit_id]) }}"
-                                        class="h-8 px-3 inline-flex items-center rounded-lg border border-[#5B6A8E]/25 text-[#060D26] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 whitespace-nowrap">
-                                        View
-                                    </a>
+                                <td class="px-4 py-3 text-right">
+                                    <a href="{{ route('admin.units.show', ['property' => $unit->property_id, 'unit' => $unit->unit_id]) }}" class="text-[13px] font-semibold text-[#060D26] underline-offset-2 hover:underline">View</a>
                                 </td>
                             </tr>
                         @endforeach

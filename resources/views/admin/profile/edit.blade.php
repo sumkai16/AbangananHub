@@ -59,11 +59,11 @@
                 </div>
 
                 @error('profile_picture')
-                    <p class="text-[12px] text-[#EF4444] mb-2">{{ $message }}</p>
+                    <p class="text-[12px] text-[#DC2626] mb-2">{{ $message }}</p>
                 @enderror
             </form>
 
-            <h3 class="text-[15px] font-normal text-[#060D26]">{{ $user->first_name }} {{ $user->last_name }}</h3>
+            <h3 class="text-[15px] font-semibold text-[#060D26]">{{ $user->first_name }} {{ $user->last_name }}</h3>
             <p class="text-[13px] text-[#5B6A8E] mt-1">Administrator</p>
             <p class="text-[12px] text-[#5B6A8E] mt-0.5">Member since {{ $user->created_at->format('F Y') }}</p>
 
@@ -82,7 +82,7 @@
                 @method('PATCH')
 
                 <div class="p-6 space-y-5">
-                    <h4 class="text-[15px] font-normal text-[#060D26]">Personal Information</h4>
+                    <h4 class="text-[15px] font-semibold text-[#060D26]">Personal Information</h4>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
@@ -91,7 +91,7 @@
                                    value="{{ old('first_name', $user->first_name) }}"
                                    class="w-full rounded-xl border border-[#E2E4EC] bg-white px-4 py-2.5 text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] transition-colors" />
                             @error('first_name')
-                                <p class="text-[13px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                <p class="text-[13px] text-[#DC2626] mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
@@ -101,7 +101,7 @@
                                    value="{{ old('last_name', $user->last_name) }}"
                                    class="w-full rounded-xl border border-[#E2E4EC] bg-white px-4 py-2.5 text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] transition-colors" />
                             @error('last_name')
-                                <p class="text-[13px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                <p class="text-[13px] text-[#DC2626] mt-1">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
@@ -113,7 +113,7 @@
                                placeholder="e.g. 09171234567"
                                class="w-full rounded-xl border border-[#E2E4EC] bg-white px-4 py-2.5 text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] transition-colors" />
                         @error('contact_number')
-                            <p class="text-[13px] text-[#EF4444] mt-1">{{ $message }}</p>
+                            <p class="text-[13px] text-[#DC2626] mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
@@ -132,7 +132,7 @@
                                   class="w-full rounded-xl border border-[#E2E4EC] bg-white px-4 py-2.5 text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] transition-colors resize-none">{{ old('bio', $user->bio) }}</textarea>
                         <p class="text-[12px] text-[#5B6A8E] mt-1 text-right"><span x-text="count"></span> / 1,000</p>
                         @error('bio')
-                            <p class="text-[13px] text-[#EF4444] mt-1">{{ $message }}</p>
+                            <p class="text-[13px] text-[#DC2626] mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>

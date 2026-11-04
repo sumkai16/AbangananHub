@@ -10,7 +10,7 @@
     $inputBase = 'w-full h-10 px-3.5 text-[13.5px] rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all';
     $inputOk = 'border-[#E2E4EC] bg-[#F7F8FC]';
     $inputBad = 'border-[#EF4444]/35 bg-[#EF4444]/[0.07]';
-    $labelCls = 'block text-[11px] font-bold uppercase tracking-widest text-[#94A3B8] mb-1.5';
+    $labelCls = 'block text-[11px] font-bold uppercase tracking-widest text-[#5B6A8E] mb-1.5';
     $currentRoles = old('roles', $editing ? $user->roles->pluck('role')->toArray() : []);
 @endphp
 
@@ -54,7 +54,7 @@
     {{-- Password: required on create, optional on edit --}}
     @if($editing)
         <div class="rounded-2xl border border-[#E2E4EC] bg-[#F7F8FC] p-4 space-y-3">
-            <p class="text-[11px] font-bold uppercase tracking-widest text-[#94A3B8]">Change Password <span class="font-normal normal-case text-[#94A3B8]">(leave blank to keep current)</span></p>
+            <p class="text-[11px] font-bold uppercase tracking-widest text-[#5B6A8E]">Change Password <span class="font-normal normal-case text-[#5B6A8E]">(leave blank to keep current)</span></p>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <input type="password" name="password" placeholder="New password" aria-label="New password"
@@ -85,7 +85,7 @@
 
     {{-- Roles --}}
     <div>
-        <label class="block text-[11px] font-bold uppercase tracking-widest text-[#94A3B8] mb-2">Role(s) <span class="text-[#DC2626]">*</span></label>
+        <label class="block text-[11px] font-bold uppercase tracking-widest text-[#5B6A8E] mb-2">Role(s) <span class="text-[#DC2626]">*</span></label>
         <div class="flex flex-wrap gap-3">
             @foreach (['Admin', 'Landlord', 'Tenant'] as $roleOption)
                 @php

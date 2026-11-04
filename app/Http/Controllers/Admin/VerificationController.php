@@ -8,6 +8,7 @@ use App\Models\AuditLog;
 use App\Models\LandlordVerification;
 use App\Models\Notification;
 use App\Models\RentalBusiness;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -38,10 +39,27 @@ class VerificationController extends Controller
         ];
         $counts['All'] = array_sum($counts);
 
+        $since = now()->subDays(30);
+        $summary = [
+            'oldest'   => LandlordVerification::where('verification_status', 'Pending')->min('submitted_at'),
+            'approved' => LandlordVerification::where('verification_status', 'Approved')->where('reviewed_at', '>=', $since)->count(),
+            'rejected' => LandlordVerification::where('verification_status', 'Rejected')->where('reviewed_at', '>=', $since)->count(),
+            // Pending applications where the face match did not clear: these need a careful look.
+            'flagged'  => LandlordVerification::where('verification_status', 'Pending')
+                ->whereIn('face_match_status', ['mismatch', 'review', 'no_face'])->count(),
+        ];
+        $summary['oldest'] = $summary['oldest'] ? Carbon::parse($summary['oldest']) : null;
+
+        $recent = LandlordVerification::with(['user', 'reviewer'])
+            ->whereIn('verification_status', ['Approved', 'Rejected'])
+            ->latest('reviewed_at')->limit(5)->get();
+
         return view('admin.verifications.index', [
             'verifications' => $verifications,
             'status' => $status,
             'counts' => $counts,
+            'summary' => $summary,
+            'recent' => $recent,
         ]);
     }
 

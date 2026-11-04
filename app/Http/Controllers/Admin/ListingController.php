@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\RejectListingRequest;
 use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\Property;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -32,6 +33,7 @@ class ListingController extends Controller
         }
 
         $query = Property::with(['landlord', 'media', 'units'])
+            ->withCount(['media as photos_count' => fn ($q) => $q->where('media_type', 'Image'), 'documents', 'documents as verified_documents_count' => fn ($q) => $q->where('status', 'Verified')])
             ->submitted()
             ->when($status === 'Suspended', fn ($q) => $q->where('publication_status', 'Suspended'))
             ->when(! in_array($status, ['All', 'Suspended'], true), fn ($q) => $q->where('verification_status', $status));
@@ -54,7 +56,18 @@ class ListingController extends Controller
             'All' => (int) $byStatus->sum(),
         ];
 
-        return view('admin.listings.approval', compact('pendingListings', 'status', 'counts'));
+        $since = now()->subDays(30);
+        $summary = [
+            'oldest'   => ($o = Property::submitted()->where('verification_status', 'Pending')->min('created_at')) ? Carbon::parse($o) : null,
+            'approved' => Property::submitted()->where('verification_status', 'Approved')->where('updated_at', '>=', $since)->count(),
+            'rejected' => Property::submitted()->where('verification_status', 'Rejected')->where('updated_at', '>=', $since)->count(),
+            // Waiting listings with no photo or no unit: not ready to be shown to tenants.
+            'incomplete' => Property::submitted()->where('verification_status', 'Pending')
+                ->where(fn ($q) => $q->whereDoesntHave('media', fn ($m) => $m->where('media_type', 'Image'))->orWhereDoesntHave('units'))->count(),
+        ];
+        $recent = Property::submitted()->with('landlord')->whereIn('verification_status', ['Approved', 'Rejected'])->latest('updated_at')->limit(5)->get();
+
+        return view('admin.listings.approval', compact('pendingListings', 'status', 'counts', 'summary', 'recent'));
     }
 
     /**

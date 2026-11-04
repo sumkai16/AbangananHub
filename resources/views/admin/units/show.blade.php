@@ -6,7 +6,7 @@
     <div class="max-w-[1600px] mx-auto">
 
         {{-- Breadcrumb --}}
-        <div class="flex items-center gap-1.5 text-[13px] text-[#94A3B8] mb-4">
+        <div class="flex items-center gap-1.5 text-[13px] text-[#5B6A8E] mb-4">
             <a href="{{ route('admin.units.index') }}" class="hover:text-[#060D26] transition-colors">Unit Approvals</a>
             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
@@ -15,21 +15,13 @@
         </div>
 
         @php
-            $statusCls = match ($unit->verification_status) {
-                'Approved' => 'bg-[#22C55E]/[0.07] text-[#15803D] border-[#22C55E]/25',
-                'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626] border-[#EF4444]/25',
-                default => 'bg-[#FBBF24]/[0.10] text-[#B45309] border-[#FBBF24]/35',
-            };
         @endphp
 
         <div class="flex items-center justify-between mb-6">
             <div>
                 <div class="flex items-center gap-3">
-                    <h1 class="text-2xl font-normal text-[#060D26] tracking-tight">{{ $unit->unit_label }}</h1>
-                    <span
-                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border {{ $statusCls }}">
-                        {{ $unit->verification_status }}
-                    </span>
+                    <h1 class="text-2xl font-semibold text-[#060D26] tracking-tight">{{ $unit->unit_label }}</h1>
+                    <x-admin.status :status="$unit->verification_status" />
                 </div>
                 <p class="text-[13.5px] text-[#5B6A8E] mt-1">{{ $property->title }}</p>
             </div>
@@ -54,38 +46,38 @@
             {{-- Left: details + media --}}
             <div class="lg:col-span-8 space-y-5">
 
-                <div class="bg-white border border-[#E2E4EC] rounded-3xl p-6 shadow-sm">
-                    <h2 class="text-[15px] font-normal text-[#060D26] mb-4">Unit Details</h2>
+                <div class="bg-white border border-[#E2E4EC] rounded-2xl p-6 shadow-sm">
+                    <h2 class="text-[15px] font-semibold text-[#060D26] mb-4">Unit Details</h2>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         <div>
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1">Monthly Rent</p>
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-[#5B6A8E] mb-1">Monthly Rent</p>
                             <p class="text-[14px] font-semibold text-[#060D26]">₱{{ number_format($unit->rental_fee, 2) }}
                             </p>
                         </div>
                         <div>
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1">Capacity</p>
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-[#5B6A8E] mb-1">Capacity</p>
                             <p class="text-[14px] font-semibold text-[#060D26]">{{ $unit->occupancy_limit }}
                                 {{ Str::plural('person', $unit->occupancy_limit) }}
                             </p>
                         </div>
                         <div>
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1">Floor Area</p>
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-[#5B6A8E] mb-1">Floor Area</p>
                             <p class="text-[14px] font-semibold text-[#060D26]">{{ $unit->floor_area_label ?? '—' }}</p>
                         </div>
                         <div>
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1">Availability</p>
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-[#5B6A8E] mb-1">Availability</p>
                             <p class="text-[14px] font-semibold text-[#060D26]">{{ $unit->availability_status }}</p>
                         </div>
                         <div>
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1">Submitted</p>
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-[#5B6A8E] mb-1">Submitted</p>
                             <p class="text-[14px] font-semibold text-[#060D26]">{{ $unit->created_at->format('M j, Y') }}
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white border border-[#E2E4EC] rounded-3xl p-6 shadow-sm">
-                    <h2 class="text-[15px] font-normal text-[#060D26] mb-4">Verification Capture</h2>
+                <div class="bg-white border border-[#E2E4EC] rounded-2xl p-6 shadow-sm">
+                    <h2 class="text-[15px] font-semibold text-[#060D26] mb-4">Verification Capture</h2>
 
                     @php
                         $photos = $unit->media->where('media_type', 'Image');
@@ -93,7 +85,7 @@
                     @endphp
 
                     @if($photos->isEmpty() && !$video)
-                        <p class="text-[13px] text-[#94A3B8]">No media submitted for this unit.</p>
+                        <p class="text-[13px] text-[#5B6A8E]">No media submitted for this unit.</p>
                     @else
                         @if($photos->isNotEmpty())
                             <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-4">
@@ -119,8 +111,8 @@
             {{-- Right: landlord card + actions --}}
             <div class="lg:col-span-4 space-y-5">
 
-                <div class="bg-white border border-[#E2E4EC] rounded-3xl p-6 shadow-sm">
-                    <h2 class="text-[15px] font-normal text-[#060D26] mb-4">Landlord</h2>
+                <div class="bg-white border border-[#E2E4EC] rounded-2xl p-6 shadow-sm">
+                    <h2 class="text-[15px] font-semibold text-[#060D26] mb-4">Landlord</h2>
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-full bg-[#FF8A66]/10 flex items-center justify-center shrink-0">
                             <span class="text-[#060D26] text-[13px] font-bold">
@@ -131,19 +123,19 @@
                             <p class="text-[13.5px] font-semibold text-[#060D26]">
                                 {{ $property->landlord->first_name ?? '' }} {{ $property->landlord->last_name ?? '' }}
                             </p>
-                            <p class="text-[12px] text-[#94A3B8]">{{ $property->landlord->email ?? '—' }}</p>
+                            <p class="text-[12px] text-[#5B6A8E]">{{ $property->landlord->email ?? '—' }}</p>
                         </div>
                     </div>
                 </div>
                 @if($unit->isPending())
-                    <div class="bg-white border border-[#E2E4EC] rounded-3xl p-6 shadow-sm space-y-3">
-                        <h2 class="text-[15px] font-normal text-[#060D26] mb-1">Decision</h2>
+                    <div class="bg-white border border-[#E2E4EC] rounded-2xl p-6 shadow-sm space-y-3">
+                        <h2 class="text-[15px] font-semibold text-[#060D26] mb-1">Decision</h2>
 
                         <form method="POST" action="{{ route('admin.units.approve', [$property, $unit]) }}"
-                            data-confirm="Approve this unit?">
+                            data-confirm="Approve this unit?" data-confirm-button="Approve unit">
                             @csrf
                             <button type="submit"
-                                class="w-full h-11 rounded-xl bg-[#22C55E] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all">
+                                class="w-full h-11 rounded-xl bg-[#15803D] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all">
                                 Approve Unit
                             </button>
                         </form>

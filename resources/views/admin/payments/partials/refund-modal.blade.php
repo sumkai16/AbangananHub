@@ -55,7 +55,7 @@
 
                 <div class="flex items-start justify-between gap-4 px-6 pt-6 pb-4">
                     <div>
-                        <h2 id="refund-payment-title" class="text-[17px] font-normal text-[#060D26]">Refund the tenant</h2>
+                        <h2 id="refund-payment-title" class="text-[17px] font-semibold text-[#060D26]">Refund the tenant</h2>
                         <p class="text-[12.5px] text-[#5B6A8E] mt-0.5" x-text="payment.label"></p>
                     </div>
                     <button type="button" @click="close()" aria-label="Close"
@@ -89,14 +89,14 @@
 
                     <div class="mb-4">
                         <label for="refund_reason" class="block text-[12px] font-semibold text-[#060D26] mb-1.5">
-                            Why are you refunding this <span class="text-[#EF4444]">*</span>
+                            Why are you refunding this <span class="text-[#DC2626]">*</span>
                         </label>
                         <textarea id="refund_reason" name="refund_reason" x-model="reason" rows="3" required minlength="5" maxlength="255"
                             placeholder="For example: the landlord never handed over the keys."
                             class="w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 py-2.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition"></textarea>
                         <p class="text-[11px] text-[#5B6A8E] mt-1">Both people see that you refunded it. PayMongo keeps this note too.</p>
                         @error('refund_reason')
-                            <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                            <p class="text-[11.5px] text-[#DC2626] mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
@@ -110,7 +110,7 @@
                         </span>
                     </label>
 
-                    <div class="flex items-center justify-between rounded-xl bg-[#FEF2F2] px-3.5 py-3 mb-5">
+                    <div class="flex items-center justify-between rounded-xl bg-[#EF4444]/[0.07] px-3.5 py-3 mb-5">
                         <span class="text-[12.5px] font-semibold text-[#060D26]">The tenant gets back</span>
                         <span class="text-[16px] font-extrabold tabular-nums text-[#DC2626]" x-text="peso(total())"></span>
                     </div>
@@ -121,7 +121,7 @@
                             Cancel
                         </button>
                         <button type="submit"
-                            class="h-11 px-6 rounded-full bg-[#DC2626] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200 cursor-pointer">
+                            class="h-10 px-4 rounded-xl bg-[#DC2626] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200 cursor-pointer">
                             Refund tenant
                         </button>
                     </div>
