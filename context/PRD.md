@@ -11,7 +11,7 @@ In Cebu, Philippines (Talisay, Minglanilla, Naga City), tenants and landlords re
 ## 3. MVP Scope (Defensible 13-Module Set)
 - [x] Auth (registration, login, password reset via emailed token, session-based via Laravel Breeze)
 - [x] Role System (Tenant, Landlord, Admin — role assigned on verification approval)
-- [x] Landlord Identity Verification (live camera capture of government ID + selfie — no upload path, OCR via Google Cloud Vision, 4-step liveness detection via face-api.js, admin review pipeline)
+- [x] Landlord Identity Verification (live camera capture of government ID + selfie — no upload path, OCR via Google Cloud Vision, 4-step liveness detection via face-api.js, **face match of the ID portrait against the selfie via AWS Rekognition as an admin signal (Nov 5 2026)**, admin review pipeline). Reached through a **landlord sign-up on one address, `/register/landlord`**: account steps, then the ID and face check, then admin review, with a "Become a landlord? Sign up here." link from the tenant sign-up. Does not detect a fake ID; that needs a full ID-verification service (future)
 - [x] Property Listing CRUD (landlord creates/edits properties and units, Cloudinary media upload)
 - [x] Property/Unit Approval (admin reviews and approves/rejects listings)
 - [x] Search & Filters (text search, property type, price range, verified-landlord filter, paginated browse)
