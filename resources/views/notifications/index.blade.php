@@ -37,15 +37,25 @@
 
     {{-- Tabs --}}
     <div class="flex flex-wrap items-center gap-1.5 mb-5">
-        @foreach(['all' => 'All', 'unread' => 'Unread', 'review' => 'Reviews', 'reservation' => 'Reservations'] as $key => $label)
+        @php
+            $tabs = ['all' => 'All', 'unread' => 'Unread', 'review' => 'Reviews', 'reservation' => 'Reservations'];
+            // Landlords get the to-do list: tenants who owe rent and payment reports waiting for an answer.
+            if (auth()->user()->usesLandlordShell()) {
+                $tabs = ['all' => 'All', 'needs_action' => 'Needs action'] + array_slice($tabs, 1);
+            }
+        @endphp
+        @foreach($tabs as $key => $label)
             @php
                 $isActive = $tab === $key;
                 $params = array_merge(request()->except(['tab', 'page', 'selected']), $key !== 'all' ? ['tab' => $key] : []);
             @endphp
             <a href="{{ route('notifications.index', $params) }}"
-                class="px-4 py-2 rounded-full text-[13px] font-semibold transition-colors
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold transition-colors
                     {{ $isActive ? 'bg-[#FF8A66] text-[#060D26] shadow-sm' : 'bg-white text-[#060D26] ring-1 ring-[#5B6A8E]/15 hover:bg-[#F7F8FC]' }}">
                 {{ $label }}
+                @if($key === 'needs_action' && ($needsActionCount ?? 0) > 0)
+                    <span class="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-[11px] font-bold tabular-nums {{ $isActive ? 'bg-[#060D26] text-white' : 'bg-[#FF8A66] text-[#060D26]' }}">{{ $needsActionCount }}</span>
+                @endif
             </a>
         @endforeach
     </div>
@@ -58,10 +68,10 @@
                 </svg>
             </div>
             <p class="text-[15px] font-bold text-[#060D26]">
-                {{ $tab === 'unread' ? 'You\'re all caught up!' : 'No notifications found' }}
+                {{ match ($tab) { 'unread' => 'You\'re all caught up!', 'needs_action' => 'Nothing needs your action', default => 'No notifications found' } }}
             </p>
             <p class="text-[13px] text-[#5B6A8E] mt-1">
-                {{ $tab === 'unread' ? 'All notifications have been read.' : 'When you get updates, they\'ll show up here.' }}
+                {{ match ($tab) { 'unread' => 'All notifications have been read.', 'needs_action' => 'Tenants who owe rent and payments waiting for your answer show up here.', default => 'When you get updates, they\'ll show up here.' } }}
             </p>
         </x-card>
     @else

@@ -61,7 +61,7 @@
                 {{-- List / Calendar: plain links, so the view survives reloads and can be shared --}}
                 <div class="inline-flex h-11 items-center rounded-full border border-[#E2E4EC] bg-white p-1 shrink-0" role="group" aria-label="Change view">
                     @foreach(['list' => 'List', 'calendar' => 'Calendar'] as $key => $label)
-                        <a href="{{ request()->fullUrlWithQuery(['view' => $key, 'month' => null]) }}"
+                        <a href="{{ request()->fullUrlWithQuery(['view' => $key, 'month' => null, 'zoom' => null, 'year' => null]) }}"
                             @if($view === $key) aria-current="page" @endif
                             class="inline-flex h-9 items-center px-4 rounded-full text-[13px] font-semibold transition-colors duration-200 {{ $view === $key ? 'bg-[#060D26] text-white' : 'text-[#5B6A8E] hover:text-[#060D26]' }}">
                             {{ $label }}
@@ -82,13 +82,13 @@
                         </button>
                     </form>
                 @endif
-                <a href="{{ route('landlord.payments.export', request()->only('property')) }}"
+                <a href="{{ route('landlord.payments.export', request()->only('property')) }}" title="Download these payments as a spreadsheet"
                     class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-sm font-semibold transition-all duration-200 shrink-0 cursor-pointer">
                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                     </svg>
-                    Export
+                    Export CSV
                 </a>
             </x-slot:actions>
         </x-page-header>
@@ -100,95 +100,113 @@
         @endif
         </div>
 
-        {{-- Summary: two different surfaces for two different questions.
-             Left (navy, the page's one dark moment): how is this month going.
-             Right (white): who owes what — a bar cut per tenant, so the
-             landlord sees at a glance whether the debt is one person or
-             spread out. Replaces four identical icon tiles, two of which
-             repeated the same figure. --}}
-        @php
-            $owing = $displayRows
-                ->filter(fn ($r) => $r['summary']['outstanding'] > 0)
-                ->sortByDesc(fn ($r) => $r['summary']['outstanding'])
-                ->values();
-            // One red hue stepping down in strength, so segments are told
-            // apart without introducing a second colour.
-            $segmentTones = ['bg-[#DC2626]', 'bg-[#DC2626]/75', 'bg-[#DC2626]/55', 'bg-[#DC2626]/40', 'bg-[#DC2626]/25'];
-            $shortName = fn ($r) => trim(explode(' ', $r['name'])[0] . ' ' . mb_substr(collect(explode(' ', $r['name']))->last(), 0, 1) . '.');
-        @endphp
-        <div class="grid grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3 mb-4 sm:mb-5">
-            {{-- This month --}}
-            <section class="lg:col-span-2 rounded-2xl bg-[#060D26] text-white px-3.5 sm:px-6 py-3.5 sm:py-6 flex flex-col justify-between gap-3 sm:gap-6"
-                aria-label="Collected this month">
-                <div>
-                    <p class="text-[11.5px] sm:text-[12.5px] font-medium text-white/60">Collected this month</p>
-                    <p class="mt-1.5 sm:mt-2 text-[20px] sm:text-[38px] font-semibold leading-none tracking-tight tabular-nums">
-                        ₱{{ number_format($totals['collectedThisMonth'], 2) }}
-                    </p>
-                    <p class="mt-1 sm:mt-1.5 text-[11.5px] sm:text-[13px] text-white/60 tabular-nums">of ₱{{ number_format($totals['dueThisMonth'], 2) }} due</p>
+        {{-- Payments to confirm: a tenant says they paid (cash or QR) and is waiting on this landlord. First thing on the
+             page, above every figure, so it is never missed. Confirm or Not received works in place. --}}
+        @if($pendingClaims->isNotEmpty())
+            <section aria-labelledby="claims-title" class="mb-4 sm:mb-5">
+                <h2 id="claims-title" class="mb-2 flex items-center gap-2 text-[14px] font-semibold text-[#060D26]">
+                    Payments to confirm
+                    <span class="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-[#FF8A66] text-[11px] font-bold tabular-nums text-[#060D26]">{{ $pendingClaims->count() }}</span>
+                </h2>
+                <div class="space-y-3">
+                    @include('payments.partials._claim-review', ['claims' => $pendingClaims, 'tenantName' => null, 'showWhere' => true])
                 </div>
-
-                @if($totals['collectedPercent'] !== null)
-                    <div>
-                        <div class="h-2 rounded-full bg-white/15 overflow-hidden" role="progressbar"
-                            aria-label="Collected this month" aria-valuemin="0" aria-valuemax="100"
-                            aria-valuenow="{{ min(100, $totals['collectedPercent']) }}">
-                            <div class="h-full rounded-full bg-[#FF8A66]" style="width: {{ min(100, $totals['collectedPercent']) }}%"></div>
-                        </div>
-                        <div class="mt-2 sm:mt-2.5 flex items-center justify-between text-[11.5px] sm:text-[12px] text-white/70">
-                            <span><span class="font-semibold text-white">{{ $totals['collectedPercent'] }}%</span> collected</span>
-                            <span class="max-sm:hidden">{{ $totals['duePaymentCount'] }} {{ \Illuminate\Support\Str::plural('payment', $totals['duePaymentCount']) }} due</span>
-                        </div>
-                    </div>
-                @else
-                    <p class="text-[12px] text-white/70">No rent falls due this month.</p>
-                @endif
             </section>
+        @endif
 
-            {{-- Who owes --}}
-            <x-card class="lg:col-span-3 !p-3.5 sm:!p-6 flex flex-col justify-between gap-3 sm:gap-6">
-                <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-1.5 sm:gap-y-2">
+        {{-- The summary strip answers "how is this month going / who owes" for the List view. The calendar's own header already
+             says collected of due for the month it shows, so repeating the strip above it was the same figure twice. --}}
+        @if($view !== 'calendar')
+            {{-- Summary: two different surfaces for two different questions.
+                 Left (navy, the page's one dark moment): how is this month going.
+                 Right (white): who owes what — a bar cut per tenant, so the
+                 landlord sees at a glance whether the debt is one person or
+                 spread out. Replaces four identical icon tiles, two of which
+                 repeated the same figure. --}}
+            @php
+                $owing = $displayRows
+                    ->filter(fn ($r) => $r['summary']['outstanding'] > 0)
+                    ->sortByDesc(fn ($r) => $r['summary']['outstanding'])
+                    ->values();
+                // One red hue stepping down in strength, so segments are told
+                // apart without introducing a second colour.
+                $segmentTones = ['bg-[#DC2626]', 'bg-[#DC2626]/75', 'bg-[#DC2626]/55', 'bg-[#DC2626]/40', 'bg-[#DC2626]/25'];
+                $shortName = fn ($r) => trim(explode(' ', $r['name'])[0] . ' ' . mb_substr(collect(explode(' ', $r['name']))->last(), 0, 1) . '.');
+            @endphp
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3 mb-4 sm:mb-5">
+                {{-- This month --}}
+                <section class="lg:col-span-2 rounded-2xl bg-[#060D26] text-white px-3.5 sm:px-6 py-3.5 sm:py-6 flex flex-col justify-between gap-3 sm:gap-6"
+                    aria-label="Collected this month">
                     <div>
-                        <p class="text-[11.5px] sm:text-[12.5px] font-medium text-[#5B6A8E]">Still owed</p>
-                        <p class="mt-1.5 sm:mt-2 text-[20px] sm:text-[38px] font-semibold leading-none tracking-tight tabular-nums text-[#060D26]">
-                            ₱{{ number_format($totals['outstanding'], 2) }}
+                        <p class="text-[11.5px] sm:text-[12.5px] font-medium text-white/60">Collected this month</p>
+                        <p class="mt-1.5 sm:mt-2 text-[20px] sm:text-[38px] font-semibold leading-none tracking-tight tabular-nums">
+                            ₱{{ number_format($totals['collectedThisMonth'], 2) }}
                         </p>
+                        <p class="mt-1 sm:mt-1.5 text-[11.5px] sm:text-[13px] text-white/60 tabular-nums">of ₱{{ number_format($totals['dueThisMonth'], 2) }} due</p>
                     </div>
-                    @if($totals['overdue'] > 0)
-                        <p class="inline-flex items-center gap-1.5 h-6 sm:h-7 px-2 sm:px-3 rounded-full border border-[#DC2626]/20 bg-[#EF4444]/[0.06] text-[11px] sm:text-[12px] font-semibold text-[#DC2626]">
-                            <span class="w-1.5 h-1.5 rounded-full bg-[#DC2626]"></span>
-                            {{ $totals['overdue'] >= $totals['outstanding'] ? 'All of it overdue' : '₱' . number_format($totals['overdue'], 2) . ' overdue' }}
-                        </p>
-                    @endif
-                </div>
 
-                @if($owing->isEmpty())
-                    <p class="text-[13px] text-[#5B6A8E]">Nobody owes anything right now.</p>
-                @else
-                    <div>
-                        <div class="flex h-2 gap-0.5 rounded-full overflow-hidden" role="img"
-                            aria-label="Amount owed, split by tenant">
-                            @foreach($owing as $i => $r)
-                                <div class="{{ $segmentTones[min($i, 4)] }}"
-                                    style="width: {{ round($r['summary']['outstanding'] / $totals['outstanding'] * 100, 2) }}%"></div>
-                            @endforeach
+                    @if($totals['collectedPercent'] !== null)
+                        <div>
+                            <div class="h-2 rounded-full bg-white/15 overflow-hidden" role="progressbar"
+                                aria-label="Collected this month" aria-valuemin="0" aria-valuemax="100"
+                                aria-valuenow="{{ min(100, $totals['collectedPercent']) }}">
+                                <div class="h-full rounded-full bg-[#FF8A66]" style="width: {{ min(100, $totals['collectedPercent']) }}%"></div>
+                            </div>
+                            <div class="mt-2 sm:mt-2.5 flex items-center justify-between text-[11.5px] sm:text-[12px] text-white/70">
+                                <span><span class="font-semibold text-white">{{ $totals['collectedPercent'] }}%</span> collected</span>
+                                <span class="max-sm:hidden">{{ $totals['duePaymentCount'] }} {{ \Illuminate\Support\Str::plural('payment', $totals['duePaymentCount']) }} due</span>
+                            </div>
                         </div>
-                        <ul class="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-[12.5px] max-sm:hidden">
-                            @foreach($owing->take(3) as $i => $r)
-                                <li class="inline-flex items-center gap-2 min-w-0">
-                                    <span class="w-2 h-2 rounded-full shrink-0 {{ $segmentTones[$i] }}"></span>
-                                    <span class="text-[#060D26] font-medium truncate">{{ $shortName($r) }}</span>
-                                    <span class="text-[#5B6A8E] tabular-nums">₱{{ number_format($r['summary']['outstanding'], 0) }}</span>
-                                </li>
-                            @endforeach
-                            @if($owing->count() > 3)
-                                <li class="text-[#5B6A8E]">+{{ $owing->count() - 3 }} more</li>
-                            @endif
-                        </ul>
+                    @else
+                        <p class="text-[12px] text-white/70">No rent falls due this month.</p>
+                    @endif
+                </section>
+
+                {{-- Who owes --}}
+                <x-card class="lg:col-span-3 !p-3.5 sm:!p-6 flex flex-col justify-between gap-3 sm:gap-6">
+                    <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-1.5 sm:gap-y-2">
+                        <div>
+                            <p class="text-[11.5px] sm:text-[12.5px] font-medium text-[#5B6A8E]">Still owed</p>
+                            <p class="mt-1.5 sm:mt-2 text-[20px] sm:text-[38px] font-semibold leading-none tracking-tight tabular-nums text-[#060D26]">
+                                ₱{{ number_format($totals['outstanding'], 2) }}
+                            </p>
+                        </div>
+                        @if($totals['overdue'] > 0)
+                            <p class="inline-flex items-center gap-1.5 h-6 sm:h-7 px-2 sm:px-3 rounded-full border border-[#DC2626]/20 bg-[#EF4444]/[0.06] text-[11px] sm:text-[12px] font-semibold text-[#DC2626]">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#DC2626]"></span>
+                                {{ $totals['overdue'] >= $totals['outstanding'] ? 'All of it overdue' : '₱' . number_format($totals['overdue'], 2) . ' overdue' }}
+                            </p>
+                        @endif
                     </div>
-                @endif
-            </x-card>
-        </div>
+
+                    @if($owing->isEmpty())
+                        <p class="text-[13px] text-[#5B6A8E]">Nobody owes anything right now.</p>
+                    @else
+                        <div>
+                            <div class="flex h-2 gap-0.5 rounded-full overflow-hidden" role="img"
+                                aria-label="Amount owed, split by tenant">
+                                @foreach($owing as $i => $r)
+                                    <div class="{{ $segmentTones[min($i, 4)] }}"
+                                        style="width: {{ round($r['summary']['outstanding'] / $totals['outstanding'] * 100, 2) }}%"></div>
+                                @endforeach
+                            </div>
+                            <ul class="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-[12.5px] max-sm:hidden">
+                                @foreach($owing->take(3) as $i => $r)
+                                    <li class="inline-flex items-center gap-2 min-w-0">
+                                        <span class="w-2 h-2 rounded-full shrink-0 {{ $segmentTones[$i] }}"></span>
+                                        <span class="text-[#060D26] font-medium truncate">{{ $shortName($r) }}</span>
+                                        <span class="text-[#5B6A8E] tabular-nums">₱{{ number_format($r['summary']['outstanding'], 0) }}</span>
+                                    </li>
+                                @endforeach
+                                @if($owing->count() > 3)
+                                    <li class="text-[#5B6A8E]">+{{ $owing->count() - 3 }} more</li>
+                                @endif
+                            </ul>
+                        </div>
+                    @endif
+                </x-card>
+            </div>
+        @endif
 
         {{-- Filter bar --}}
         {{-- Bare on the page, same as Units: the inputs already have borders, and a card
@@ -196,7 +214,11 @@
         <form method="GET" action="{{ route('landlord.payments.index') }}" class="mb-5">
             @if($view === 'calendar')
                 <input type="hidden" name="view" value="calendar">
-                @if(request('month')) <input type="hidden" name="month" value="{{ request('month') }}"> @endif
+                {{-- The calendar's level lives in the address; payments-calendar.js keeps these in step as you zoom, so a
+                     search or filter reloads on the level you are looking at. Disabled when unset, so no empty params. --}}
+                <input type="hidden" name="zoom" data-cal-field="zoom" value="{{ request('zoom') }}" @disabled(! in_array(request('zoom'), ['years', 'year'], true))>
+                <input type="hidden" name="year" data-cal-field="year" value="{{ request('year') }}" @disabled(! in_array(request('zoom'), ['year', 'years'], true) || ! request()->filled('year'))>
+                <input type="hidden" name="month" data-cal-field="month" value="{{ request('month') }}" @disabled(in_array(request('zoom'), ['years', 'year'], true) || ! request()->filled('month'))>
             @endif
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
                 <div class="relative flex-1 min-w-[200px]">
@@ -261,41 +283,7 @@
                 </a>
             </x-card>
         @elseif($view === 'calendar')
-            {{-- Month navigation swaps just the calendar in place (no full page load): the links stay real
-                 <a href>s so middle-click, no-JS and the back button all still work; a click fetches the same URL
-                 as a fragment (the controller returns only the partial for XHR), fades the old month while it loads,
-                 and pushes the URL. Any failure falls back to a normal navigation. --}}
-            <div x-data="{
-                    busy: false,
-                    async load(url, push = true, focusKey = null) {
-                        if (this.busy) return;
-                        this.busy = true;
-                        try {
-                            const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' } });
-                            if (!res.ok) throw new Error();
-                            this.$refs.cal.innerHTML = await res.text();
-                            // Swapped in as plain HTML, so Alpine never saw it —
-                            // without this, every x-data/x-show/@click inside the
-                            // fresh markup (including the day-click modal) is inert.
-                            window.Alpine.initTree(this.$refs.cal);
-                            if (push) history.pushState({ cal: true }, '', url);
-                            if (focusKey) this.$nextTick(() => this.$refs.cal.querySelector('[data-cal-nav=' + focusKey + ']')?.focus());
-                        } catch (e) { window.location.href = url; return; }
-                        this.busy = false;
-                    },
-                    nav(e) {
-                        const a = e.target.closest('a[data-cal-nav]');
-                        if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-                        e.preventDefault();
-                        this.load(a.href, true, a.dataset.calNav);
-                    }
-                }"
-                @click="nav($event)"
-                @popstate.window="location.search.includes('view=calendar') ? load(location.href, false) : location.reload()">
-                <div x-ref="cal" :class="busy ? 'opacity-60 pointer-events-none' : ''" :aria-busy="busy" class="transition-opacity duration-150 motion-reduce:transition-none">
-                    @include('landlord.payments._calendar')
-                </div>
-            </div>
+            @include('landlord.payments._calendar')
         @else
             {{-- Mobile: stacked cards. Landlord surfaces are mobile-first
                  (CLAUDE.md → Device priority) and this table has grown to 8

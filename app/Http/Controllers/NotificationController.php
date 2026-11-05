@@ -28,12 +28,20 @@ class NotificationController extends Controller
             $query->where('notifiable_type', 'App\Models\Review');
         } elseif ($tab === 'reservation') {
             $query->whereIn('type', Notification::RESERVATION_TYPES);
+        } elseif ($tab === 'needs_action') {
+            $query->whereIn('type', Notification::NEEDS_ACTION_TYPES);
         }
 
         $notifications = $query->paginate(20)->withQueryString();
 
         $unreadCount = auth()->user()->notifications()
             ->where('type', '!=', 'message')
+            ->where('is_read', false)
+            ->count();
+
+        // The "Needs action" tab's own number: rent to chase and payment reports to answer that are still open.
+        $needsActionCount = auth()->user()->notifications()
+            ->whereIn('type', Notification::NEEDS_ACTION_TYPES)
             ->where('is_read', false)
             ->count();
 
@@ -54,7 +62,7 @@ class NotificationController extends Controller
             }
         }
 
-        return view('notifications.index', compact('notifications', 'unreadCount', 'tab', 'selected'));
+        return view('notifications.index', compact('notifications', 'unreadCount', 'needsActionCount', 'tab', 'selected'));
     }
 
     public function recent()
@@ -71,6 +79,49 @@ class NotificationController extends Controller
             ->count();
 
         return view('notifications.partials.dropdown', compact('notifications', 'unreadCount'));
+    }
+
+    /**
+     * One tap from any list of notifications: mark it read and go where it points. Only the owner may open it, and only
+     * an address on this site is followed, so a notification can never send someone to another host.
+     */
+    public function open(Notification $notification)
+    {
+        abort_if($notification->user_id !== auth()->id(), 403);
+
+        $notification->markAsRead();
+
+        $link = trim((string) $notification->link);
+
+        if ($this->isInternal($link)) {
+            return redirect($link);
+        }
+
+        return redirect($notification->conversation_id
+            ? route('conversations.index', ['active' => $notification->conversation_id])
+            : route('notifications.index'));
+    }
+
+    private function isInternal(string $link): bool
+    {
+        if ($link === '') {
+            return false;
+        }
+
+        $parts = parse_url($link);
+
+        if ($parts === false) {
+            return false;
+        }
+
+        if (! isset($parts['host'])) {
+            // A path on this site. "//host/path" has no scheme but names another host, so it is not one.
+            return str_starts_with($link, '/') && ! str_starts_with($link, '//');
+        }
+
+        $siteHosts = array_filter([request()->getHost(), parse_url((string) config('app.url'), PHP_URL_HOST)]);
+
+        return in_array($parts['host'], $siteHosts, true) && in_array($parts['scheme'] ?? 'http', ['http', 'https'], true);
     }
 
     public function markRead(Notification $notification)

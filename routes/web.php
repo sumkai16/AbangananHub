@@ -452,6 +452,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Conversations and messages
+    Route::get('/conversations/unread-count', [ConversationController::class, 'unreadCount'])->middleware('throttle:60,1')->name('conversations.unreadCount');
     Route::get('/conversations/recent-messages', [ConversationController::class, 'recentMessages'])->name('conversations.recentMessages');
     Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
     Route::post('/conversations', [ConversationController::class, 'store'])->name('conversations.store');
@@ -467,6 +468,7 @@ Route::middleware('auth')->group(function () {
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/recent', [NotificationController::class, 'recent'])->name('notifications.recent');
+    Route::get('/notifications/{notification}/open', [NotificationController::class, 'open'])->name('notifications.open');
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
 

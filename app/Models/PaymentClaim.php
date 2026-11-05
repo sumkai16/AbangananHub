@@ -2,6 +2,10 @@
 
 namespace App\Models;
 
+use App\Services\LandlordRentDueCount;
+use App\Services\RentLedger;
+use App\Support\RentPaymentAllocator;
+use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -37,6 +41,16 @@ class PaymentClaim extends Model
         'dispute_report_id',
     ];
 
+    /**
+     * A waiting report is part of the sidebar's Payments number, so filing, deciding or withdrawing one clears
+     * the cached count. Hooked here so every path that touches a claim is covered.
+     */
+    protected static function booted(): void
+    {
+        static::saved(fn (self $claim) => LandlordRentDueCount::forgetForReservation($claim->reservation_id));
+        static::deleted(fn (self $claim) => LandlordRentDueCount::forgetForReservation($claim->reservation_id));
+    }
+
     protected function casts(): array
     {
         return [
@@ -66,6 +80,55 @@ class PaymentClaim extends Model
     public function isPending(): bool
     {
         return $this->status === 'Pending';
+    }
+
+    /**
+     * The months a rent report spreads over, oldest first: what the landlord's confirmation will write. A report
+     * for the oldest unpaid month with enough money in it covers that month and the ones after it, which is how the
+     * ledger's allocator already splits any lump of rent, so this asks that same class and cannot drift from it.
+     * A confirmed report reads back from the rows it wrote, since the ledger already contains them.
+     *
+     * @return array<int, array{billing_period: Carbon, amount: float}>
+     */
+    public function monthsCovered(?Reservation $reservation = null): array
+    {
+        if ($this->claim_type !== 'Monthly' || ! $this->billing_period) {
+            return [];
+        }
+
+        if ($this->status === 'Confirmed') {
+            return $this->payments()->orderBy('billing_period')->get()
+                ->map(fn (Payment $p) => ['billing_period' => $p->billing_period, 'amount' => (float) $p->amount])
+                ->all();
+        }
+
+        $reservation ??= $this->reservation;
+
+        return RentPaymentAllocator::allocate(
+            RentLedger::for($reservation)->periods(),
+            $this->billing_period->copy()->startOfMonth(),
+            fn (Carbon $month) => $reservation->rentFor($month),
+            (float) $this->amount,
+        );
+    }
+
+    /**
+     * What the report is for, in words: "move-in payment", "rent for August 2026", or "rent for Aug 2026 – Oct 2026"
+     * when the money spreads over several months. Used in the landlord's notification and on the confirm card.
+     */
+    public function coverageLabel(?Reservation $reservation = null): string
+    {
+        if ($this->claim_type === 'MoveIn') {
+            return 'move-in payment';
+        }
+
+        $months = $this->monthsCovered($reservation);
+
+        if (count($months) <= 1) {
+            return 'rent for '.$this->billing_period->format('F Y');
+        }
+
+        return 'rent for '.$months[0]['billing_period']->format('M Y').' – '.end($months)['billing_period']->format('M Y');
     }
 
     public function isCash(): bool

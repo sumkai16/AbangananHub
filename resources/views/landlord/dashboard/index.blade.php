@@ -291,18 +291,18 @@
             @endif
         </div>
 
-        {{-- 4. Viewings · Recent activity, side by side.
+        {{-- 4. Viewings · Notifications, side by side.
              --}}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
 
             {{-- Viewings (replaces the old "Needs your attention" list) --}}
             @include('landlord.dashboard._viewings')
 
-            {{-- Recent activity --}}
+            {{-- Notifications: the bell's own rows. Each opens the page it is about and is marked read on the way. --}}
             <div>
                 <div class="flex items-center justify-between mb-3">
-                    <h2 class="font-sans text-[17px] font-semibold text-[#060D26]">Recent activity</h2>
-                    <a href="{{ route('landlord.reservations.index') }}"
+                    <h2 class="font-sans text-[17px] font-semibold text-[#060D26]">Notifications</h2>
+                    <a href="{{ route('notifications.index') }}"
                         class="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#B35A3D] hover:text-[#060D26] transition-colors duration-200">
                         View all
                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
@@ -312,48 +312,22 @@
                 </div>
 
                 <x-card flush>
-                    @if($recentActivity->isEmpty())
+                    @if($notifications->isEmpty())
                         <div class="flex flex-col items-center justify-center py-12 px-5 text-center">
                             <div class="w-11 h-11 rounded-xl bg-[#ECEEF6] flex items-center justify-center mb-3">
                                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#5B6A8E" stroke-width="1.5" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
                                 </svg>
                             </div>
-                            <p class="text-[14px] font-semibold text-[#060D26]">No activity yet</p>
+                            <p class="text-[14px] font-semibold text-[#060D26]">Nothing new</p>
                             <p class="text-[13px] text-[#5B6A8E] mt-1">Payments, inquiries and reviews will show up here.</p>
                         </div>
                     @else
-                        <ul class="divide-y divide-[#5B6A8E]/10">
-                            @foreach($recentActivity as $activity)
-                                @php
-                                    // A distinct icon per kind so the feed can be scanned by shape, not just read.
-                                    [$kindLabel, $kindBg, $kindIcon] = match($activity['kind']) {
-                                        'payment' => ['Payment', 'bg-[#22C55E]/10 text-[#15803D]', 'M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z'],
-                                        'review' => ['Review', 'bg-[#FBBF24]/15 text-[#B45309]', 'M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.563.563 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5z'],
-                                        default => ['Reservation', 'bg-[#ECEEF6] text-[#060D26]', 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5'],
-                                    };
-                                @endphp
-                                <li>
-                                    <a href="{{ $activity['url'] }}" class="flex items-start gap-3 px-4 py-3.5 hover:bg-[#F7F8FC] active:bg-[#ECEEF6] transition-colors duration-200">
-                                        <span class="mt-0.5 w-8 h-8 rounded-lg flex items-center justify-center shrink-0 {{ $kindBg }}">
-                                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $kindIcon }}" />
-                                            </svg>
-                                            <span class="sr-only">{{ $kindLabel }}:</span>
-                                        </span>
-                                        <div class="min-w-0 flex-1">
-                                            <p class="text-[14px] font-medium text-[#060D26] leading-snug">{{ $activity['text'] }}</p>
-                                            @if($activity['meta'])
-                                                <p class="mt-0.5 text-[12.5px] text-[#5B6A8E] truncate">{{ $activity['meta'] }}</p>
-                                            @endif
-                                        </div>
-                                        <span class="text-[12px] text-[#5B6A8E] whitespace-nowrap mt-0.5">
-                                            {{ $activity['timestamp']->diffForHumans(['short' => true, 'parts' => 1]) }}
-                                        </span>
-                                    </a>
-                                </li>
+                        <div class="divide-y divide-[#5B6A8E]/10">
+                            @foreach($notifications as $n)
+                                @include('notifications.partials._row', ['n' => $n, 'wrap' => true])
                             @endforeach
-                        </ul>
+                        </div>
                     @endif
                 </x-card>
             </div>

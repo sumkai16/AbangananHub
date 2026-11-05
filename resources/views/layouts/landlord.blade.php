@@ -183,13 +183,11 @@
             @php
                 // One list drives every link, so a design change (or a new item) is one edit, not fourteen.
                 // `icon` is static SVG inner markup defined here, never user input.
-                // The inbox's own rule (ConversationController::unreadIn), both inboxes: open chats whose latest
-                // message is unread. Counting loose messages also counted cancelled and resolved chats, which the
-                // inbox hides, so the badge said 1 over an empty list.
-                $navUnreadMessages = \App\Models\Conversation::where('landlord_id', auth()->id())
-                    ->whereNotIn('status', ['Cancelled', 'Resolved'])
-                    ->whereHas('latestMessage', fn ($q) => $q->where('sender_id', '!=', auth()->id())->where('is_read', false))
-                    ->count();
+                // One rule for every messages badge (Conversation::unreadCountFor, the inbox's own rule: open chats whose
+                // latest message is unread). The Alpine store below keeps it live; this is its first value.
+                $navUnreadMessages = $unreadMessageCount;
+                // Tenancies that owe rent or wait on a payment answer: the same people as the Payments page's "Still owed".
+                $navPaymentsDue = \App\Services\LandlordRentDueCount::for(auth()->id());
                 $navInquiries = \App\Models\Reservation::whereHas('property', fn ($q) => $q->where('landlord_id', auth()->id()))
                     ->where('rental_status', 'Inquiry')->count();
 
@@ -210,9 +208,9 @@
                             'active' => str_starts_with($current, 'landlord.tenants') || str_starts_with($current, 'landlord.contracts') || str_starts_with($current, 'landlord.tenancies')
                                 || $current === 'landlord.leases.index' || str_starts_with($current, 'landlord.lease-templates'),
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />'],
-                        ['label' => 'Payments', 'href' => route('landlord.payments.index'), 'active' => str_starts_with($current, 'landlord.payments') || str_starts_with($current, 'landlord.payouts'),
+                        ['label' => 'Payments', 'href' => route('landlord.payments.index'), 'active' => str_starts_with($current, 'landlord.payments') || str_starts_with($current, 'landlord.payouts'), 'badge' => $navPaymentsDue,
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />'],
-                        ['label' => 'Messages', 'href' => route('conversations.index'), 'active' => str_starts_with($current, 'conversations'), 'badge' => $navUnreadMessages,
+                        ['label' => 'Messages', 'href' => route('conversations.index'), 'active' => str_starts_with($current, 'conversations'), 'badge' => $navUnreadMessages, 'badgeKey' => 'messages',
                             'icon' => '<circle cx="12" cy="12" r="9" /><circle cx="8.5" cy="12" r="0.75" fill="currentColor" stroke="none" /><circle cx="12" cy="12" r="0.75" fill="currentColor" stroke="none" /><circle cx="15.5" cy="12" r="0.75" fill="currentColor" stroke="none" />'],
                     ],
                     'Insights' => [
@@ -245,7 +243,7 @@
                     @endunless
 
                     @foreach($navItems as $item)
-                        @php $badge = $item['badge'] ?? 0; @endphp
+                        @php $badge = $item['badge'] ?? 0; $badgeKey = $item['badgeKey'] ?? null; @endphp
                         <a href="{{ $item['href'] }}" @if($item['active']) aria-current="page" @endif
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium mb-0.5 transition-colors duration-200
@@ -256,12 +254,23 @@
                             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"
                                 class="shrink-0 {{ $item['active'] ? 'text-[#FF8A66]' : '' }}" aria-hidden="true">{!! $item['icon'] !!}</svg>
                             <span data-sidebar-label x-show="!sidebarCollapsed" class="flex-1 whitespace-nowrap">{{ $item['label'] }}</span>
-                            @if($badge > 0)
+                            @if($badgeKey)
+                                {{-- Live: the number comes from the Alpine store, so a new message updates it without a reload. --}}
+                                <span data-sidebar-label x-show="!sidebarCollapsed && $store.navBadges.{{ $badgeKey }} > 0" x-cloak
+                                    class="min-w-[20px] h-5 px-1.5 rounded-full bg-[#FF8A66] text-[#060D26] text-[11px] font-bold flex items-center justify-center tabular-nums">
+                                    <span class="sr-only" x-text="$store.navBadges.{{ $badgeKey }} + ' waiting'"></span><span aria-hidden="true" x-text="$store.navBadges.{{ $badgeKey }} > 99 ? '99+' : $store.navBadges.{{ $badgeKey }}"></span>
+                                </span>
+                                <span x-show="sidebarCollapsed && $store.navBadges.{{ $badgeKey }} > 0" x-cloak
+                                    class="absolute top-0.5 right-1 min-w-[16px] h-4 px-1 rounded-full bg-[#FF8A66] text-[#060D26] text-[10px] font-bold flex items-center justify-center tabular-nums border-2 border-[#060D26] box-content" aria-hidden="true"
+                                    x-text="$store.navBadges.{{ $badgeKey }} > 99 ? '99+' : $store.navBadges.{{ $badgeKey }}"></span>
+                            @elseif($badge > 0)
                                 <span data-sidebar-label x-show="!sidebarCollapsed"
                                     class="min-w-[20px] h-5 px-1.5 rounded-full bg-[#FF8A66] text-[#060D26] text-[11px] font-bold flex items-center justify-center tabular-nums">
                                     <span class="sr-only">{{ $badge }} waiting</span><span aria-hidden="true">{{ $badge > 99 ? '99+' : $badge }}</span>
                                 </span>
-                                <span x-show="sidebarCollapsed" x-cloak class="absolute top-1.5 right-3 w-2 h-2 rounded-full bg-[#FF8A66] border-2 border-[#060D26]" aria-hidden="true"></span>
+                                {{-- Collapsed rail: the number itself, not a bare dot, so it is still a count. --}}
+                                <span x-show="sidebarCollapsed" x-cloak
+                                    class="absolute top-0.5 right-1 min-w-[16px] h-4 px-1 rounded-full bg-[#FF8A66] text-[#060D26] text-[10px] font-bold flex items-center justify-center tabular-nums border-2 border-[#060D26] box-content" aria-hidden="true">{{ $badge > 99 ? '99+' : $badge }}</span>
                             @endif
                             <span x-show="sidebarCollapsed" x-cloak
                                 class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
@@ -351,18 +360,15 @@
                          which is desktop-only (see partials.message-notifications).
                          Links to the full messages page instead of a popup panel. --}}
                     @auth
-                        @php
-                            $mobileUnreadMsgCount = $unreadMessageCount;
-                        @endphp
                         <a href="{{ route('conversations.index') }}"
                             aria-label="Messages"
                             class="relative flex items-center justify-center w-9 h-9 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26]/70 hover:bg-[#ECEEF6] transition-colors duration-200">
                             <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                             </svg>
-                            @if($mobileUnreadMsgCount > 0)
-                                <span class="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold ring-2 ring-white">{{ $mobileUnreadMsgCount > 99 ? '99+' : $mobileUnreadMsgCount }}</span>
-                            @endif
+                            <span x-show="$store.navBadges.messages > 0" x-cloak
+                                class="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold ring-2 ring-white"
+                                x-text="$store.navBadges.messages > 99 ? '99+' : $store.navBadges.messages"></span>
                         </a>
                     @endauth
 
@@ -489,6 +495,7 @@
         }
     </script>
     @include('partials.message-notifications')
+    @include('partials.notification-toast')
 
     <x-confirm-modal />
     <script src="{{ asset('js/modal-confirm.js') }}"></script>

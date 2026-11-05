@@ -1198,3 +1198,17 @@ Plans: `plans/page-speed-back-links-bedspace-seats.md`, `plans/bedspace-pick-bar
 - **Tenancy page actions on a phone** are an equal-size two-column grid (52px, rows as tall as the tallest label). The new-message toast sits at the top on phones and is small; desktop keeps bottom right.
 - **A grid that has only a breakpoint column class has an auto track on a phone** and sizes itself to its contents (the camera box stopped short of the right edge). Always write `grid-cols-1 lg:grid-cols-[...]`.
 - **Landlord sign-up shell** (`layouts/signup`): logo top left, Log in or Log out top right, no site menu, no split photo panel, wide enough for the camera. All four steps share it, with the same title and the four-step indicator (done = coral check, current = coral ring, later = grey; `<x-landlord-signup-steps>`). The tenant `/register` keeps its split photo panel.
+
+## 38. Landlord ledger and properties after PM feedback (Nov 5 2026)
+- **Ledger (`landlord/payments/ledger`) has no tabs.** Order: payments to confirm, balance, small facts, Lease bars, Payments, Deposit, Voided (folded). Anything that needs the landlord's answer comes first. A month is acted on from its popup (Record, Waive late fee), not from a second table.
+- **Lease bars are grouped by year** (6 across on a phone, 12 on desktop, at least 44px tall). The current year and any year with an unpaid month always show; "See more" opens the rest in place.
+- **A number in the sidebar means "someone is waiting for you"** (Payments, Messages, Reservations). It is the same number the page shows (Payments counts tenants who are overdue, not rent that is owed but not due yet), and the collapsed sidebar shows it too.
+- **The Payments calendar is a zoom, not a pager** (PM sketch): all years, then a year, then a month with its days. It opens on the current month and has no end: any year can be reached, empty ones drawn empty. On large screens it fills the window height (no blank band under it): All years is two rows of year cards with 4 x 3 month tiles, never tall strips. Crumbs and Today zoom out and back; each level is a real button with a label and a 44px target on a phone. Zoom animates scale and fade from the tile you clicked and is off under reduced motion.
+- **A site header is as wide as the page under it.** Full-width pages (messages) declare `@section('shell-wide')`; every other tenant page keeps the 1400px column.
+- **A new notification pops up** (`partials/notification-toast`): top right on desktop, under the header on a phone, coral accent for money, 9 seconds, tap to open it. The bell badge is coral and numbered.
+- **Record a payment** is two columns from `lg`, one on a phone; shortcuts that fill a field live next to that field, not on the page behind the modal.
+- **The dashboard shows notifications, not an activity feed.** A feed rebuilt from timestamps repeats old events; a notification is read once and opens its own page.
+- **Money is never red unless it is owed** (§6n): unit rent on the property page is navy.
+- **One word for one thing:** every "Export" button is "Export CSV" with a tooltip.
+- **Properties list has no action row**: the card or row opens the details; edit lives there. Units open in a modal on the property page and on the Units page.
+

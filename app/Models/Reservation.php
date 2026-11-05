@@ -9,12 +9,15 @@ use App\Support\LeaseTerms;
 use App\Support\Payments;
 use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Database\Eloquent\Builder;
+use App\Observers\ReservationActivityObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
+#[ObservedBy(ReservationActivityObserver::class)]
 class Reservation extends Model
 {
     protected $primaryKey = 'reservation_id';

@@ -6,6 +6,7 @@ use App\Events\PaymentStatusUpdated;
 use App\Jobs\SendLandlordPayout;
 use App\Models\Notification;
 use App\Models\Payment;
+use App\Services\RentDueNotices;
 use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Support\Facades\Log;
 
@@ -43,8 +44,23 @@ class PaymentObserver
      */
     public bool $afterCommit = true;
 
+    /** A new row (a recorded payment, a checkout) changes what a tenancy owes, so the sidebar count and notices follow. */
+    public function created(Payment $payment): void
+    {
+        RentDueNotices::refresh($payment->reservation_id);
+    }
+
+    public function deleted(Payment $payment): void
+    {
+        RentDueNotices::refresh($payment->reservation_id);
+    }
+
     public function updated(Payment $payment): void
     {
+        if ($payment->wasChanged(['status', 'amount', 'voided_at', 'billing_period'])) {
+            RentDueNotices::refresh($payment->reservation_id);
+        }
+
         // Money just became payable to the landlord (rent paid, or escrow released): send it now. The hourly
         // `payouts:send` sweep covers anything this misses. Runs after the commit, like everything here.
         if ($payment->wasChanged('payout_owed_at') && $payment->payout_owed_at !== null && $payment->getOriginal('payout_owed_at') === null) {

@@ -74,7 +74,8 @@
              ~1462px the logo/back-link/actions drifted further from the
              photo edges the wider the screen got — a small lg:px-10 vs
              lg:px-8 padding mismatch (since fixed) was masking the real gap. --}}
-        <div class="max-w-[1400px] mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 h-[64px] relative">
+        {{-- Pages that declare @section('shell-wide') (the messages page) run edge to edge, so the header does too. --}}
+        <div class="{{ View::hasSection('shell-wide') ? 'max-w-none' : 'max-w-[1400px]' }} mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 h-[64px] relative">
 
             {{-- Logo — hidden at `lg` on a backNav page, since the centred
                  logo below takes over at that width. Unaffected on mobile:
@@ -237,8 +238,10 @@
                         <button type="button" @click="toggle()" aria-label="Notifications"
                             :class="open ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:bg-[#F7F8FC] hover:text-[#B35A3D]'"
                             class="relative flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
+                            {{-- Coral and numbered, like the landlord sidebar: a small navy dot was easy to miss. --}}
                             <span x-show="unreadCount > 0" x-cloak
-                                class="absolute top-[7px] right-[8px] w-2.5 h-2.5 rounded-full bg-[#060D26] ring-2 ring-white"></span>
+                                class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#FF8A66] ring-2 ring-white text-[#060D26] text-[10px] font-bold leading-none flex items-center justify-center tabular-nums"
+                                x-text="unreadCount > 99 ? '99+' : unreadCount"></span>
                             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                 stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -774,7 +777,7 @@
 
                             <div class="mb-3">
                                 <label class="block font-jakarta text-[12.5px] font-bold text-[#060D26] mb-1.5">Contact number</label>
-                                <input type="tel" name="contact_number" required pattern="[0-9+()\s\-]{7,20}" data-error-tag="Numbers only" title="Use digits only, e.g. 0917 123 4567" placeholder="e.g. 0917 123 4567" aria-label="Contact number" autocomplete="tel" inputmode="tel"
+                                <input type="tel" name="contact_number" required pattern="[0-9+\(\)\s\-]{7,20}" data-error-tag="Numbers only" title="Use digits only, e.g. 0917 123 4567" placeholder="e.g. 0917 123 4567" aria-label="Contact number" autocomplete="tel" inputmode="tel"
                                     class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
                                     id="error-register-contact_number"></span>
@@ -1162,6 +1165,7 @@
         </script>
     @endauth
     @include('partials.message-notifications')
+    @include('partials.notification-toast')
 
     <x-confirm-modal />
     <script src="{{ asset('js/modal-confirm.js') }}"></script>

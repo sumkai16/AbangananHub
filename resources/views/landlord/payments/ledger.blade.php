@@ -60,6 +60,7 @@
         $activeDepositCharges = $reservation->depositCharges->reject->isVoided()->values();
         $voidedDepositCharges = $reservation->depositCharges->filter->isVoided()->values();
         $canChargeDeposit = $summary['depositCollected'] > 0;
+        $hasDeposit = $canChargeDeposit || $activeDepositCharges->isNotEmpty() || $voidedDepositCharges->isNotEmpty();
         $depositCategoryLabels = \App\Models\DepositCharge::CATEGORIES;
 
         // "in 3 days" / "today" / "4 days ago" — a due date is easier to act on as a distance than as a date alone.
@@ -122,7 +123,7 @@
         @if($hasStarted)
             @php
                 // One detail payload per period, keyed by month, shared by the lease strip and both month lists.
-                $periodDetails = $periods->mapWithKeys(function ($period) use ($periodStyleFor, $reservation) {
+                $periodDetails = $periods->mapWithKeys(function ($period) use ($periodStyleFor, $reservation, $isActive) {
                     $style = $periodStyleFor($period);
                     $detail = \App\Services\RentLedger::periodPayload($period);
                     $detail['pill'] = $style['pill'];
@@ -133,6 +134,13 @@
                     );
                     if ($period['late_fee'] > 0) {
                         $detail['waive_action'] = route('landlord.tenancies.waiveLateFee', $reservation);
+                    }
+                    // The month's own Record button: an unpaid month of a running tenancy opens the record form for it.
+                    if ($isActive && ! $period['is_future'] && $period['balance'] > 0) {
+                        $detail['record'] = [
+                            'period' => $period['period']->toDateString(),
+                            'balance' => number_format($period['balance'], 2, '.', ''),
+                        ];
                     }
 
                     return [$period['period']->format('Y-m') => $detail];
@@ -202,14 +210,18 @@
                 ][$summary['paymentStatus']] ?? 'bg-white/60';
                 $oldest = $summary['oldestOverdue'];
                 $daysLate = $oldest ? (int) $oldest['due_on']->copy()->startOfDay()->diffInDays(now()->startOfDay()) : 0;
-                $leaseWide = $unpaidPeriods->isEmpty();
-                $thisMonthShare = $summary['dueThisMonth'] > 0
-                    ? min(100, (int) round($summary['collectedThisMonth'] / $summary['dueThisMonth'] * 100))
-                    : null;
             @endphp
 
-            {{-- Bento: Balance is the big navy tile with the actions; four small facts beside it; then the lease and
-                 what needs doing; then the records. Phone: two columns, Balance and the wide tiles span both. --}}
+            {{-- A payment report waiting for an answer is the most urgent thing on this page, so it comes first, full
+                 width, before any figure. Confirm or Not received works right here. --}}
+            @if($pendingClaims->isNotEmpty())
+                <section aria-label="Payments to confirm" class="space-y-3">
+                    @include('payments.partials._claim-review', ['claims' => $pendingClaims, 'tenantName' => $reservation->tenant?->first_name])
+                </section>
+            @endif
+
+            {{-- Bento: Balance is the big navy tile with the actions; four small facts beside it; then the lease; then
+                 the records (payments, deposit, voided). Phone: two columns, Balance and the wide tiles span both. --}}
             <div class="grid grid-cols-2 lg:grid-cols-4 lg:grid-flow-row-dense gap-3">
 
                 {{-- Balance (2×2) --}}
@@ -225,38 +237,30 @@
                         <p class="text-[32px] sm:text-[40px] leading-none font-bold tracking-tight tabular-nums {{ $isOverdue ? 'text-[#FCA5A5]' : 'text-white' }}">
                             {{ $peso($summary['outstanding']) }}
                         </p>
-                        <p class="mt-2 text-[13.5px] leading-relaxed text-white/75 max-w-[48ch]">
-                            @if($isOverdue)
+                        {{-- Only what the tiles beside it do not already say: the due date is the "Next due" tile, and how
+                             this month is going is the lease bars below. --}}
+                        @if($isOverdue)
+                            <p class="mt-2 text-[13.5px] leading-relaxed text-white/75 max-w-[48ch]">
                                 <span class="font-semibold text-[#FCA5A5]">{{ $peso($summary['overdueAmount']) }} overdue</span>
                                 across {{ $summary['overdueCount'] }} {{ \Illuminate\Support\Str::plural('month', $summary['overdueCount']) }}.
-                            @elseif($summary['outstanding'] > 0 && $summary['nextDueDate'])
-                                Due <span class="font-semibold text-white">{{ $summary['nextDueDate']->format('M j, Y') }}</span>, {{ $relativeDay($summary['nextDueDate']) }}.
-                            @elseif($summary['prepaidThrough'])
-                                Paid in advance through <span class="font-semibold text-white">{{ $summary['prepaidThrough']->format('F Y') }}</span>.
-                            @elseif($isActive)
-                                All paid up. Nothing is owed right now.
-                            @else
-                                This lease has ended. Nothing is owed.
-                            @endif
-                        </p>
+                            </p>
+                        @elseif($summary['outstanding'] <= 0)
+                            <p class="mt-2 text-[13.5px] leading-relaxed text-white/75 max-w-[48ch]">
+                                @if($summary['prepaidThrough'])
+                                    Paid in advance through <span class="font-semibold text-white">{{ $summary['prepaidThrough']->format('F Y') }}</span>.
+                                @elseif($isActive)
+                                    All paid up. Nothing is owed right now.
+                                @else
+                                    This lease has ended. Nothing is owed.
+                                @endif
+                            </p>
+                        @endif
                     </div>
-
-                    @if($thisMonthShare !== null)
-                        <div>
-                            <div class="flex items-baseline justify-between gap-3 text-[12.5px]">
-                                <span class="text-white/70">{{ now()->format('F') }} collected</span>
-                                <span class="tabular-nums text-white"><span class="font-semibold">{{ $peso($summary['collectedThisMonth']) }}</span><span class="text-white/60"> of {{ $peso($summary['dueThisMonth']) }}</span></span>
-                            </div>
-                            <div class="mt-2 h-1.5 rounded-full bg-white/15 overflow-hidden" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $thisMonthShare }}" aria-label="{{ now()->format('F') }} rent collected">
-                                <div class="h-full rounded-full bg-[#FF8A66]" style="width: {{ $thisMonthShare }}%"></div>
-                            </div>
-                        </div>
-                    @endif
 
                     @if($isActive)
                         <div class="mt-auto grid grid-cols-1 sm:flex gap-2">
                             <button type="button" @click="$dispatch('open-record-payment')"
-                                class="h-11 sm:h-10 px-4 inline-flex items-center justify-center gap-2 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#060D26] transition-colors duration-200 cursor-pointer">
+                                class="h-11 sm:h-10 px-4 inline-flex items-center justify-center gap-2 rounded-xl text-[13.5px] font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#060D26] transition-colors duration-200 cursor-pointer bg-[#FF8A66] text-[#060D26] hover:bg-[#E96F4F]">
                                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                                 </svg>
@@ -342,61 +346,30 @@
                     <div>
                         <p class="text-[18px] sm:text-[20px] leading-none font-bold tracking-tight tabular-nums text-[#060D26]">{{ $peso($summary['depositRemaining']) }}</p>
                         <p class="mt-1 text-[12px] text-[#5B6A8E]">
-                            @if($summary['depositCollected'] > 0)
-                                of {{ $peso($summary['depositCollected']) }}
-                                @if($canChargeDeposit && $summary['depositRemaining'] > 0)
-                                    · <button type="button" @click="$dispatch('open-add-deposit-charge')" class="font-semibold text-[#060D26] underline underline-offset-2 decoration-[#060D26]/30 hover:text-[#B35A3D] hover:decoration-[#B35A3D] transition-colors duration-200 cursor-pointer">Deduct</button>
-                                @endif
+                            @if($hasDeposit && $summary['depositCollected'] > 0)
+                                <a href="#deposit" class="font-semibold text-[#060D26] underline underline-offset-2 decoration-[#060D26]/30 hover:text-[#B35A3D] hover:decoration-[#B35A3D] transition-colors duration-200">Deposit details</a>
                             @else
                                 No deposit recorded
                             @endif
                         </p>
                     </div>
                 </div>
+                </div>
 
-                {{-- Payment reports to answer: each is its own tile, they are the most urgent thing on the page. --}}
-                @foreach($pendingClaims as $claim)
-                    <div class="col-span-2 [&>div]:h-full [&>div]:shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
-                        @include('payments.partials._claim-review', ['claims' => collect([$claim]), 'tenantName' => $reservation->tenant?->first_name])
-                    </div>
-                @endforeach
-
-                {{-- Needs action: months still owed, each with a one-tap Record. Right of the lease on desktop, before it on a phone. --}}
-                @if($unpaidPeriods->isNotEmpty())
-                    <section aria-labelledby="ledger-needs-action" class="col-span-2 lg:col-start-3 {{ $tile }} overflow-hidden flex flex-col">
-                        <div class="flex items-center justify-between gap-3 px-4 sm:px-5 py-3 border-b border-[#E2E4EC]">
-                            <h2 id="ledger-needs-action" class="flex items-center gap-2 text-[14px] font-semibold text-[#060D26]">
-                                Needs action
-                                <span class="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-[#FF8A66] text-[11px] font-bold text-[#060D26] tabular-nums">{{ $unpaidPeriods->count() }}</span>
-                            </h2>
-                            <p class="text-[12.5px] text-[#5B6A8E]">Still owed <span class="font-semibold tabular-nums {{ $isOverdue ? 'text-[#DC2626]' : 'text-[#060D26]' }}">{{ $peso($summary['outstanding']) }}</span></p>
-                        </div>
-                        <ul class="divide-y divide-[#E2E4EC]">
-                            @foreach($unpaidPeriods as $unpaid)
-                                @php $owedOverdue = $unpaid['status'] === 'overdue'; @endphp
-                                <li class="flex items-center gap-3 px-4 sm:px-5 py-2.5">
-                                    <span class="w-2 h-2 rounded-full shrink-0 {{ $owedOverdue ? 'bg-[#DC2626]' : ($unpaid['status'] === 'partial' ? 'bg-[#F59E0B]' : 'bg-[#5B6A8E]') }}" aria-hidden="true"></span>
-                                    <div class="min-w-0 flex-1">
-                                        <p class="text-[13.5px] font-semibold text-[#060D26]">{{ $unpaid['label'] }}</p>
-                                        <p class="text-[12px] {{ $owedOverdue ? 'text-[#DC2626]' : 'text-[#5B6A8E]' }}">{{ $owedOverdue ? 'Overdue ·' : 'Due' }} {{ $unpaid['due_on']->format('M j') }}</p>
-                                    </div>
-                                    <p class="text-[13.5px] font-semibold tabular-nums {{ $owedOverdue ? 'text-[#DC2626]' : 'text-[#060D26]' }}">{{ $peso(max(0, $unpaid['balance'])) }}</p>
-                                    @if($isActive)
-                                        <button type="button"
-                                            @click="$dispatch('open-record-payment', { period: '{{ $unpaid['period']->toDateString() }}', balance: '{{ number_format(max(0, $unpaid['balance']), 2, '.', '') }}' })"
-                                            aria-label="Record payment for {{ $unpaid['label'] }}"
-                                            class="h-9 px-3.5 rounded-lg border border-[#060D26]/20 text-[12.5px] font-semibold text-[#060D26] hover:border-[#FF8A66] hover:text-[#B35A3D] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] transition-colors duration-200 cursor-pointer">
-                                            Record
-                                        </button>
-                                    @endif
-                                </li>
-                            @endforeach
-                        </ul>
-                    </section>
-                @endif
-
-                {{-- Lease: one bar per month, filled by how much of it is paid. Tap a billed month for its detail. --}}
-                <section aria-labelledby="lease-title" class="col-span-2 {{ $leaseWide ? 'lg:col-span-4' : 'lg:col-start-1' }} {{ $tile }} p-4 sm:p-5 flex flex-col">
+                {{-- Lease: one bar per month, filled by how much of it is paid, grouped by year. The current year and any
+                     year that holds an unpaid month are always shown; "See more" opens the rest in place (no page load). --}}
+                @php
+                    $yearGroups = collect($stripCells)->groupBy(fn ($c) => $c['month']->format('Y'));
+                    $unpaidKeys = ['overdue', 'partial', 'due'];
+                    $shownYears = $yearGroups->filter(fn ($cells, $year) => $year === now()->format('Y')
+                        || collect($cells)->contains(fn ($c) => in_array($c['key'], $unpaidKeys, true)))->keys();
+                    // An ended lease with nothing owed still shows its latest year rather than an empty tile.
+                    if ($shownYears->isEmpty()) {
+                        $shownYears = collect([$yearGroups->keys()->last()]);
+                    }
+                    $hiddenMonthCount = $yearGroups->reject(fn ($cells, $year) => $shownYears->contains($year))->sum(fn ($cells) => count($cells));
+                @endphp
+                <section aria-labelledby="lease-title" x-data="{ moreYears: false }" class="col-span-2 lg:col-span-4 {{ $tile }} p-4 sm:p-5 flex flex-col">
                     <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                         <h2 id="lease-title" class="text-[14px] font-semibold text-[#060D26]">Lease</h2>
                         <p class="text-[12px] text-[#5B6A8E] tabular-nums">Month {{ $monthsElapsed }} of {{ $leaseMonths }}{{ $reservation->target_move_out_date ? '' : '+' }}</p>
@@ -405,42 +378,53 @@
                         {{ $leaseStart->format('M Y') }} – {{ $leaseStart->copy()->addMonthsNoOverflow($leaseMonths - 1)->format('M Y') }}@unless($reservation->target_move_out_date) · open-ended @endunless
                     </p>
 
-                    {{-- Columns follow the lease length, so a two-month lease fills the tile instead of using 2 of 12 slots. --}}
-                    <ol class="mt-3.5 grid grid-cols-[repeat(var(--cols),minmax(0,1fr))] sm:grid-cols-[repeat(var(--cols-sm),minmax(0,1fr))] gap-x-1.5 gap-y-4"
-                        style="--cols: {{ min(6, $leaseMonths) }}; --cols-sm: {{ $leaseWide ? min(12, $leaseMonths) : min(6, $leaseMonths) }}" aria-label="Rent by month">
-                        @foreach($stripCells as $cell)
-                            @php
-                                $tone = $stripTones[$cell['key']];
-                                $isNow = $cell['month']->format('Y-m') === $thisMonth;
-                                $showYear = $loop->first || $cell['month']->month === 1;
-                            @endphp
-                            <li>
-                                @if($cell['detail'])
-                                    <button type="button" aria-haspopup="dialog" aria-label="{{ $cell['label'] }}" title="{{ $cell['label'] }}"
-                                        @click="$dispatch('open-period-detail', {{ Js::from($cell['detail']) }})"
-                                        class="group block w-full text-left rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2 cursor-pointer">
-                                @else
-                                    <div role="img" aria-label="{{ $cell['label'] }}" title="{{ $cell['label'] }}" class="block">
-                                @endif
-                                    <span class="block h-2.5 rounded-full overflow-hidden {{ $tone['track'] }} transition-transform duration-200 group-hover:scale-y-[1.35] origin-bottom">
-                                        @if($cell['share'] > 0)
-                                            <span class="block h-full rounded-full {{ $tone['fill'] }}" style="width: {{ $cell['share'] }}%"></span>
-                                        @endif
-                                    </span>
-                                    <span class="mt-2 flex items-center gap-1 text-[11.5px] leading-none {{ $isNow ? 'font-bold text-[#060D26]' : 'font-medium text-[#5B6A8E] group-hover:text-[#060D26]' }}">
-                                        @if($isNow)<span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66] shrink-0" aria-hidden="true"></span>@endif
-                                        {{ $cell['month']->format('M') }}
-                                        @if($isNow)<span class="sr-only">(this month)</span>@endif
-                                    </span>
-                                    <span class="mt-1 block text-[10.5px] leading-none text-[#5B6A8E]/80 tabular-nums {{ $showYear ? '' : 'invisible' }}" @unless($showYear) aria-hidden="true" @endunless>{{ $cell['month']->format('Y') }}</span>
-                                @if($cell['detail'])
-                                    </button>
-                                @else
-                                    </div>
-                                @endif
-                            </li>
+                    <div class="mt-3.5 space-y-4">
+                        @foreach($yearGroups as $year => $cells)
+                            @php $yearShown = $shownYears->contains($year); @endphp
+                            <div @unless($yearShown) x-show="moreYears" x-cloak @endunless>
+                                <h3 class="text-[12px] font-bold tabular-nums text-[#5B6A8E]">{{ $year }}</h3>
+                                <ol class="mt-1 grid grid-cols-6 sm:grid-cols-12 gap-x-1.5 gap-y-1" aria-label="Rent by month, {{ $year }}">
+                                    @foreach($cells as $cell)
+                                        @php
+                                            $tone = $stripTones[$cell['key']];
+                                            $isNow = $cell['month']->format('Y-m') === $thisMonth;
+                                        @endphp
+                                        <li>
+                                            @if($cell['detail'])
+                                                <button type="button" aria-haspopup="dialog" aria-label="{{ $cell['label'] }}" title="{{ $cell['label'] }}"
+                                                    @click="$dispatch('open-period-detail', {{ Js::from($cell['detail']) }})"
+                                                    class="group block w-full min-h-[44px] pt-2 text-left rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2 cursor-pointer">
+                                            @else
+                                                <div role="img" aria-label="{{ $cell['label'] }}" title="{{ $cell['label'] }}" class="block min-h-[44px] pt-2">
+                                            @endif
+                                                <span class="block h-2.5 rounded-full overflow-hidden {{ $tone['track'] }} transition-transform duration-200 group-hover:scale-y-[1.35] origin-bottom">
+                                                    @if($cell['share'] > 0)
+                                                        <span class="block h-full rounded-full {{ $tone['fill'] }}" style="width: {{ $cell['share'] }}%"></span>
+                                                    @endif
+                                                </span>
+                                                <span class="mt-2 flex items-center gap-1 text-[11.5px] leading-none {{ $isNow ? 'font-bold text-[#060D26]' : 'font-medium text-[#5B6A8E] group-hover:text-[#060D26]' }}">
+                                                    @if($isNow)<span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66] shrink-0" aria-hidden="true"></span>@endif
+                                                    {{ $cell['month']->format('M') }}
+                                                    @if($isNow)<span class="sr-only">(this month)</span>@endif
+                                                </span>
+                                            @if($cell['detail'])
+                                                </button>
+                                            @else
+                                                </div>
+                                            @endif
+                                        </li>
+                                    @endforeach
+                                </ol>
+                            </div>
                         @endforeach
-                    </ol>
+                    </div>
+
+                    @if($hiddenMonthCount > 0)
+                        <button type="button" @click="moreYears = !moreYears" :aria-expanded="moreYears"
+                            class="mt-3 self-start inline-flex h-11 items-center text-[12.5px] font-semibold text-[#060D26] hover:text-[#B35A3D] focus:outline-none focus-visible:underline transition-colors duration-200 cursor-pointer">
+                            <span x-text="moreYears ? 'See less' : 'See more · {{ $hiddenMonthCount }} more {{ \Illuminate\Support\Str::plural('month', $hiddenMonthCount) }}'"></span>
+                        </button>
+                    @endif
 
                     <ul class="mt-auto pt-4 flex flex-wrap gap-x-4 gap-y-1.5 text-[12px] text-[#5B6A8E]" aria-label="Legend">
                         @foreach($legendKeys as $key)
@@ -452,150 +436,18 @@
                     </ul>
                 </section>
 
-                {{-- Records: one card, the tabs are its header. Panels hide with x-show, so all of them stay in the page. --}}
-                @php
-                    $hasDeposit = $canChargeDeposit || $activeDepositCharges->isNotEmpty() || $voidedDepositCharges->isNotEmpty();
-                    $tabList = array_filter([
-                        'months'   => ['label' => 'Months', 'count' => $periods->count()],
-                        'payments' => ['label' => 'Payments', 'count' => $allPayments->count()],
-                        'deposit'  => $hasDeposit ? ['label' => 'Deposit', 'count' => null] : null,
-                        'voided'   => $voidedTransactions->isNotEmpty() ? ['label' => 'Voided', 'count' => $voidedTransactions->count()] : null,
-                    ]);
-                    $ledgerCap = 6;
-                    $ledgerTotal = $periods->count();
-                    // Latest 6 months by default; an older Overdue/Partial one is never hidden — an unpaid month is what this list is for.
-                    $isCollapsed = fn (array $period, int $i) => $i < $ledgerTotal - $ledgerCap
-                        && ($period['is_future'] || ! in_array($period['status'], ['overdue', 'partial'], true));
-                    $hiddenPeriods = $periods->filter(fn ($period, $i) => $isCollapsed($period, $i))->count();
-                    // Newest month first: the one a landlord is asking about is almost always the latest.
-                    $periodsNewestFirst = $periods->map(fn ($p, $i) => $p + ['_index' => $i])->reverse()->values();
-                @endphp
-                <x-card flush class="col-span-2 lg:col-span-4" x-data="{ tab: 'months' }">
-                    <div class="flex gap-1 px-2 sm:px-3 overflow-x-auto overflow-y-hidden border-b border-[#E2E4EC]" role="tablist" aria-label="Records">
-                        @foreach($tabList as $key => $t)
-                            <button type="button" role="tab" id="ledger-tab-{{ $key }}" aria-controls="ledger-panel-{{ $key }}"
-                                @click="tab = @js($key)" :aria-selected="tab === @js($key)" :tabindex="tab === @js($key) ? 0 : -1"
-                                @keydown.arrow-right.prevent="$el.nextElementSibling?.focus(); $el.nextElementSibling?.click()"
-                                @keydown.arrow-left.prevent="$el.previousElementSibling?.focus(); $el.previousElementSibling?.click()"
-                                class="shrink-0 inline-flex items-center gap-2 px-3 sm:px-4 h-11 text-[13.5px] font-semibold border-b-2 -mb-px whitespace-nowrap focus:outline-none focus-visible:bg-[#F7F8FC] transition-colors duration-200 cursor-pointer"
-                                :class="tab === @js($key) ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#5B6A8E] hover:text-[#060D26]'">
-                                {{ $t['label'] }}
-                                @if($t['count'])
-                                    <span class="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-[11px] font-bold tabular-nums transition-colors duration-200"
-                                        :class="tab === @js($key) ? 'bg-[#060D26] text-white' : 'bg-[#ECEEF6] text-[#5B6A8E]'">{{ $t['count'] }}</span>
-                                @endif
-                            </button>
-                        @endforeach
-                    </div>
+                {{-- Records, one section each, all on the page: payments, the deposit, and (folded) corrections. --}}
+                @php $ledgerCap = 6; @endphp
 
-                    {{-- Months --}}
-                    <div x-show="tab === 'months'" role="tabpanel" id="ledger-panel-months" aria-labelledby="ledger-tab-months" x-data="{ moreRows: false }">
-                        <h2 class="sr-only">Rent ledger</h2>
-                        @if($periods->isEmpty())
-                            <div class="px-6 py-12 text-center">
-                                <p class="text-[14px] font-semibold text-[#060D26]">No billing periods yet</p>
-                                <p class="text-[13px] text-[#5B6A8E] mt-1">Rent starts accruing from the move-in date.</p>
-                            </div>
-                        @else
-                            {{-- Phone: one tappable row per month (DESIGN §0b) --}}
-                            <ul class="lg:hidden divide-y divide-[#E2E4EC]">
-                                @foreach($periodsNewestFirst as $period)
-                                    @php $style = $periodStyleFor($period); @endphp
-                                    <li @if($isCollapsed($period, $period['_index'])) x-show="moreRows" x-cloak @endif>
-                                        <button type="button" aria-haspopup="dialog"
-                                            @click="$dispatch('open-period-detail', {{ Js::from($periodDetails->get($period['period']->format('Y-m'))) }})"
-                                            class="w-full flex items-center gap-3 px-5 py-3.5 text-left hover:bg-[#F7F8FC] focus:outline-none focus-visible:bg-[#F7F8FC] transition-colors duration-200 cursor-pointer">
-                                            <div class="min-w-0 flex-1">
-                                                <div class="flex items-center gap-2">
-                                                    <p class="text-[14px] font-semibold text-[#060D26]">{{ $period['label'] }}</p>
-                                                    <span class="inline-flex items-center h-5 px-2 rounded-full border text-[10.5px] font-bold {{ $style['pill'] }}">{{ $style['label'] }}</span>
-                                                </div>
-                                                <p class="mt-0.5 text-[12px] text-[#5B6A8E]">
-                                                    Due {{ $period['due_on']->format('M j, Y') }}
-                                                    @if($period['late_fee'] > 0)
-                                                        · <span class="text-[#B45309]">incl. {{ $peso($period['late_fee']) }} late fee</span>
-                                                    @elseif($period['late_fee_waived'])
-                                                        · late fee waived
-                                                    @endif
-                                                </p>
-                                            </div>
-                                            <div class="text-right shrink-0">
-                                                <p class="text-[13.5px] font-semibold text-[#060D26] tabular-nums">{{ $peso($period['paid']) }}</p>
-                                                <p class="text-[11.5px] tabular-nums {{ $period['balance'] > 0 && ! $period['is_future'] ? 'font-semibold text-[#DC2626]' : 'text-[#5B6A8E]' }}">
-                                                    {{ $period['balance'] > 0 ? $peso($period['balance']).' left' : 'of '.$peso($period['expected']) }}
-                                                </p>
-                                            </div>
-                                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="shrink-0 text-[#94A3B8]" aria-hidden="true">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                                            </svg>
-                                        </button>
-                                    </li>
-                                @endforeach
-                            </ul>
-
-                            {{-- Desktop: full table --}}
-                            <div class="hidden lg:block">
-                                <table class="w-full">
-                                    <thead class="border-b border-[#E2E4EC]">
-                                        <tr>
-                                            <th scope="col" class="pl-6 pr-4 text-left {{ $th }}">Month</th>
-                                            <th scope="col" class="px-4 text-left {{ $th }}">Due on</th>
-                                            <th scope="col" class="px-4 text-right {{ $th }}">Expected</th>
-                                            <th scope="col" class="px-4 text-right {{ $th }}">Paid</th>
-                                            <th scope="col" class="px-4 text-right {{ $th }}">Balance</th>
-                                            <th scope="col" class="pl-4 pr-6 text-left {{ $th }}">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-[#E2E4EC]">
-                                        @foreach($periodsNewestFirst as $period)
-                                            @php $style = $periodStyleFor($period); @endphp
-                                            <tr class="group hover:bg-[#F7F8FC] transition-colors duration-200 cursor-pointer"
-                                                @if($isCollapsed($period, $period['_index'])) x-show="moreRows" x-cloak @endif
-                                                @click="$dispatch('open-period-detail', {{ Js::from($periodDetails->get($period['period']->format('Y-m'))) }})">
-                                                <td class="pl-6 pr-4 py-3.5">
-                                                    <button type="button" aria-haspopup="dialog" class="text-left text-[13.5px] font-semibold text-[#060D26] cursor-pointer focus:outline-none focus-visible:underline">{{ $period['label'] }}</button>
-                                                </td>
-                                                <td class="px-4 py-3.5 text-[13px] text-[#5B6A8E] whitespace-nowrap tabular-nums">{{ $period['due_on']->format('M d, Y') }}</td>
-                                                <td class="px-4 py-3.5 text-[13px] text-[#5B6A8E] text-right whitespace-nowrap tabular-nums">
-                                                    {{ $peso($period['expected']) }}
-                                                    @if($period['late_fee'] > 0)
-                                                        <span class="block text-[11px] text-[#B45309]">incl. {{ $peso($period['late_fee']) }} late fee</span>
-                                                    @elseif($period['late_fee_waived'])
-                                                        <span class="block text-[11px] text-[#5B6A8E]">late fee waived</span>
-                                                    @endif
-                                                </td>
-                                                <td class="px-4 py-3.5 text-[13px] font-semibold text-[#060D26] text-right whitespace-nowrap tabular-nums">{{ $peso($period['paid']) }}</td>
-                                                {{-- Red is for money owed. A future month's balance is not owed yet, so it stays neutral (DESIGN §6n). --}}
-                                                <td class="px-4 py-3.5 text-[13px] text-right whitespace-nowrap tabular-nums {{ $period['balance'] > 0 && ! $period['is_future'] ? 'font-semibold text-[#DC2626]' : 'text-[#5B6A8E]' }}">
-                                                    {{ $peso(max(0, $period['balance'])) }}
-                                                </td>
-                                                <td class="pl-4 pr-6 py-3.5">
-                                                    <div class="flex items-center justify-between gap-3">
-                                                        <span class="inline-flex items-center h-6 px-2.5 rounded-full border text-[11px] font-bold {{ $style['pill'] }}">{{ $style['label'] }}</span>
-                                                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="shrink-0 text-[#94A3B8] group-hover:text-[#060D26] group-hover:translate-x-0.5 transition duration-200" aria-hidden="true">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                                                        </svg>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            @if($hiddenPeriods > 0)
-                                <div class="px-5 sm:px-6 py-3 border-t border-[#E2E4EC]">
-                                    <button type="button" @click="moreRows = !moreRows" :aria-expanded="moreRows"
-                                        class="text-[12.5px] font-semibold text-[#060D26] hover:text-[#B35A3D] focus:outline-none focus-visible:underline transition-colors duration-200 cursor-pointer">
-                                        <span x-text="moreRows ? 'Show latest only' : 'Show all {{ $ledgerTotal }} months'"></span>
-                                    </button>
-                                </div>
+                <x-card flush class="col-span-2 lg:col-span-4" x-data="{ moreRows: false }">
+                    <div class="flex items-center justify-between gap-3 px-5 sm:px-6 pt-4 pb-3 border-b border-[#E2E4EC]">
+                        <h2 class="flex items-center gap-2 text-[14px] font-semibold text-[#060D26]">
+                            Payments
+                            @if($allPayments->count() > 0)
+                                <span class="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-[#ECEEF6] text-[11px] font-bold tabular-nums text-[#5B6A8E]">{{ $allPayments->count() }}</span>
                             @endif
-                        @endif
+                        </h2>
                     </div>
-
-                    {{-- Payments --}}
-                    <div x-show="tab === 'payments'" x-cloak role="tabpanel" id="ledger-panel-payments" aria-labelledby="ledger-tab-payments" x-data="{ moreRows: false }">
                         @if($allPayments->isNotEmpty())
                             {{-- Phone: one stacked row per payment (DESIGN §0b) --}}
                             <ul class="lg:hidden divide-y divide-[#E2E4EC]">
@@ -694,11 +546,10 @@
                                 @endif
                             </div>
                         @endif
-                    </div>
+                </x-card>
 
-                    {{-- Deposit: the claim-by-claim record behind the "Deposit held" figure. --}}
-                    @if($hasDeposit)
-                        <div x-show="tab === 'deposit'" x-cloak role="tabpanel" id="ledger-panel-deposit" aria-labelledby="ledger-tab-deposit" x-data="{ moreCharges: false }">
+                @if($hasDeposit)
+                    <x-card flush id="deposit" class="col-span-2 lg:col-span-4 scroll-mt-24" x-data="{ moreCharges: false }">
                             @php
                                 $heldShare = $summary['depositCollected'] > 0
                                     ? max(0, min(100, (int) round($summary['depositRemaining'] / $summary['depositCollected'] * 100)))
@@ -789,12 +640,22 @@
                                     </ul>
                                 </div>
                             @endif
-                        </div>
-                    @endif
+                    </x-card>
+                @endif
 
-                    {{-- Voided: kept deliberately — a voided entry is removed from the arithmetic, never from the record. --}}
-                    @if($voidedTransactions->isNotEmpty())
-                        <div x-show="tab === 'voided'" x-cloak role="tabpanel" id="ledger-panel-voided" aria-labelledby="ledger-tab-voided" x-data="{ moreRows: false }">
+                {{-- Voided: kept deliberately, a voided entry is removed from the arithmetic, never from the record. Folded
+                     because it is history, not something to act on. --}}
+                @if($voidedTransactions->isNotEmpty())
+                    <details class="group col-span-2 lg:col-span-4 {{ $tile }} overflow-hidden" x-data="{ moreRows: false }">
+                        <summary class="flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-3 px-5 sm:px-6 py-3 text-[14px] font-semibold text-[#060D26] focus:outline-none focus-visible:bg-[#F7F8FC] [&::-webkit-details-marker]:hidden">
+                            <span class="flex items-center gap-2">
+                                Voided payments
+                                <span class="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-[#ECEEF6] text-[11px] font-bold tabular-nums text-[#5B6A8E]">{{ $voidedTransactions->count() }}</span>
+                            </span>
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="shrink-0 text-[#5B6A8E] transition-transform duration-200 group-open:rotate-180" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                            </svg>
+                        </summary>
                             <p class="px-5 sm:px-6 py-3 text-[12.5px] text-[#5B6A8E] border-b border-[#E2E4EC] bg-[#FBFBFD]">Corrections made to this ledger. None of these count toward any total.</p>
                             <ul class="divide-y divide-[#E2E4EC]">
                                 @foreach($voidedTransactions as $voided)
@@ -831,9 +692,8 @@
                                     </button>
                                 </div>
                             @endif
-                        </div>
-                    @endif
-                </x-card>
+                    </details>
+                @endif
             </div>
         @else
             <x-card>

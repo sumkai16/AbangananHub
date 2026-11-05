@@ -104,18 +104,19 @@ class PaymentClaims
                 'filed_by' => $tenant->user_id,
             ]);
 
-            $label = $type === 'MoveIn' ? 'move-in payment' : 'rent for '.$billingPeriod->format('F Y');
+            $label = $claim->coverageLabel($locked);
             $tenantName = $tenant->first_name ?? 'Your tenant';
 
             Notification::notify(
                 $locked->property?->landlord_id,
-                'payment',
+                'payment_to_confirm',
                 'Payment to confirm',
                 $claim->isCash()
                     ? "{$tenantName} says they handed you ₱".number_format((float) $claim->amount, 2)." in cash ({$label}). Confirm only if you received it."
                     : "{$tenantName} says they paid ₱".number_format((float) $claim->amount, 2)." ({$label}) by {$claim->payment_method}, ref {$claim->reference_no}. Check your account, then confirm.",
                 self::decisionLink($locked),
                 $locked->conversation_id,
+                $claim,
             );
 
             return $claim;
@@ -167,6 +168,8 @@ class PaymentClaims
             }
 
             $claim->update(['status' => 'Confirmed', 'decided_by' => $landlord->user_id, 'decided_at' => now()]);
+            // The to-do is done: the landlord's "Payment to confirm" notice (and its reminders) stop reading as unread.
+            Notification::markReadFor($claim, 'payment_to_confirm');
 
             AuditLog::record(
                 'payment_claim.confirm',
@@ -203,6 +206,8 @@ class PaymentClaims
                 'decided_at' => now(),
                 'rejection_reason' => $reason,
             ]);
+
+            Notification::markReadFor($claim, 'payment_to_confirm');
 
             AuditLog::record(
                 'payment_claim.reject',
@@ -324,6 +329,7 @@ class PaymentClaims
             }
 
             $claim->update(['status' => 'Withdrawn', 'decided_at' => now()]);
+            Notification::markReadFor($claim, 'payment_to_confirm');
 
             return $claim;
         });
@@ -351,8 +357,11 @@ class PaymentClaims
                 $locked->target_move_in_date = $data['payment_date'];
             }
 
-            $locked->paymentClaims()->pending()->where('claim_type', 'MoveIn')
-                ->update(['status' => 'Withdrawn', 'decided_at' => now()]);
+            // One by one rather than a bulk update, so the sidebar count follows and each waiting notice is marked read.
+            foreach ($locked->paymentClaims()->pending()->where('claim_type', 'MoveIn')->get() as $waiting) {
+                $waiting->update(['status' => 'Withdrawn', 'decided_at' => now()]);
+                Notification::markReadFor($waiting, 'payment_to_confirm');
+            }
 
             MoveInPaymentRecorder::record($locked, $locked->unit, $data + [
                 'agreed_monthly_rent' => $locked->monthlyRent(),

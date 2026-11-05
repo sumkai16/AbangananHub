@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Support\BrowseFilters;
+use App\Observers\PropertyObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Arr;
@@ -11,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
+#[ObservedBy(PropertyObserver::class)]
 class Property extends Model
 {
     /**

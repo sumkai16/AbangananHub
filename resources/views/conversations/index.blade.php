@@ -1,5 +1,8 @@
 @extends(auth()->user()->usesLandlordShell() ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
 
+{{-- The page itself runs full width, so the tenant site header does too (it is capped at 1400px elsewhere). --}}
+@section('shell-wide', '1')
+
 @section('content')
     @php
         // Landlord and tenant share one layout: the full width as three separate cards
