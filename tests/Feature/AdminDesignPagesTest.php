@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Conversation;
 use App\Models\LandlordVerification;
 use App\Models\Report;
+use App\Models\Reservation;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Carbon;
 use Tests\Support\CreatesMarketplaceFixtures;
@@ -78,6 +79,67 @@ class AdminDesignPagesTest extends TestCase
         $this->get(route('admin.units.show', [$property, $t['reservation']->unit]))->assertOk();
     }
 
+    /** @dataProvider reservationStates */
+    public function test_the_reservation_page_handles_every_state(string $status, string $expected): void
+    {
+        $t = $this->makeTenancy(['rental_status' => $status, 'rejection_reason' => $status === 'Rejected' ? 'Unit no longer available' : null]);
+
+        $this->actingAs($this->makeUserWithRole('Admin'))
+            ->get(route('admin.reservations.show', $t['reservation']))
+            ->assertOk()
+            ->assertSee($expected);
+    }
+
+    /** @return array<string, array{string, string}> */
+    public static function reservationStates(): array
+    {
+        return [
+            'inquiry' => ['Inquiry', 'Admin actions'],
+            'reserved' => ['Reserved', 'waiting for move-in'],
+            'occupied' => ['Occupied', 'Agreement signed'],
+            'completed' => ['Completed', 'The tenancy has ended'],
+            'cancelled' => ['Cancelled', 'was cancelled'],
+            'rejected' => ['Rejected', 'Unit no longer available'],
+        ];
+    }
+
+    public function test_the_unit_page_lists_its_reservations_and_the_other_units(): void
+    {
+        $t = $this->makeTenancy(['rental_status' => 'Occupied']);
+        $property = $t['reservation']->property;
+        $other = $this->makeUnit($property, ['unit_label' => 'Sibling Room']);
+
+        $this->actingAs($this->makeUserWithRole('Admin'))
+            ->get(route('admin.units.show', [$property, $t['reservation']->unit]))
+            ->assertOk()
+            ->assertSee('Reservations for this unit')
+            ->assertSee(route('admin.reservations.show', $t['reservation']), false)
+            ->assertSee($other->unit_label);
+    }
+
+    public function test_a_pending_property_can_be_decided_from_its_page(): void
+    {
+        $property = $this->makeProperty($this->makeLandlord(), ['verification_status' => 'Pending']);
+
+        $this->actingAs($this->makeUserWithRole('Admin'))
+            ->get(route('admin.catalogue.properties.show', $property))
+            ->assertOk()
+            ->assertSee(route('admin.listings.approve', $property->property_id), false)
+            ->assertSee(route('admin.listings.reject', $property->property_id), false);
+    }
+
+    public function test_payment_rows_link_to_their_reservation(): void
+    {
+        $t = $this->makeTenancy(['rental_status' => 'Occupied']);
+        $this->makePayment($t['reservation'], ['status' => 'Held', 'amount' => 5000]);
+
+        $this->actingAs($this->makeUserWithRole('Admin'))
+            ->get(route('admin.payments.index', ['status' => 'Held']))
+            ->assertOk()
+            ->assertSee(route('admin.reservations.show', $t['reservation']), false)
+            ->assertSee('Showing');
+    }
+
     public function test_the_conversation_page_names_the_unit(): void
     {
         $t = $this->makeTenancy(['rental_status' => 'Occupied']);
@@ -114,7 +176,7 @@ class AdminDesignPagesTest extends TestCase
         $this->assertSame($before['Move-in disputes']['count'] + 1, $queue['Move-in disputes']['count']);
         $this->assertSame(collect($queue)->sum('count'), $response->viewData('openItems'));
         $this->assertTrue($queue['Move-in disputes']['oldest']->lte(now()->subDays(50)));
-        $response->assertSee('Needs you')->assertDontSee('Welcome back')->assertDontSee('Quick Actions');
+        $response->assertSee('Needs you')->assertDontSee('Welcome back');
     }
 
     public function test_the_dashboard_says_so_when_nothing_is_waiting_and_money_totals_follow_the_payments(): void
@@ -128,6 +190,20 @@ class AdminDesignPagesTest extends TestCase
         if ($response->viewData('openItems') === 0) {
             $response->assertSee('Nothing waiting');
         }
+    }
+
+    public function test_the_reservation_ledger_counts_every_status_and_its_shares_add_up(): void
+    {
+        $this->makeTenancy(['rental_status' => 'Occupied']);
+        $this->makeTenancy(['rental_status' => 'Reserved']);
+        $this->makeTenancy(['rental_status' => 'Inquiry']);
+
+        $response = $this->actingAs($this->makeUserWithRole('Admin'))->get(route('admin.dashboard'))->assertOk();
+        $ledger = $response->viewData('reservationLedger');
+
+        $this->assertSame(Reservation::count(), $ledger['total']);
+        $this->assertSame(100, array_sum(array_column($ledger['rows'], 'share')));
+        $response->assertSee('Quick actions')->assertSee('Review landlords')->assertSee('Manage users')->assertSee('In progress');
     }
 
     public function test_the_page_titles_match_the_sidebar(): void
@@ -171,7 +247,7 @@ class AdminDesignPagesTest extends TestCase
         $general = $this->blade('<x-admin.status status="Occupied" />');
         $unit = $this->blade('<x-admin.status status="Occupied" kind="unit" />');
 
-        $general->assertSee('text-[#15803D]', false);
+        $general->assertSee('bg-[#FF8A66] text-white', false);
         $unit->assertSee('text-[#DC2626]', false);
         $this->blade('<x-admin.status status="Rejected" />')->assertSee('text-[#DC2626]', false);
         $this->blade('<x-admin.status status="Whatever" />')->assertSee('text-[#5B6A8E]', false);

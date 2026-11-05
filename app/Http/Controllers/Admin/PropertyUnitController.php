@@ -54,9 +54,15 @@ class PropertyUnitController extends Controller
         if ($unit->property_id !== $property->property_id) {
             abort(404);
         }
-        $unit->load(['property.landlord', 'media']);
+        $unit->load(['property.landlord', 'media', 'activeReservation.tenant', 'reservations.tenant']);
 
-        return view('admin.units.show', compact('property', 'unit'));
+        $siblings = $property->units()
+            ->where('unit_id', '!=', $unit->unit_id)
+            ->orderBy('unit_label')
+            ->limit(10)
+            ->get();
+
+        return view('admin.units.show', compact('property', 'unit', 'siblings'));
     }
 
     public function approve(Property $property, PropertyUnit $unit)

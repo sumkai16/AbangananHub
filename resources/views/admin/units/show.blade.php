@@ -3,163 +3,180 @@
 @section('page-title', 'Review Unit')
 
 @section('content')
+@php
+    $landlord = $property->landlord;
+    $photos = $unit->media->where('media_type', 'Image');
+    $video = $unit->media->where('media_type', 'Video')->first();
+    $tenant = $unit->activeReservation?->tenant;
+    $unitReservations = $unit->reservations->sortByDesc('created_at')->take(8);
+@endphp
     <div class="max-w-[1600px] mx-auto">
 
-        {{-- Breadcrumb --}}
-        <div class="flex items-center gap-1.5 text-[13px] text-[#5B6A8E] mb-4">
-            <a href="{{ route('admin.units.index') }}" class="hover:text-[#060D26] transition-colors">Unit Approvals</a>
-            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-            </svg>
-            <span class="text-[#060D26] font-medium">{{ $unit->unit_label }}</span>
-        </div>
+        <x-back-link href="{{ route('admin.units.index') }}" to="unit approvals" class="mb-4" />
 
-        @php
-        @endphp
-
-        <div class="flex items-center justify-between mb-6">
-            <div>
-                <div class="flex items-center gap-3">
-                    <h1 class="text-2xl font-semibold text-[#060D26] tracking-tight">{{ $unit->unit_label }}</h1>
-                    <x-admin.status :status="$unit->verification_status" />
-                </div>
-                <p class="text-[13.5px] text-[#5B6A8E] mt-1">{{ $property->title }}</p>
-            </div>
-        </div>
+        <x-page-header :title="$unit->unit_label" :subtitle="$property->title.($property->address ? ' · '.$property->address : '')">
+            <x-slot:badge>
+                <x-admin.status :status="$unit->verification_status" />
+                <x-admin.status :status="$unit->availability_status" kind="unit" />
+            </x-slot:badge>
+        </x-page-header>
 
         @if($unit->isRejected() && $unit->rejection_reason)
-            <div class="mb-6 px-5 py-4 rounded-2xl bg-[#EF4444]/[0.07] border border-[#EF4444]/20 flex items-start gap-3">
-                <svg class="w-5 h-5 text-[#DC2626] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                    stroke-width="1.8">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                </svg>
-                <div>
-                    <p class="text-[13px] font-bold text-[#DC2626]">Previously rejected</p>
-                    <p class="text-[13px] text-[#DC2626] mt-0.5">{{ $unit->rejection_reason }}</p>
-                </div>
+            <div class="mb-5 rounded-2xl border border-[#EF4444]/20 bg-[#EF4444]/[0.07] px-5 py-4">
+                <p class="text-[13.5px] font-semibold text-[#DC2626]">Previously rejected</p>
+                <p class="mt-0.5 text-[13.5px] text-[#060D26]">{{ $unit->rejection_reason }}</p>
             </div>
         @endif
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div class="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_360px] items-start">
 
-            {{-- Left: details + media --}}
-            <div class="lg:col-span-8 space-y-5">
+            <div class="min-w-0 space-y-5">
 
-                <div class="bg-white border border-[#E2E4EC] rounded-2xl p-6 shadow-sm">
-                    <h2 class="text-[15px] font-semibold text-[#060D26] mb-4">Unit Details</h2>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        <div>
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-[#5B6A8E] mb-1">Monthly Rent</p>
-                            <p class="text-[14px] font-semibold text-[#060D26]">₱{{ number_format($unit->rental_fee, 2) }}
-                            </p>
+                <x-card>
+                    <h2 class="mb-4 text-[15px] font-semibold text-[#060D26]">Unit details</h2>
+                    <x-admin.facts :cols="4" :items="[
+                        'Monthly rent' => ['value' => '₱'.number_format($unit->rental_fee, 2), 'num' => true],
+                        'Security deposit' => ['value' => $unit->security_deposit !== null ? '₱'.number_format($unit->security_deposit, 2) : null, 'num' => true],
+                        'Capacity' => $unit->occupancy_limit.' '.Str::plural('person', $unit->occupancy_limit),
+                        'Floor area' => $unit->floor_area_label,
+                        'Floor' => $unit->floor,
+                        'Bedrooms' => $unit->bedrooms,
+                        'Bathrooms' => $unit->bathrooms,
+                        'Furnishing' => $unit->furnishing_status,
+                        'Current tenant' => $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : null,
+                        'Submitted' => $unit->created_at->format('M j, Y'),
+                    ]" />
+                    @if($unit->description)
+                        <div class="mt-5 border-t border-[#E2E4EC] pt-4">
+                            <p class="text-[12.5px] text-[#5B6A8E]">Description</p>
+                            <p class="mt-0.5 text-[14px] leading-relaxed text-[#060D26]">{{ $unit->description }}</p>
                         </div>
-                        <div>
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-[#5B6A8E] mb-1">Capacity</p>
-                            <p class="text-[14px] font-semibold text-[#060D26]">{{ $unit->occupancy_limit }}
-                                {{ Str::plural('person', $unit->occupancy_limit) }}
-                            </p>
-                        </div>
-                        <div>
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-[#5B6A8E] mb-1">Floor Area</p>
-                            <p class="text-[14px] font-semibold text-[#060D26]">{{ $unit->floor_area_label ?? '—' }}</p>
-                        </div>
-                        <div>
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-[#5B6A8E] mb-1">Availability</p>
-                            <p class="text-[14px] font-semibold text-[#060D26]">{{ $unit->availability_status }}</p>
-                        </div>
-                        <div>
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-[#5B6A8E] mb-1">Submitted</p>
-                            <p class="text-[14px] font-semibold text-[#060D26]">{{ $unit->created_at->format('M j, Y') }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white border border-[#E2E4EC] rounded-2xl p-6 shadow-sm">
-                    <h2 class="text-[15px] font-semibold text-[#060D26] mb-4">Verification Capture</h2>
-
-                    @php
-                        $photos = $unit->media->where('media_type', 'Image');
-                        $video = $unit->media->where('media_type', 'Video')->first();
-                    @endphp
-
-                    @if($photos->isEmpty() && !$video)
-                        <p class="text-[13px] text-[#5B6A8E]">No media submitted for this unit.</p>
-                    @else
-                        @if($photos->isNotEmpty())
-                            <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-4">
-                                @foreach($photos as $photo)
-                                    <a href="{{ $photo->media_url }}" target="_blank"
-                                        class="aspect-square rounded-xl overflow-hidden bg-[#F7F8FC] border border-[#E2E4EC] block">
-                                        <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="Unit photo" class="w-full h-full object-cover">
-                                    </a>
-                                @endforeach
-                            </div>
-                        @endif
-
-                        @if($video)
-                            <div class="rounded-xl overflow-hidden bg-[#F7F8FC] border border-[#E2E4EC] max-w-sm">
-                                <video src="{{ $video->media_url }}" controls class="w-full h-auto"></video>
-                            </div>
-                        @endif
                     @endif
-                </div>
+                </x-card>
 
+                <x-card>
+                    <div class="mb-4 flex items-baseline justify-between gap-3">
+                        <h2 class="text-[15px] font-semibold text-[#060D26]">Photos and video</h2>
+                        <p class="text-[13px] tabular-nums text-[#5B6A8E]">{{ $photos->count() }} {{ Str::plural('photo', $photos->count()) }}{{ $video ? ', 1 video' : '' }}</p>
+                    </div>
+                    @if($photos->isEmpty() && ! $video)
+                        <p class="rounded-lg bg-[#FBBF24]/[0.10] px-3 py-2.5 text-[13.5px] text-[#060D26]">No photos or video were submitted for this unit.</p>
+                    @else
+                        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+                            @foreach($photos as $photo)
+                                <a href="{{ $photo->media_url }}" target="_blank" rel="noopener" class="block aspect-[4/3] overflow-hidden rounded-lg border border-[#E2E4EC] bg-[#F7F8FC] transition-colors duration-200 hover:border-[#FF8A66]">
+                                    <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="Photo of {{ $unit->unit_label }}" class="h-full w-full object-cover">
+                                </a>
+                            @endforeach
+                            @if($video)
+                                <div class="aspect-[4/3] overflow-hidden rounded-lg border border-[#E2E4EC] bg-[#F7F8FC]">
+                                    <video src="{{ $video->media_url }}" controls class="h-full w-full object-cover"></video>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+                </x-card>
+
+                <x-card flush>
+                    <div class="border-b border-[#E2E4EC] px-5 py-3.5">
+                        <h2 class="text-[15px] font-semibold text-[#060D26]">Reservations for this unit</h2>
+                    </div>
+                    @if($unitReservations->isEmpty())
+                        <x-admin.empty title="No reservations yet" />
+                    @else
+                        <div class="overflow-x-auto scrollbar-thin-light">
+                            <table class="min-w-full">
+                                <thead>
+                                    <tr class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
+                                        <x-admin.th>Tenant</x-admin.th>
+                                        <x-admin.th>Created</x-admin.th>
+                                        <x-admin.th>Status</x-admin.th>
+                                        <th class="px-4 py-2.5"><span class="sr-only">Open</span></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-[#E2E4EC]">
+                                    @foreach($unitReservations as $reservation)
+                                        <tr class="hover:bg-[#F7F8FC] transition-colors duration-200">
+                                            <td class="px-4 py-3 text-[13.5px] font-semibold text-[#060D26]">{{ trim(($reservation->tenant->first_name ?? '').' '.($reservation->tenant->last_name ?? '')) ?: '—' }}</td>
+                                            <td class="px-4 py-3 text-[13px] whitespace-nowrap text-[#5B6A8E]">{{ $reservation->created_at?->format('M j, Y') }}</td>
+                                            <td class="px-4 py-3"><x-admin.status :status="$reservation->rental_status" /></td>
+                                            <td class="px-4 py-3 text-right"><a href="{{ route('admin.reservations.show', $reservation) }}" class="text-[13px] font-semibold text-[#060D26] underline-offset-2 hover:underline">View</a></td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </x-card>
             </div>
 
-            {{-- Right: landlord card + actions --}}
-            <div class="lg:col-span-4 space-y-5">
+            <div class="space-y-5 lg:sticky lg:top-6">
 
-                <div class="bg-white border border-[#E2E4EC] rounded-2xl p-6 shadow-sm">
-                    <h2 class="text-[15px] font-semibold text-[#060D26] mb-4">Landlord</h2>
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-[#FF8A66]/10 flex items-center justify-center shrink-0">
-                            <span class="text-[#060D26] text-[13px] font-bold">
-                                {{ strtoupper(substr($property->landlord->first_name ?? '?', 0, 1)) }}{{ strtoupper(substr($property->landlord->last_name ?? '', 0, 1)) }}
-                            </span>
-                        </div>
-                        <div>
-                            <p class="text-[13.5px] font-semibold text-[#060D26]">
-                                {{ $property->landlord->first_name ?? '' }} {{ $property->landlord->last_name ?? '' }}
-                            </p>
-                            <p class="text-[12px] text-[#5B6A8E]">{{ $property->landlord->email ?? '—' }}</p>
-                        </div>
-                    </div>
-                </div>
                 @if($unit->isPending())
-                    <div class="bg-white border border-[#E2E4EC] rounded-2xl p-6 shadow-sm space-y-3">
-                        <h2 class="text-[15px] font-semibold text-[#060D26] mb-1">Decision</h2>
+                    <x-card>
+                        <h2 class="text-[15px] font-semibold text-[#060D26]">Your decision</h2>
+                        <p class="mt-1 text-[13px] text-[#5B6A8E]">Waiting since {{ $unit->created_at->format('M j, Y') }}.</p>
 
-                        <form method="POST" action="{{ route('admin.units.approve', [$property, $unit]) }}"
+                        <form method="POST" action="{{ route('admin.units.approve', [$property, $unit]) }}" class="mt-3"
                             data-confirm="Approve this unit?" data-confirm-button="Approve unit">
                             @csrf
-                            <button type="submit"
-                                class="w-full h-11 rounded-xl bg-[#15803D] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all">
-                                Approve Unit
-                            </button>
+                            <button type="submit" class="h-10 w-full rounded-lg bg-[#15803D] text-[13.5px] font-semibold text-white transition-all duration-200 hover:brightness-95 cursor-pointer">Approve unit</button>
                         </form>
 
-                        <form method="POST" action="{{ route('admin.units.reject', [$property, $unit]) }}"
-                            data-confirm="Reject this unit?" data-confirm-type="error" class="space-y-2">
+                        <form method="POST" action="{{ route('admin.units.reject', [$property, $unit]) }}" class="mt-4 space-y-2 border-t border-[#E2E4EC] pt-4"
+                            data-confirm="Reject this unit?" data-confirm-type="error">
                             @csrf
-                            <textarea name="rejection_reason" rows="3" maxlength="500"
-                                placeholder="Reason for rejection (shown to landlord)"
-                                class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-[13px] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#EF4444]/25 transition"></textarea>
+                            <label for="unit-reject-reason" class="block text-[13px] font-medium text-[#060D26]">Reason, if rejecting</label>
+                            <textarea id="unit-reject-reason" name="rejection_reason" rows="3" maxlength="500" placeholder="The landlord will see this"
+                                class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-[13.5px] text-[#060D26] placeholder-[#94A3B8] transition focus:border-[#FF8A66] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20"></textarea>
                             @error('rejection_reason')
-                                <p class="text-xs text-[#DC2626]">{{ $message }}</p>
+                                <p class="text-[12.5px] text-[#DC2626]">{{ $message }}</p>
                             @enderror
-                            <button type="submit"
-                                class="w-full h-11 rounded-xl border border-[#EF4444]/25 text-[#DC2626] text-[13.5px] font-semibold hover:bg-[#EF4444]/[0.07] transition-all">
-                                Reject Unit
-                            </button>
+                            <button type="submit" class="h-10 w-full rounded-lg border border-[#EF4444]/30 text-[13.5px] font-semibold text-[#DC2626] transition-colors duration-200 hover:bg-[#EF4444]/[0.06] cursor-pointer">Reject unit</button>
                         </form>
-                    </div>
+                    </x-card>
                 @endif
 
+                <x-card flush>
+                    <div class="px-5 py-4">
+                        <p class="text-[12.5px] text-[#5B6A8E]">Landlord</p>
+                        @if($landlord)
+                            <a href="{{ route('admin.users.show', $landlord) }}" class="mt-0.5 block text-[14px] font-semibold text-[#060D26] underline-offset-2 hover:underline">{{ trim($landlord->first_name.' '.$landlord->last_name) }}</a>
+                            <p class="break-words text-[12.5px] text-[#5B6A8E]">{{ $landlord->email ?: '—' }}</p>
+                        @else
+                            <p class="mt-0.5 text-[14px] text-[#5B6A8E]">—</p>
+                        @endif
+                    </div>
+                    <div class="border-t border-[#E2E4EC] px-5 py-4">
+                        <p class="text-[12.5px] text-[#5B6A8E]">Property</p>
+                        <a href="{{ route('admin.catalogue.properties.show', $property) }}" class="mt-0.5 block text-[14px] font-semibold text-[#060D26] underline-offset-2 hover:underline">{{ $property->title }}</a>
+                        <div class="mt-1.5"><x-admin.status :status="$property->verification_status" /></div>
+                    </div>
+                </x-card>
+
+                <x-card flush>
+                    <div class="border-b border-[#E2E4EC] px-5 py-3.5">
+                        <h2 class="text-[15px] font-semibold text-[#060D26]">Other units here</h2>
+                    </div>
+                    @if($siblings->isEmpty())
+                        <x-admin.empty title="This is the only unit" />
+                    @else
+                        <ul class="divide-y divide-[#E2E4EC]">
+                            @foreach($siblings as $sibling)
+                                <li>
+                                    <a href="{{ route('admin.units.show', [$property, $sibling]) }}" class="flex items-center justify-between gap-3 px-5 py-2.5 transition-colors duration-200 hover:bg-[#F7F8FC]">
+                                        <span class="min-w-0">
+                                            <span class="block truncate text-[13.5px] font-semibold text-[#060D26]">{{ $sibling->unit_label }}</span>
+                                            <span class="block text-[12.5px] tabular-nums text-[#5B6A8E]">₱{{ number_format($sibling->rental_fee, 2) }}</span>
+                                        </span>
+                                        <x-admin.status :status="$sibling->availability_status" kind="unit" class="shrink-0" />
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </x-card>
             </div>
-
         </div>
-
     </div>
 @endsection

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Property;
+use App\Support\Csv;
 use Illuminate\Http\Request;
 
 class PropertyCatalogueController extends Controller
@@ -148,14 +149,14 @@ class PropertyCatalogueController extends Controller
 
         return response()->streamDownload(function () use ($query) {
             $handle = fopen('php://output', 'w');
-            \App\Support\Csv::put($handle, [
+            Csv::put($handle, [
                 'Title', 'Type', 'Address', 'Landlord', 'Verification Status',
                 'Units', 'Has Coordinates', 'Created', 'Last Updated',
             ]);
 
             $query->chunk(200, function ($properties) use ($handle) {
                 foreach ($properties as $property) {
-                    \App\Support\Csv::put($handle, [
+                    Csv::put($handle, [
                         $property->title,
                         $property->property_type,
                         $property->address,

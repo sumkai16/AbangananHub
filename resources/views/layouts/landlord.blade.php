@@ -247,10 +247,7 @@
                         <a href="{{ $item['href'] }}" @if($item['active']) aria-current="page" @endif
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium mb-0.5 transition-colors duration-200
-                                {{ $item['active'] ? 'bg-white/[0.08] text-white font-semibold' : 'text-white/65 hover:bg-white/[0.06] hover:text-[#FF8A66]' }}">
-                            @if($item['active'])
-                                <span class="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-[#FF8A66]" aria-hidden="true"></span>
-                            @endif
+                                {{ $item['active'] ? 'bg-white/[0.10] text-white font-semibold' : 'text-white/65 hover:bg-white/[0.06] hover:text-[#FF8A66]' }}">
                             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"
                                 class="shrink-0 {{ $item['active'] ? 'text-[#FF8A66]' : '' }}" aria-hidden="true">{!! $item['icon'] !!}</svg>
                             <span data-sidebar-label x-show="!sidebarCollapsed" class="flex-1 whitespace-nowrap">{{ $item['label'] }}</span>
