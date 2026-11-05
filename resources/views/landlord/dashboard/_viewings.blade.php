@@ -5,6 +5,8 @@
      on phones). Answering, rescheduling, blocking days and logging a phone viewing all happen on
      Reservations > Viewings, which every row and "Open calendar" lead to. --}}
 @php
+    // Inside the dashboard's tab card the button is a plain row; on its own it is a card.
+    $cardChrome = ($embedded ?? false) ? '' : 'rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)]';
     $months = $viewings['months'];
     $byDay = $viewings['byDay'];
     $needsAnswer = array_flip($viewings['needsAnswerDays']);
@@ -28,7 +30,7 @@
     $dayName = fn ($date) => $date->isToday() ? 'Today' : ($date->isTomorrow() ? 'Tomorrow' : $date->format('D, M j'));
 @endphp
 
-<div class="mb-4 lg:mb-0" x-on:keydown.escape.window="open = false"
+<div x-on:keydown.escape.window="open = false"
     x-data="{
         open: false,
         month: @js($startMonth),
@@ -42,7 +44,7 @@
     }">
     {{-- The card --}}
     <button type="button" x-on:click="open = true; $nextTick(() => $refs.sheet.focus())" aria-haspopup="dialog"
-        class="group flex w-full items-center gap-3.5 rounded-2xl border border-[#E2E4EC] bg-white p-4 text-left shadow-[0_1px_3px_rgba(6,13,38,0.06)] transition-colors duration-200 hover:border-[#5B6A8E]/30 hover:bg-[#FCFCFE] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/50 cursor-pointer sm:px-5">
+        class="group flex w-full items-center gap-3.5 p-4 text-left transition-colors duration-200 hover:bg-[#F7F8FC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#FF8A66]/50 cursor-pointer sm:px-5 {{ $cardChrome }}">
         <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#ECEEF6] text-[#060D26]" aria-hidden="true">
             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
         </span>
