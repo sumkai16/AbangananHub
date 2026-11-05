@@ -18,13 +18,7 @@
                 <p class="text-[12px] text-[#5B6A8E] mt-0.5">Submitted {{ $report->created_at->format('M d, Y \a\t g:i A') }}
                 </p>
             </div>
-            <span
-                class="inline-flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-md
-                                {{ $report->isPending() ? 'bg-[#FBBF24]/[0.10] text-[#B45309] ring-1 ring-[#FBBF24]/35' : 'bg-[#22C55E]/[0.07] text-[#15803D] ring-1 ring-[#22C55E]/25' }}">
-                <span
-                    class="w-1.5 h-1.5 rounded-full {{ $report->isPending() ? 'bg-[#FBBF24]' : 'bg-[#22C55E]' }}"></span>
-                {{ $report->report_status }}
-            </span>
+            <x-admin.status :status="$report->report_status" />
         </x-card>
 
         <div class="grid lg:grid-cols-2 gap-4 mb-4">

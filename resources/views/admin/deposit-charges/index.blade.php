@@ -86,10 +86,7 @@
                                             Voided
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#22C55E]/15 text-[11.5px] font-bold text-[#15803D]">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-[#22C55E]"></span>
-                                            Active
-                                        </span>
+                                        <x-admin.status status="Active" />
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-right">

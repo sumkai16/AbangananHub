@@ -19,7 +19,7 @@
                 — {{ trim(($document->property->landlord->first_name ?? '') . ' ' . ($document->property->landlord->last_name ?? '')) ?: '—' }}
             </p>
         </div>
-        <x-document-status-badge :document="$document" />
+        <x-admin.status :status="$document->isRequested() ? 'Requested' : $document->display_status" />
     </x-card>
 
     {{-- Meta --}}

@@ -981,19 +981,42 @@
                 if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = form.id === 'ajax-register-form' ? 'Creating account…' : 'Signing in…'; }
 
                 try {
-                    const res = await fetch(endpoint, {
+                    const send = (token) => fetch(endpoint, {
                         method: 'POST',
                         headers: {
-                            'X-CSRF-TOKEN': csrfToken || '',
+                            'X-CSRF-TOKEN': token || '',
                             'Accept': 'application/json',
                             'X-Requested-With': 'XMLHttpRequest'
                         },
                         body: formData
                     });
 
+                    let res = await send(csrfToken);
+
+                    // 419: this tab's token belongs to a session that has since expired or been reset (a tab left open
+                    // overnight, a restarted server). Fetch the page again for a fresh token and retry once, so the
+                    // visitor is not stuck on "CSRF token mismatch" until they reload by hand.
+                    if (res.status === 419) {
+                        const fresh = await fetch(window.location.href, { credentials: 'same-origin', headers: { 'Accept': 'text/html' } })
+                            .then((r) => r.text())
+                            .then((html) => new DOMParser().parseFromString(html, 'text/html').querySelector('meta[name="csrf-token"]')?.getAttribute('content'))
+                            .catch(() => null);
+
+                        if (fresh) {
+                            document.querySelector('meta[name="csrf-token"]')?.setAttribute('content', fresh);
+                            formData.set('_token', fresh);
+                            res = await send(fresh);
+                        }
+                    }
+
                     const data = await res.json().catch(() => ({}));
 
                     if (!res.ok) {
+                        if (res.status === 419) {
+                            errorBag.classList.remove('hidden');
+                            errorBag.innerText = 'Your session expired. Reload the page and try again.';
+                            return;
+                        }
                         if (data?.errors) {
                             // Register: each error sits on its own field. Anything with no visible field (and all of login) uses the banner.
                             window.fieldValidation?.clear(form);

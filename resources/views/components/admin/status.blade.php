@@ -28,7 +28,8 @@
     }
 
     $classes = [
-        'green' => 'bg-[#22C55E]/[0.10] text-[#15803D]',
+        // Good and settled states use the brand orange with white text, the same fill as the logo's "Hub".
+        'green' => 'bg-[#FF8A66] text-white',
         'amber' => 'bg-[#FBBF24]/[0.16] text-[#B45309]',
         'red' => 'bg-[#EF4444]/[0.08] text-[#DC2626]',
         'neutral' => 'bg-[#ECEEF6] text-[#5B6A8E]',

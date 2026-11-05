@@ -2,6 +2,47 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 6 2026 — HAND-OFF for Axcee: everything on `joseph` since Nov 5 (branch `joseph`)
+Read this first. It lists every change on the admin side, what to look out for when merging, and what is not done. **None of it has been checked in a browser yet.**
+
+**Merge warnings**
+- `axci` was pulled into `joseph` once and then **reverted** (commit `a4bb45a`) because you asked us to wait. To merge `axci` later, first revert that revert (`git revert a4bb45a`), or the three commits will not come back.
+- `joseph` has no `PropertyActivity` model, since that came from `axci`. The admin property page does not show an activity list. Once `axci` is merged, an activity list can go back on `admin/catalogue/properties/show.blade.php`.
+- Expect conflicts in `context/CHANGELOG.md` and `context/DESIGN.md` (both branches added entries at the top). Keep both sides. `layouts/landlord.blade.php` may conflict too: `axci` added nav badges there, and `joseph` only removed the orange bar on the active item.
+- The old pages in your screenshots (tile rows, "Payment Management", "Quick Actions" as coloured squares) are the pre-redesign admin. They stay that way on `axci` and `main` until `joseph` is merged.
+
+**What changed, by page** (all admin unless noted; routes, permissions, form fields and business logic are unchanged)
+- **Dashboard** `/admin/dashboard`: "Needs you" queue (six queues, count, age of the oldest), money held and owed, a Reservations ledger (status, count, share, bar), Quick actions with new icons, totals strip, activity chart, recent reservations. Removed: greeting, six tiles, user donut (it double-counted unverified landlords), fake date control.
+- **Sidebar** (admin and landlord): active row is a soft white fill with a coral icon, no orange bar. Admin sidebar rows are one component, `x-admin.nav-item`; groups renamed (Rentals, Insights); the dead "Soon" row is gone.
+- **Users** `/admin/users`: totals strip that filters by role, status tabs, richer table, a "Needs attention" panel and a 30-day sign-up chart. New `status` filter on the controller.
+- **Queues** `/admin/verifications`, `/admin/listings/approval`, `/admin/documents`, `/admin/units`: tab counts instead of stat tiles, real tables, a numbers strip, "Recently decided" list and a review checklist (`x-admin.queue-aside`).
+- **Record pages** `verifications/show`, `catalogue/properties/show`, `units/show`, `reservations/show`: one layout (full width, sticky decision card at the top of the right rail). Verification shows ID, selfie and ID back side by side at full height. Property can be approved, rejected or unsuspended from its own page. Unit shows its tenant, reservations and the other units. Reservation has a progress bar, money summary and payments table; Force Cancel and Force Reject moved to an Admin actions card, forms unchanged.
+- **Payments** `/admin/payments`: Landlord and Paid by columns, tenant name links to the reservation, "Showing X-Y of Z".
+- **Analytics** `/admin/report-analytics`: tables instead of stacks of small cards. Title now matches the sidebar ("Analytics"); "Payments", "Ratings", "Users/Landlords/Tenants" were renamed the same way.
+- **Safety:** suspending a user and approving a listing now ask for confirmation. White-on-green and white-on-amber buttons fixed for contrast.
+- **Status tags:** one shared tag, `x-admin.status`. Good states (Active, Approved, Verified, Released) are the logo orange `#FF8A66` with white text; amber is open, red is refused, grey is over. Unit statuses keep their own colours (Occupied unit is red).
+- **Bugs fixed:** blank unit name on the admin conversation page; an all-grey progress bar for `Reserved` reservations.
+- **Login popup** (`layouts/app.blade.php`): on a stale token ("CSRF token mismatch") it fetches a fresh token and retries once.
+- **New components** in `resources/views/components/admin/`: `nav-item`, `tabs`, `status`, `th`, `empty`, `facts`, `queue-aside`. `x-stat-card` is no longer used on admin pages (landlord and tenant pages still use it).
+
+**Docs and tests:** rules are in `context/DESIGN.md` §12 (rewritten). `tests/Feature/AdminDesignPagesTest.php` loads every admin page with data and covers the dashboard queue and ledger, reservation states, unit and property pages, payments links and the status colours.
+
+**Known test failures that are this laptop only** (they pass on CI): face match (AWS SDK missing), lease templates (HTMLPurifier missing), tenancy chat and receipts (PHP `intl` off, QR library missing), and the disguised-upload tests (Windows temp file). Needs PHP 8.4 and `composer install`.
+
+**Not done:** search boxes on the eight admin queues that have none, sticky table headers, a shared filter-bar component, and a browser check in light and dark mode.
+
+## Nov 6 2026 — Admin record pages redesigned, sidebars match (branch `joseph`)
+Feedback from a teammate's screenshots, which showed the old design from `axci` and `main`: teammates only see the admin redesign once `joseph` is merged. Plan: `plans/admin-design-pass.md` covers round 1. **Not checked in a browser yet, light or dark.**
+- **One layout for record pages** (`verifications/show`, `catalogue/properties/show`, `units/show`, `reservations/show`): full work-area width, bare header, main column, sticky right rail with the decision first. New `<x-admin.facts>`. DESIGN.md §12.
+- **Verification:** ID, selfie and ID back side by side at full height, with the face-match result above them. Name on the ID sits next to the name on the account.
+- **Property:** approve, reject and unsuspend now work from the page itself, on the existing routes. New readiness chips and a recent activity list (`PropertyActivity`).
+- **Unit:** now also shows the current tenant, the unit's reservations and the other units in the property.
+- **Reservation:** a full-width progress bar, a money summary (rent, deposit, paid, held) and a payments table. Force Cancel and Force Reject moved to an Admin actions card in the rail; their forms are unchanged.
+- **Payments:** Landlord and Paid by (method and reference) columns; the tenant name links to the reservation; "Showing X-Y of Z" footer.
+- **Landlord sidebar:** the orange bar is gone; the active row matches admin (soft fill, coral icon), as Axceel asked. Hand-off: Axceel's picture showed the older curved border, which was dropped on request.
+- **Dashboard (mockup 3, "The ledger"):** Reservations returns under "Needs you" as a small table of status, count, share and bar, with each row opening its list (`DashboardController::reservationLedger()`). Quick actions returns beside it as four shortcuts with a large count and new one-colour icons; waiting counts are coral.
+- Tests: `AdminDesignPagesTest` adds every reservation state, the unit page lists, deciding a pending property, and payment links.
+
 ## Nov 5 2026 — Admin design pass: the template look removed (branch `joseph`)
 Why: the admin side read as a generic admin template (identical stat tiles, then tabs repeating the same counts, pills everywhere, thin headings). All 33 admin views were reworked. Plan: `plans/admin-design-pass.md`. Rules: DESIGN.md §12, rewritten. **Not checked in a browser yet, light or dark.** Tenant and landlord pages are unchanged.
 - **Dashboard rebuilt, work queue first.** "Needs you" lists six queues with counts and the age of the oldest item, then money held and owed, a totals strip, the activity chart and recent reservations (`Admin\DashboardController::queue()`). Removed: greeting, six tiles, Quick Actions, pending tables, the fake date control.

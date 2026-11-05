@@ -30,7 +30,7 @@ class PaymentController extends Controller
             $status = 'Held';
         }
 
-        $payments = Payment::with(['reservation.tenant', 'reservation.property', 'reservation.unit'])
+        $payments = Payment::with(['reservation.tenant', 'reservation.property.landlord', 'reservation.unit'])
             ->when($status !== 'All', fn ($q) => $q->where('status', $status))
             ->latest('created_at')
             ->paginate(15)

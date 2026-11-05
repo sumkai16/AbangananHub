@@ -57,12 +57,55 @@ class DashboardController extends Controller
             ->limit(6)
             ->get();
 
+        $reservationLedger = $this->reservationLedger();
+
         return view('admin.dashboard', compact(
             'totalUsers', 'verifiedLandlords', 'totalProperties', 'totalUnits', 'activeReservations',
-            'queue', 'openItems', 'moneyHeld', 'moneyOwed',
+            'queue', 'openItems', 'moneyHeld', 'moneyOwed', 'reservationLedger',
             'chartLabels', 'chartUsers', 'chartProperties', 'chartReservations',
             'recentReservations'
         ));
+    }
+
+    /**
+     * Reservations by where they stand, for the ledger on the dashboard. Shares use the largest remainder method, so
+     * the column always adds up to 100%.
+     *
+     * @return array{total: int, rows: list<array{label: string, count: int, share: int, href: string}>}
+     */
+    private function reservationLedger(): array
+    {
+        $byStatus = Reservation::selectRaw('rental_status, COUNT(*) as total')
+            ->groupBy('rental_status')
+            ->pluck('total', 'rental_status');
+
+        $count = fn (array $statuses) => (int) collect($statuses)->sum(fn ($status) => $byStatus[$status] ?? 0);
+
+        $rows = [
+            ['label' => 'In progress', 'count' => $count(['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Reserved']), 'href' => route('admin.reservations.index')],
+            ['label' => 'Occupied', 'count' => $count(['Occupied']), 'href' => route('admin.reservations.index', ['status' => 'Occupied'])],
+            ['label' => 'Completed', 'count' => $count(['Completed']), 'href' => route('admin.reservations.index', ['status' => 'Completed'])],
+            ['label' => 'Cancelled', 'count' => $count(['Cancelled']), 'href' => route('admin.reservations.index', ['status' => 'Cancelled'])],
+            ['label' => 'Rejected', 'count' => $count(['Rejected']), 'href' => route('admin.reservations.index', ['status' => 'Rejected'])],
+        ];
+
+        $total = array_sum(array_column($rows, 'count'));
+        $exact = array_map(fn ($row) => $total > 0 ? $row['count'] / $total * 100 : 0, $rows);
+        $shares = array_map(fn ($value) => (int) floor($value), $exact);
+
+        if ($total > 0) {
+            $remainders = array_map(fn ($value, $share) => $value - $share, $exact, $shares);
+            arsort($remainders);
+            foreach (array_slice(array_keys($remainders), 0, 100 - array_sum($shares)) as $index) {
+                $shares[$index]++;
+            }
+        }
+
+        foreach ($rows as $index => $row) {
+            $rows[$index]['share'] = $shares[$index];
+        }
+
+        return ['total' => $total, 'rows' => $rows];
     }
 
     /**
