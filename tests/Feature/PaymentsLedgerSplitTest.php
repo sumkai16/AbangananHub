@@ -48,8 +48,7 @@ class PaymentsLedgerSplitTest extends TestCase
             ->assertOk()
             ->assertSee('Rent ledger')
             ->assertSee('Record payment')
-            // The months to chase live in the lease bars and the month popup now; there is no separate card.
-            ->assertDontSee('Needs action')
+            ->assertSee('Needs action')
             ->assertSee('Deposit held')
             ->assertDontSee('View contract')
             // Not a bare substring check: the remind and record forms post to /tenancies/{id}/…

@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Landlord;
 use App\Http\Controllers\Concerns\AuthorizesPropertyOwnership;
 use App\Http\Controllers\Controller;
 use App\Models\Property;
-use App\Models\PropertyActivity;
-use App\Models\Reservation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -65,7 +63,7 @@ class PropertyController extends Controller
         return view('landlord.properties.index', compact('properties', 'stats'));
     }
 
-    public function show(Request $request, Property $property)
+    public function show(Property $property)
     {
         $this->authorizeProperty($property);
 
@@ -74,16 +72,9 @@ class PropertyController extends Controller
             'amenities',
             'units' => fn($q) => $q->orderBy('unit_label'),
             'units.media',
-            'units.amenities',
-            // Only live tenancies: the unit modal names the current tenant, nobody from the past.
-            'units.reservations' => fn ($q) => $q->whereNotIn('rental_status', Reservation::TERMINAL_STATUSES)
-                ->with('tenant:user_id,first_name,last_name'),
             'reviews' => fn($q) => $q->with('tenant')->latest()->take(20),
             'documents',
         ]);
-
-        // Each unit already belongs to this page's property: hand it over so the modal payload never lazy-loads it.
-        $property->units->each->setRelation('property', $property);
 
         $unitStats = [
             'total'    => $property->units->count(),
@@ -92,33 +83,6 @@ class PropertyController extends Controller
             'occupied'  => $property->units->where('availability_status', 'Occupied')->count(),
         ];
 
-        // The unit details modal, one payload per unit, shared by the Units tab and the Activity Log lines.
-        $unitPayloads = $property->units->mapWithKeys(
-            fn ($unit) => [$unit->unit_id => $unit->detailPayload($property, 'property')]
-        );
-
-        // Activity Log: the chip is a whitelisted word, never a column or a role typed by the visitor.
-        $requested = $request->query('activity');
-        $activityFilter = is_string($requested) && isset(PropertyActivity::FILTERS[$requested]) ? $requested : 'all';
-        $roles = PropertyActivity::FILTERS[$activityFilter][1];
-
-        $history = PropertyActivity::where('property_id', $property->property_id);
-
-        $activities = (clone $history)
-            ->when($roles, fn ($q) => $q->whereIn('actor_role', $roles))
-            ->orderByDesc('created_at')->orderByDesc('activity_id')
-            ->paginate(20, ['*'], 'activity_page')
-            ->withQueryString()
-            ->fragment('activity_log');
-
-        $latestActivities = (clone $history)->orderByDesc('created_at')->orderByDesc('activity_id')->limit(3)->get();
-        $activityCounts = (clone $history)->selectRaw('actor_role, count(*) as total')->groupBy('actor_role')->pluck('total', 'actor_role');
-
-        // Coming back to a filtered or paged log keeps the tab open.
-        $initialTab = $request->has('activity') || $request->has('activity_page') ? 'activity_log' : 'overview';
-
-        return view('landlord.properties.show', compact(
-            'property', 'unitStats', 'unitPayloads', 'activities', 'latestActivities', 'activityCounts', 'activityFilter', 'initialTab'
-        ));
+        return view('landlord.properties.show', compact('property', 'unitStats'));
     }
 }

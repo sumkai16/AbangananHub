@@ -91,7 +91,7 @@
                    class="inline-flex items-center h-11 sm:h-9 px-4 rounded-lg bg-white/20 backdrop-blur-sm text-white text-[13px] font-semibold hover:bg-white/30 transition-colors duration-200">
                     Edit property
                 </a>
-                <a href="{{ route('landlord.properties.units.create', [$property, 'return_to' => 'property']) }}"
+                <a href="{{ route('landlord.properties.units.create', $property) }}"
                    class="inline-flex items-center gap-1 h-11 sm:h-9 px-4 rounded-lg bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] transition-colors duration-200">
                     + Add unit
                 </a>
@@ -165,10 +165,10 @@
     @php
         $attention = [];
         if ($unitStats['total'] === 0) {
-            $attention[] = ['Add your first unit — tenants can\'t reserve until this property has one.', route('landlord.properties.units.create', [$property, 'return_to' => 'property']), 'Add unit'];
+            $attention[] = ['Add your first unit — tenants can\'t reserve until this property has one.', route('landlord.properties.units.create', $property), 'Add unit'];
         }
         if ($unitStats['reserved'] > 0) {
-            $attention[] = [$unitStats['reserved'] . ' ' . Str::plural('unit', $unitStats['reserved']) . ' reserved — check the reservation is moving forward.', '#units', 'Manage units'];
+            $attention[] = [$unitStats['reserved'] . ' ' . Str::plural('unit', $unitStats['reserved']) . ' reserved — check the reservation is moving forward.', route('landlord.properties.units.index', $property), 'Manage units'];
         }
         if ($images->isEmpty()) {
             $attention[] = ['No photos yet — listings with photos get far more views.', route('properties.edit', $property), 'Add photos'];
@@ -252,7 +252,7 @@
         <x-card flush class="p-5">
             <div class="flex items-center justify-between gap-2">
                 <h3 class="text-[14px] font-semibold text-[#060D26]">Unit status</h3>
-                <a href="#units"
+                <a href="{{ route('landlord.properties.units.index', $property) }}"
                    class="text-[12px] font-semibold text-[#B35A3D] hover:underline">Manage</a>
             </div>
             <ul class="mt-3 space-y-3">
@@ -274,23 +274,7 @@
     {{-- ═══════════════════════════════════════════════════════
          TABS
     ══════════════════════════════════════════════════════════ --}}
-    <div x-data="{
-            tabs: ['overview', 'units', 'amenities', 'photos', 'reviews', 'activity_log'],
-            tab: @js($initialTab),
-            unitPayloads: @js($unitPayloads),
-            init() { this.syncTab(false); },
-            // #units / #activity_log open that tab: a link from the rail, or back from editing a unit.
-            syncTab(scroll = true) {
-                const wanted = location.hash.slice(1);
-                if (! this.tabs.includes(wanted)) return;
-                this.tab = wanted;
-                if (scroll) this.$el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            },
-            show(key) { this.tab = key; history.replaceState(null, '', '#' + key); },
-            openUnit(id) { if (this.unitPayloads[id]) this.$dispatch('open-unit-detail', this.unitPayloads[id]); },
-        }"
-        x-on:hashchange.window="syncTab()"
-        class="order-1 lg:order-2 min-w-0">
+    <div x-data="{ tab: 'overview' }" class="order-1 lg:order-2 min-w-0">
 
         {{-- Tab nav --}}
         <div class="flex items-center gap-1 border-b border-[#5B6A8E]/20 mb-6 overflow-x-auto">
@@ -302,7 +286,7 @@
                 ['key' => 'reviews',      'label' => 'Reviews (' . $reviews->count() . ')'],
                 ['key' => 'activity_log', 'label' => 'Activity Log'],
             ] as $t)
-                <button type="button" @click="show('{{ $t['key'] }}')"
+                <button @click="tab = '{{ $t['key'] }}'"
                         :class="tab === '{{ $t['key'] }}' ? 'border-b-2 border-[#FF8A66] text-[#060D26] font-semibold' : 'text-[#5B6A8E] hover:text-[#060D26]'"
                         class="shrink-0 pb-3 px-4 text-sm transition-colors duration-200">
                     {{ $t['label'] }}
@@ -386,34 +370,45 @@
                 </x-card>
             </div>
 
-            {{-- Recent activity: the latest lines of the property's real history (the Activity Log tab has the rest). --}}
+            {{-- Recent Activity --}}
             <x-card flush class="p-5">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-sm font-semibold text-[#060D26]">Recent activity</h3>
-                    @if($latestActivities->isNotEmpty())
-                        <button type="button" @click="show('activity_log')"
-                            class="text-xs text-[#B35A3D] font-semibold hover:underline flex items-center gap-1 cursor-pointer">
-                            View all
-                            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
-                            </svg>
-                        </button>
-                    @endif
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-[#060D26]">Recent Activity</h3>
+                    <a href="{{ route('landlord.properties.units.index', $property) }}"
+                       class="text-xs text-[#B35A3D] font-medium hover:underline flex items-center gap-1">
+                        View All Activity
+                        <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+                        </svg>
+                    </a>
                 </div>
 
-                @if($latestActivities->isNotEmpty())
-                    <ul class="divide-y divide-[#E2E4EC]">
-                        @foreach($latestActivities as $activity)
-                            @include('landlord.properties.partials._activity-row', ['activity' => $activity])
+                @php
+                    $recentUnits = $property->units->sortByDesc('updated_at')->take(3);
+                @endphp
+
+                @if($recentUnits->isNotEmpty())
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        @foreach($recentUnits as $recentUnit)
+                            <div class="flex items-start gap-3 p-3 rounded-xl bg-[#ECEEF6]/50">
+                                <div class="w-8 h-8 rounded-full bg-[#ECEEF6] flex items-center justify-center shrink-0 mt-0.5">
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="text-[#B35A3D]">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z"/>
+                                    </svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-[12px] font-semibold text-[#060D26] leading-snug">Unit "{{ $recentUnit->unit_label }}" updated</p>
+                                    <p class="text-[11px] text-[#5B6A8E] mt-0.5">{{ $recentUnit->updated_at->format('M d, Y \a\t h:i A') }}</p>
+                                </div>
+                            </div>
                         @endforeach
-                    </ul>
+                    </div>
                 @else
                     <div class="flex flex-col items-center justify-center py-8 text-center">
-                        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" class="text-[#5B6A8E]/40 mb-2" aria-hidden="true">
+                        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" class="text-[#5B6A8E]/40 mb-2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
                         </svg>
-                        <p class="text-sm font-semibold text-[#060D26]">Nothing recorded yet</p>
-                        <p class="text-xs text-[#5B6A8E] mt-1">Edits, units, payments and tenant activity on this property will show up here.</p>
+                        <p class="text-sm text-[#5B6A8E]">No recent activity</p>
                     </div>
                 @endif
             </x-card>
@@ -429,7 +424,7 @@
                     </svg>
                     <p class="text-sm font-semibold text-[#060D26]">No units added yet</p>
                     <p class="text-xs text-[#5B6A8E] mt-1 mb-4">Add units so tenants can reserve specific spaces.</p>
-                    <a href="{{ route('landlord.properties.units.create', [$property, 'return_to' => 'property']) }}"
+                    <a href="{{ route('landlord.properties.units.create', $property) }}"
                        class="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-[#FF8A66] text-[#060D26] text-xs font-semibold hover:bg-[#E96F4F] transition-all duration-200">
                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
@@ -457,8 +452,7 @@
                     </div>
                 </div>
 
-                {{-- Two cards across next to the 240px rail (three felt crowded), with room around every part. --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 sm:gap-5" x-show="unitsView === 'grid'">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" x-show="unitsView === 'grid'">
                     @foreach($property->units as $unit)
                         @php
                             $thumb = $unit->media->first();
@@ -475,51 +469,43 @@
                                 default    => ['bg-[#ECEEF6] text-[#5B6A8E]'],
                             };
                         @endphp
-                        <article class="group flex flex-col rounded-2xl overflow-hidden bg-white ring-1 ring-[#5B6A8E]/15 hover:shadow-md transition-shadow duration-300">
-                            {{-- The photo opens the unit's details, so the whole top half is one big tap target. --}}
-                            <button type="button" @click="openUnit({{ $unit->unit_id }})" aria-label="View details of {{ $unit->unit_label }}"
-                                class="relative block w-full aspect-[4/3] overflow-hidden bg-[#ECEEF6] cursor-pointer">
+                        <div class="flex flex-col rounded-2xl overflow-hidden bg-white ring-1 ring-[#5B6A8E]/15 hover:shadow-md transition-shadow duration-300">
+                            <div class="relative h-36 bg-[#ECEEF6] overflow-hidden">
                                 @if($thumb)
-                                    <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="" class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out">
+                                    <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="{{ $unit->unit_label }}" class="w-full h-full object-cover">
                                 @else
-                                    <span class="absolute inset-0 flex items-center justify-center">
-                                        <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2" class="text-[#5B6A8E]/40" aria-hidden="true">
+                                    <div class="w-full h-full flex items-center justify-center">
+                                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2" class="text-[#5B6A8E]/40">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5z"/>
                                         </svg>
-                                    </span>
+                                    </div>
                                 @endif
-                                <span class="absolute top-3 left-3 rounded-full bg-white">
-                                    <span class="inline-flex items-center text-[11.5px] font-semibold px-2.5 py-1 rounded-full ring-1 {{ $avBg }}">{{ $unit->availability_status }}</span>
+                                <span class="absolute top-2 right-2 text-[11px] font-semibold px-2 py-0.5 rounded-full ring-1 {{ $avBg }}">
+                                    {{ $unit->availability_status }}
                                 </span>
-                            </button>
-
-                            <div class="p-4 sm:p-5 flex flex-col gap-3.5 flex-1">
-                                <div class="flex items-start justify-between gap-3">
-                                    <div class="min-w-0">
-                                        <p class="text-[15px] font-bold leading-snug text-[#060D26] truncate">{{ $unit->unit_label }}</p>
-                                        {{-- Navy, not red: red on a price reads as money owed (DESIGN §6n). --}}
-                                        <p class="mt-1 text-[15px] font-semibold tabular-nums text-[#060D26]">
-                                            ₱{{ number_format($unit->rental_fee, 0) }}<span class="text-[13px] font-normal text-[#5B6A8E]">/mo</span>
+                            </div>
+                            <div class="p-3 flex flex-col gap-2">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div>
+                                        <p class="text-[13px] font-bold text-[#060D26]">{{ $unit->unit_label }}</p>
+                                        <p class="text-[12px] text-[#EF4444] font-semibold mt-0.5">
+                                            ₱{{ number_format($unit->rental_fee, 0) }}<span class="text-[#5B6A8E] font-normal">/mo</span>
                                         </p>
                                     </div>
-                                    <span class="shrink-0 text-[11.5px] font-medium px-2.5 py-1 rounded-full {{ $vrBg }}">{{ $unit->verification_status }}</span>
+                                    <span class="shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full {{ $vrBg }}">
+                                        {{ $unit->verification_status }}
+                                    </span>
                                 </div>
-
-                                <p class="text-[13px] text-[#5B6A8E] flex items-center gap-1.5">
-                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <p class="text-[11px] text-[#5B6A8E] flex items-center gap-1">
+                                    <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0zM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
                                     </svg>
                                     Up to {{ $unit->occupancy_limit }} {{ Str::plural('person', $unit->occupancy_limit) }}
                                 </p>
-
-                                <div class="mt-auto flex items-center gap-2 pt-4 border-t border-[#5B6A8E]/10">
-                                    <button type="button" @click="openUnit({{ $unit->unit_id }})"
-                                        class="flex-1 h-11 sm:h-10 flex items-center justify-center gap-1.5 rounded-full border border-[#FF8A66] text-[#B35A3D] text-[12.5px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">
-                                        View details
-                                    </button>
-                                    <a href="{{ route('landlord.properties.units.edit', [$property, $unit, 'return_to' => 'property']) }}"
-                                       class="h-11 sm:h-10 px-4 flex items-center justify-center gap-1.5 rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-[12.5px] font-medium hover:bg-[#ECEEF6] transition-colors duration-200">
-                                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <div class="flex items-center gap-2 pt-2 border-t border-[#5B6A8E]/10">
+                                    <a href="{{ route('landlord.properties.units.edit', [$property, $unit]) }}"
+                                       class="flex-1 h-8 flex items-center justify-center gap-1 rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-[11px] font-medium hover:bg-[#ECEEF6] transition-colors duration-200">
+                                        <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931z"/>
                                         </svg>
                                         Edit
@@ -531,17 +517,17 @@
                                           data-confirm-message="The unit will be permanently removed. This cannot be undone."
                                           data-confirm-button="Remove unit">
                                         @csrf @method('DELETE')
-                                        <input type="hidden" name="return_to" value="property">
-                                        <button type="submit" aria-label="Remove {{ $unit->unit_label }}" title="Remove unit"
-                                                class="h-11 w-11 sm:h-10 sm:w-10 flex items-center justify-center rounded-full border border-[#EF4444]/25 text-[#DC2626] hover:bg-[#EF4444]/[0.07] transition-colors duration-200 cursor-pointer">
-                                            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <button type="submit"
+                                                class="h-8 px-3 flex items-center gap-1 rounded-full border border-[#EF4444]/25 text-[#DC2626] text-[11px] font-medium hover:bg-[#EF4444]/[0.07] transition-colors duration-200">
+                                            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
                                             </svg>
+                                            Remove
                                         </button>
                                     </form>
                                 </div>
                             </div>
-                        </article>
+                        </div>
                     @endforeach
                 </div>
 
@@ -584,7 +570,7 @@
                                             <p class="text-[13px] font-bold text-[#060D26]">{{ $unit->unit_label }}</p>
                                         </div>
                                     </td>
-                                    <td class="px-4 py-3 text-[13px] text-[#060D26] font-semibold whitespace-nowrap">
+                                    <td class="px-4 py-3 text-[13px] text-[#DC2626] font-semibold whitespace-nowrap">
                                         ₱{{ number_format($unit->rental_fee, 0) }}<span class="text-[#5B6A8E] font-normal">/mo</span>
                                     </td>
                                     <td class="px-4 py-3">
@@ -599,11 +585,7 @@
                                     </td>
                                     <td class="px-4 py-3">
                                         <div class="flex items-center justify-end gap-2">
-                                            <button type="button" @click="openUnit({{ $unit->unit_id }})"
-                                                class="h-8 px-3 flex items-center gap-1 rounded-full border border-[#FF8A66] text-[#B35A3D] text-[11px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">
-                                                View
-                                            </button>
-                                            <a href="{{ route('landlord.properties.units.edit', [$property, $unit, 'return_to' => 'property']) }}"
+                                            <a href="{{ route('landlord.properties.units.edit', [$property, $unit]) }}"
                                                 class="h-8 px-3 flex items-center gap-1 rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-[11px] font-medium hover:bg-[#ECEEF6] transition-colors duration-200">
                                                 Edit
                                             </a>
@@ -614,7 +596,6 @@
                                                 data-confirm-message="The unit will be permanently removed. This cannot be undone."
                                                 data-confirm-button="Remove unit">
                                                 @csrf @method('DELETE')
-                                                <input type="hidden" name="return_to" value="property">
                                                 <button type="submit"
                                                     class="h-8 px-3 flex items-center gap-1 rounded-full border border-[#EF4444]/25 text-[#DC2626] text-[11px] font-medium hover:bg-[#EF4444]/[0.07] transition-colors duration-200">
                                                     Remove
@@ -800,57 +781,19 @@
         </div>
 
         {{-- ─── Activity Log tab ───────────────────────────────── --}}
-        <div x-show="tab === 'activity_log'" x-cloak id="activity">
-            <nav class="flex flex-wrap items-center gap-2 mb-4" aria-label="Filter activity">
-                @foreach(\App\Models\PropertyActivity::FILTERS as $key => [$chipLabel, $chipRoles])
-                    @php
-                        $chipCount = $chipRoles === null ? $activityCounts->sum() : $activityCounts->only($chipRoles)->sum();
-                        $chipOn = $activityFilter === $key;
-                    @endphp
-                    <a href="{{ route('landlord.properties.show', [$property, 'activity' => $key === 'all' ? null : $key]) }}#activity_log"
-                        @if($chipOn) aria-current="true" @endif
-                        class="inline-flex items-center gap-2 h-11 sm:h-10 px-4 rounded-full border text-[13px] font-semibold transition-colors duration-200 {{ $chipOn ? 'border-[#060D26] bg-[#060D26] text-white' : 'border-[#5B6A8E]/25 bg-white text-[#060D26] hover:bg-[#ECEEF6]' }}">
-                        {{ $chipLabel }}
-                        <span class="tabular-nums text-[11.5px] {{ $chipOn ? 'text-white/70' : 'text-[#5B6A8E]' }}">{{ $chipCount }}</span>
-                    </a>
-                @endforeach
-            </nav>
-
-            @if($activities->isEmpty())
-                <div class="rounded-2xl border border-dashed border-[#5B6A8E]/30 bg-[#ECEEF6]/40 flex flex-col items-center justify-center py-14 px-6 text-center">
-                    <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2" class="text-[#5B6A8E]/50 mb-3" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
-                    </svg>
-                    <p class="text-sm font-semibold text-[#060D26]">{{ $activityFilter === 'all' ? 'Nothing recorded yet' : 'Nothing here for this filter' }}</p>
-                    <p class="text-xs text-[#5B6A8E] mt-1 max-w-sm">
-                        {{ $activityFilter === 'all'
-                            ? 'Edits, units, photos, payments and tenant activity on this property are listed here as they happen.'
-                            : 'Try All to see everything on this property.' }}
-                    </p>
-                </div>
-            @else
-                <x-card flush class="px-5">
-                    <ul class="divide-y divide-[#E2E4EC]">
-                        @foreach($activities as $activity)
-                            @include('landlord.properties.partials._activity-row', ['activity' => $activity])
-                        @endforeach
-                    </ul>
-                </x-card>
-
-                @if($activities->hasPages())
-                    <div class="mt-4">{{ $activities->links() }}</div>
-                @endif
-            @endif
-
-            <p class="mt-4 text-[12px] text-[#5B6A8E]">History before November 2026 is partial: earlier edits, photos and payments were not recorded.</p>
+        <div x-show="tab === 'activity_log'" x-cloak>
+            <div class="rounded-2xl border border-dashed border-[#5B6A8E]/30 bg-[#ECEEF6]/40 flex flex-col items-center justify-center py-14 text-center">
+                <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2" class="text-[#5B6A8E]/50 mb-3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+                </svg>
+                <p class="text-sm font-semibold text-[#060D26]">Activity log coming soon</p>
+                <p class="text-xs text-[#5B6A8E] mt-1">A full history of actions on this property will appear here.</p>
+            </div>
         </div>
 
     </div>
 
     </div>{{-- /body grid --}}
-
-    {{-- Unit details: opened by the Units tab and by Activity Log lines that name a unit. --}}
-    @include('landlord.units.partials._detail-modal', ['showPropertyLink' => false])
 </div>
 
 {{-- ═══════════════════════════════════════════════════════════

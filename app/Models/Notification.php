@@ -16,16 +16,10 @@ class Notification extends Model
      * was always empty.
      */
     public const RESERVATION_TYPES = [
-        'reservation', 'agreement', 'payment', 'payment_released', 'rent_due', 'payment_to_confirm',
+        'reservation', 'agreement', 'payment', 'payment_released',
         'move_in_confirmation_due', 'move_in_confirmation_reminder', 'move_in_disputed',
         'turnover_overdue', 'concern',
     ];
-
-    /**
-     * What the landlord has to act on: a tenant who owes rent, and a payment report waiting for an answer.
-     * Feeds the "Needs action" tab, so the landlord can find that person without opening Payments.
-     */
-    public const NEEDS_ACTION_TYPES = ['rent_due', 'payment_to_confirm'];
 
     protected $primaryKey = 'notification_id';
 
@@ -81,7 +75,6 @@ class Notification extends Model
         string $message,
         ?string $link = null,
         ?int $conversationId = null,
-        ?Model $notifiable = null,
     ): ?self {
         if (! $userId) {
             return null;
@@ -94,10 +87,6 @@ class Notification extends Model
             'message'         => $message,
             'link'            => $link,
             'conversation_id' => $conversationId,
-            // What the notice is about, so it can be marked read when that thing is settled (a rent notice once the
-            // tenant has paid, a payment report once it is answered).
-            'notifiable_type' => $notifiable ? $notifiable::class : null,
-            'notifiable_id'   => $notifiable?->getKey(),
             'is_read'         => false,
         ]);
 
@@ -137,16 +126,6 @@ class Notification extends Model
         }
 
         return $notification;
-    }
-
-    /** Mark every unread notice of these types about this record as read. Returns how many changed. */
-    public static function markReadFor(Model $notifiable, string|array $types): int
-    {
-        return static::whereIn('type', (array) $types)
-            ->where('notifiable_type', $notifiable::class)
-            ->where('notifiable_id', $notifiable->getKey())
-            ->where('is_read', false)
-            ->update(['is_read' => true]);
     }
 
     public function markAsRead(): bool

@@ -91,12 +91,6 @@ class ConversationController extends Controller
     }
 
     /** Conversations of one type with an unread message from the other person, still open. */
-    /** The number behind every messages badge, so a live page can refresh it exactly instead of counting up. */
-    public function unreadCount()
-    {
-        return response()->json(['count' => Conversation::unreadCountFor(Auth::id())]);
-    }
-
     private function unreadIn(string $type, int $userId): int
     {
         return Conversation::where(fn ($q) => $q->where('tenant_id', $userId)->orWhere('landlord_id', $userId))

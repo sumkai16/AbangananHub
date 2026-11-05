@@ -234,10 +234,6 @@ class TenantsMergedPageTest extends TestCase
             $this->tenantWith($landlord, $i % 2 ? 'Occupied' : 'Rental Agreement Signed');
         }
 
-        // Adding tenants cleared the sidebar's cached Payments number (it must follow a new tenancy), so the next
-        // request recomputes it once. That is a fixed handful of queries however many tenants there are: warm it again.
-        $count();
-
         $this->assertSame($small, $count(), 'Query count must not grow with the number of tenants.');
     }
 }

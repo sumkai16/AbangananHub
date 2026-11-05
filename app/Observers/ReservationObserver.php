@@ -8,7 +8,6 @@ use App\Models\Conversation;
 use App\Models\LandlordTenant;
 use App\Models\Notification;
 use App\Models\Reservation;
-use App\Services\LandlordRentDueCount;
 use App\Services\TenancyDocuments;
 use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Support\Facades\Log;
@@ -28,8 +27,6 @@ class ReservationObserver
 {
     public function created(Reservation $reservation): void
     {
-        LandlordRentDueCount::forgetForReservation($reservation->reservation_id);
-
         // A tenancy recorded straight as Occupied (rather than reaching it through the pipeline).
         $this->syncTenancyThread($reservation);
         $this->syncRoster($reservation);
@@ -54,11 +51,6 @@ class ReservationObserver
 
     public function updated(Reservation $reservation): void
     {
-        // The sidebar's Payments number depends on who is in a running tenancy and what rent they owe.
-        if ($reservation->wasChanged(['rental_status', 'target_move_in_date', 'target_move_out_date', 'agreed_monthly_rent', 'rent_due_day'])) {
-            LandlordRentDueCount::forgetForReservation($reservation->reservation_id);
-        }
-
         // Before the early return below: a tenancy thread does not depend on the
         // inquiry thread, and walk-ins (which have none) are skipped inside.
         if ($reservation->wasChanged('rental_status')) {

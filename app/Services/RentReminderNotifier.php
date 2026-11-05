@@ -29,36 +29,16 @@ class RentReminderNotifier
             return;
         }
 
-        $reservation->loadMissing(['tenant', 'unit', 'property']);
         $tenant = $reservation->tenant;
         $name = $tenant ? trim($tenant->first_name . ' ' . $tenant->last_name) : 'A tenant';
-        $overdue = ($period['status'] ?? 'overdue') === 'overdue';
 
-        // One sentence a landlord can act on without opening Payments: who, how much, how many months. A single
-        // month keeps the plain due-date sentence; several say what the whole debt is.
-        $summary = RentLedger::for($reservation)->summary();
-        $months = (int) $summary['unpaidMonthCount'];
-
-        if ($months > 1) {
-            $where = collect([$reservation->unit?->unit_label, $reservation->property?->title])->filter()->implode(', ');
-            $message = $name . ' owes ' . $this->peso($summary['outstanding']) . ' for ' . $months . ' months'
-                . ($where !== '' ? " ({$where})" : '') . '. The oldest, ' . $period['label'] . ', '
-                . $this->timing($period['due_on'], $today, $overdue) . '.';
-        } else {
-            $message = $name . "'s " . $period['label'] . ' rent (' . $this->amount($period) . ') '
-                . $this->timing($period['due_on'], $today, $overdue) . '.';
-        }
-
-        // Its own type, about the tenancy: the "Needs action" tab filters on it, and RentDueNotices marks it read
-        // once the tenant has paid.
         Notification::notify(
             $landlordId,
-            'rent_due',
+            'payment',
             $this->title(($period['status'] ?? '') === 'overdue'),
-            $message,
+            $name . "'s " . $period['label'] . ' rent (' . $this->amount($period) . ') '
+                . $this->timing($period['due_on'], $today, ($period['status'] ?? 'overdue') === 'overdue') . '.',
             route('landlord.payments.ledger', $reservation),
-            null,
-            $reservation,
         );
     }
 

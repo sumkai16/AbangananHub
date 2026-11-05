@@ -2,11 +2,8 @@
 
 namespace App\Models;
 
-use App\Observers\PropertyMediaObserver;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 
-#[ObservedBy(PropertyMediaObserver::class)]
 class PropertyMedia extends Model
 {
     protected $table = 'property_media';

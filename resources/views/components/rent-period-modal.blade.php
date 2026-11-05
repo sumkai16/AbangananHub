@@ -2,8 +2,7 @@
     Detail for one row of the rent ledger: the month's figures plus the individual
     payments that made it up. Opened by dispatching `open-period-detail` with the
     array from RentLedger::periodPayload() (plus `pill` / `status_label` for the
-    status chip, `void_action` on a payment the landlord may void, and `record` on an unpaid month the landlord
-    can record a payment for).
+    status chip, and `void_action` on a payment the landlord may void).
 
     Shared by the landlord and tenant tenancy pages — a payment without
     `void_action` simply renders without the Void button.
@@ -18,12 +17,6 @@
         close() { this.show = false; },
         peso(value) {
             return '₱' + (value || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        },
-        // The month's own Record: close this popup, then open the record form for the month and what it still owes.
-        recordPayment() {
-            const detail = { period: this.period.record.period, balance: this.period.record.balance };
-            this.close();
-            this.$nextTick(() => window.dispatchEvent(new CustomEvent('open-record-payment', { detail })));
         },
         voidPayment(p) {
             const detail = { id: p.id, action: p.void_action, amount: p.amount, label: this.period.label + ' Rent, recorded ' + p.date };
@@ -145,15 +138,10 @@
                             </ul>
                         </div>
 
-                        <div class="px-5 sm:px-6 py-4 border-t border-[#E2E4EC] flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                        <div class="px-5 sm:px-6 py-4 border-t border-[#E2E4EC] flex justify-end">
                             <button type="button" @click="close()"
                                 class="h-10 px-5 rounded-xl border border-[#E2E4EC] text-[13px] font-semibold text-[#060D26] hover:border-[#060D26]/40 hover:bg-[#F7F8FC] transition-colors duration-200 cursor-pointer">
                                 Close
-                            </button>
-                            {{-- Only on the landlord's ledger, for an unpaid month of a running tenancy (RentLedger payload `record`). --}}
-                            <button type="button" x-show="period.record" @click="recordPayment()"
-                                class="h-11 sm:h-10 px-5 rounded-xl bg-[#FF8A66] text-[13px] font-semibold text-[#060D26] hover:bg-[#E96F4F] transition-colors duration-200 cursor-pointer">
-                                Record payment
                             </button>
                         </div>
                     </div>

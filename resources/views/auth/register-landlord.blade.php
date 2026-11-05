@@ -49,7 +49,7 @@
                     <label for="contact_number" class="{{ $label }}">Contact number</label>
                     <input id="contact_number" type="tel" name="contact_number" value="{{ old('contact_number') }}" required
                         autocomplete="tel" inputmode="tel" placeholder="09XX XXX XXXX"
-                        pattern="[0-9+\(\)\s\-]{7,20}" data-error-tag="Invalid number" title="Enter a valid phone number, for example 0917 123 4567"
+                        pattern="[0-9+()\s\-]{7,20}" data-error-tag="Invalid number" title="Enter a valid phone number, for example 0917 123 4567"
                         class="{{ $input }}" />
                     @error('contact_number')<p class="{{ $err }}">{{ $message }}</p>@enderror
                 </div>

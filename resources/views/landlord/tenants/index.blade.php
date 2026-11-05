@@ -75,10 +75,9 @@
                     Lease policies
                 </a>
                 <a href="{{ route('landlord.tenants.export') }}"
-                    title="Download your tenants as a spreadsheet (CSV)"
                     class="hidden sm:inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-sm font-semibold transition-all duration-200 cursor-pointer">
                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                    Export CSV
+                    Export
                 </a>
                 <button type="button" @click="$dispatch('open-tenant-form', {})"
                     class="inline-flex flex-1 sm:flex-none items-center justify-center gap-2 h-11 px-5 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">

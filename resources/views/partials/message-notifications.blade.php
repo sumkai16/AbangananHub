@@ -2,8 +2,13 @@
 @auth
 @php
     $onConversationsPage = request()->routeIs('conversations.*');
-    // The one rule for every messages badge (see Conversation::unreadCountFor), passed in by the layout composer.
-    $unreadMsgCount = $unreadMessageCount ?? \App\Models\Conversation::unreadCountFor(auth()->id());
+    $unreadMsgCount = \App\Models\Message::whereHas('conversation', function ($q) {
+        $q->where('tenant_id', auth()->id())
+          ->orWhere('landlord_id', auth()->id());
+    })
+    ->where('sender_id', '!=', auth()->id())
+    ->where('is_read', false)
+    ->count();
 @endphp
 
 <div x-data="messageNotifications()" x-cloak x-on:open-messages-panel.window="openBubblePanel()">
@@ -78,9 +83,9 @@
             <path stroke-linecap="round" stroke-linejoin="round"
                 d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
         </svg>
-        <div x-show="$store.navBadges.messages > 0"
+        <div x-show="unreadCount > 0"
             class="absolute -top-0.5 -right-0.5 min-w-[20px] h-[20px] rounded-full bg-[#EF4444] text-white text-[11px] font-bold flex items-center justify-center px-1 border-2 border-white"
-            x-text="$store.navBadges.messages > 99 ? '99+' : $store.navBadges.messages">
+            x-text="unreadCount > 99 ? '99+' : unreadCount">
         </div>
     </button>
 
@@ -89,51 +94,10 @@
 </div>
 
 <script>
-    // One live number for every messages badge on the page (sidebar, top bar, floating bubble). The server renders the
-    // first value; after that it is re-read from the server rather than counted up, because the rule is "open chats
-    // waiting on you", and a second message in the same chat must not add one.
-    document.addEventListener('alpine:init', () => {
-        if (Alpine.store('navBadges')) return;
-
-        Alpine.store('navBadges', {
-            messages: {{ (int) $unreadMsgCount }},
-            _timer: null,
-
-            refreshMessages(delay = 250) {
-                clearTimeout(this._timer);
-                this._timer = setTimeout(async () => {
-                    try {
-                        const res = await fetch('{{ route("conversations.unreadCount") }}', {
-                            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                        });
-                        if (res.ok) this.messages = (await res.json()).count;
-                    } catch (e) { /* offline or throttled: keep the last number */ }
-                }, delay);
-            },
-        });
-    });
-
-    // Opening a chat marks it read on the server; read the number again once that request has finished.
-    (function () {
-        const original = window.fetch;
-        window.fetch = function (input, init) {
-            const promise = original.apply(this, arguments);
-            try {
-                const url = typeof input === 'string' ? input : (input && input.url) || '';
-                const method = ((init && init.method) || (input && input.method) || 'GET').toUpperCase();
-                if (method === 'GET' && /\/conversations\/\d+(\?|$)/.test(url)) {
-                    promise.then(() => window.Alpine && Alpine.store('navBadges') && Alpine.store('navBadges').refreshMessages(600), () => {});
-                }
-            } catch (e) { /* never let the badge break a request */ }
-            return promise;
-        };
-    })();
-
-    window.addEventListener('focus', () => window.Alpine && Alpine.store('navBadges') && Alpine.store('navBadges').refreshMessages(0));
-
     function messageNotifications() {
         return {
             toasts: [],
+            unreadCount: {{ $unreadMsgCount }},
             nextId: 0,
             maxToasts: 3,
             panelOpen: false,
@@ -144,10 +108,9 @@
 
                 window.Echo.private('user.{{ auth()->id() }}')
                     .listen('.MessageSent', (e) => {
-                        // A message in the chat you are reading is read at once; any other one may add to the badge.
-                        Alpine.store('navBadges').refreshMessages(this.isViewingConversation(e.conversation_id) ? 1500 : 250);
                         if (this.isViewingConversation(e.conversation_id)) return;
 
+                        this.unreadCount++;
                         this.panelLoaded = false;
                         this.addToast(e);
                     });

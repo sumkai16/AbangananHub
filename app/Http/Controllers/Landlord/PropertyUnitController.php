@@ -6,7 +6,6 @@ use App\Http\Controllers\Concerns\AuthorizesPropertyOwnership;
 use App\Http\Controllers\Controller;
 use App\Models\Amenity;
 use App\Models\Property;
-use App\Models\PropertyActivity;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
@@ -33,10 +32,8 @@ class PropertyUnitController extends Controller
         $this->authorizeProperty($property);
         $amenities = Amenity::forUnit()->orderBy('amenity_name')->get();
         $fromWizard = request()->query('from') === 'wizard';
-        $returnTo = $this->returnTarget(request()->query('return_to'));
-        $backUrl = $this->backUrl(request(), $property);
 
-        return view('landlord.units.create', compact('property', 'amenities', 'fromWizard', 'returnTo', 'backUrl'));
+        return view('landlord.units.create', compact('property', 'amenities', 'fromWizard'));
     }
 
     public function store(Request $request, Property $property)
@@ -130,7 +127,11 @@ class PropertyUnitController extends Controller
             }
         });
 
-        return redirect($this->backUrl($request, $property))
+        return redirect(
+            $request->input('from') === 'wizard'
+                ? route('properties.wizard.units', $property)
+                : route('landlord.properties.units.index', $property)
+        )
             ->with('success', 'Unit submitted for admin review.');
     }
 
@@ -145,10 +146,8 @@ class PropertyUnitController extends Controller
         $unit->load('media', 'amenities');
         $amenities = Amenity::forUnit()->orderBy('amenity_name')->get();
         $fromWizard = request()->query('from') === 'wizard';
-        $returnTo = $this->returnTarget(request()->query('return_to'));
-        $backUrl = $this->backUrl(request(), $property);
 
-        return view('landlord.units.edit', compact('property', 'unit', 'amenities', 'fromWizard', 'returnTo', 'backUrl'));
+        return view('landlord.units.edit', compact('property', 'unit', 'amenities', 'fromWizard'));
     }
 
     public function update(Request $request, Property $property, PropertyUnit $unit)
@@ -263,11 +262,15 @@ class PropertyUnitController extends Controller
             }
         });
 
-        return redirect($this->backUrl($request, $property))
+        return redirect(
+            $request->input('from') === 'wizard'
+                ? route('properties.wizard.units', $property)
+                : route('landlord.properties.units.index', $property)
+        )
             ->with('success', $materialChanged ? 'Unit updated and resubmitted for review.' : 'Unit updated.');
     }
 
-    public function destroy(Request $request, Property $property, PropertyUnit $unit)
+    public function destroy(Property $property, PropertyUnit $unit)
     {
         $this->authorizeProperty($property);
 
@@ -283,18 +286,16 @@ class PropertyUnitController extends Controller
             return back()->withErrors(['unit' => 'This unit has an active reservation and cannot be deleted.']);
         }
 
-        // The unit's own "Removed unit" line says it all: do not also log each of its photos going.
-        PropertyActivity::withoutRecording(function () use ($unit) {
-            foreach ($unit->media as $media) {
-                $media->destroyFromCloudinary();
-                $media->delete();
-            }
-        });
+        foreach ($unit->media as $media) {
+            $media->destroyFromCloudinary();
+            $media->delete();
+        }
 
         $unit->amenities()->detach();
         $unit->delete();
 
-        return redirect($this->backUrl($request, $property))
+        return redirect()
+            ->route('landlord.properties.units.index', $property)
             ->with('success', 'Unit removed.');
     }
 
@@ -321,28 +322,5 @@ class PropertyUnitController extends Controller
         $photo->delete();
 
         return back()->with('success', 'Photo removed.');
-    }
-
-    /**
-     * Where saving or removing a unit brings the landlord back to: the wizard step it came from, the property's
-     * own Units tab (`return_to=property`, set by links on the property page), or the Units page (the default,
-     * and what any other value means).
-     */
-    private function backUrl(Request $request, Property $property): string
-    {
-        $from = $request->input('from');
-        if ($from === 'wizard') {
-            return route('properties.wizard.units', $property);
-        }
-
-        return $this->returnTarget($request->input('return_to')) === 'property'
-            ? route('landlord.properties.show', $property).'#units'
-            : route('landlord.properties.units.index', $property);
-    }
-
-    /** Only the two known places: anything else, including a link someone edited by hand, means the Units page. */
-    private function returnTarget(mixed $value): string
-    {
-        return $value === 'property' ? 'property' : 'units';
     }
 }

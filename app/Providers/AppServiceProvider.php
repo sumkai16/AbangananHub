@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Models\Conversation;
+use App\Models\Message;
 use App\Models\Payment;
 use App\Models\Property;
 use App\Models\PropertyUnit;
@@ -79,7 +79,11 @@ class AppServiceProvider extends ServiceProvider
                 $user = auth()->user();
                 $counts = $user ? [
                     'unreadNotificationCount' => $user->notifications()->where('is_read', false)->count(),
-                    'unreadMessageCount' => Conversation::unreadCountFor($user->user_id),
+                    'unreadMessageCount' => Message::whereHas('conversation', fn ($q) => $q
+                        ->where('tenant_id', $user->user_id)->orWhere('landlord_id', $user->user_id))
+                        ->where('sender_id', '!=', $user->user_id)
+                        ->where('is_read', false)
+                        ->count(),
                     // The place this person lives in now, for the "My Unit" link. Null for everyone else.
                     'myUnitReservationId' => Reservation::where('tenant_id', $user->user_id)
                         ->where('rental_status', 'Occupied')

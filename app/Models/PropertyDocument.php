@@ -2,11 +2,8 @@
 
 namespace App\Models;
 
-use App\Observers\PropertyDocumentObserver;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 
-#[ObservedBy(PropertyDocumentObserver::class)]
 class PropertyDocument extends Model
 {
     protected $primaryKey = 'document_id';

@@ -61,12 +61,11 @@
                 </form>
 
                 <a href="{{ route('landlord.analytics.export', ['range' => $rangeKey]) }}"
-                    title="Download this report as a spreadsheet (CSV)"
                     class="h-10 px-4 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13px] font-bold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200 inline-flex items-center gap-1.5">
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                     </svg>
-                    Export CSV
+                    Export Report
                 </a>
             </x-slot:actions>
         </x-page-header>
