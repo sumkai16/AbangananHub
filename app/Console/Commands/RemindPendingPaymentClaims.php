@@ -60,16 +60,17 @@ class RemindPendingPaymentClaims extends Command
         $unit = $reservation->unit?->unit_label ?? 'the unit';
         $tenant = trim(($reservation->tenant->first_name ?? 'Your tenant').' '.($reservation->tenant->last_name ?? ''));
         $amount = '₱'.number_format((float) $claim->amount, 2);
-        $what = $claim->claim_type === 'MoveIn' ? 'move-in payment' : 'rent for '.$claim->billing_period?->format('F Y');
+        $what = $claim->coverageLabel($reservation);
         $filed = $claim->created_at->diffForHumans();
 
         Notification::notify(
             $reservation->property->landlord_id,
-            'payment',
+            'payment_to_confirm',
             'Payment still to confirm',
             "{$tenant} reported a {$amount} {$what} for {$unit} {$filed}. Check your account, then confirm or reject it.",
             PaymentClaims::decisionLink($reservation),
             $reservation->conversation_id,
+            $claim,
         );
 
         if ($last) {

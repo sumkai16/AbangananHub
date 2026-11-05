@@ -47,6 +47,20 @@
     // A checkout that came back with an error ('payment', and no report form input) reopens the online side so the message is seen.
     $startOnline = ! $startDirect && ($errors->has('payment') || $errors->has('accept_terms'));
     $anchor = $isMoveIn ? 'choose-pay' : 'choose-pay-'.$periodKey->format('Y-m');
+
+    // Behind by two months or more: "Pay all" reports the whole balance in one go. The report stays on the oldest
+    // unpaid month (that is where the landlord's confirmation starts) and the same allocator that spreads any lump of
+    // rent (RentPaymentAllocator) lays it over the months, so the tenant is not made to file one report per month.
+    // Only for QR and cash: an online checkout still pays one month at a time.
+    $unsettled = $isMoveIn ? collect() : \App\Services\RentLedger::for($reservation)->unsettledPeriods();
+    $payAllMonths = $unsettled->count();
+    $payAllTotal = round((float) $unsettled->sum(fn ($p) => max(0, $p['balance'])), 2);
+    $canPayAll = ! $isMoveIn && $direct && $payAllMonths >= 2 && ! ($period['is_future'] ?? false);
+    $oneAmountStr = number_format($cashAmount, 2, '.', '');
+    $allAmountStr = number_format($payAllTotal, 2, '.', '');
+    // After a failed submit the form comes back with what was typed; keep whichever choice that matches.
+    $startPayAll = $canPayAll && (string) old('amount') === $allAmountStr;
+    $payAllRange = $canPayAll ? $unsettled->first()['label'].' – '.$unsettled->last()['label'] : '';
     // Which card is picked when the page opens: the side the tenant was on, else the only way there is, else
     // (no online) the first direct way, else nothing so the tenant chooses.
     $startRoute = match (true) {
@@ -62,7 +76,16 @@
     $cardCount = $online ? ($direct ? 2 : 1) : (int) $qr + (int) $cash;
     $directWays = $qr && $cash ? 'own QR or cash' : 'own QR';
 @endphp
-<div id="{{ $anchor }}" class="scroll-mt-24 space-y-3" x-data="{ route: @js($startRoute), cashForm: @js($startCash && $errors->any()) }">
+<div id="{{ $anchor }}" class="scroll-mt-24 space-y-3" x-data="{
+        route: @js($startRoute), cashForm: @js($startCash && $errors->any()),
+        payAll: @js($startPayAll),
+        // This month, or the whole balance: both amount fields (QR and cash) follow the choice.
+        setPayAll(flag) {
+            this.payAll = flag;
+            const value = flag ? @js($allAmountStr) : @js($oneAmountStr);
+            this.$root.querySelectorAll('input[name=amount]').forEach(i => { i.value = value; });
+        },
+    }">
     <div>
         <h3 class="text-[15px] font-normal text-[#060D26]">
             @if($pendingClaim)
@@ -141,6 +164,23 @@
         </div>
     @endif
 
+    @if($canPayAll)
+        <div x-show="route === 'direct' || route === 'cash'" x-cloak class="rounded-2xl border border-[#E2E4EC] bg-white p-3 sm:p-4">
+            <p class="text-[13px] font-semibold text-[#060D26]">You owe {{ $payAllMonths }} months ({{ $payAllRange }})</p>
+            <div class="mt-2 grid grid-cols-2 rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] p-1 text-[13px] font-bold" role="group" aria-label="How much to pay">
+                <button type="button" @click="setPayAll(false)" :aria-pressed="!payAll"
+                    :class="!payAll ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E]'"
+                    class="min-h-[44px] rounded-lg px-2 transition-colors">This month<span class="block text-[12px] font-semibold tabular-nums">&#8369;{{ number_format($cashAmount, 2) }}</span></button>
+                <button type="button" @click="setPayAll(true)" :aria-pressed="payAll"
+                    :class="payAll ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E]'"
+                    class="min-h-[44px] rounded-lg px-2 transition-colors">Pay all {{ $payAllMonths }} months<span class="block text-[12px] font-semibold tabular-nums">&#8369;{{ number_format($payAllTotal, 2) }}</span></button>
+            </div>
+            <p x-show="payAll" x-cloak class="mt-2 text-[12px] leading-relaxed text-[#5B6A8E]">
+                One report for {{ $payAllRange }}. {{ $landlordName }} confirms it once and it is spread over those months, oldest first.
+            </p>
+        </div>
+    @endif
+
     <div x-show="route === 'direct' || route === 'cash'" x-cloak>
         <x-payment-safety-tips :landlord-name="$landlordName" />
     </div>
@@ -148,6 +188,11 @@
     {{-- Online: the PayMongo checkout. One payment covers the rent, the deposit (move-in only) and the online fee. --}}
     @if($online)
     <div x-show="route === 'online'" x-cloak>
+        @if($canPayAll)
+            <p x-show="payAll" x-cloak class="mb-2 rounded-xl bg-[#FBBF24]/15 px-3 py-2 text-[12px] leading-relaxed text-[#060D26]">
+                Online pays one month at a time, so this pays {{ $period['label'] }} only. To pay all {{ $payAllMonths }} months at once, pay {{ $landlordName }} directly.
+            </p>
+        @endif
         <form action="{{ $checkoutUrl }}" method="POST" class="rounded-2xl border border-[#E2E4EC] bg-white p-4 sm:p-5" x-data="{ agreed: {{ old('accept_terms') ? 'true' : 'false' }} }">
             @csrf
             @if($errors->has('payment'))
