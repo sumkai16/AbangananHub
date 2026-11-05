@@ -68,6 +68,8 @@ erDiagram
     users ||--o{ occupancy_snapshots : "landlord_id"
     property_units ||--o{ occupancy_activities : "unit_id"
     users |o--o{ audit_logs : "actor_id (set null)"
+    properties ||--o{ property_activities : "property_id"
+    users |o--o{ property_activities : "actor_id (set null)"
 ```
 
 ## 2. Tables — Identity
@@ -857,6 +859,26 @@ Append-only record of consequential admin and landlord actions. Written by `Audi
 | created_at | timestamp | null | index | No `updated_at` (`UPDATED_AT = null`) |
 
 New consequential action: add its key to `ACTION_LABELS` (the filter dropdown reads it) and call `AuditLog::record()` inside that action's transaction.
+
+### property_activities
+A property's Activity Log (Landlord > property > Activity Log tab, and Overview's recent activity). One line per thing that happened on the listing: who did it (as a role), what, when. Written by observers (`PropertyObserver`, `PropertyUnitObserver`, `PropertyMediaObserver`, `UnitMediaObserver`, `PropertyDocumentObserver`, `ReviewObserver`, `ReservationActivityObserver`, `PaymentActivityObserver`) through `PropertyActivity::record()` / `recordMerged()`, inside the acting transaction, so a rollback leaves no line. A failed write is logged and never blocks the action. Separate from `audit_logs` (admin's consequential-actions record) and `occupancy_activities` (Analytics reads it).
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| activity_id | bigint unsigned | NN | PK | |
+| property_id | bigint unsigned | NN | FK → properties, cascade; index `(property_id, created_at)` | The history goes with the property |
+| unit_id | bigint unsigned | null | | No FK on purpose: removing a unit keeps the line that says it was removed (the label is in `summary`) |
+| actor_id | bigint unsigned | null | FK → users, set null | Null for the system and after the account is deleted |
+| actor_role | enum('landlord','tenant','admin','system') | NN | index | Drives the You / Tenants / Admin chips. Landlord = the property's owner; admin wins over tenant for non-owners |
+| actor_name | varchar(255) | NN | | Snapshot. 'System' when nobody acted |
+| action | varchar(60) | NN | | `property.updated`, `unit.removed`, `payment.recorded`, `reservation.moved_in`, `review.posted`, ... |
+| summary | varchar(255) | NN | | Rendered verbatim. Names a tenant by name only, never a phone or e-mail |
+| metadata | json | null | | Changed field names, amounts, `reservation_id` / `conversation_id` for links, `batch` key and counts for roll-ups, `backfilled: true` on rows written by the backfill migration |
+| created_at | timestamp | null | | No `updated_at`. Rows are written once; the only edit is the roll-up of one request's photos, or one payment's months, into the line written seconds before (`recordMerged`, 120 s, same actor) |
+
+- Quiet while a property is a Draft (only its creation, and the submit, are recorded).
+- `unit.status_changed` rows exist only from the backfill (from `occupancy_activities`); live availability changes are told by the reservation lines.
+- `2026_11_05_000300_backfill_property_activities` fills it from properties, units, `audit_logs` listing/unit decisions, `occupancy_activities` and visible reviews. Idempotent; `down()` removes only `backfilled` rows.
 
 ### settings
 Overrides only. A key with no row falls through to `config/rentals.php`; clearing a field in the admin form deletes the row.
