@@ -2,6 +2,14 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 5 2026 — Landlord dashboard: one band, two level columns (branch `axci`)
+The dashboard took more than 1,100px: a navy card plus four tiles, a six-row attention list, a photo row, then viewings and notifications. Five mockups were drawn and **C (tabs)** was built first, but on a tall screen it left a blank band at the bottom, so the tabs were dropped and every list is visible. Rendered at 1640×1028 (page 1,030px), 1440×900 and 375px: no sideways scroll, no JS errors.
+- **One navy band** holds the numbers: rent this month (with payout line), overdue, occupancy, vacant units, open inquiries. Phones: rent full width, the other four two-up.
+- **Two columns that end level.** Left: Needs your attention, then Notifications (takes the leftover height, list scrolls inside on desktop). Right: Your properties (8 rows, 40px photos, one occupancy bar), then Viewings. Phones: one column in that order, with 3 notifications and 5 properties shown.
+- **Setup alerts** ("1 listing waiting for admin approval") are tinted rows with an icon for the level and a real button: coral for blockers (danger, warn), a quiet outline for plain status.
+- Bars are navy for occupied and amber for reserved (red used to mean occupied).
+- Files: `resources/views/landlord/dashboard/index.blade.php`, `_viewings.blade.php` (renders as a plain row when `embedded`), `tests/Feature/LandlordDashboardLayoutTest.php`. No controller change. Needs `npm run build` for the new Tailwind classes.
+
 ## Nov 5 2026 — Landlord page feedback: badges, notifications, ledger, pay in full, property log (branch `axci`)
 PM feedback on the landlord side. Plan: `plans/landlord-feedback-nov-5.md` (decisions, risks and the 25-step manual test guide). Suite: 1599 passed. **Rendered in headless Chrome at 375px (no JS errors, no sideways scroll); not clicked through by hand.** Run `npm run build` (or `npm run dev`) after pulling: the new pages use Tailwind classes that are not in an older build.
 - **Sidebar numbers.** **Payments** shows how many tenants owe rent or have a payment waiting for confirmation (`App\Services\LandlordRentDueCount`, cached 10 minutes per landlord, cleared when a payment, claim or reservation changes). **Messages** now uses one rule everywhere, `Conversation::unreadCountFor()` (open chats whose latest message is unread; before, the sidebar and the top bar counted differently), updates live (`GET /conversations/unread-count` after `.MessageSent`), and the collapsed sidebar shows the number, not a dot.

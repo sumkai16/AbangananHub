@@ -1206,4 +1206,4 @@ Plans: `plans/page-speed-back-links-bedspace-seats.md`, `plans/bedspace-pick-bar
 - **Money is never red unless it is owed** (§6n): unit rent on the property page is navy.
 - **One word for one thing:** every "Export" button is "Export CSV" with a tooltip.
 - **Properties list has no action row**: the card or row opens the details; edit lives there. Units open in a modal on the property page and on the Units page.
-
+- **The dashboard is one band of numbers over two columns that end level** (Nov 5 2026). The last card in each column takes the leftover height, so a tall screen has no blank band; a long list scrolls inside its card on desktop and is trimmed on a phone. Tabs were tried and dropped: they hid notifications and viewings to save space the page then did not use. A setup alert is a tinted row with a button, coral only when it blocks earning.

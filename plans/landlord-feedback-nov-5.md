@@ -1,6 +1,6 @@
 # Landlord page feedback (Nov 5 2026)
 
-Status: **built Nov 5 2026 (1599 tests pass), pending manual verification.** Not checked by hand: Alpine behaviour (lease See more, calendar pickers, Pay all toggle, live badges), the sidebar numbers, and anything at a real phone. Delete this file only after Axcee has run the test guide at the bottom in a browser.
+Status: **built Nov 5 2026 (1626 tests pass), pending manual verification.** Includes the follow-ups after the first pass (calendar zoom, open-ended years, two-row All years, notification toast, coral bell, two-column record modal, full-width messages shell) and the dashboard redesign (Part 8). Not checked by hand: Alpine behaviour (lease See more, calendar zoom, Pay all toggle, live badges, toast), the sidebar numbers, and anything at a real phone. Delete this file only after Axcee has run the test guide at the bottom in a browser.
 
 Plan with Opus, code with Sonnet (CLAUDE.md). Mobile-first: check 375px first, then desktop. Before the redesign work in parts 3, 5 and 7, load `frontend-design`, `ui-ux-pro-max` and `impeccable`.
 
@@ -297,3 +297,22 @@ Run `php artisan reservations:process-rent-reminders` where a step needs a remin
 
 **Units grid**
 25. Property details, Units tab at 375px, 768px and 1440px: cards have room, nothing clips, and rent is navy. The Units page's spacing is wider. Export CSV downloads a file matching the filters.
+
+## Part 8 — Dashboard on one screen (added after the first pass)
+
+The dashboard took more than 1,100px. Five mockups were drawn (one screen, one inbox, tabs, by property, phone first); **tabs** was picked and built, then dropped the same day: on a tall screen it left a blank band because notifications and viewings were hidden behind it. Final layout:
+
+- **One navy band** of numbers: rent this month (with payout line), overdue, occupancy, vacant units, open inquiries.
+- **Two columns that end level.** Left: Needs your attention, then Notifications (takes the leftover height; the list scrolls inside on desktop). Right: Your properties (8 rows), then Viewings. Phones: one column, 3 notifications and 5 properties shown.
+- **Setup alerts** are tinted rows with an icon and a button: coral for blockers (danger, warn), outline for plain status such as "waiting for admin approval".
+- Occupancy bars: navy = occupied, amber = reserved (red used to mean occupied).
+- No controller change. Files: `resources/views/landlord/dashboard/index.blade.php`, `_viewings.blade.php` (plain row when `embedded`), `tests/Feature/LandlordDashboardLayoutTest.php`. Needs `npm run build`.
+
+Open question for the PM: they asked that the audit log cover only the user's own actions. Decision taken (Axcee): it shows tenant, landlord and admin activity, each labelled by role. Confirm this is what they meant.
+
+**Dashboard (add to the guide above)**
+26. At 1440×900 the numbers sit in one navy band and the page needs little or no scroll; on a tall screen (1640×1028) there is no blank band at the bottom.
+27. Click a notification row: it opens the page it is about and is marked read. "View all" opens the notifications page.
+28. A listing waiting for approval shows as a tinted row with a "View" button. With a payout or draft problem, the button is coral.
+29. Viewings row opens the calendar modal; Escape and the backdrop close it.
+30. At 375px: one column in the order band, attention, notifications (3), properties (5), viewings; no sideways scroll. A landlord with no units sees "No units yet" in the band.
