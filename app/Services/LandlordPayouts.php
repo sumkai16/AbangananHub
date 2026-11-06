@@ -40,36 +40,53 @@ class LandlordPayouts
         return (bool) config('rentals.automatic_payouts_enabled', true);
     }
 
-    /** Why this landlord's money must wait right now, or null when it can go out. */
+    /**
+     * What is holding this landlord's money back, as a key the admin page can group and style by, or null when
+     * nothing is. One of: no_details, paused, hold, not_approved, failed. The automatic-payouts switch is not
+     * part of it (that is a setting for everyone, see blockedReason()). The order is the order the rules apply in.
+     */
+    public static function blockedKind(User $landlord): ?string
+    {
+        $account = UserPayoutAccount::find($landlord->user_id);
+
+        if (! $account || blank($account->gcash_number) || blank($account->gcash_account_name)) {
+            return 'no_details';
+        }
+
+        if ($account->isPaused()) {
+            return 'paused';
+        }
+
+        if ($account->isOnHold()) {
+            return 'hold';
+        }
+
+        if (! $account->isApproved()) {
+            return 'not_approved';
+        }
+
+        if (static::hasUnresolvedFailure($landlord)) {
+            return 'failed';
+        }
+
+        return null;
+    }
+
+    /** Why this landlord's money must wait right now, in words, or null when it can go out. */
     public static function blockedReason(User $landlord): ?string
     {
         if (! static::automaticEnabled()) {
             return 'automatic payouts are switched off (pay by hand, then press Mark Paid Out)';
         }
 
-        $account = UserPayoutAccount::find($landlord->user_id);
-
-        if (! $account || blank($account->gcash_number) || blank($account->gcash_account_name)) {
-            return 'no GCash details on file';
-        }
-
-        if ($account->isPaused()) {
-            return 'paused by an administrator';
-        }
-
-        if ($account->isOnHold()) {
-            return 'GCash details changed; payouts resume '.$account->payouts_hold_until->format('M j, g:i A');
-        }
-
-        if (! $account->isApproved()) {
-            return 'an administrator has not approved this GCash account yet';
-        }
-
-        if (static::hasUnresolvedFailure($landlord)) {
-            return 'a failed payout is waiting for an administrator';
-        }
-
-        return null;
+        return match (static::blockedKind($landlord)) {
+            'no_details' => 'no GCash details on file',
+            'paused' => 'paused by an administrator',
+            'hold' => 'GCash details changed; payouts resume '.UserPayoutAccount::find($landlord->user_id)->payouts_hold_until->format('M j, g:i A'),
+            'not_approved' => 'an administrator has not approved this GCash account yet',
+            'failed' => 'a failed payout is waiting for an administrator',
+            default => null,
+        };
     }
 
     /**

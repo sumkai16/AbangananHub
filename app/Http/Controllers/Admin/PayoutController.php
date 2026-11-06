@@ -24,6 +24,11 @@ class PayoutController extends Controller
 {
     public function index()
     {
+        $automatic = LandlordPayouts::automaticEnabled();
+        $configMissing = PaymongoTransfers::missingConfig();
+        // Money only goes out by itself when the switch is on and PayMongo is set up. Otherwise an admin pays by hand.
+        $byHand = ! $automatic || ! empty($configMissing);
+
         $pending = Payment::with(['reservation.tenant', 'reservation.property.landlord.payoutAccount'])
             ->pendingPayout()
             ->get()
@@ -31,6 +36,7 @@ class PayoutController extends Controller
             ->filter(fn ($rows, $landlordId) => $landlordId !== null)
             ->map(function ($rows, $landlordId) {
                 $landlord = $rows->first()->reservation->property->landlord;
+                $kind = LandlordPayouts::blockedKind($landlord);
 
                 return [
                     'landlord' => $landlord,
@@ -38,6 +44,11 @@ class PayoutController extends Controller
                     'total' => $rows->sum('amount'),
                     // Why the automatic payout is not going out for this landlord, in words.
                     'blocked' => LandlordPayouts::blockedReason($landlord),
+                    // The same thing as a key (null = nothing in the way), for grouping and styling.
+                    'kind' => $kind,
+                    // Only a GCash account waiting for approval needs the name check.
+                    'matches' => $kind === 'not_approved' ? LandlordPayouts::nameMatchesIdentity($landlord) : null,
+                    'idNames' => $kind === 'not_approved' ? LandlordPayouts::identityNames($landlord) : [],
                 ];
             })
             ->sortByDesc('total')
@@ -64,13 +75,56 @@ class PayoutController extends Controller
                 'idNames' => LandlordPayouts::identityNames($account->user),
             ]);
 
+        // Failed payouts nobody has dealt with: the money is owed again and the landlord is held until an admin retries.
+        $failed = Payout::with('landlord')
+            ->where('status', 'Failed')
+            ->whereNull('resolved_at')
+            ->latest('payout_id')
+            ->get();
+
+        $owedBy = $pending->mapWithKeys(fn (array $row) => [$row['landlord']->user_id => $row['total']]);
+
         return view('admin.payouts.index', [
             'toApprove' => $toApprove,
             'pending' => $pending,
             'payouts' => $payouts,
-            'automatic' => LandlordPayouts::automaticEnabled(),
-            'configMissing' => PaymongoTransfers::missingConfig(),
+            'failed' => $failed,
+            'failedByLandlord' => $failed->keyBy('landlord_id'),
+            'owedBy' => $owedBy,
+            'automatic' => $automatic,
+            'configMissing' => $configMissing,
+            'byHand' => $byHand,
+            'summary' => $this->summary($pending, $byHand),
+            'nextRun' => $byHand ? null : now(config('rentals.timezone'))->addHour()->startOfHour(),
         ]);
+    }
+
+    /**
+     * Where the owed money sits, for the bar at the top: what goes out on the next run (or has to be paid by hand),
+     * what needs an admin (a failed payout, a GCash account to approve) and what is waiting on someone else (a pause,
+     * a 48-hour hold after a GCash change, missing GCash details). The three add up to everything owed.
+     *
+     * @param  \Illuminate\Support\Collection<int, array<string, mixed>>  $pending
+     * @return array{owed: float, landlords: int, ready: float, readyCount: int, needs: float, needsCount: int, waiting: float, waitingCount: int, fees: int}
+     */
+    private function summary($pending, bool $byHand): array
+    {
+        $ready = $pending->filter(fn (array $row) => $row['kind'] === null);
+        $needs = $pending->filter(fn (array $row) => in_array($row['kind'], ['not_approved', 'failed'], true));
+        $waiting = $pending->filter(fn (array $row) => in_array($row['kind'], ['paused', 'hold', 'no_details'], true));
+
+        return [
+            'owed' => (float) $pending->sum('total'),
+            'landlords' => $pending->count(),
+            'ready' => (float) $ready->sum('total'),
+            'readyCount' => $ready->count(),
+            'needs' => (float) $needs->sum('total'),
+            'needsCount' => $needs->count(),
+            'waiting' => (float) $waiting->sum('total'),
+            'waitingCount' => $waiting->count(),
+            // PayMongo's published rate is about 10 pesos a transfer and one free a week: an upper bound, not a quote.
+            'fees' => $byHand ? 0 : $ready->count() * 10,
+        ];
     }
 
     /**
