@@ -23,7 +23,7 @@ In Cebu, Philippines (Talisay, Minglanilla, Naga City), tenants and landlords re
 - [x] Move-In Confirmation Window (applies only when online payments are on and money is held; two escrow deadlines expiring toward opposite parties — landlord turnover clock, tenant confirmation clock; tenant dispute freezes both into an admin review queue; nightly `reservations:process-move-in-deadlines` reminds, escalates and auto-releases)
 - [x] Reviews (tenant reviews units post-stay, rating + comment)
 - [x] Notifications (in-app notifications, mark-read endpoints)
-- [x] Admin Dashboard (user management, analytics, report handling)
+- [x] Admin Dashboard (user management, analytics, report handling; Nov 6 2026: one screen with the six approval queues, money held and owed, and platform totals; the admin property and units pages follow the landlord's layouts, with a readiness summary and Pending-first order for the approval work)
 - [x] Complaints (report properties or users, admin resolution pipeline)
 - [x] Occupancy Monitoring (landlord tracks unit occupancy status — lives on `landlord/analytics` since Aug 30 2026; the standalone `landlord/occupancy` page was deleted as a duplicate)
 - [x] Tenant Ratings (landlord rates tenants)
