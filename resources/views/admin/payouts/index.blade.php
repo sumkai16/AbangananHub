@@ -17,9 +17,9 @@
         'sent' => ['Sent', $historyBy['sent']->count()],
     ];
 @endphp
-<div class="max-w-[1600px] mx-auto">
+<div class="admin-compact admin-fill">
 
-    <x-page-header icon-path="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3" title="Payouts"
+    <x-admin.header title="Payouts"
         subtitle="Money the platform owes landlords. {{ $automatic ? 'It is sent to their GCash automatically; PayMongo charges about ₱10 per transfer (one free a week).' : 'Automatic payouts are off: pay landlords by hand.' }}">
         @if ($nextRun)
             <x-slot:actions>
@@ -29,7 +29,7 @@
                 </p>
             </x-slot:actions>
         @endif
-    </x-page-header>
+    </x-admin.header>
 
     @if (! $automatic)
         <div class="mb-6 rounded-2xl border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] p-4 text-[13px] leading-6 text-[#B45309]">
@@ -47,7 +47,7 @@
 
     @include('admin.payouts.partials.summary')
 
-    <div x-data="{ tab: 'owed', q: '', needs: false, open: null }" x-on:keydown.escape.window="needs = false">
+    <div class="flex flex-1 flex-col" x-data="{ tab: 'owed', q: '', needs: false, open: null }" x-on:keydown.escape.window="needs = false">
 
         {{-- Tabs, the Needs you button and search --}}
         <div class="mb-4 flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-b border-[#E2E4EC]" role="tablist">
@@ -84,11 +84,15 @@
             </div>
         </div>
 
-        <div x-show="tab === 'owed'" role="tabpanel">
+        <div class="flex flex-1 flex-col" x-show="tab === 'owed'" role="tabpanel">
             @include('admin.payouts.partials.owed')
         </div>
-        @foreach (['processing' => 'Nothing is with PayMongo right now.', 'failed' => 'No failed payouts.', 'sent' => 'No payouts sent yet.'] as $key => $empty)
-            <div x-show="tab === '{{ $key }}'" x-cloak role="tabpanel">
+        @foreach ([
+            'processing' => ['Nothing is with PayMongo', 'Payouts that were sent and are still going through show here.'],
+            'failed' => ['No failed payouts', 'A payout PayMongo could not send shows here, with a Retry button.'],
+            'sent' => ['No payouts sent yet', 'Money that has reached a landlord shows here.'],
+        ] as $key => $empty)
+            <div class="flex flex-1 flex-col" x-show="tab === '{{ $key }}'" x-cloak role="tabpanel">
                 @include('admin.payouts.partials.history', ['rows' => $historyBy[$key], 'empty' => $empty])
             </div>
         @endforeach

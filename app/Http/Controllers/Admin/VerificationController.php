@@ -19,18 +19,24 @@ class VerificationController extends Controller
 
     public function index(Request $request)
     {
-        $status = $request->query('status', 'Pending');
+        $status = $request->query('status', 'All');
 
         if (! in_array($status, self::STATUSES, true)) {
-            $status = 'Pending';
+            $status = 'All';
         }
 
         $query = LandlordVerification::with('user')
             ->when($status !== 'All', fn ($q) => $q->where('verification_status', $status));
 
-        $verifications = in_array($status, ['Approved', 'Rejected'], true)
-            ? $query->latest('reviewed_at')->paginate(15)->withQueryString()
-            : $query->oldest('submitted_at')->paginate(15)->withQueryString();
+        // Waiting applications oldest first. On All they sit above everything else, then the newest decisions.
+        $verifications = match ($status) {
+            'Approved', 'Rejected' => $query->latest('reviewed_at'),
+            'Pending' => $query->oldest('submitted_at'),
+            default => $query->orderByRaw("landlord_verifications.verification_status = 'Pending' desc")
+                ->orderByRaw("case when landlord_verifications.verification_status = 'Pending' then landlord_verifications.submitted_at end asc")
+                ->latest('landlord_verifications.submitted_at'),
+        };
+        $verifications = $verifications->paginate(10)->withQueryString();
 
         $counts = [
             'Pending' => LandlordVerification::where('verification_status', 'Pending')->count(),
@@ -50,16 +56,16 @@ class VerificationController extends Controller
         ];
         $summary['oldest'] = $summary['oldest'] ? Carbon::parse($summary['oldest']) : null;
 
-        $recent = LandlordVerification::with(['user', 'reviewer'])
-            ->whereIn('verification_status', ['Approved', 'Rejected'])
-            ->latest('reviewed_at')->limit(5)->get();
+        // The desk shows one application in full: the one in ?open=, else the first on the page.
+        $selected = $verifications->getCollection()->firstWhere('verification_id', (int) $request->query('open')) ?? $verifications->first();
+        $selected?->loadMissing('reviewer');
 
         return view('admin.verifications.index', [
             'verifications' => $verifications,
             'status' => $status,
             'counts' => $counts,
             'summary' => $summary,
-            'recent' => $recent,
+            'selected' => $selected,
         ]);
     }
 

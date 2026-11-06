@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\RejectListingRequest;
 use App\Models\AuditLog;
+use App\Models\LandlordVerification;
 use App\Models\Notification;
 use App\Models\Property;
 use Carbon\Carbon;
@@ -27,21 +28,27 @@ class ListingController extends Controller
      */
     public function approval(Request $request)
     {
-        $status = $request->query('status', 'Pending');
+        $status = $request->query('status', 'All');
 
         if (! in_array($status, self::STATUSES, true)) {
-            $status = 'Pending';
+            $status = 'All';
         }
 
-        $query = Property::with(['landlord', 'media', 'units'])
+        $query = Property::with(['landlord', 'media', 'units', 'documents'])
             ->withCount(['media as photos_count' => fn ($q) => $q->where('media_type', 'Image'), 'documents', 'documents as verified_documents_count' => fn ($q) => $q->where('status', 'Verified')])
             ->submitted()
             ->when($status === 'Suspended', fn ($q) => $q->where('publication_status', 'Suspended'))
             ->when(! in_array($status, ['All', 'Suspended'], true), fn ($q) => $q->where('verification_status', $status));
 
-        $pendingListings = $status === 'Pending'
-            ? $query->oldest()->paginate(15)->withQueryString()
-            : $query->latest()->paginate(15)->withQueryString();
+        // Waiting listings oldest first. On All they sit above everything else, then newest first.
+        $pendingListings = match ($status) {
+            'Pending' => $query->oldest(),
+            'All' => $query->orderByRaw("properties.verification_status = 'Pending' desc")
+                ->orderByRaw("case when properties.verification_status = 'Pending' then properties.created_at end asc")
+                ->latest('properties.created_at'),
+            default => $query->latest(),
+        };
+        $pendingListings = $pendingListings->paginate(10)->withQueryString();
 
         // One grouped query for the verification tabs instead of one count each.
         $byStatus = Property::submitted()
@@ -66,9 +73,14 @@ class ListingController extends Controller
             'incomplete' => Property::submitted()->where('verification_status', 'Pending')
                 ->where(fn ($q) => $q->whereDoesntHave('media', fn ($m) => $m->where('media_type', 'Image'))->orWhereDoesntHave('units'))->count(),
         ];
-        $recent = Property::submitted()->with('landlord')->whereIn('verification_status', ['Approved', 'Rejected'])->latest('updated_at')->limit(5)->get();
 
-        return view('admin.listings.approval', compact('pendingListings', 'status', 'counts', 'summary', 'recent'));
+        // The desk shows one listing in full: the one in ?open=, else the first on the page.
+        $selected = $pendingListings->getCollection()->firstWhere('property_id', (int) $request->query('open')) ?? $pendingListings->first();
+        // What the desk needs beyond the list row: each unit's photos, and whether the landlord's application was approved.
+        $selected?->loadMissing('units.media');
+        $landlordVerified = $selected ? LandlordVerification::where('user_id', $selected->landlord_id)->where('verification_status', 'Approved')->exists() : false;
+
+        return view('admin.listings.approval', compact('pendingListings', 'status', 'counts', 'summary', 'selected', 'landlordVerified'));
     }
 
     /**

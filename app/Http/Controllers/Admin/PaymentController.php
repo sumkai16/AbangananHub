@@ -24,14 +24,16 @@ class PaymentController extends Controller
 
     public function index(Request $request)
     {
-        $status = $request->query('status', 'Held');
+        $status = $request->query('status', 'All');
 
         if (! in_array($status, self::STATUSES, true)) {
-            $status = 'Held';
+            $status = 'All';
         }
 
         $payments = Payment::with(['reservation.tenant', 'reservation.property.landlord', 'reservation.unit'])
             ->when($status !== 'All', fn ($q) => $q->where('status', $status))
+            // On All, money waiting on the admin (Held) comes first, then newest first.
+            ->when($status === 'All', fn ($q) => $q->orderByRaw("status = 'Held' desc"))
             ->latest('created_at')
             ->paginate(15)
             ->withQueryString();

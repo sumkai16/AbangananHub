@@ -3,78 +3,103 @@
 @section('page-title', 'Property Documents')
 
 @section('content')
-<div class="max-w-[1600px] mx-auto">
+@php
+    $empty = [
+        'Pending' => ['check', 'No documents to review', 'Documents landlords upload for a property show here.'],
+        'Requested' => ['document', 'Nothing asked for', 'Documents you ask a landlord for show here until they upload them.'],
+        'Verified' => ['document', 'No verified documents yet', 'Documents you verify show here.'],
+        'Rejected' => ['document', 'No rejected documents', 'Documents you reject show here, with your reason.'],
+        'All' => ['document', 'No documents yet', 'Documents landlords upload for their properties show here.'],
+    ][$status] ?? ['document', 'No documents here', null];
+    $showStatus = in_array($status, ['All', 'Requested'], true);
+@endphp
+<div class="admin-compact admin-fill">
 
-    <x-page-header title="Property Documents" subtitle="Proof of ownership, tax declarations and permits." />
+    <x-admin.header title="Property Documents" subtitle="Proof of ownership, tax declarations and permits.">
+        <x-slot:actions>
+            <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
+                <x-admin.stat-line :cells="[
+                    ['label' => 'To review', 'value' => number_format($counts['Pending']), 'note' => $summary['oldest'] ? 'Oldest '.$summary['oldest']->diffForHumans() : 'Nothing in the queue'],
+                    ['label' => 'Asked for', 'value' => number_format($counts['Requested']), 'note' => 'Waiting on landlords'],
+                    ['label' => 'Verified', 'value' => number_format($summary['verified']), 'note' => 'Last 30 days'],
+                    ['label' => 'Expiring soon', 'value' => number_format($summary['expiring']), 'note' => 'Runs out in 30 days'],
+                ]" />
+                <x-admin.checklist title="Before you verify" :items="['The name on the document is the landlord, or the owner who authorised them.', 'The address matches the property listing.', 'It is current and readable, not cropped or edited.', 'The expiry date is in the future.']"
+                    note="A rejection needs a reason; the landlord will see it." />
+            </div>
+        </x-slot:actions>
+    </x-admin.header>
 
-    <x-stat-strip class="mb-5" :cells="[
-        ['label' => 'To review', 'value' => number_format($counts['Pending']), 'note' => $summary['oldest'] ? 'Oldest sent '.$summary['oldest']->diffForHumans() : 'Nothing in the queue'],
-        ['label' => 'Asked for', 'value' => number_format($counts['Requested']), 'note' => 'Waiting on landlords to upload'],
-        ['label' => 'Verified', 'value' => number_format($summary['verified']), 'note' => 'Last 30 days'],
-        ['label' => 'Expiring soon', 'value' => number_format($summary['expiring']), 'note' => 'Verified, runs out in 30 days'],
-    ]" />
-
-    <x-admin.tabs class="mb-4" :tabs="collect(['Pending' => 'Pending', 'Requested' => 'Awaiting landlord', 'Verified' => 'Verified', 'Rejected' => 'Rejected', 'All' => 'All'])->map(fn ($label, $tab) => [
+    <x-admin.tabs class="mb-3" :tabs="collect(['All' => 'All', 'Pending' => 'Pending', 'Requested' => 'Awaiting landlord', 'Verified' => 'Verified', 'Rejected' => 'Rejected'])->map(fn ($label, $tab) => [
         'label' => $label,
         'count' => $counts[$tab],
         'href' => route('admin.documents.index', ['status' => $tab]),
         'active' => $status === $tab,
     ])->values()->all()" />
 
-    <x-card flush>
-        @if ($documents->isEmpty())
-            <x-admin.empty title="No documents here" />
-        @else
+    @if ($documents->isEmpty())
+        <x-card flush fill>
+            <x-empty-state flat fill :symbol="$empty[0]" :title="$empty[1]" :note="$empty[2]">
+                @if ($status !== 'All')
+                    <a href="{{ route('admin.documents.index', ['status' => 'All']) }}" class="inline-flex h-9 items-center rounded-lg border border-[#E2E4EC] bg-white px-3.5 text-[13px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#F7F8FC]">See all documents</a>
+                @endif
+            </x-empty-state>
+        </x-card>
+    @else
+        <x-card flush fill>
             <div class="overflow-x-auto scrollbar-thin-light">
-                <table class="min-w-full">
+                <table class="w-full min-w-[960px]">
                     <thead>
-                        <tr class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
-                            <x-admin.th>Document</x-admin.th>
-                            <x-admin.th>Property</x-admin.th>
+                        <tr class="border-b border-[#E2E4EC] bg-[#F7F8FC]">
+                            <x-admin.th class="w-[18%]">Document</x-admin.th>
+                            <x-admin.th class="w-[26%]">Property</x-admin.th>
                             <x-admin.th>Landlord</x-admin.th>
                             <x-admin.th>Number</x-admin.th>
                             <x-admin.th>Expires</x-admin.th>
-                            <x-admin.th>Status</x-admin.th>
+                            @if ($showStatus)<x-admin.th>Status</x-admin.th>@endif
                             <x-admin.th>Updated</x-admin.th>
-                            <th class="px-4 py-2.5"><span class="sr-only">Open</span></th>
+                            <x-admin.th align="right"><span class="sr-only">Open</span></x-admin.th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#E2E4EC]">
                         @foreach ($documents as $document)
-                            <tr class="hover:bg-[#F7F8FC] transition-colors duration-200">
-                                <td class="px-4 py-3 text-[13.5px] font-semibold text-[#060D26]">{{ $document->document_type }}</td>
-                                <td class="px-4 py-3 text-[13.5px] text-[#060D26]">{{ $document->property->title ?? '—' }}</td>
-                                <td class="px-4 py-3 text-[13.5px] text-[#060D26]">{{ trim(($document->property->landlord->first_name ?? '') . ' ' . ($document->property->landlord->last_name ?? '')) ?: '—' }}</td>
-                                <td class="px-4 py-3 text-[13px] tabular-nums text-[#060D26]">{{ $document->document_number ?: '—' }}</td>
-                                <td class="px-4 py-3 whitespace-nowrap">
+                            @php $landlord = trim(($document->property->landlord->first_name ?? '').' '.($document->property->landlord->last_name ?? '')) ?: '—'; @endphp
+                            <tr class="transition-colors duration-200 hover:bg-[#F7F8FC]">
+                                <td class="px-4 text-[13px] font-semibold whitespace-nowrap text-[#060D26]">{{ $document->document_type }}</td>
+                                <td class="max-w-0 px-4"><p class="truncate text-[13px] text-[#060D26]" title="{{ $document->property->title ?? '' }}">{{ $document->property->title ?? '—' }}</p></td>
+                                <td class="px-4 text-[13px] whitespace-nowrap text-[#060D26]">{{ $landlord }}</td>
+                                <td class="px-4 text-[13px] tabular-nums whitespace-nowrap text-[#060D26]">{{ $document->document_number ?: '—' }}</td>
+                                <td class="px-4 whitespace-nowrap">
                                     @if($document->expiry_date)
-                                        <p class="text-[13px] text-[#060D26]">{{ $document->expiry_date->format('M j, Y') }}</p>
-                                        @if($document->expiry_date->isPast())<p class="text-[12px] font-semibold text-[#DC2626]">Expired</p>
-                                        @elseif($document->expiry_date->lte(now()->addDays(30)))<p class="text-[12px] font-semibold text-[#B45309]">In {{ now()->diffInDays($document->expiry_date) }} days</p>@endif
+                                        <p class="text-[13px] leading-5 text-[#060D26]">{{ $document->expiry_date->format('M j, Y') }}</p>
+                                        @if($document->expiry_date->isPast())<p class="text-[12px] leading-4 font-semibold text-[#DC2626]">Expired</p>
+                                        @elseif($document->expiry_date->lte(now()->addDays(30)))<p class="text-[12px] leading-4 font-semibold text-[#B45309]">In {{ now()->diffInDays($document->expiry_date) }} days</p>@endif
                                     @else
-                                        <span class="text-[13px] text-[#5B6A8E]">—</span>
+                                        <span class="text-[13px] text-[#5B6A8E]">No expiry</span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3"><x-admin.status :status="$document->isRequested() ? 'Requested' : $document->display_status" /></td>
-                                <td class="px-4 py-3 text-[13px] whitespace-nowrap text-[#5B6A8E]">{{ $document->updated_at?->format('M j, Y') }}</td>
-                                <td class="px-4 py-3 text-right">
-                                    <a href="{{ route('admin.documents.show', $document) }}" class="text-[13px] font-semibold text-[#060D26] underline-offset-2 hover:underline">Review</a>
+                                @if ($showStatus)<td class="px-4"><x-admin.status :status="$document->isRequested() ? 'Requested' : $document->display_status" /></td>@endif
+                                <td class="px-4 whitespace-nowrap">
+                                    <p class="text-[13px] leading-5 text-[#060D26]">{{ $document->updated_at?->format('M j, Y') }}</p>
+                                    <p class="text-[12px] leading-4 text-[#5B6A8E]">{{ $document->updated_at?->diffForHumans() }}</p>
+                                </td>
+                                <td class="px-4 text-right">
+                                    <a href="{{ route('admin.documents.show', $document) }}" class="inline-flex h-8 items-center rounded-lg border border-[#E2E4EC] bg-white px-3 text-[12.5px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#F7F8FC]">{{ $document->isRequested() ? 'Open' : ($document->status === 'Pending' ? 'Review' : 'View') }}</a>
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
-            @if ($documents->hasPages())
-                <div class="border-t border-[#E2E4EC] px-4 py-3">{{ $documents->links() }}</div>
-            @endif
-        @endif
-    </x-card>
-
-    <x-admin.queue-aside checklist-title="Before you verify"
-        :recent="$recent->map(fn ($d) => ['name' => $d->document_type, 'sub' => ($d->property->title ?? '—').' · '.$d->updated_at->diffForHumans().($d->verifier ? ' by '.$d->verifier->first_name : ''), 'status' => $d->status, 'href' => route('admin.documents.show', $d)])->all()"
-        :checklist="['The name on the document is the landlord, or the owner who authorised them.', 'The address matches the property listing.', 'It is current and readable, not cropped or edited.', 'The expiry date is in the future.']"
-        note="A rejection needs a reason; the landlord will see it." />
+            <div class="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-[#E2E4EC] bg-[#F7F8FC] px-4 py-2.5">
+                @if ($documents->hasPages())
+                    <div class="w-full">{{ $documents->links() }}</div>
+                @else
+                    <p class="text-[13px] text-[#5B6A8E]">Showing <span class="font-semibold tabular-nums text-[#060D26]">{{ $documents->firstItem() }}–{{ $documents->lastItem() }}</span> of <span class="font-semibold tabular-nums text-[#060D26]">{{ number_format($documents->total()) }}</span>@if ($status === 'Pending'), oldest first @elseif ($status === 'All'), waiting first, then newest @endif</p>
+                @endif
+            </div>
+        </x-card>
+    @endif
 
 </div>
 @endsection

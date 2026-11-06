@@ -7,51 +7,24 @@ use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\Property;
 use App\Models\PropertyUnit;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class PropertyUnitController extends Controller
 {
+    /**
+     * The old Unit Approvals page. Its job moved into the Units catalogue (a "needs approval" filter with the same
+     * Approve and Reject buttons), so this only keeps old links and bookmarks working.
+     */
     public function index(Request $request)
     {
-        $status = $request->query('status', 'Pending');
+        $params = match ($request->query('status')) {
+            'Pending' => ['needs' => 'approval'],
+            'Approved', 'Rejected' => ['verification_status' => $request->query('status')],
+            default => [],
+        };
 
-        $query = PropertyUnit::with(['property.landlord', 'media']);
-
-        // Pending means "needs its own decision": a Pending unit on a Pending property is decided with the property.
-        if ($status === 'Pending') {
-            $query->awaitingOwnReview();
-        } elseif (in_array($status, ['Approved', 'Rejected'], true)) {
-            $query->where('verification_status', $status);
-        }
-        // 'All' falls through with no filter
-
-        if (in_array($status, ['Approved', 'Rejected'], true)) {
-            $units = $query->latest('updated_at')->paginate(15)->withQueryString();
-        } else {
-            $units = $query->oldest()->paginate(15)->withQueryString();
-        }
-
-        // 'All' is the real total, not the sum of the three: units waiting with a Pending property are in none of
-        // the Pending count but are still on the All tab.
-        $counts = [
-            'Pending' => PropertyUnit::awaitingOwnReview()->count(),
-            'Approved' => PropertyUnit::where('verification_status', 'Approved')->count(),
-            'Rejected' => PropertyUnit::where('verification_status', 'Rejected')->count(),
-            'All' => PropertyUnit::count(),
-        ];
-
-        $since = now()->subDays(30);
-        $summary = [
-            'oldest'   => ($o = PropertyUnit::awaitingOwnReview()->min('property_units.created_at')) ? Carbon::parse($o) : null,
-            'approved' => PropertyUnit::where('verification_status', 'Approved')->where('updated_at', '>=', $since)->count(),
-            'rejected' => PropertyUnit::where('verification_status', 'Rejected')->where('updated_at', '>=', $since)->count(),
-            'no_photo' => PropertyUnit::awaitingOwnReview()->whereDoesntHave('media')->count(),
-        ];
-        $recent = PropertyUnit::with('property')->whereIn('verification_status', ['Approved', 'Rejected'])->latest('updated_at')->limit(5)->get();
-
-        return view('admin.units.index', compact('units', 'status', 'counts', 'summary', 'recent'));
+        return redirect()->route('admin.catalogue.units.index', $params);
     }
 
     public function show(Property $property, PropertyUnit $unit)
@@ -102,7 +75,7 @@ class PropertyUnitController extends Controller
         );
 
         return redirect()
-            ->route('admin.units.index')
+            ->route('admin.catalogue.units.index', ['needs' => 'approval'])
             ->with('success', "Unit '{$unit->unit_label}' approved.");
     }
 
@@ -141,7 +114,7 @@ class PropertyUnitController extends Controller
         );
 
         return redirect()
-            ->route('admin.units.index')
+            ->route('admin.catalogue.units.index', ['needs' => 'approval'])
             ->with('success', "Unit '{$unit->unit_label}' rejected.");
     }
 }

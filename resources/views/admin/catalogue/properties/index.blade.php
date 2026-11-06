@@ -46,6 +46,23 @@
         </x-slot:actions>
     </x-page-header>
 
+    {{-- Status summary, like the Units page: each cell filters the list (click the active one again to clear). It replaces the
+         status tabs, which showed the same numbers. --}}
+    @php
+        $health = $filters['health'] ?? '';
+        $pctOf = fn (int $n) => $counts['total'] > 0 ? round($n / $counts['total'] * 100) : 0;
+        $cellHref = fn (array $params) => route('admin.catalogue.properties.index', array_filter(array_merge(['search' => $search], $params)));
+        $needsAttention = $status === '' && $health === 'no-media';
+        $summary = [
+            ['label' => 'Total properties', 'value' => $counts['total'], 'note' => number_format($counts['units']).' '.Str::plural('unit', $counts['units']).' in all', 'href' => $cellHref([]), 'active' => $status === '' && ! $needsAttention],
+            ['label' => 'Approved', 'value' => $counts['approved'], 'note' => $pctOf($counts['approved']).'% of properties', 'dot' => '#22C55E', 'href' => $status === 'Approved' ? $cellHref([]) : $cellHref(['verification_status' => 'Approved']), 'active' => $status === 'Approved'],
+            ['label' => 'Pending', 'value' => $counts['pending'], 'note' => $counts['pending'] > 0 ? 'Waiting for a decision' : 'Nothing waiting', 'dot' => '#FBBF24', 'href' => $status === 'Pending' ? $cellHref([]) : $cellHref(['verification_status' => 'Pending']), 'active' => $status === 'Pending'],
+            ['label' => 'Rejected', 'value' => $counts['rejected'], 'note' => $pctOf($counts['rejected']).'% of properties', 'dot' => '#EF4444', 'href' => $status === 'Rejected' ? $cellHref([]) : $cellHref(['verification_status' => 'Rejected']), 'active' => $status === 'Rejected'],
+            ['label' => 'Needs attention', 'value' => $counts['needs_attention'], 'note' => 'No photos, pin or units, or 90+ days old', 'dot' => '#94A3B8', 'href' => $needsAttention ? $cellHref([]) : $cellHref(['health' => 'no-media']), 'active' => $needsAttention],
+        ];
+    @endphp
+    <x-stat-strip :cells="$summary" class="mb-6" />
+
 
     {{-- Search + filters + view toggle --}}
     <form method="GET" action="{{ route('admin.catalogue.properties.index') }}" class="mb-4">
@@ -104,15 +121,6 @@
             </div>
         </div>
     </form>
-
-    {{-- Status tabs --}}
-    <x-admin.tabs class="mb-4" :tabs="[
-        ['label' => 'All', 'count' => $counts['total'], 'href' => route('admin.catalogue.properties.index', array_filter(['search' => $search])), 'active' => $status === '' && ($filters['health'] ?? '') !== 'no-media'],
-        ['label' => 'Approved', 'count' => $counts['approved'], 'href' => route('admin.catalogue.properties.index', array_filter(['verification_status' => 'Approved', 'search' => $search])), 'active' => $status === 'Approved'],
-        ['label' => 'Pending', 'count' => $counts['pending'], 'href' => route('admin.catalogue.properties.index', array_filter(['verification_status' => 'Pending', 'search' => $search])), 'active' => $status === 'Pending'],
-        ['label' => 'Rejected', 'count' => $counts['rejected'], 'href' => route('admin.catalogue.properties.index', array_filter(['verification_status' => 'Rejected', 'search' => $search])), 'active' => $status === 'Rejected'],
-        ['label' => 'Needs attention', 'count' => $counts['needs_attention'], 'href' => route('admin.catalogue.properties.index', array_filter(['health' => 'no-media', 'search' => $search])), 'active' => $status === '' && ($filters['health'] ?? '') === 'no-media'],
-    ]" />
 
     {{-- Empty state --}}
     @if($properties->isEmpty())

@@ -106,6 +106,7 @@ class PropertyCatalogueController extends Controller
             'approved' => $statusTotals['Approved'] ?? 0,
             'pending'  => $statusTotals['Pending'] ?? 0,
             'rejected' => $statusTotals['Rejected'] ?? 0,
+            'units'    => \App\Models\PropertyUnit::count(),
             'needs_attention' => Property::query()
                 ->where(function ($q) {
                     $q->doesntHave('media')

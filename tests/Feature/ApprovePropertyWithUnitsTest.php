@@ -123,7 +123,7 @@ class ApprovePropertyWithUnitsTest extends TestCase
         $admin = $this->makeUserWithRole('Admin');
         $before = PropertyUnit::awaitingOwnReview()->count();
 
-        $this->actingAs($admin)->get(route('admin.units.index', ['status' => 'Pending']))->assertOk()
+        $this->actingAs($admin)->get(route('admin.catalogue.units.index', ['needs' => 'approval']))->assertOk()
             ->assertDontSee('Room 1')->assertDontSee('Room 2');
 
         $this->assertSame(0, PropertyUnit::awaitingOwnReview()->where('property_id', $property->property_id)->count());
@@ -137,20 +137,21 @@ class ApprovePropertyWithUnitsTest extends TestCase
         $admin = $this->makeUserWithRole('Admin');
 
         $this->assertSame(1, PropertyUnit::awaitingOwnReview()->where('property_id', $property->property_id)->count());
-        $this->actingAs($admin)->get(route('admin.units.index', ['status' => 'Pending']))->assertOk()->assertSee('Added later');
+        $this->actingAs($admin)->get(route('admin.catalogue.units.index', ['needs' => 'approval']))->assertOk()->assertSee('Added later');
 
         $dashboard = $this->actingAs($admin)->get(route('admin.dashboard'))->assertOk();
         $dashboard->assertSee('Unit approvals');
     }
 
-    public function test_the_all_tab_count_is_the_real_unit_total(): void
+    public function test_the_units_page_counts_every_unit_and_only_the_ones_that_need_a_decision_as_waiting(): void
     {
         $this->pendingListing(2);
         $admin = $this->makeUserWithRole('Admin');
 
-        $response = $this->actingAs($admin)->get(route('admin.units.index', ['status' => 'All']))->assertOk();
+        $response = $this->actingAs($admin)->get(route('admin.catalogue.units.index'))->assertOk();
 
-        $this->assertSame(PropertyUnit::count(), $response->viewData('counts')['All']);
+        $this->assertSame(PropertyUnit::count(), $response->viewData('counts')['total']);
+        $this->assertSame(PropertyUnit::awaitingOwnReview()->count(), $response->viewData('counts')['needs_approval']);
     }
 
     public function test_the_admin_property_page_says_how_many_units_approving_will_include(): void

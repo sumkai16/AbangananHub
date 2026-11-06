@@ -160,7 +160,7 @@
                 </button>
 
                 @auth
-                    {{-- Dashboard / Admin Actions / an applicant's Verification status. Nothing for a plain tenant: landlord
+                    {{-- Dashboard / Admin Dashboard / an applicant's Verification status. Nothing for a plain tenant: landlord
                          sign-up has its own path now (/register/landlord, and "List your property" on the landing page). --}}
                     @php $hasVerification = auth()->user()->verificationApplication !== null; @endphp
                     @if(auth()->user()->hasRole('Landlord') || auth()->user()->hasRole('Admin') || $hasVerification)
@@ -171,45 +171,10 @@
                                 Landlord Dashboard
                             </a>
                         @elseif(auth()->user()->hasRole('Admin'))
-                            <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
-                                <button type="button" @click="open = !open" @click.outside="open = false"
-                                    :aria-expanded="open ? 'true' : 'false'" aria-haspopup="true"
-                                    class="flex items-center gap-2 h-10 px-5 rounded-full bg-[#ECEEF6] text-[13.5px] font-semibold text-[#060D26] hover:brightness-95 transition-all cursor-pointer">
-                                    Admin Actions
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2.5" class="transition-transform duration-200 motion-reduce:transition-none"
-                                        :class="open && 'rotate-180'" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-
-                                <div x-show="open" x-cloak
-                                    x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-200"
-                                    x-transition:enter-start="opacity-0 scale-95 -translate-y-1 motion-reduce:scale-100 motion-reduce:translate-y-0"
-                                    x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                                    x-transition:leave="transition ease-in duration-150"
-                                    x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                                    x-transition:leave-end="opacity-0 scale-95 -translate-y-1 motion-reduce:scale-100 motion-reduce:translate-y-0"
-                                    class="absolute top-[calc(100%+10px)] right-0 w-[236px] bg-white rounded-2xl shadow-[0_16px_48px_-12px_rgba(6,13,38,0.20)] ring-1 ring-[#E2E4EC] p-1.5 z-50">
-                                    @php
-                                        $adminLinks = [
-                                            ['route' => \Illuminate\Support\Facades\Route::has('admin.listings.approval') ? route('admin.listings.approval') : '#', 'label' => 'Listing Approval', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
-                                            ['route' => route('admin.verifications.index'), 'label' => 'Verification Requests', 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
-                                            ['route' => route('admin.users.index'), 'label' => 'Manage Users', 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'],
-                                        ];
-                                    @endphp
-                                    @foreach($adminLinks as $link)
-                                        <a href="{{ $link['route'] }}"
-                                            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors">
-                                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                                stroke-width="1.9" class="text-[#5B6A8E] group-hover:text-[#B35A3D] transition-colors duration-200" aria-hidden="true">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $link['icon'] }}" />
-                                            </svg>
-                                            {{ $link['label'] }}
-                                        </a>
-                                    @endforeach
-                                </div>
-                            </div>
+                            <a href="{{ route('admin.dashboard') }}"
+                                class="flex items-center gap-2 h-10 px-5 rounded-full bg-[#ECEEF6] text-[13.5px] font-semibold text-[#060D26] hover:brightness-95 transition-all cursor-pointer">
+                                Admin Dashboard
+                            </a>
                         @else
                             <a href="{{ route('landlord.verification.show') }}"
                                 class="flex items-center gap-2 h-10 px-5 rounded-full bg-[#ECEEF6] text-[13.5px] font-semibold text-[#060D26] hover:brightness-95 transition-all cursor-pointer">
@@ -512,19 +477,10 @@
                         Landlord Dashboard
                     </a>
                 @elseif(auth()->user()->hasRole('Admin'))
-                    @php
-                        $mobileAdminLinks = [
-                            ['route' => \Illuminate\Support\Facades\Route::has('admin.listings.approval') ? route('admin.listings.approval') : '#', 'label' => 'Listing Approval'],
-                            ['route' => route('admin.verifications.index'), 'label' => 'Verification Requests'],
-                            ['route' => route('admin.users.index'), 'label' => 'Manage Users'],
-                        ];
-                    @endphp
-                    @foreach($mobileAdminLinks as $link)
-                        <a href="{{ $link['route'] }}" @click="mobileNavOpen = false"
-                            class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold text-[#060D26] bg-[#ECEEF6] hover:brightness-95 {{ !$loop->first ? 'mt-1.5' : '' }}">
-                            {{ $link['label'] }}
-                        </a>
-                    @endforeach
+                    <a href="{{ route('admin.dashboard') }}" @click="mobileNavOpen = false"
+                        class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold text-[#060D26] bg-[#ECEEF6] hover:brightness-95">
+                        Admin Dashboard
+                    </a>
                 @elseif($hasVerification)
                     <a href="{{ route('landlord.verification.show') }}" @click="mobileNavOpen = false"
                         class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold text-[#060D26] bg-[#ECEEF6] hover:brightness-95">
@@ -1100,7 +1056,7 @@
         </script>
     @endguest
 
-    {{-- The avatar and Admin Actions menus are Alpine-driven (x-data / @click.outside),
+    {{-- The avatar menu is Alpine-driven (x-data / @click.outside),
          matching the Areas and notification dropdowns — no bespoke JS handler needed. --}}
 
     @auth

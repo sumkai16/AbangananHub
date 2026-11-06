@@ -3,19 +3,22 @@
     fits; the chevron opens the GCash account (with the name check) and the payments that make up the amount.
 --}}
 @if ($pending->isEmpty())
-    <x-card flush><x-admin.empty title="Nothing pending payout" note="Every released and paid rent payment has been sent to its landlord." /></x-card>
+    <x-card flush fill>
+        <x-empty-state flat fill symbol="check" title="Nothing is owed" note="Every released and paid rent payment has been sent to its landlord." />
+    </x-card>
 @else
     @php
         $initials = fn (string $name) => Str::of($name)->explode(' ')->filter()->map(fn ($part) => Str::substr($part, 0, 1))->take(2)->implode('');
     @endphp
-    <x-card flush>
+    <x-card flush fill>
         <div class="overflow-x-auto scrollbar-thin-light">
-            <table class="w-full min-w-[920px] table-fixed text-left">
-                <colgroup><col class="w-[30%]"><col class="w-[14%]"><col class="w-[31%]"><col class="w-[19%]"><col class="w-[6%]"></colgroup>
+            <table class="w-full min-w-[1040px] table-fixed text-left">
+                <colgroup><col class="w-[26%]"><col class="w-[11%]"><col class="w-[13%]"><col class="w-[26%]"><col class="w-[17%]"><col class="w-[7%]"></colgroup>
                 <thead>
                     <tr class="border-b border-[#E2E4EC] bg-[#F7F8FC]">
                         <x-admin.th class="!pl-5">Landlord</x-admin.th>
-                        <x-admin.th>Owed</x-admin.th>
+                        <x-admin.th align="right">Owed</x-admin.th>
+                        <x-admin.th class="!pl-8">Waiting since</x-admin.th>
                         <x-admin.th>State</x-admin.th>
                         <x-admin.th>Next step</x-admin.th>
                         <x-admin.th><span class="sr-only">Show payments</span></x-admin.th>
@@ -31,6 +34,7 @@
                         $kind = $row['kind'];
                         $failedPayout = $failedByLandlord[$id] ?? null;
                         $count = $row['payments']->count();
+                        $since = $row['payments']->map(fn ($payment) => $payment->released_at ?? $payment->paid_at)->filter()->min();
                         [$label, $tone, $text, $textClass] = match (true) {
                             $kind === 'failed' => ['Payout failed', 'red', 'A failed payout is waiting for you.', 'font-semibold text-[#B91C1C]'],
                             $kind === 'not_approved' => ['GCash not approved', 'amber',
@@ -61,9 +65,17 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-4 py-3.5">
+                            <td class="px-4 py-3.5 text-right">
                                 <p class="text-[13.5px] font-bold tabular-nums text-[#060D26]">₱{{ number_format($row['total'], 2) }}</p>
                                 <p class="text-[12.5px] text-[#5B6A8E]">{{ $count }} {{ Str::plural('payment', $count) }}</p>
+                            </td>
+                            <td class="px-4 py-3.5 !pl-8">
+                                @if ($since)
+                                    <p class="text-[13px] tabular-nums text-[#060D26]">{{ $since->format('M j, Y') }}</p>
+                                    <p class="text-[12.5px] text-[#5B6A8E]">{{ $since->diffForHumans() }}</p>
+                                @else
+                                    <p class="text-[13px] text-[#5B6A8E]">—</p>
+                                @endif
                             </td>
                             <td class="px-4 py-3.5">
                                 <x-admin.status :status="$label" :tone="$tone" />
@@ -101,7 +113,7 @@
                             </td>
                         </tr>
                         <tr x-show="open === {{ $id }}" x-cloak>
-                            <td colspan="5" class="bg-[#F7F8FC] px-5 pb-4 pt-1">
+                            <td colspan="6" class="bg-[#F7F8FC] px-5 pb-4 pt-1">
                                 <div class="flex flex-wrap gap-3.5">
                                     <div class="min-w-[280px] flex-1 basis-72 rounded-xl border border-[#E2E4EC] bg-white p-4">
                                         <p class="text-[11px] font-semibold uppercase tracking-wide text-[#5B6A8E]">GCash account</p>
@@ -161,7 +173,7 @@
                 @endforeach
             </table>
         </div>
-        <div class="flex flex-wrap items-center justify-between gap-2 border-t border-[#E2E4EC] bg-[#F7F8FC] px-5 py-3 text-[12.5px] text-[#5B6A8E]">
+        <div class="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-[#E2E4EC] bg-[#F7F8FC] px-5 py-3 text-[12.5px] text-[#5B6A8E]">
             <span>{{ $pending->count() }} {{ Str::plural('landlord', $pending->count()) }}, biggest amount first</span>
             @unless ($byHand)
                 <span>Sent one yourself? Open a landlord's row and choose <strong class="text-[#060D26]">Record a transfer sent by hand</strong>.</span>

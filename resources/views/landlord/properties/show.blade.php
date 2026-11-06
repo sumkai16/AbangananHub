@@ -457,8 +457,8 @@
                     </div>
                 </div>
 
-                {{-- Two cards across next to the 240px rail (three felt crowded), with room around every part. --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 sm:gap-5" x-show="unitsView === 'grid'">
+                {{-- Smaller cards (Nov 7 2026): two across from tablet, three from xl, four from 2xl, with a 16:10 photo. --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4" x-show="unitsView === 'grid'">
                     @foreach($property->units as $unit)
                         @php
                             $thumb = $unit->media->first();
@@ -478,7 +478,7 @@
                         <article class="group flex flex-col rounded-2xl overflow-hidden bg-white ring-1 ring-[#5B6A8E]/15 hover:shadow-md transition-shadow duration-300">
                             {{-- The photo opens the unit's details, so the whole top half is one big tap target. --}}
                             <button type="button" @click="openUnit({{ $unit->unit_id }})" aria-label="View details of {{ $unit->unit_label }}"
-                                class="relative block w-full aspect-[4/3] overflow-hidden bg-[#ECEEF6] cursor-pointer">
+                                class="relative block w-full aspect-[16/10] overflow-hidden bg-[#ECEEF6] cursor-pointer">
                                 @if($thumb)
                                     <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($thumb->media_url, 'card') }}" alt="" class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out">
                                 @else
@@ -488,37 +488,37 @@
                                         </svg>
                                     </span>
                                 @endif
-                                <span class="absolute top-3 left-3 rounded-full bg-white">
-                                    <span class="inline-flex items-center text-[11.5px] font-semibold px-2.5 py-1 rounded-full ring-1 {{ $avBg }}">{{ $unit->availability_status }}</span>
+                                <span class="absolute top-2.5 left-2.5 rounded-full bg-white">
+                                    <span class="inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full ring-1 {{ $avBg }}">{{ $unit->availability_status }}</span>
                                 </span>
                             </button>
 
-                            <div class="p-4 sm:p-5 flex flex-col gap-3.5 flex-1">
+                            <div class="p-3.5 flex flex-col gap-2.5 flex-1">
                                 <div class="flex items-start justify-between gap-3">
                                     <div class="min-w-0">
-                                        <p class="text-[15px] font-bold leading-snug text-[#060D26] truncate">{{ $unit->unit_label }}</p>
+                                        <p class="text-[14px] font-bold leading-snug text-[#060D26] truncate">{{ $unit->unit_label }}</p>
                                         {{-- Navy, not red: red on a price reads as money owed (DESIGN §6n). --}}
-                                        <p class="mt-1 text-[15px] font-semibold tabular-nums text-[#060D26]">
-                                            ₱{{ number_format($unit->rental_fee, 0) }}<span class="text-[13px] font-normal text-[#5B6A8E]">/mo</span>
+                                        <p class="mt-0.5 text-[14px] font-semibold tabular-nums text-[#060D26]">
+                                            ₱{{ number_format($unit->rental_fee, 0) }}<span class="text-[12.5px] font-normal text-[#5B6A8E]">/mo</span>
                                         </p>
                                     </div>
-                                    <span class="shrink-0 text-[11.5px] font-medium px-2.5 py-1 rounded-full {{ $vrBg }}">{{ $unit->verificationLabel($property->verification_status) }}</span>
+                                    <span class="shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full {{ $vrBg }}">{{ $unit->verificationLabel($property->verification_status) }}</span>
                                 </div>
 
-                                <p class="text-[13px] text-[#5B6A8E] flex items-center gap-1.5">
-                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <p class="text-[12.5px] text-[#5B6A8E] flex items-center gap-1.5">
+                                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0zM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
                                     </svg>
                                     Up to {{ $unit->occupancy_limit }} {{ Str::plural('person', $unit->occupancy_limit) }}
                                 </p>
 
-                                <div class="mt-auto flex items-center gap-2 pt-4 border-t border-[#5B6A8E]/10">
+                                <div class="mt-auto flex items-center gap-1.5 pt-3 border-t border-[#5B6A8E]/10">
                                     <button type="button" @click="openUnit({{ $unit->unit_id }})"
-                                        class="flex-1 h-11 sm:h-10 flex items-center justify-center gap-1.5 rounded-full border border-[#FF8A66] text-[#B35A3D] text-[12.5px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">
+                                        class="flex-1 h-10 sm:h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#FF8A66] text-[#B35A3D] text-[12.5px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">
                                         View details
                                     </button>
                                     <a href="{{ route('landlord.properties.units.edit', [$property, $unit, 'return_to' => 'property']) }}"
-                                       class="h-11 sm:h-10 px-4 flex items-center justify-center gap-1.5 rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-[12.5px] font-medium hover:bg-[#ECEEF6] transition-colors duration-200">
+                                       class="h-10 sm:h-9 px-3 flex items-center justify-center gap-1.5 rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-[12.5px] font-medium hover:bg-[#ECEEF6] transition-colors duration-200">
                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931z"/>
                                         </svg>
@@ -533,7 +533,7 @@
                                         @csrf @method('DELETE')
                                         <input type="hidden" name="return_to" value="property">
                                         <button type="submit" aria-label="Remove {{ $unit->unit_label }}" title="Remove unit"
-                                                class="h-11 w-11 sm:h-10 sm:w-10 flex items-center justify-center rounded-full border border-[#EF4444]/25 text-[#DC2626] hover:bg-[#EF4444]/[0.07] transition-colors duration-200 cursor-pointer">
+                                                class="h-10 w-10 sm:h-9 sm:w-9 flex items-center justify-center rounded-full border border-[#EF4444]/25 text-[#DC2626] hover:bg-[#EF4444]/[0.07] transition-colors duration-200 cursor-pointer">
                                             <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
                                             </svg>

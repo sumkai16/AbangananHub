@@ -23,7 +23,11 @@ function init() {
     ]);
 
     // Drawn while its tab may be hidden, so it measures itself again whenever a tab is shown.
-    window.addEventListener('admin-tab-shown', () => setTimeout(() => map.invalidateSize(), 50));
+    // It also goes back to the pin: a map measured at zero width keeps a centre that is no longer on screen.
+    window.addEventListener('admin-tab-shown', () => setTimeout(() => {
+        map.invalidateSize();
+        map.setView([lat, lng], map.getZoom());
+    }, 50));
 
     const toggle = document.getElementById('admin-property-map-satellite');
     if (toggle) {

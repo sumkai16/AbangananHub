@@ -3,14 +3,12 @@
 @section('page-title', 'Deposit Charges')
 
 @section('content')
-<div class="max-w-[1600px] mx-auto"
+<div class="admin-compact admin-fill"
     x-data="{ voidTarget: { id: null, label: '' }, openVoid(id, label) { this.voidTarget = { id, label }; window.dispatchEvent(new CustomEvent('open-modal', { detail: 'void-deposit-charge' })); } }">
 
-    {{-- Page header --}}
-    <x-page-header icon-path="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" title="Deposit Charges" subtitle="Oversight of landlord claims against a tenant's held security deposit." />
+    <x-admin.header title="Deposit Charges" subtitle="Oversight of landlord claims against a tenant's held security deposit." />
 
-    {{-- Tabs --}}
-    <x-admin.tabs class="mb-4" :tabs="collect(['Active', 'Voided', 'All'])->map(fn ($tab) => [
+    <x-admin.tabs class="mb-3" :tabs="collect(['Active', 'Voided', 'All'])->map(fn ($tab) => [
         'label' => $tab,
         'count' => $counts[$tab] ?? null,
         'href' => route('admin.deposit-charges.index', ['status' => $tab]),
@@ -18,22 +16,30 @@
     ])->all()" />
 
     @if ($charges->isEmpty())
-        <x-card flush><x-admin.empty title="No deposit charges here" /></x-card>
+        @php
+            $empty = [
+                'Active' => ['No active deposit charges', "A landlord's claim against a tenant's deposit shows here."],
+                'Voided' => ['No voided charges', 'Charges you void show here, with the reason.'],
+                'All' => ['No deposit charges yet', "Claims landlords make against a tenant's deposit show here."],
+            ][$status] ?? ['No deposit charges here', null];
+        @endphp
+        <x-card flush fill>
+            <x-empty-state flat fill symbol="banknotes" :title="$empty[0]" :note="$empty[1]">
+                @if ($status !== 'All')
+                    <a href="{{ route('admin.deposit-charges.index', ['status' => 'All']) }}" class="inline-flex h-9 items-center rounded-lg border border-[#E2E4EC] bg-white px-3.5 text-[13px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#F7F8FC]">See all charges</a>
+                @endif
+            </x-empty-state>
+        </x-card>
     @else
-        <x-card flush>
-            <div class="px-6 py-4 border-b border-[#E2E4EC] flex items-center justify-between">
-                <p class="text-[13px] font-semibold text-[#060D26]">
-                    {{ $charges->total() }} {{ Str::plural('charge', $charges->total()) }}
-                </p>
-            </div>
+        <x-card flush fill>
             <div class="overflow-x-auto scrollbar-thin-light">
-                <table class="min-w-full">
+                <table class="w-full min-w-[960px]">
                     <thead>
                         <tr class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
                             <x-admin.th>Tenant</x-admin.th>
-                            <x-admin.th>Property / Unit</x-admin.th>
+                            <x-admin.th class="w-[30%]">Property / Unit</x-admin.th>
                             <x-admin.th>Category</x-admin.th>
-                            <x-admin.th>Amount</x-admin.th>
+                            <x-admin.th align="right">Amount</x-admin.th>
                             <x-admin.th>Charged</x-admin.th>
                             <x-admin.th>Status</x-admin.th>
                             <x-admin.th align="right">Action</x-admin.th>
@@ -46,63 +52,41 @@
                                 $tenant = $reservation?->tenant;
                                 $label = ($tenant ? trim($tenant->first_name.' '.$tenant->last_name) : 'this tenant').' — ₱'.number_format((float) $charge->amount, 2);
                             @endphp
-                            <tr class="hover:bg-[#F7F8FC] transition-all duration-200">
-                                <td class="px-4 py-3">
-                                    <div class="flex items-center gap-3">
-                                        <div>
-                                            <div class="flex items-center gap-1.5">
-                                                <p class="text-[13.5px] font-semibold text-[#060D26]">
-                                                    {{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}
-                                                </p>
-                                                @if ($tenant?->is_walk_in)
-                                                    <span class="inline-flex items-center h-5 px-2 rounded-md border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] text-[#B45309] text-[10px] font-bold"
-                                                        title="Walk-in tenant — identity not verified by AbangananHub">Walk-in</span>
-                                                @endif
-                                            </div>
-                                            <p class="text-[12px] text-[#5B6A8E]">{{ $tenant?->email ?: '—' }}</p>
-                                        </div>
+                            <tr class="hover:bg-[#F7F8FC] transition-colors duration-200">
+                                <td class="px-4 whitespace-nowrap">
+                                    <div class="flex items-center gap-1.5">
+                                        <p class="text-[13px] font-semibold text-[#060D26]">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</p>
+                                        @if ($tenant?->is_walk_in)
+                                            <span class="inline-flex items-center h-5 px-1.5 rounded bg-[#FBBF24]/[0.16] text-[#B45309] text-[11px] font-semibold"
+                                                title="Walk-in tenant — identity not verified by AbangananHub">Walk-in</span>
+                                        @endif
                                     </div>
+                                    <p class="max-w-[240px] truncate text-[12px] leading-4 text-[#5B6A8E]" title="{{ $tenant?->email }}">{{ $tenant?->email ?: '—' }}</p>
                                 </td>
-                                <td class="px-4 py-3">
-                                    <p class="text-[13.5px] text-[#060D26] font-medium">{{ $reservation?->property?->title ?? '—' }}</p>
-                                    <p class="text-[12px] text-[#5B6A8E]">{{ $reservation?->unit?->unit_label ?? '' }}</p>
+                                <td class="max-w-0 px-4">
+                                    <p class="truncate text-[13px] leading-5 text-[#060D26]" title="{{ $reservation?->property?->title }}">{{ $reservation?->property?->title ?? '—' }}</p>
+                                    <p class="truncate text-[12px] leading-4 text-[#5B6A8E]">{{ $reservation?->unit?->unit_label ?? '' }}</p>
                                 </td>
-                                <td class="px-4 py-3 text-[13px] text-[#060D26]">
-                                    {{ $charge->category }}
+                                <td class="px-4">
+                                    <p class="text-[13px] whitespace-nowrap text-[#060D26]">{{ $charge->category }}</p>
                                     @if ($charge->description)
-                                        <p class="text-[12px] text-[#5B6A8E] mt-0.5">{{ Str::limit($charge->description, 40) }}</p>
+                                        <p class="max-w-[220px] truncate text-[12px] leading-4 text-[#5B6A8E]" title="{{ $charge->description }}">{{ $charge->description }}</p>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3">
-                                    <p class="text-[13.5px] font-bold text-[#060D26]">₱{{ number_format((float) $charge->amount, 2) }}</p>
+                                <td class="px-4 text-right text-[13px] font-semibold tabular-nums whitespace-nowrap text-[#060D26]">₱{{ number_format((float) $charge->amount, 2) }}</td>
+                                <td class="px-4 text-[13px] whitespace-nowrap text-[#5B6A8E]">{{ $charge->charged_at?->format('M j, Y') ?? '—' }}</td>
+                                <td class="px-4">
+                                    <x-admin.status :status="$charge->isVoided() ? 'Voided' : 'Active'" />
                                 </td>
-                                <td class="px-4 py-3 text-[13px] text-[#5B6A8E]">
-                                    {{ $charge->charged_at?->format('M d, Y') ?? '—' }}
-                                </td>
-                                <td class="px-4 py-3">
+                                <td class="px-4 text-right">
                                     @if ($charge->isVoided())
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#E2E4EC] text-[11.5px] font-bold text-[#5B6A8E]">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-[#94A3B8]"></span>
-                                            Voided
-                                        </span>
-                                    @else
-                                        <x-admin.status status="Active" />
-                                    @endif
-                                </td>
-                                <td class="px-4 py-3 text-right">
-                                    @if ($charge->isVoided())
-                                        <span class="text-[12px] text-[#5B6A8E]">
-                                            {{ $charge->voidReasonLabel() }} · {{ $charge->voided_at?->format('M d, Y') }}
-                                            @if ($charge->voider)
-                                                <br>by {{ trim($charge->voider->first_name.' '.$charge->voider->last_name) }}
-                                            @endif
-                                        </span>
+                                        <p class="text-[12px] leading-4 text-[#5B6A8E]">{{ $charge->voidReasonLabel() }} · {{ $charge->voided_at?->format('M j, Y') }}</p>
+                                        @if ($charge->voider)
+                                            <p class="text-[12px] leading-4 text-[#5B6A8E]">by {{ trim($charge->voider->first_name.' '.$charge->voider->last_name) }}</p>
+                                        @endif
                                     @else
                                         <button type="button" x-on:click="openVoid({{ $charge->deposit_charge_id }}, @js($label))"
-                                            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-[#E2E4EC] text-[12px] font-semibold text-[#5B6A8E] hover:border-[#EF4444]/40 hover:text-[#DC2626] transition-all duration-200 cursor-pointer">
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
+                                            class="inline-flex h-8 items-center rounded-lg border border-[#E2E4EC] bg-white px-3 text-[12.5px] font-semibold text-[#060D26] transition-colors duration-200 hover:border-[#EF4444]/40 hover:bg-[#EF4444]/[0.06] hover:text-[#DC2626] cursor-pointer">
                                             Void
                                         </button>
                                     @endif
@@ -112,11 +96,13 @@
                     </tbody>
                 </table>
             </div>
-            @if ($charges->hasPages())
-                <div class="px-6 py-4 border-t border-[#E2E4EC]">
-                    {{ $charges->links() }}
-                </div>
-            @endif
+            <div class="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-[#E2E4EC] bg-[#F7F8FC] px-4 py-2.5">
+                @if ($charges->hasPages())
+                    <div class="w-full">{{ $charges->links() }}</div>
+                @else
+                    <p class="text-[13px] text-[#5B6A8E]">Showing <span class="font-semibold tabular-nums text-[#060D26]">{{ $charges->firstItem() }}–{{ $charges->lastItem() }}</span> of <span class="font-semibold tabular-nums text-[#060D26]">{{ number_format($charges->total()) }}</span></p>
+                @endif
+            </div>
         </x-card>
     @endif
 

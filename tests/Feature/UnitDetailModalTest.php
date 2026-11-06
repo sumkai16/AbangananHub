@@ -133,8 +133,9 @@ class UnitDetailModalTest extends TestCase
 
         $html = $this->actingAs($landlord)->get(route('landlord.properties.show', $property))->assertOk()->getContent();
 
-        $this->assertStringContainsString('grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 sm:gap-5', $html);
-        $this->assertStringContainsString('aspect-[4/3]', $html);
+        // Smaller cards (Nov 7 2026): up to four across and a 16:10 photo.
+        $this->assertStringContainsString('grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4', $html);
+        $this->assertStringContainsString('aspect-[16/10]', $html);
         // Red on a price reads as money owed (DESIGN §6n).
         $this->assertDoesNotMatchRegularExpression('/text-\[#DC2626\][^>]*>\s*₱4,500/', $html);
     }

@@ -32,7 +32,6 @@ class AdminDesignPagesTest extends TestCase
             'verifications' => ['admin.verifications.index', ['status' => 'All']],
             'property verifications' => ['admin.listings.approval', ['status' => 'All']],
             'documents' => ['admin.documents.index', ['status' => 'All']],
-            'unit approvals' => ['admin.units.index', ['status' => 'All']],
             'properties' => ['admin.catalogue.properties.index', []],
             'units' => ['admin.catalogue.units.index', []],
             'reservations' => ['admin.reservations.index', []],

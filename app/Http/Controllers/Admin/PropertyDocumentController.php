@@ -24,7 +24,10 @@ class PropertyDocumentController extends Controller
      */
     public function index(Request $request)
     {
-        $status = $request->query('status', 'Pending');
+        $status = $request->query('status', 'All');
+        if (! in_array($status, ['All', 'Pending', 'Requested', 'Verified', 'Rejected'], true)) {
+            $status = 'All';
+        }
 
         $query = PropertyDocument::with([
             'property:property_id,title,landlord_id',
@@ -39,7 +42,15 @@ class PropertyDocumentController extends Controller
             default     => null, // 'All'
         };
 
-        $documents = $query->latest('updated_at')->paginate(15)->withQueryString();
+        // Waiting documents oldest first, so the longest wait is on top. On All they sit above everything else; the rest
+        // is newest first.
+        $waiting = "(property_documents.status = 'Pending' and property_documents.file_path is not null)";
+        $documents = match ($status) {
+            'Pending' => $query->oldest('updated_at'),
+            'All' => $query->orderByRaw("{$waiting} desc")->orderByRaw("case when {$waiting} then property_documents.updated_at end asc")->latest('updated_at'),
+            default => $query->latest('updated_at'),
+        };
+        $documents = $documents->paginate(15)->withQueryString();
 
         $counts = [
             'Pending'   => PropertyDocument::where('status', 'Pending')->whereNotNull('file_path')->count(),

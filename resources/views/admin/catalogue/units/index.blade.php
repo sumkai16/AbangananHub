@@ -25,6 +25,8 @@
     x-data="{
         view: localStorage.getItem('adminUnitsView') || 'table',
         setView(v) { this.view = v; localStorage.setItem('adminUnitsView', v); },
+        rejectTarget: { action: '', label: '' },
+        openReject(action, label) { this.rejectTarget = { action, label }; window.dispatchEvent(new CustomEvent('open-modal', { detail: 'reject-unit' })); },
     }">
 
     <x-page-header title="Units" icon-path="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" :subtitle="'Every unit, in every status. '.$counts['occupancy_rate'].'% occupied.'">
@@ -51,11 +53,29 @@
             $summary[] = ['label' => $label, 'value' => $counts[$key], 'note' => $pct($counts[$key]).$suffix, 'dot' => $dot, 'href' => $cellHref($label), 'active' => $availability === $label];
         }
     @endphp
-    <x-stat-strip :cells="$summary" class="mb-6" />
+    <x-stat-strip :cells="$summary" class="mb-4" />
+
+    {{-- The approval queue lives here now (it was its own page, Unit Approvals). Highlighted while something waits. --}}
+    @php $needs = ($filters['needs'] ?? '') === 'approval'; @endphp
+    @if($counts['needs_approval'] > 0 || $needs)
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl border {{ $counts['needs_approval'] > 0 ? 'border-[#F4D58A] bg-[#FFFBEF]' : 'border-[#E2E4EC] bg-white' }} px-4 py-3">
+            <p class="text-[13.5px] text-[#060D26]">
+                @if($counts['needs_approval'] > 0)
+                    <span class="font-semibold tabular-nums">{{ number_format($counts['needs_approval']) }} {{ Str::plural('unit', $counts['needs_approval']) }}</span> {{ $counts['needs_approval'] === 1 ? 'needs' : 'need' }} your decision.
+                    <span class="text-[#5B6A8E]">{{ $needs ? 'Oldest first.' : 'Units a landlord added or changed after their property was approved.' }}</span>
+                @else
+                    Nothing needs your decision right now.
+                @endif
+            </p>
+            <a href="{{ route('admin.catalogue.units.index', $needs ? array_filter(request()->except(['page', 'needs'])) : array_filter(array_merge(request()->except('page'), ['needs' => 'approval']))) }}"
+                class="inline-flex h-9 items-center rounded-lg {{ $needs ? 'border border-[#E2E4EC] bg-white' : 'bg-[#FF8A66] hover:bg-[#E96F4F]' }} px-3.5 text-[13px] font-semibold text-[#060D26] transition-colors duration-200">{{ $needs ? 'Show all units' : 'Show them' }}</a>
+        </div>
+    @endif
 
     {{-- Search + filters + view toggle --}}
     <form method="GET" action="{{ route('admin.catalogue.units.index') }}" class="mb-6">
         <input type="hidden" name="availability_status" value="{{ $availability }}">
+        @if($needs)<input type="hidden" name="needs" value="approval">@endif
         <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div class="relative min-w-[200px] flex-1">
                 <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" /></svg>
@@ -74,7 +94,7 @@
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" /></svg>
                     Filter
                 </button>
-                @if($search || ($filters['verification_status'] ?? '') || ($filters['health'] ?? '') || (($filters['sort'] ?? 'newest') !== 'newest') || $availability)
+                @if($search || $needs || ($filters['verification_status'] ?? '') || ($filters['health'] ?? '') || (($filters['sort'] ?? 'newest') !== 'newest') || $availability)
                     <a href="{{ route('admin.catalogue.units.index') }}" class="inline-flex h-11 items-center gap-1.5 rounded-xl border border-[#5B6A8E]/25 px-4 text-[13.5px] text-[#5B6A8E] transition-colors duration-200 hover:bg-[#ECEEF6] hover:text-[#060D26]">
                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
                         Clear
@@ -94,8 +114,8 @@
 
     @if($units->isEmpty())
         <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#5B6A8E]/30 bg-white py-16 text-center">
-            <p class="text-sm font-semibold text-[#060D26]">No units found</p>
-            <p class="mt-1 text-xs text-[#5B6A8E]">Try adjusting your search or filters.</p>
+            <p class="text-sm font-semibold text-[#060D26]">{{ $needs ? 'No units need a decision' : 'No units found' }}</p>
+            <p class="mt-1 text-xs text-[#5B6A8E]">{{ $needs ? 'Units a landlord adds or changes after approval show here.' : 'Try adjusting your search or filters.' }}</p>
         </div>
     @else
         @php
@@ -120,7 +140,10 @@
                 if ($tenantName && ! collect($payload['facts'])->contains(fn ($row) => $row[0] === 'Tenant')) {
                     array_unshift($payload['facts'], ['Tenant', $tenantName]);
                 }
-                $derived[$unit->unit_id] = compact('thumb', 'avBg', 'tenant', 'tenantName', 'href', 'payload');
+                // Needs its own decision: Pending, on an approved property.
+                $actionable = $unit->verification_status === 'Pending' && ($unit->property->verification_status ?? null) === 'Approved';
+                $decisionLabel = $unit->unit_label.' in '.($unit->property->title ?? 'this property');
+                $derived[$unit->unit_id] = compact('thumb', 'avBg', 'tenant', 'tenantName', 'href', 'payload', 'actionable', 'decisionLabel');
             }
         @endphp
 
@@ -161,6 +184,17 @@
                             <span class="mx-1.5 text-[#5B6A8E]/50">·</span>Fits {{ $unit->occupancy_limit }}
                             @if($tenantName)<span class="mt-0.5 block truncate text-[12px]">Tenant: {{ $tenantName }}</span>@endif
                         </p>
+                        @if($actionable)
+                            <div class="flex items-center gap-1.5" x-on:click.stop x-on:keydown.stop>
+                                <form method="POST" action="{{ route('admin.units.approve', [$unit->property_id, $unit->unit_id]) }}"
+                                    data-confirm="Approve this unit?" data-confirm-message="It can be booked by tenants and the landlord is told. Check the photos first." data-confirm-button="Approve unit">
+                                    @csrf
+                                    <button type="submit" class="inline-flex h-8 cursor-pointer items-center rounded-lg bg-[#15803D] px-2.5 text-[12.5px] font-semibold text-white transition-all duration-200 hover:brightness-95">Approve</button>
+                                </form>
+                                <button type="button" x-on:click="openReject(@js(route('admin.units.reject', [$unit->property_id, $unit->unit_id])), @js($decisionLabel))"
+                                    class="inline-flex h-8 cursor-pointer items-center rounded-lg border border-[#EF4444]/30 px-2.5 text-[12.5px] font-semibold text-[#DC2626] transition-colors duration-200 hover:bg-[#EF4444]/[0.06]">Reject</button>
+                            </div>
+                        @endif
                     </div>
                 </div>
             @endforeach
@@ -184,10 +218,10 @@
                         <div class="overflow-x-auto">
                             {{-- Fixed layout and shared widths: every property has its own table, and automatic widths made the
                                  columns drift from one table to the next. --}}
-                            <table class="w-full min-w-[980px] text-left" style="table-layout: fixed">
+                            <table class="w-full min-w-[1060px] text-left" style="table-layout: fixed">
                                 <colgroup>
-                                    <col style="width: 27%"><col style="width: 13%"><col style="width: 12%"><col style="width: 13%">
-                                    <col style="width: 17%"><col style="width: 12%"><col style="width: 6%">
+                                    <col style="width: 24%"><col style="width: 10%"><col style="width: 11%"><col style="width: 12%">
+                                    <col style="width: 14%"><col style="width: 10%"><col style="width: 19%">
                                 </colgroup>
                                 <thead>
                                     <tr class="border-b border-[#E2E4EC]">
@@ -244,6 +278,15 @@
                                             <td class="px-4 py-3.5"><p class="whitespace-nowrap text-[13px] font-medium text-[#060D26]">{{ $unit->updated_at->format('M d, Y') }}</p><p class="text-[11px] text-[#5B6A8E]">{{ $unit->updated_at->format('h:i A') }}</p></td>
                                             <td class="px-5 py-3.5">
                                                 <div class="flex items-center justify-end gap-1.5">
+                                                    @if($actionable)
+                                                        <form method="POST" action="{{ route('admin.units.approve', [$unit->property_id, $unit->unit_id]) }}"
+                                                            data-confirm="Approve this unit?" data-confirm-message="It can be booked by tenants and the landlord is told. Check the photos first." data-confirm-button="Approve unit">
+                                                            @csrf
+                                                            <button type="submit" class="inline-flex h-8 cursor-pointer items-center rounded-lg bg-[#15803D] px-2.5 text-[12.5px] font-semibold text-white transition-all duration-200 hover:brightness-95">Approve</button>
+                                                        </form>
+                                                        <button type="button" x-on:click="openReject(@js(route('admin.units.reject', [$unit->property_id, $unit->unit_id])), @js($decisionLabel))"
+                                                            class="inline-flex h-8 cursor-pointer items-center rounded-lg border border-[#EF4444]/30 px-2.5 text-[12.5px] font-semibold text-[#DC2626] transition-colors duration-200 hover:bg-[#EF4444]/[0.06]">Reject</button>
+                                                    @endif
                                                     <button type="button" x-on:click="$dispatch('open-unit-detail', @js($payload))" data-view-unit aria-label="View unit" title="View unit"
                                                         class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-[#5B6A8E]/25 text-[#060D26] transition-colors duration-200 hover:border-[#FF8A66] hover:bg-[#ECEEF6] hover:text-[#B35A3D]">
                                                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
@@ -268,6 +311,23 @@
             @endif
         </div>
     @endif
+
+    {{-- One reason dialog for every Reject button; the landlord sees the reason. --}}
+    <x-modal name="reject-unit" focusable>
+        <form method="POST" x-bind:action="rejectTarget.action" class="p-6">
+            @csrf
+            <h2 class="text-[15px] font-bold text-[#060D26]">Reject unit</h2>
+            <p class="mt-1 text-[13px] text-[#5B6A8E]"><span x-text="rejectTarget.label"></span> will be rejected and the landlord notified with your reason below.</p>
+            <label for="reject_unit_reason" class="mb-1.5 mt-4 block text-[11px] font-bold uppercase tracking-wider text-[#5B6A8E]">Reason for rejection</label>
+            <textarea name="rejection_reason" id="reject_unit_reason" rows="4" required maxlength="500"
+                class="w-full resize-none rounded-lg border border-[#E2E4EC] px-3 py-2.5 text-[13px] text-[#060D26] transition-all focus:border-[#FF8A66] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20"
+                placeholder="Explain what needs to change. The landlord will see this and can resubmit."></textarea>
+            <div class="mt-4 flex justify-end gap-2">
+                <button type="button" x-on:click="show = false" class="h-10 rounded-lg border border-[#E2E4EC] px-4 text-[13px] font-semibold text-[#5B6A8E] transition-colors hover:text-[#060D26]">Cancel</button>
+                <button type="submit" class="h-10 rounded-lg bg-[#EF4444] px-4 text-[13px] font-bold text-white transition-all hover:brightness-95">Confirm rejection</button>
+            </div>
+        </form>
+    </x-modal>
 
     {{-- One popup for every card and row; each dispatches `open-unit-detail`. Same as the landlord's Units page. --}}
     @include('landlord.units.partials._detail-modal', ['primaryLabel' => 'Review unit'])

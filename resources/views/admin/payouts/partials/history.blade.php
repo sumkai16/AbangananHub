@@ -1,14 +1,14 @@
 {{-- The latest payouts with one status: still with PayMongo, failed, or sent. --}}
-<x-card flush>
+<x-card flush fill>
     @if ($rows->isEmpty())
-        <x-admin.empty compact :title="$empty" />
+        <x-empty-state flat fill symbol="wallet" :title="$empty[0]" :note="$empty[1]" />
     @else
         <div class="overflow-x-auto scrollbar-thin-light">
-            <table class="min-w-full">
+            <table class="w-full min-w-[820px]">
                 <thead>
                     <tr class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
-                        <x-admin.th>Landlord</x-admin.th>
-                        <x-admin.th>Amount</x-admin.th>
+                        <x-admin.th class="w-[26%]">Landlord</x-admin.th>
+                        <x-admin.th align="right">Amount</x-admin.th>
                         <x-admin.th>Status</x-admin.th>
                         <x-admin.th>Reference</x-admin.th>
                         <x-admin.th>Sent</x-admin.th>
@@ -20,7 +20,7 @@
                         @php $landlord = $payout->landlord; @endphp
                         <tr class="hover:bg-[#F7F8FC] transition-colors duration-200 align-top">
                             <td class="px-4 py-2.5 text-[13px] text-[#060D26]">{{ $landlord ? trim($landlord->first_name.' '.$landlord->last_name) : '—' }}</td>
-                            <td class="px-4 py-2.5 text-[13px] font-semibold text-[#060D26]">
+                            <td class="px-4 py-2.5 text-right text-[13px] font-semibold tabular-nums text-[#060D26]">
                                 ₱{{ number_format($payout->amount, 2) }}
                                 <span class="block text-[11px] font-normal text-[#5B6A8E]">{{ $payout->payments_count }} {{ Str::plural('payment', $payout->payments_count) }}</span>
                             </td>
@@ -43,6 +43,6 @@
                 </tbody>
             </table>
         </div>
-        <p class="border-t border-[#E2E4EC] bg-[#F7F8FC] px-5 py-3 text-[12.5px] text-[#5B6A8E]">The latest 30 payouts across all statuses.</p>
+        <p class="mt-auto border-t border-[#E2E4EC] bg-[#F7F8FC] px-5 py-3 text-[12.5px] text-[#5B6A8E]">The latest 30 payouts across all statuses.</p>
     @endif
 </x-card>

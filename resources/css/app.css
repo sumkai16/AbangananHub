@@ -488,6 +488,18 @@ html.dark :where([type="checkbox"], [type="radio"]) { background-color: #1A2448;
 .admin-compact .card-pad { padding: 1rem; }
 .admin-compact td { padding-top: 0.4375rem; padding-bottom: 0.4375rem; }
 .admin-compact th { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+/* Fit-the-screen admin pages (the review desks): like admin-fill, but from lg up the page is exactly one screen tall
+   and never scrolls. Its queue and its detail pane scroll inside their own cards, and the decision bar stays at the
+   foot of the detail card. Below lg the desk stacks and the page scrolls as normal. */
+.admin-fit { display: flex; flex-direction: column; width: 100%; min-height: calc(100dvh - 2rem - 3.85rem); }
+@media (min-width: 640px) { .admin-fit { min-height: calc(100dvh - 3rem - 3.85rem); } }
+@media (min-width: 1024px) { .admin-fit { height: calc(100dvh - 4rem); min-height: 0; overflow: hidden; } }
+/* Full-height admin pages. Opt-in with `admin-fill` on the page container: it becomes a flex column at least as tall as
+   the screen (main's padding and the mobile top bar taken off), so an `<x-card fill>` grows to the bottom and an empty
+   state centres in the free space. */
+.admin-fill { display: flex; flex-direction: column; width: 100%; min-height: calc(100dvh - 2rem - 3.85rem); }
+@media (min-width: 640px) { .admin-fill { min-height: calc(100dvh - 3rem - 3.85rem); } }
+@media (min-width: 1024px) { .admin-fill { min-height: calc(100dvh - 4rem); } }
 .admin-compact .stat-strip-cell { padding: 0.625rem 1rem; }
 .admin-compact .stat-strip-cell .ss-label { font-size: 12px; font-weight: 500; }
 .admin-compact .stat-strip-cell .ss-value { margin-top: 0.125rem; font-size: 20px; line-height: 1.5rem; }

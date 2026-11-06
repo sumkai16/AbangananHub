@@ -12,7 +12,7 @@
 @endphp
     <div class="admin-compact max-w-[1600px] mx-auto">
 
-        <x-back-link href="{{ route('admin.units.index') }}" to="unit approvals" class="mb-2" />
+        <x-back-link href="{{ route('admin.catalogue.units.index') }}" to="units" class="mb-2" />
 
         <x-admin.header :title="$unit->unit_label" :subtitle="$property->title.($property->address ? ' · '.$property->address : '')">
             <x-slot:badge>
