@@ -3,18 +3,21 @@
 @section('page-title', 'Payments')
 
 @section('content')
-<div class="max-w-[1600px] mx-auto">
+<div class="admin-compact max-w-[1600px] mx-auto">
 
-    <x-page-header title="Payments" subtitle="Online money held until move-in, and payments landlords recorded." />
+    <x-admin.header title="Payments" subtitle="Online money held until move-in, and payments landlords recorded." />
+
+    {{-- A tab already names the status, so the column only shows on All. --}}
+    @php $showStatus = $status === 'All'; @endphp
 
     {{-- Pesos only: the tabs below carry the counts. --}}
-    <x-stat-strip class="mb-5" :cells="[
+    <x-stat-strip class="mb-3" :cells="[
         ['label' => 'Held', 'value' => '₱'.number_format($sums['Held'], 2), 'note' => 'Waiting for move-in'],
         ['label' => 'Released', 'value' => '₱'.number_format($sums['Released'], 2), 'note' => 'Sent on to landlords'],
         ['label' => 'Recorded', 'value' => '₱'.number_format($sums['Paid'], 2), 'note' => 'Offline, reported by landlords'],
     ]" />
 
-    <x-admin.tabs class="mb-4" :tabs="collect(['Held', 'Released', 'Paid' => 'Recorded', 'Pending' => 'Processing', 'Voided', 'Refunded', 'All'])->map(function ($label, $key) use ($counts, $status) {
+    <x-admin.tabs class="mb-3" :tabs="collect(['Held', 'Released', 'Paid' => 'Recorded', 'Pending' => 'Processing', 'Voided', 'Refunded', 'All'])->map(function ($label, $key) use ($counts, $status) {
         $tab = is_int($key) ? $label : $key;
 
         return ['label' => $label, 'count' => $counts[$tab], 'href' => route('admin.payments.index', ['status' => $tab]), 'active' => $status === $tab];
@@ -34,7 +37,7 @@
                             <x-admin.th align="right">Amount</x-admin.th>
                             <x-admin.th>Paid by</x-admin.th>
                             <x-admin.th>Date</x-admin.th>
-                            <x-admin.th>Status</x-admin.th>
+                            @if($showStatus)<x-admin.th>Status</x-admin.th>@endif
                             <x-admin.th align="right">Action</x-admin.th>
                         </tr>
                     </thead>
@@ -45,40 +48,42 @@
                                 $payLandlord = $payment->reservation?->property?->landlord;
                             @endphp
                             <tr class="hover:bg-[#F7F8FC] transition-colors duration-200">
-                                <td class="px-4 py-3">
+                                <td class="px-4">
                                     <div class="flex items-center gap-1.5">
                                         @if ($payment->reservation)
-                                            <a href="{{ route('admin.reservations.show', $payment->reservation) }}" class="text-[13.5px] font-semibold text-[#060D26] underline-offset-2 hover:underline">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</a>
+                                            <a href="{{ route('admin.reservations.show', $payment->reservation) }}" class="text-[13px] font-semibold text-[#060D26] underline-offset-2 hover:underline">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</a>
                                         @else
-                                            <p class="text-[13.5px] font-semibold text-[#060D26]">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</p>
+                                            <p class="text-[13px] font-semibold text-[#060D26]">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</p>
                                         @endif
                                         @if ($tenant?->is_walk_in)
                                             <span class="inline-flex items-center h-5 px-1.5 rounded bg-[#FBBF24]/[0.16] text-[#B45309] text-[11px] font-semibold"
                                                 title="Walk-in tenant — identity not verified by AbangananHub">Walk-in</span>
                                         @endif
                                     </div>
-                                    <p class="text-[12.5px] text-[#5B6A8E]">{{ $tenant?->email ?: '—' }}</p>
+                                    <p class="text-[12px] leading-4 text-[#5B6A8E]">{{ $tenant?->email ?: '—' }}</p>
                                 </td>
-                                <td class="px-4 py-3">
-                                    <p class="text-[13.5px] text-[#060D26]">{{ $payment->reservation?->property?->title ?? '—' }}</p>
-                                    <p class="text-[12.5px] text-[#5B6A8E]">{{ $payment->reservation?->unit?->unit_label ?? '' }}</p>
+                                <td class="px-4">
+                                    <p class="max-w-[300px] truncate text-[13px] leading-5 text-[#060D26]" title="{{ $payment->reservation?->property?->title }}">{{ $payment->reservation?->property?->title ?? '—' }}</p>
+                                    <p class="text-[12px] leading-4 text-[#5B6A8E]">{{ $payment->reservation?->unit?->unit_label ?? '' }}</p>
                                 </td>
-                                <td class="px-4 py-3 text-[13.5px] whitespace-nowrap text-[#060D26]">{{ $payLandlord ? trim($payLandlord->first_name.' '.$payLandlord->last_name) : '—' }}</td>
-                                <td class="px-4 py-3 text-right">
-                                    <p class="text-[13.5px] font-semibold tabular-nums whitespace-nowrap text-[#060D26]">₱{{ number_format($payment->amount, 2) }}</p>
-                                    <p class="text-[12.5px] text-[#5B6A8E]">{{ $payment->payment_type }}</p>
+                                <td class="px-4 text-[13px] whitespace-nowrap text-[#060D26]">{{ $payLandlord ? trim($payLandlord->first_name.' '.$payLandlord->last_name) : '—' }}</td>
+                                <td class="px-4 text-right">
+                                    <p class="text-[13px] font-semibold tabular-nums whitespace-nowrap text-[#060D26]">₱{{ number_format($payment->amount, 2) }}</p>
+                                    <p class="text-[12px] leading-4 text-[#5B6A8E]">{{ $payment->payment_type }}</p>
                                 </td>
-                                <td class="px-4 py-3">
-                                    <p class="text-[13.5px] text-[#060D26]">{{ $payment->payment_method ?: '—' }}</p>
-                                    @if ($payment->reference_no)<p class="max-w-[10rem] truncate text-[12.5px] text-[#5B6A8E]" title="{{ $payment->reference_no }}">{{ $payment->reference_no }}</p>@endif
+                                <td class="px-4">
+                                    <p class="text-[13px] text-[#060D26]">{{ $payment->payment_method ?: '—' }}</p>
+                                    @if ($payment->reference_no)<p class="max-w-[10rem] truncate text-[12px] leading-4 text-[#5B6A8E]" title="{{ $payment->reference_no }}">{{ $payment->reference_no }}</p>@endif
                                 </td>
-                                <td class="px-4 py-3 text-[13px] whitespace-nowrap text-[#5B6A8E]">
+                                <td class="px-4 text-[13px] whitespace-nowrap text-[#5B6A8E]">
                                     {{ ($payment->paid_at ?? $payment->created_at)?->format('M j, Y') ?? '—' }}
                                 </td>
-                                <td class="px-4 py-3">
-                                    <x-admin.status :status="$payment->status" :label="['Paid' => 'Recorded', 'Pending' => 'Processing'][$payment->status] ?? $payment->status" />
-                                </td>
-                                <td class="px-4 py-3 text-right">
+                                @if($showStatus)
+                                    <td class="px-4">
+                                        <x-admin.status :status="$payment->status" :label="['Paid' => 'Recorded', 'Pending' => 'Processing'][$payment->status] ?? $payment->status" />
+                                    </td>
+                                @endif
+                                <td class="px-4 text-right">
                                     @if ($payment->status === 'Held')
                                         @php
                                             $group = $heldGroups[$payment->payment_id] ?? collect([$payment]);
@@ -92,10 +97,10 @@
                                                 'rows' => $quote['rows'],
                                             ];
                                         @endphp
-                                        <div class="flex flex-wrap items-center justify-end gap-2">
+                                        <div class="flex items-center justify-end gap-1">
                                         @if ($payment->recorded_by === null && $quote['paymongo_payment_id'])
                                             <button type="button" @click="$dispatch('open-refund-payment', {{ \Illuminate\Support\Js::from($refundDetail) }})"
-                                                class="inline-flex h-9 items-center rounded-lg border border-[#EF4444]/30 px-3 text-[12.5px] font-semibold text-[#DC2626] hover:bg-[#EF4444]/[0.06] transition-all duration-200 cursor-pointer">
+                                                class="inline-flex h-8 items-center rounded-lg px-2 text-[12.5px] font-semibold text-[#DC2626] hover:bg-[#EF4444]/[0.06] transition-colors duration-200 cursor-pointer">
                                                 Refund tenant
                                             </button>
                                         @endif
@@ -106,7 +111,7 @@
                                             data-confirm-button="Release payment">
                                             @csrf
                                             <button type="submit"
-                                                class="inline-flex h-9 items-center rounded-lg bg-[#FF8A66] px-3 text-[12.5px] font-semibold text-[#060D26] hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
+                                                class="inline-flex h-8 items-center rounded-lg border border-[#E2E4EC] bg-white px-3 text-[12.5px] font-semibold text-[#060D26] hover:border-[#FF8A66] hover:bg-[#FF8A66]/[0.08] transition-colors duration-200 cursor-pointer">
                                                 Release
                                             </button>
                                         </form>
@@ -150,9 +155,12 @@
                     </tbody>
                 </table>
             </div>
-            <div class="flex flex-wrap items-center justify-between gap-2 border-t border-[#E2E4EC] px-4 py-3">
-                <p class="text-[13px] text-[#5B6A8E]">Showing <span class="font-semibold tabular-nums text-[#060D26]">{{ $payments->firstItem() }}–{{ $payments->lastItem() }}</span> of <span class="font-semibold tabular-nums text-[#060D26]">{{ number_format($payments->total()) }}</span></p>
-                @if ($payments->hasPages()){{ $payments->links() }}@endif
+            <div class="flex flex-wrap items-center justify-between gap-2 border-t border-[#E2E4EC] px-4 py-2">
+                @if ($payments->hasPages())
+                    <div class="w-full">{{ $payments->links() }}</div>
+                @else
+                    <p class="text-[13px] text-[#5B6A8E]">Showing <span class="font-semibold tabular-nums text-[#060D26]">{{ $payments->firstItem() }}–{{ $payments->lastItem() }}</span> of <span class="font-semibold tabular-nums text-[#060D26]">{{ number_format($payments->total()) }}</span></p>
+                @endif
             </div>
         </x-card>
     @endif

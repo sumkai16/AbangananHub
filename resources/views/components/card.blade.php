@@ -9,7 +9,7 @@
 --}}
 <div {{ $attributes->class([
     'bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)]',
-    'p-5 sm:p-6' => ! $flush,
+    'card-pad p-5 sm:p-6' => ! $flush,
     'overflow-hidden' => $flush,
 ]) }}>
     {{ $slot }}

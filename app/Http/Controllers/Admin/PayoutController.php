@@ -24,7 +24,7 @@ class PayoutController extends Controller
 {
     public function index()
     {
-        $pending = Payment::with(['reservation.property.landlord.payoutAccount'])
+        $pending = Payment::with(['reservation.tenant', 'reservation.property.landlord.payoutAccount'])
             ->pendingPayout()
             ->get()
             ->groupBy(fn (Payment $payment) => $payment->reservation?->property?->landlord_id)

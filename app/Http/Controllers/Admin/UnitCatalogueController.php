@@ -78,7 +78,8 @@ class UnitCatalogueController extends Controller
                 $query->orderBy('vacated_at', 'asc');
                 break;
             default:
-                $query->latest();
+                // The admin's work queue first: units waiting for a decision, then everything else, newest in each.
+                $query->orderByRaw("CASE WHEN verification_status = 'Pending' THEN 0 ELSE 1 END")->latest();
         }
 
         return $query;
@@ -90,8 +91,10 @@ class UnitCatalogueController extends Controller
             ->with([
                 'property:property_id,title,landlord_id',
                 'property.landlord:user_id,first_name,last_name',
-                'media' => fn ($q) => $q->where('media_type', 'Image')->orderBy('media_id')->limit(1),
-                'activeReservation.tenant:user_id,first_name,last_name',
+                'property.media' => fn ($q) => $q->where('media_type', 'Image')->orderBy('media_id'),
+                'media' => fn ($q) => $q->where('media_type', 'Image')->orderBy('media_id'),
+                'amenities',
+                'activeReservation.tenant:user_id,first_name,last_name,profile_picture,contact_number',
             ])
             ->paginate(15)
             ->withQueryString();

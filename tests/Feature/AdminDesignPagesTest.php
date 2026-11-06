@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Conversation;
 use App\Models\LandlordVerification;
+use App\Models\Payment;
 use App\Models\Report;
 use App\Models\Reservation;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -128,6 +129,65 @@ class AdminDesignPagesTest extends TestCase
             ->assertSee(route('admin.listings.reject', $property->property_id), false);
     }
 
+    public function test_the_property_page_scores_a_listing_and_names_what_is_missing(): void
+    {
+        $property = $this->makeProperty($this->makeLandlord(), ['verification_status' => 'Pending']);
+
+        $html = $this->actingAs($this->makeUserWithRole('Admin'))
+            ->get(route('admin.catalogue.properties.show', $property))->assertOk()->getContent();
+
+        // A new listing has no photos, no documents and an unverified landlord: it can still be decided, with the gaps named.
+        $this->assertMatchesRegularExpression('/\d of 5 checks pass\./', $html);
+        $this->assertStringContainsString('Missing: photos', $html);
+        $this->assertStringContainsString('You can still decide.', $html);
+        $this->assertStringContainsString('id="admin-property-map"', $html);
+        $this->assertStringContainsString('data-pinned="1"', $html);
+        $this->assertStringContainsString(route('admin.listings.approve', $property->property_id), $html);
+    }
+
+    public function test_a_listing_that_was_never_pinned_says_so_and_shows_no_pin(): void
+    {
+        $property = $this->makeProperty($this->makeLandlord(), ['latitude' => 10.3157, 'longitude' => 123.8854]);
+
+        $this->actingAs($this->makeUserWithRole('Admin'))
+            ->get(route('admin.catalogue.properties.show', $property))->assertOk()
+            ->assertSee('Never pinned', false)
+            ->assertSee('data-pinned="0"', false)
+            ->assertDontSee('Open in Google Maps');
+    }
+
+    public function test_a_unit_on_the_admin_units_list_opens_the_popup_with_admin_links(): void
+    {
+        $t = $this->makeTenancy(['rental_status' => 'Occupied']);
+        $property = $t['reservation']->property;
+        $unit = $t['reservation']->unit;
+
+        $html = $this->actingAs($this->makeUserWithRole('Admin'))
+            ->get(route('admin.catalogue.units.index', ['search' => $unit->unit_label]))->assertOk()->getContent();
+
+        $this->assertStringContainsString('open-unit-detail', $html);
+        $this->assertStringContainsString('Review unit', $html);
+        // The popup's two buttons point at the admin pages, never the landlord's. @js writes slashes as \\\/ (escaped twice).
+        $inJs = fn (string $url) => str_replace('/', '\\\\\\/', $url);
+        $this->assertStringContainsString($inJs(route('admin.units.show', [$property, $unit])), $html);
+        $this->assertStringContainsString($inJs(route('admin.catalogue.properties.show', $property)), $html);
+        $this->assertStringNotContainsString($inJs(route('landlord.properties.show', $property)), $html);
+    }
+
+    public function test_units_waiting_for_a_decision_come_first_by_default(): void
+    {
+        $t = $this->makeTenancy(['rental_status' => 'Occupied']);
+        $property = $t['reservation']->property;
+        $waiting = $this->makeUnit($property, ['unit_label' => 'Waiting Room', 'verification_status' => 'Pending', 'created_at' => now()->subYear()]);
+        $newer = $this->makeUnit($property, ['unit_label' => 'Newer Room', 'verification_status' => 'Approved', 'created_at' => now()]);
+
+        $units = $this->actingAs($this->makeUserWithRole('Admin'))
+            ->get(route('admin.catalogue.units.index', ['search' => $property->title]))->assertOk()->viewData('units')->pluck('unit_id');
+
+        // The pending unit is a year older, yet it leads.
+        $this->assertLessThan($units->search($newer->unit_id), $units->search($waiting->unit_id));
+    }
+
     public function test_payment_rows_link_to_their_reservation(): void
     {
         $t = $this->makeTenancy(['rental_status' => 'Occupied']);
@@ -203,7 +263,7 @@ class AdminDesignPagesTest extends TestCase
 
         $this->assertSame(Reservation::count(), $ledger['total']);
         $this->assertSame(100, array_sum(array_column($ledger['rows'], 'share')));
-        $response->assertSee('Quick actions')->assertSee('Review landlords')->assertSee('Manage users')->assertSee('In progress');
+        $response->assertSee('In progress')->assertSee('Needs you')->assertDontSee('Quick actions');
     }
 
     public function test_the_page_titles_match_the_sidebar(): void
@@ -252,6 +312,33 @@ class AdminDesignPagesTest extends TestCase
         $this->blade('<x-admin.status status="Rejected" />')->assertSee('text-[#DC2626]', false);
         $this->blade('<x-admin.status status="Whatever" />')->assertSee('text-[#5B6A8E]', false);
         $this->blade('<x-admin.status status="Refund issued" tone="red" />')->assertSee('text-[#DC2626]', false);
+    }
+
+    public function test_the_payouts_page_lists_a_landlord_who_is_owed_money(): void
+    {
+        // The page used to crash here: each owed payment shows its tenant, and the tenant was not loaded with it.
+        $t = $this->makeTenancy(['rental_status' => 'Occupied']);
+        $payment = $this->makePayment($t['reservation'], ['status' => 'Released', 'amount' => 5000]);
+        Payment::whereKey($payment->getKey())->update(['payout_owed_at' => now(), 'payout_id' => null]);
+
+        $this->actingAs($this->makeUserWithRole('Admin'))->get(route('admin.payouts.index'))
+            ->assertOk()
+            ->assertSee(trim($t['tenant']->first_name.' '.$t['tenant']->last_name));
+    }
+
+    public function test_the_sidebar_has_one_users_entry_that_stays_lit_under_any_role_filter(): void
+    {
+        $admin = $this->makeUserWithRole('Admin');
+
+        foreach ([[], ['role' => 'Landlord'], ['role' => 'Tenant']] as $query) {
+            $html = $this->actingAs($admin)->get(route('admin.users.index', $query))->assertOk()->getContent();
+            $nav = substr($html, strpos($html, '<nav'), strpos($html, '</nav>') - strpos($html, '<nav'));
+
+            $this->assertSame(1, substr_count($nav, route('admin.users.index').'"'), 'One Users link, no per-role links.');
+            $this->assertStringNotContainsString('role=Landlord', $nav);
+            $this->assertStringNotContainsString('role=Tenant', $nav);
+            $this->assertMatchesRegularExpression('/href="'.preg_quote(route('admin.users.index'), '/').'"\s+aria-current="page"/', $nav);
+        }
     }
 
     public function test_the_users_page_filters_by_role_and_status_and_shows_what_needs_attention(): void

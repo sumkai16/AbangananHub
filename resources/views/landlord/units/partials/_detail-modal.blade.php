@@ -8,6 +8,8 @@
 
     Teleported to <body> so an ancestor's backdrop-blur or transform can never trap the fixed overlay.
     Options: $showPropertyLink (default true) hides "View property" where the page already is that property.
+    $primaryLabel (default "Edit unit") names the orange button, which opens the payload's `edit_url`. The admin page
+    points both URLs at its own pages and adds `verification` to the payload, which shows as a second chip.
 --}}
 <div x-data="{
         modal: null,
@@ -84,6 +86,7 @@
                             <span class="w-1.5 h-1.5 rounded-full" :class="modal.styles.dot"></span>
                             <span x-text="modal.status"></span>
                         </span>
+                        <span x-show="modal.verification" x-cloak class="shrink-0 inline-flex items-center rounded-full bg-[#ECEEF6] px-2.5 py-1 text-[12px] font-semibold text-[#060D26]" x-text="modal.verification"></span>
                     </div>
 
                     <p class="flex items-baseline gap-1.5">
@@ -127,7 +130,7 @@
                         @endif
                         <a :href="modal.edit_url"
                             class="flex-1 h-11 inline-flex items-center justify-center rounded-full bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] transition-colors duration-200">
-                            Edit unit
+                            {{ $primaryLabel ?? 'Edit unit' }}
                         </a>
                     </div>
                 </div>

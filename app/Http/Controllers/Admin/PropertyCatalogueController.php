@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Property;
+use App\Models\LandlordVerification;
 use App\Models\PropertyActivity;
 use App\Support\Csv;
 use Illuminate\Http\Request;
@@ -133,7 +134,8 @@ class PropertyCatalogueController extends Controller
             'units' => fn ($q) => $q->orderBy('unit_label'),
             'units.media' => fn ($q) => $q->where('media_type', 'Image')->orderBy('media_id')->limit(1),
             'reservations.tenant:user_id,first_name,last_name',
-            'reviews' => fn ($q) => $q->where('is_hidden', false),
+            'reviews' => fn ($q) => $q->where('is_hidden', false)->latest(),
+            'reviews.tenant:user_id,first_name,last_name',
             'documents.verifier:user_id,first_name,last_name',
         ]);
 
@@ -143,7 +145,10 @@ class PropertyCatalogueController extends Controller
         $activities = PropertyActivity::where('property_id', $property->property_id)
             ->orderByDesc('created_at')->orderByDesc('activity_id')->limit(10)->get();
 
-        return view('admin.catalogue.properties.show', compact('property', 'activities', 'activityTotal'));
+        // The landlord check on the readiness list: has an admin approved this landlord's application?
+        $landlordVerified = LandlordVerification::where('user_id', $property->landlord_id)->where('verification_status', 'Approved')->exists();
+
+        return view('admin.catalogue.properties.show', compact('property', 'activities', 'activityTotal', 'landlordVerified'));
     }
 
     public function export(Request $request)

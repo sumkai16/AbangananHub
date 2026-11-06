@@ -481,3 +481,14 @@ html.dark :where([type="checkbox"], [type="radio"]) { background-color: #1A2448;
 .lease-field::after { content: "]"; opacity: .5; }
 .ProseMirror-selectednode.lease-field { outline: 2px solid #FF8A66; }
 @media print { .lease-prose h3 { break-after: avoid; } }
+
+/* Compact admin pages (DESIGN.md §40). Opt-in per page with `admin-compact` on its container, so the shared x-card,
+   x-stat-strip and table cells keep their size everywhere else. */
+.admin-compact .rounded-2xl { border-radius: 0.75rem; }
+.admin-compact .card-pad { padding: 1rem; }
+.admin-compact td { padding-top: 0.4375rem; padding-bottom: 0.4375rem; }
+.admin-compact th { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.admin-compact .stat-strip-cell { padding: 0.625rem 1rem; }
+.admin-compact .stat-strip-cell .ss-label { font-size: 12px; font-weight: 500; }
+.admin-compact .stat-strip-cell .ss-value { margin-top: 0.125rem; font-size: 20px; line-height: 1.5rem; }
+.admin-compact .stat-strip-cell .ss-note { margin-top: 0.125rem; font-size: 12px; }

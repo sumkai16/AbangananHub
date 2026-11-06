@@ -127,49 +127,35 @@
         @endphp
 
         {{-- Grid view --}}
-        <div x-show="view === 'grid'" x-cloak class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div x-show="view === 'grid'" x-cloak class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3">
             @foreach($properties as $property)
                 @php extract($derived[$property->property_id]); @endphp
-                <article class="flex flex-col rounded-2xl overflow-hidden bg-white ring-1 ring-[#5B6A8E]/15 transition-all duration-300">
-                    <a href="{{ route('admin.catalogue.properties.show', $property) }}" class="relative block aspect-[16/10] overflow-hidden bg-[#ECEEF6] shrink-0">
+                {{-- The whole card is the link; a separate View Details button said the same thing. --}}
+                <a href="{{ route('admin.catalogue.properties.show', $property) }}" class="group flex flex-col rounded-xl overflow-hidden bg-white ring-1 ring-[#5B6A8E]/15 transition-all duration-200 hover:ring-[#5B6A8E]/30 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]">
+                    <div class="relative aspect-[4/3] overflow-hidden bg-[#ECEEF6] shrink-0">
                         @if($thumb)
-                            <img src="{{ $thumb->media_url }}" alt="{{ $property->title }}" loading="lazy"
-                                class="w-full h-full object-cover transition-transform duration-500 ease-out">
+                            <img src="{{ $thumb->media_url }}" alt="" loading="lazy" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]">
                         @else
-                            <div class="w-full h-full flex flex-col items-center justify-center gap-2">
-                                <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2" class="text-[#5B6A8E]/60">
+                            <div class="w-full h-full flex flex-col items-center justify-center gap-1">
+                                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2" class="text-[#5B6A8E]/60" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" />
                                 </svg>
-                                <span class="text-xs text-[#5B6A8E]/70">No photos yet</span>
+                                <span class="text-[11px] text-[#5B6A8E]/70">No photos yet</span>
                             </div>
                         @endif
-                        <x-admin.status :status="$property->verification_status" class="absolute top-3 left-3" />
-                    </a>
-
-                    <div class="flex flex-col flex-1 p-4 gap-3">
-                        <div class="flex items-start justify-between gap-2">
-                            <div class="min-w-0">
-                                <a href="{{ route('admin.catalogue.properties.show', $property) }}"
-                                    class="block text-[15px] font-bold text-[#060D26] leading-snug line-clamp-1 hover:text-[#B35A3D] transition-colors duration-200">
-                                    {{ $property->title }}
-                                </a>
-                                <p class="text-[12px] text-[#5B6A8E] mt-0.5 line-clamp-1">{{ $property->address }}</p>
-                            </div>
-                            <span class="shrink-0 mt-0.5 text-[12px] font-medium text-[#5B6A8E]">{{ $property->property_type }}</span>
-                        </div>
-
-                        <p class="text-[12px] text-[#5B6A8E]">
-                            {{ trim(($property->landlord->first_name ?? '') . ' ' . ($property->landlord->last_name ?? '')) ?: '—' }}
-                        </p>
-
-                        <p class="text-[12.5px] tabular-nums text-[#5B6A8E]"><span class="font-semibold text-[#060D26]">{{ $property->units_count }} units</span> · {{ $property->available_units_count }} free · {{ $property->reserved_units_count }} held · {{ $property->occupied_units_count }} taken</p>
-
-                        <a href="{{ route('admin.catalogue.properties.show', $property) }}"
-                            class="mt-auto h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[#E2E4EC] text-[#060D26] text-[12.5px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
-                            View Details
-                        </a>
+                        <span class="absolute top-2 left-2 inline-flex rounded-md bg-white shadow-sm"><x-admin.status :status="$property->verification_status" /></span>
                     </div>
-                </article>
+
+                    <div class="flex flex-col flex-1 gap-0.5 px-3 py-2.5">
+                        <div class="flex items-baseline justify-between gap-2">
+                            <p class="min-w-0 truncate text-[13.5px] font-semibold text-[#060D26] leading-snug group-hover:text-[#B35A3D] transition-colors duration-200">{{ $property->title }}</p>
+                            <span class="hidden sm:inline shrink-0 text-[11.5px] text-[#5B6A8E]">{{ $property->property_type }}</span>
+                        </div>
+                        <p class="truncate text-[12px] text-[#5B6A8E]">{{ $property->address }}</p>
+                        <p class="truncate text-[12px] text-[#5B6A8E]">{{ trim(($property->landlord->first_name ?? '') . ' ' . ($property->landlord->last_name ?? '')) ?: '—' }}</p>
+                        <p class="mt-1 text-[12px] tabular-nums text-[#5B6A8E]"><span class="font-semibold text-[#060D26]">{{ $property->units_count }} {{ Str::plural('unit', $property->units_count) }}</span> · {{ $property->available_units_count }} free · {{ $property->reserved_units_count }} held · {{ $property->occupied_units_count }} taken</p>
+                    </div>
+                </a>
             @endforeach
         </div>
 
