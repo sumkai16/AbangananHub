@@ -137,7 +137,7 @@
 
                         return [
                             'r' => $r,
-                            'photo' => $r->property->media->first()?->media_url,
+                            'photo' => \App\Support\Images::src($r->property->media->first()?->media_url, 'card'),
                             'unit' => $r->unit->unit_label ?? 'No unit',
                             'landlord' => $landlordName !== '' ? $landlordName : 'Unknown',
                             'moveIn' => $moveIn,
@@ -165,7 +165,7 @@
                                 'landlord_contact' => $landlord->contact_number ?? '—',
                                 'property_title' => $r->property->title,
                                 'unit_label' => $r->unit->unit_label ?? 'No unit',
-                                'property_photo' => $r->property->media->first()?->media_url,
+                                'property_photo' => \App\Support\Images::src($r->property->media->first()?->media_url, 'card'),
                                 'is_terminal' => $closed,
                                 'step_index' => $closed ? -1 : array_search($r->rental_status, $journeySteps),
                             ],

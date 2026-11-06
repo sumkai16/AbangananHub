@@ -66,7 +66,7 @@
                             class="group flex flex-col overflow-hidden rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)] transition-shadow duration-200 hover:shadow-[0_8px_24px_rgba(6,13,38,0.10)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/50">
                             <div class="aspect-[16/9] w-full bg-[#F7F8FC] overflow-hidden">
                                 @if($thumb)
-                                    <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="{{ $unit->unit_label }}" class="h-full w-full object-cover">
+                                    <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($thumb->media_url, 'card') }}" alt="{{ $unit->unit_label }}" class="h-full w-full object-cover">
                                 @else
                                     <div class="flex h-full w-full items-center justify-center text-[#94A3B8]">
                                         <svg width="30" height="30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $placeholder }}" /></svg>
@@ -102,7 +102,7 @@
                                 class="flex items-center gap-3 px-4 py-3 transition-colors duration-200 hover:bg-[#F7F8FC] focus:outline-none focus-visible:bg-[#F7F8FC]">
                                 <div class="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-[#F7F8FC] ring-1 ring-[#5B6A8E]/10">
                                     @if($thumb)
-                                        <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="{{ $r->unit->unit_label }}" class="h-full w-full object-cover">
+                                        <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($thumb->media_url, 'card') }}" alt="{{ $r->unit->unit_label }}" class="h-full w-full object-cover">
                                     @endif
                                 </div>
                                 <div class="min-w-0 flex-1">

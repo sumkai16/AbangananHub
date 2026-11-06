@@ -119,7 +119,7 @@ class DashboardController extends Controller
             ['Landlord verifications', LandlordVerification::where('verification_status', 'Pending'), 'submitted_at', route('admin.verifications.index', ['status' => 'Pending'])],
             ['Property verifications', Property::where('verification_status', 'Pending'), 'created_at', route('admin.listings.approval', ['status' => 'Pending'])],
             ['Property documents', PropertyDocument::where('status', 'Pending')->whereNotNull('file_path'), 'created_at', route('admin.documents.index', ['status' => 'Pending'])],
-            ['Unit approvals', PropertyUnit::where('verification_status', 'Pending'), 'created_at', route('admin.units.index', ['status' => 'Pending'])],
+            ['Unit approvals', PropertyUnit::awaitingOwnReview(), 'property_units.created_at', route('admin.units.index', ['status' => 'Pending'])],
             ['Reports', Report::where('report_status', 'Pending'), 'created_at', route('admin.reports.index', ['status' => 'Pending'])],
             ['Move-in disputes', Reservation::whereNotNull('move_in_disputed_at'), 'move_in_disputed_at', route('admin.reservations.index', ['filter' => 'disputed'])],
         ];

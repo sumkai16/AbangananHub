@@ -19,7 +19,10 @@ class PropertyUnitController extends Controller
 
         $query = PropertyUnit::with(['property.landlord', 'media']);
 
-        if (in_array($status, ['Pending', 'Approved', 'Rejected'], true)) {
+        // Pending means "needs its own decision": a Pending unit on a Pending property is decided with the property.
+        if ($status === 'Pending') {
+            $query->awaitingOwnReview();
+        } elseif (in_array($status, ['Approved', 'Rejected'], true)) {
             $query->where('verification_status', $status);
         }
         // 'All' falls through with no filter
@@ -30,19 +33,21 @@ class PropertyUnitController extends Controller
             $units = $query->oldest()->paginate(15)->withQueryString();
         }
 
+        // 'All' is the real total, not the sum of the three: units waiting with a Pending property are in none of
+        // the Pending count but are still on the All tab.
         $counts = [
-            'Pending' => PropertyUnit::where('verification_status', 'Pending')->count(),
+            'Pending' => PropertyUnit::awaitingOwnReview()->count(),
             'Approved' => PropertyUnit::where('verification_status', 'Approved')->count(),
             'Rejected' => PropertyUnit::where('verification_status', 'Rejected')->count(),
+            'All' => PropertyUnit::count(),
         ];
-        $counts['All'] = array_sum($counts);
 
         $since = now()->subDays(30);
         $summary = [
-            'oldest'   => ($o = PropertyUnit::where('verification_status', 'Pending')->min('created_at')) ? Carbon::parse($o) : null,
+            'oldest'   => ($o = PropertyUnit::awaitingOwnReview()->min('property_units.created_at')) ? Carbon::parse($o) : null,
             'approved' => PropertyUnit::where('verification_status', 'Approved')->where('updated_at', '>=', $since)->count(),
             'rejected' => PropertyUnit::where('verification_status', 'Rejected')->where('updated_at', '>=', $since)->count(),
-            'no_photo' => PropertyUnit::where('verification_status', 'Pending')->whereDoesntHave('media')->count(),
+            'no_photo' => PropertyUnit::awaitingOwnReview()->whereDoesntHave('media')->count(),
         ];
         $recent = PropertyUnit::with('property')->whereIn('verification_status', ['Approved', 'Rejected'])->latest('updated_at')->limit(5)->get();
 

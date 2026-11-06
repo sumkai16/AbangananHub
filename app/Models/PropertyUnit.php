@@ -104,10 +104,32 @@ class PropertyUnit extends Model
         return $this->verification_status === 'Rejected';
     }
 
+    /**
+     * What the landlord's pages print in a unit's verification chip. A Pending unit on a Pending listing is not
+     * waiting for a second review: the admin decides both together, so the chip says so (one wait, not two).
+     */
+    public function verificationLabel(?string $propertyVerification): string
+    {
+        return $this->verification_status === 'Pending' && $propertyVerification === 'Pending'
+            ? 'Waiting with the listing'
+            : $this->verification_status;
+    }
+
     // ─── Scopes ──────────────────────────────────────────────
     public function scopeApproved($query)
     {
         return $query->where('verification_status', 'Approved');
+    }
+
+    /**
+     * Units the admin has to decide on their own: Pending, on a property that is already Approved (a unit added or
+     * edited after approval). A Pending unit on a Pending property is decided with the property (ListingController::approve),
+     * so it is not counted here. Every unit queue and count goes through this one definition.
+     */
+    public function scopeAwaitingOwnReview($query)
+    {
+        return $query->where('property_units.verification_status', 'Pending')
+            ->whereHas('property', fn ($p) => $p->where('verification_status', 'Approved'));
     }
 
     public function scopeAvailable($query)

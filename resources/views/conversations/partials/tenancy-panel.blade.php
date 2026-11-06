@@ -30,8 +30,8 @@
     $canRemind = $isLandlord && ! $ended && $tenantUser && ! $tenantUser->is_walk_in && $tenantUser->account_status === 'active'
         && ($rent['outstanding'] ?? 0) > 0;
     $unresolved = $conversation->concerns->whereIn('status', ['Open', 'In Progress'])->sortByDesc('created_at');
-    $stayPhoto = $conversation->unit?->media->firstWhere('media_type', 'Image')?->media_url
-        ?? $stay?->media->firstWhere('media_type', 'Image')?->media_url;
+    $stayPhoto = \App\Support\Images::src($conversation->unit?->media->firstWhere('media_type', 'Image')?->media_url, 'card')
+        ?? \App\Support\Images::src($stay?->media->firstWhere('media_type', 'Image')?->media_url, 'card');
 @endphp
 <div class="flex h-full {{ $sheet ? 'gap-4' : 'flex-col' }}" id="chat-panel-root" data-conversation-id="{{ $conversation->conversation_id }}"
     x-data="{ photo: null }" @keydown.escape.window="photo = null">

@@ -123,6 +123,22 @@ class PropertySeeder extends Seeder
         ],
     ];
 
+    /**
+     * Which catalogue rows are seeded (Nov 6 2026). The catalogue holds 77 properties; the demo uses 22, so every list,
+     * the browse page and the admin tables load faster and read cleanly. The 22 are the ones with reservations or chats
+     * plus a spread of landlords, cities and types (plans/image-and-demo-data-cleanup.md). Zero-based positions in
+     * catalogue(); to seed the full set again, set this to null.
+     *
+     * Labangon Bedspace, Private Rooms Colon, Female Bedspace Punta Princesa, Rooms near SM Seaside, Lahug Dormitory,
+     * Bedspace near Cebu Doctors, Talamban Student Rooms, Maguikay Duplex, Liloan Poblacion, Gabi Rooms Cordova,
+     * Maribago Staff Rooms, Tunghaan Rooms, Poblacion Naga, Sabang Danao, Compostela Family House, San Remigio
+     * Beachside, Argao Poblacion, Dalaguete Rooms, Aloguinsan Seaside, Samboan Room, Carmen Poblacion, Ladies' Bedspace
+     * near USC Talamban.
+     *
+     * @var list<int>|null
+     */
+    private const DEMO_KEEP = [0, 1, 2, 3, 6, 7, 9, 12, 14, 15, 18, 21, 24, 26, 27, 30, 34, 38, 42, 46, 50, 63];
+
     public function run(): void
     {
         $landlords = [self::MARIA => User::where('email', 'landlord@abangananhub.com')->firstOrFail()];
@@ -131,6 +147,10 @@ class PropertySeeder extends Seeder
         }
 
         foreach ($this->catalogue() as $n => $row) {
+            if (self::DEMO_KEEP !== null && ! in_array($n, self::DEMO_KEEP, true)) {
+                continue;
+            }
+
             [$owner, $title, $type, $barangay, $city, $lat, $lng, $arrangement, $utilities, $description, $units] = $row;
             // The catalogue predates the split: gender values become the occupancy preference; couples/family have no equivalent.
             [$arrangement, $occupancy] = match ($arrangement) {

@@ -12,6 +12,7 @@ use App\Models\Review;
 use App\Support\BrowseFilters;
 use App\Support\Images;
 use App\Support\PropertyPolicies;
+use App\Services\ImageUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -364,10 +365,7 @@ class PropertyController extends Controller
 
             if ($photosAdded) {
                 foreach ($request->file('photos') as $photo) {
-                    $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
-                        'folder'        => 'abanganan/properties',
-                        'resource_type' => 'image',
-                    ]);
+                    $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), ImageUploader::listingPhoto('abanganan/properties'));
                     $property->media()->create([
                         'media_type'           => 'Image',
                         'media_url'            => $result['secure_url'],

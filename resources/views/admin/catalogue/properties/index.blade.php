@@ -134,7 +134,7 @@
                 <a href="{{ route('admin.catalogue.properties.show', $property) }}" class="group flex flex-col rounded-xl overflow-hidden bg-white ring-1 ring-[#5B6A8E]/15 transition-all duration-200 hover:ring-[#5B6A8E]/30 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]">
                     <div class="relative aspect-[4/3] overflow-hidden bg-[#ECEEF6] shrink-0">
                         @if($thumb)
-                            <img src="{{ $thumb->media_url }}" alt="" loading="lazy" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]">
+                            <img src="{{ \App\Support\Images::src($thumb->media_url, 'card') }}" alt="" loading="lazy" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]">
                         @else
                             <div class="w-full h-full flex flex-col items-center justify-center gap-1">
                                 <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2" class="text-[#5B6A8E]/60" aria-hidden="true">
@@ -181,7 +181,7 @@
                                     <div class="flex items-center gap-3">
                                         <div class="w-12 h-12 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0">
                                             @if($thumb)
-                                                <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="{{ $property->title }}" class="w-full h-full object-cover">
+                                                <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($thumb->media_url, 'card') }}" alt="{{ $property->title }}" class="w-full h-full object-cover">
                                             @else
                                                 <div class="w-full h-full flex items-center justify-center text-[#5B6A8E]/60">
                                                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">

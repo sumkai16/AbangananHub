@@ -138,7 +138,7 @@
 
                         <x-view-all-tile :href="route('properties.index', ['sort' => 'top_rated'])" label="View all popular properties"
                             sub="Highest rated by tenants"
-                            :photos="$popularProperties->reverse()->map(fn ($p) => $p->media->firstWhere('media_type', 'Image')?->media_url)->all()"
+                            :photos="$popularProperties->reverse()->map(fn ($p) => \App\Support\Images::src($p->media->firstWhere('media_type', 'Image')?->media_url, 'card'))->all()"
                             class="w-[72%] sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-4rem)/5)]" />
                     </div>
                         <x-row-arrows top="top-[88px]" />
@@ -624,7 +624,7 @@
                         @if($heroStats)
                             <x-view-all-tile :href="route('properties.index', ['sort' => 'newest'])" label="View all rental properties"
                                 :sub="$properties->total() . ' ' . Str::plural('listing', $properties->total())"
-                                :photos="$properties->reverse()->map(fn ($p) => $p->media->firstWhere('media_type', 'Image')?->media_url)->all()"
+                                :photos="$properties->reverse()->map(fn ($p) => \App\Support\Images::src($p->media->firstWhere('media_type', 'Image')?->media_url, 'card'))->all()"
                                 class="min-h-[260px]" />
                         @endif
                     </div>

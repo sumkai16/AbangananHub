@@ -307,7 +307,7 @@
                                         <div class="flex items-center gap-2.5">
                                             <div class="w-9 h-9 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0">
                                                 @if($photo)
-                                                    <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
+                                                    <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($photo->media_url, 'card') }}" alt="" class="w-full h-full object-cover">
                                                 @endif
                                             </div>
                                             <div class="min-w-0">
@@ -404,7 +404,7 @@
                             <div class="flex items-center gap-2.5 rounded-xl bg-[#ECEEF6]/60 px-3 py-2.5">
                                 <div class="w-9 h-9 rounded-lg bg-white overflow-hidden shrink-0">
                                     @if($photo)
-                                        <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
+                                        <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($photo->media_url, 'card') }}" alt="" class="w-full h-full object-cover">
                                     @endif
                                 </div>
                                 <div class="min-w-0">

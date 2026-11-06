@@ -10,6 +10,7 @@ use App\Models\Property;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ListingController extends Controller
 {
@@ -71,11 +72,16 @@ class ListingController extends Controller
     }
 
     /**
-     * Approve a property listing.
+     * Approve a property listing, and the units that were submitted with it.
+     *
+     * One submission is one decision: every unit still Pending goes Approved in the same transaction. A unit the
+     * admin already rejected stays Rejected (reject it first to hold it back). Units are updated one by one, not with
+     * a mass update, so PropertyUnitObserver still writes "Unit X approved" to the property's activity log.
+     * plans/approve-property-with-units.md
      */
     public function approve($property_id)
     {
-        $property = DB::transaction(function () use ($property_id) {
+        [$property, $unitCount] = DB::transaction(function () use ($property_id) {
             $property = Property::where('property_id', $property_id)->lockForUpdate()->firstOrFail();
             abort_if($property->verification_status !== 'Pending', 409, 'This listing has already been reviewed.');
             $property->update(['verification_status' => 'Approved']);
@@ -88,18 +94,34 @@ class ListingController extends Controller
                 ['landlord_id' => $property->landlord_id],
             );
 
-            return $property;
+            $units = $property->units()->where('verification_status', 'Pending')->lockForUpdate()->get();
+            foreach ($units as $unit) {
+                $unit->update(['verification_status' => 'Approved', 'rejection_reason' => null]);
+
+                AuditLog::record(
+                    'unit.approve',
+                    "Approved unit '{$unit->unit_label}' in {$property->title}.",
+                    $unit,
+                    null,
+                    ['property_id' => $property->property_id, 'landlord_id' => $property->landlord_id, 'via' => 'listing.approve'],
+                );
+            }
+
+            return [$property, $units->count()];
         });
+
+        $withUnits = $unitCount > 0 ? ', with '.$unitCount.' '.Str::plural('unit', $unitCount).',' : '';
 
         Notification::notify(
             $property->landlord_id,
             'listing',
             'Listing approved',
-            "Your listing '{$property->title}' was approved and is now visible to tenants.",
+            "Your listing '{$property->title}' was approved{$withUnits} and is now visible to tenants.",
             route('properties.show', $property->property_id),
         );
 
-        return redirect()->back()->with('success', "The listing '{$property->title}' has been approved successfully.");
+        return redirect()->back()->with('success', "The listing '{$property->title}' has been approved successfully"
+            .($unitCount > 0 ? ", with {$unitCount} ".Str::plural('unit', $unitCount).'.' : '.'));
     }
 
     /**

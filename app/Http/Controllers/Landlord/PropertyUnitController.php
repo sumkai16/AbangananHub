@@ -9,9 +9,11 @@ use App\Models\Property;
 use App\Models\PropertyActivity;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
+use App\Services\ImageUploader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use App\Support\ListingPhotos;
 
 class PropertyUnitController extends Controller
 {
@@ -58,8 +60,8 @@ class PropertyUnitController extends Controller
             'description'         => 'nullable|string|max:300',
             'amenities'           => ['nullable', 'array', Amenity::exclusiveRule()],
             'amenities.*'         => 'bail|integer|exists:amenities,amenity_id',
-            'photos'              => 'required|array|min:3|max:10',
-            'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:5120',
+            'photos'              => 'required|array|min:'.ListingPhotos::MIN_UNIT.'|max:'.ListingPhotos::MAX_UNIT,
+            'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:'.ListingPhotos::MAX_KB,
             'photo_sources'       => 'required|array',
             'photo_sources.*'     => 'in:camera,upload',
             'photo_captions'      => 'nullable|array',
@@ -103,10 +105,7 @@ class PropertyUnitController extends Controller
             }
 
             foreach ($photos as $i => $photo) {
-                $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
-                    'folder'        => 'abanganan/units',
-                    'resource_type' => 'image',
-                ]);
+                $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), ImageUploader::listingPhoto('abanganan/units'));
                 $unit->media()->create([
                     'media_type' => 'Image',
                     'media_url'  => $result['secure_url'],
@@ -176,8 +175,8 @@ class PropertyUnitController extends Controller
             'description'         => 'nullable|string|max:300',
             'amenities'           => ['nullable', 'array', Amenity::exclusiveRule()],
             'amenities.*'         => 'bail|integer|exists:amenities,amenity_id',
-            'photos'              => 'nullable|array|max:10',
-            'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:5120',
+            'photos'              => 'nullable|array|max:'.ListingPhotos::MAX_UNIT,
+            'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:'.ListingPhotos::MAX_KB,
             'photo_sources'       => 'nullable|array',
             'photo_sources.*'     => 'in:camera,upload',
             'photo_captions'      => 'nullable|array',
@@ -195,6 +194,11 @@ class PropertyUnitController extends Controller
         $photos = $request->file('photos', []);
         $sources = $request->input('photo_sources', []);
         $captions = $request->input('photo_captions', []);
+
+        // The limit is on the unit's total, not on one save: the unit may already hold some photos.
+        if (ListingPhotos::tooMany($unit->media()->where('media_type', 'Image')->count(), count($photos), ListingPhotos::MAX_UNIT)) {
+            throw ValidationException::withMessages(['photos' => ListingPhotos::unitLimitMessage()]);
+        }
 
         // Same alignment contract store() enforces — the capture UI keeps
         // photos[]/photo_sources[]/photo_captions[] in one shared iteration
@@ -236,10 +240,7 @@ class PropertyUnitController extends Controller
             $unit->amenities()->sync($validated['amenities'] ?? []);
 
             foreach ($photos as $i => $photo) {
-                $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
-                    'folder'        => 'abanganan/units',
-                    'resource_type' => 'image',
-                ]);
+                $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), ImageUploader::listingPhoto('abanganan/units'));
                 $unit->media()->create([
                     'media_type' => 'Image',
                     'media_url'  => $result['secure_url'],

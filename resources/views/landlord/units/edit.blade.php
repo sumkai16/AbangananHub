@@ -66,7 +66,7 @@
         @php
             $existingPhotos = $unit->media->where('media_type', 'Image');
             $existingVideo = $unit->media->where('media_type', 'Video')->first();
-            $previewPhoto = $existingPhotos->first()?->media_url;
+            $previewPhoto = \App\Support\Images::src($existingPhotos->first()?->media_url, 'card');
             $statusMeta = [
                 'Available' => ['dot' => '#22C55E', 'text' => 'Vacant and ready'],
                 'Reserved' => ['dot' => '#FBBF24', 'text' => 'On hold for a tenant'],
@@ -306,7 +306,7 @@
                             <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 mb-3">
                                 @foreach($existingPhotos as $photo)
                                     <div class="relative aspect-square rounded-xl overflow-hidden bg-[#F7F8FC] ring-1 ring-[#5B6A8E]/15 group">
-                                        <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="{{ $photo->caption ?? 'Unit photo' }}" class="w-full h-full object-cover">
+                                        <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($photo->media_url, 'card') }}" alt="{{ $photo->caption ?? 'Unit photo' }}" class="w-full h-full object-cover">
                                         @if($photo->source === 'camera')
                                             <span class="absolute top-1 left-1 rounded-full bg-[#FF8A66] text-[#060D26] px-1.5 py-0.5 text-[11px] font-semibold">Live</span>
                                         @endif

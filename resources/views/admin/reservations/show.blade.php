@@ -224,7 +224,7 @@
 
             <x-card flush>
                 @if($photo)
-                    <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="" class="h-36 w-full object-cover">
+                    <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($photo->media_url, 'card') }}" alt="" class="h-36 w-full object-cover">
                 @endif
                 <div class="p-5">
                     @if($property)

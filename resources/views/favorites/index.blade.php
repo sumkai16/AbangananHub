@@ -72,7 +72,7 @@
                     <div class="relative w-full aspect-square rounded-2xl overflow-hidden bg-[#ECEEF6]">
                         @if($property->media->first())
                             <img
-                                src="{{ $property->media->first()->media_url }}"
+                                src="{{ \App\Support\Images::src($property->media->first()->media_url, 'card') }}"
                                 alt="{{ $property->title }}"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                         @else

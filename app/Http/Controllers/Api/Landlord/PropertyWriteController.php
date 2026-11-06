@@ -9,6 +9,7 @@ use App\Http\Requests\Landlord\UpdatePropertyRequest;
 use App\Http\Resources\PropertyResource;
 use App\Models\Property;
 use App\Support\PropertyPolicies;
+use App\Services\ImageUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -48,10 +49,7 @@ class PropertyWriteController extends Controller
             $property->amenities()->sync($validated['amenities'] ?? []);
 
             foreach ($request->file('photos') as $photo) {
-                $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
-                    'folder'        => 'abanganan/properties',
-                    'resource_type' => 'image',
-                ]);
+                $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), ImageUploader::listingPhoto('abanganan/properties'));
                 $property->media()->create([
                     'media_type'           => 'Image',
                     'media_url'            => $result['secure_url'],
@@ -96,10 +94,7 @@ class PropertyWriteController extends Controller
 
             if ($photosAdded) {
                 foreach ($request->file('photos') as $photo) {
-                    $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
-                        'folder'        => 'abanganan/properties',
-                        'resource_type' => 'image',
-                    ]);
+                    $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), ImageUploader::listingPhoto('abanganan/properties'));
                     $property->media()->create([
                         'media_type'           => 'Image',
                         'media_url'            => $result['secure_url'],

@@ -46,7 +46,7 @@
                                         <div class="flex items-center gap-3">
                                             <div class="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-[#ECEEF6]">
                                                 @if($thumb)
-                                                    <img src="{{ $thumb->media_url }}" alt="{{ $unit->unit_label }}" loading="lazy" class="h-full w-full object-cover">
+                                                    <img src="{{ \App\Support\Images::src($thumb->media_url, 'card') }}" alt="{{ $unit->unit_label }}" loading="lazy" class="h-full w-full object-cover">
                                                 @endif
                                             </div>
                                             <div class="min-w-0">

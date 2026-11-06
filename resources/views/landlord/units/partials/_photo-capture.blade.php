@@ -37,7 +37,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
         </svg>
         <p class="text-[12px] text-[#060D26]/70 leading-relaxed">
-            Live photos show tenants the unit is real and current, but it's optional — Live Capture and Upload are both fine, use whichever you prefer. At least 3 photos in total are required. Up to 10 new photos per save. You can add an optional caption to each.
+            Live photos show tenants the unit is real and current, but it's optional — Live Capture and Upload are both fine, use whichever you prefer. At least 3 photos in total are required. Up to {{ \App\Support\ListingPhotos::MAX_UNIT }} photos in total. You can add an optional caption to each.
         </p>
     </div>
 
@@ -116,7 +116,7 @@
     {{-- Hidden aggregated file input for submission --}}
     <input type="file" id="photo-input" name="photos[]" multiple class="hidden" aria-label="Unit photos">
 
-    <p id="photo-limit-msg" class="hidden text-[11.5px] text-[#EF4444] mt-2">You can add a maximum of 10 photos at once.</p>
+    <p id="photo-limit-msg" class="hidden text-[11.5px] text-[#EF4444] mt-2">You can add a maximum of {{ \App\Support\ListingPhotos::MAX_UNIT }} photos.</p>
     @error('photos')
         <p class="text-[11.5px] text-[#EF4444] mt-2">{{ $message }}</p>
     @enderror
@@ -130,7 +130,7 @@
 
 <script>
     (function () {
-        const MAX_PHOTOS = 10;
+        const MAX_PHOTOS = {{ \App\Support\ListingPhotos::MAX_UNIT }};
         const EXISTING_LIVE = {{ (int) $existingLiveCount }};
 
         const photoInput = document.getElementById('photo-input');

@@ -52,9 +52,9 @@
                 'label' => $unit->unit_label,
                 'type' => $property->property_type,
                 'price' => number_format($unit->rental_fee),
-                'thumb' => optional($unit->media->firstWhere('media_type', 'Image'))->media_url,
+                'thumb' => \App\Support\Images::src(optional($unit->media->firstWhere('media_type', 'Image'))->media_url, 'card'),
                 'thumbSm' => ($t = optional($unit->media->firstWhere('media_type', 'Image'))->media_url) ? \App\Support\Images::resize($t, 640) : null,
-                'media' => $unit->media->where('media_type', 'Image')->map(fn($m) => ['url' => $m->media_url, 'caption' => $m->caption])->values()->toArray(),
+                'media' => $unit->media->where('media_type', 'Image')->map(fn($m) => ['url' => \App\Support\Images::src($m->media_url, 'gallery'), 'caption' => $m->caption])->values()->toArray(),
                 'description' => $unit->description,
                 'amenities' => $unit->amenitiesBeyondSpecs()->map(fn ($a) => [
                     'name' => $a->amenity_name,
@@ -290,7 +290,7 @@
                              same behaviour as before — only its container
                              changed from a standalone box to a grid cell. --}}
                         <div class="relative overflow-hidden bg-[#E2E4EC] border border-[#ECEEF6] group {{ $mediaCount >= 2 ? 'rounded-l-2xl -mr-1 lg:-mr-3 col-span-2 lg:col-span-8 row-span-2' : 'rounded-2xl aspect-[3/1] max-h-[420px]' }}">
-                            <img id="hero-img" src="{{ $property->media->first()->media_url }}" alt="{{ $property->title }}"
+                            <img id="hero-img" src="{{ \App\Support\Images::src($property->media->first()->media_url, 'gallery') }}" alt="{{ $property->title }}"
                                 class="w-full h-full object-cover cursor-pointer transition-opacity duration-150"
                                 onclick="openLightboxAtHero()">
 
@@ -2098,7 +2098,7 @@
     @push('scripts')
         <script>
             (function () {
-                const mediaUrls = @json($property->media->pluck('media_url')->values());
+                const mediaUrls = @json($property->media->map(fn ($m) => \App\Support\Images::src($m->media_url, 'gallery'))->values());
                 const total = mediaUrls.length;
                 let currentIndex = 0;
 

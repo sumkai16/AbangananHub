@@ -304,7 +304,7 @@
 
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 @forelse($property->media as $img)
-                                    @php $url = $img->media_url; @endphp
+                                    @php $url = \App\Support\Images::src($img->media_url, 'card'); @endphp
                                     <div class="relative aspect-square rounded-xl overflow-hidden bg-[#ECEEF6] border border-[#E2E4EC] group/img">
                                         <img src="{{ str_starts_with($url, 'http') ? $url : Storage::url($url) }}" loading="lazy" decoding="async"
                                             class="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300" alt="Property photo">

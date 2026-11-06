@@ -58,8 +58,8 @@
                     @else
                         <div class="grid grid-cols-3 gap-1.5 sm:grid-cols-5 xl:grid-cols-6">
                             @foreach($photos as $photo)
-                                <a href="{{ $photo->media_url }}" target="_blank" rel="noopener" class="block aspect-[4/3] overflow-hidden rounded-lg border border-[#E2E4EC] bg-[#F7F8FC] transition-colors duration-200 hover:border-[#FF8A66]">
-                                    <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="Photo of {{ $unit->unit_label }}" class="h-full w-full object-cover">
+                                <a href="{{ \App\Support\Images::src($photo->media_url, 'full') }}" target="_blank" rel="noopener" class="block aspect-[4/3] overflow-hidden rounded-lg border border-[#E2E4EC] bg-[#F7F8FC] transition-colors duration-200 hover:border-[#FF8A66]">
+                                    <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($photo->media_url, 'card') }}" alt="Photo of {{ $unit->unit_label }}" class="h-full w-full object-cover">
                                 </a>
                             @endforeach
                             @if($video)

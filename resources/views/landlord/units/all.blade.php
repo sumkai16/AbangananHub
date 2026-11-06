@@ -228,7 +228,7 @@
                                 <span class="text-[11px] text-[#5B6A8E]/70">No photo</span>
                             </div>
                             @if($thumb)
-                                <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="{{ $unit->unit_label }}" onerror="this.remove()"
+                                <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($thumb->media_url, 'card') }}" alt="{{ $unit->unit_label }}" onerror="this.remove()"
                                     class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out">
                             @endif
 
@@ -248,7 +248,7 @@
                                 <div class="flex items-start justify-between gap-2">
                                     <p class="text-[15px] font-bold text-[#060D26] leading-snug truncate">{{ $unit->unit_label }}</p>
                                     <span class="shrink-0 inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full {{ $vrBg }}">
-                                        {{ $unit->verification_status }}
+                                        {{ $unit->verificationLabel($unit->property->verification_status) }}
                                     </span>
                                 </div>
                                 @unless($scopedProperty)
@@ -356,7 +356,7 @@
                                         <div class="flex items-center gap-3">
                                             <div class="w-12 h-12 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0">
                                                 @if($thumb)
-                                                    <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="{{ $unit->unit_label }}" class="w-full h-full object-cover">
+                                                    <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($thumb->media_url, 'card') }}" alt="{{ $unit->unit_label }}" class="w-full h-full object-cover">
                                                 @else
                                                     <div class="w-full h-full flex items-center justify-center text-[#5B6A8E]/60">
                                                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">

@@ -56,7 +56,7 @@
         <div class="absolute inset-0 rounded-t-2xl overflow-hidden">
             @if($images->isNotEmpty())
                 <img id="main-photo"
-                     src="{{ $images->first()->media_url }}"
+                     src="{{ \App\Support\Images::src($images->first()->media_url, 'gallery') }}"
                      alt="{{ $property->title }}"
                      class="absolute inset-0 w-full h-full object-cover cursor-pointer"
                      onclick="openLightbox(0)">
@@ -480,7 +480,7 @@
                             <button type="button" @click="openUnit({{ $unit->unit_id }})" aria-label="View details of {{ $unit->unit_label }}"
                                 class="relative block w-full aspect-[4/3] overflow-hidden bg-[#ECEEF6] cursor-pointer">
                                 @if($thumb)
-                                    <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="" class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out">
+                                    <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($thumb->media_url, 'card') }}" alt="" class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out">
                                 @else
                                     <span class="absolute inset-0 flex items-center justify-center">
                                         <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2" class="text-[#5B6A8E]/40" aria-hidden="true">
@@ -502,7 +502,7 @@
                                             ₱{{ number_format($unit->rental_fee, 0) }}<span class="text-[13px] font-normal text-[#5B6A8E]">/mo</span>
                                         </p>
                                     </div>
-                                    <span class="shrink-0 text-[11.5px] font-medium px-2.5 py-1 rounded-full {{ $vrBg }}">{{ $unit->verification_status }}</span>
+                                    <span class="shrink-0 text-[11.5px] font-medium px-2.5 py-1 rounded-full {{ $vrBg }}">{{ $unit->verificationLabel($property->verification_status) }}</span>
                                 </div>
 
                                 <p class="text-[13px] text-[#5B6A8E] flex items-center gap-1.5">
@@ -578,7 +578,7 @@
                                         <div class="flex items-center gap-2.5">
                                             <div class="w-9 h-9 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0 ring-1 ring-[#5B6A8E]/10">
                                                 @if($thumb)
-                                                    <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="" class="w-full h-full object-cover">
+                                                    <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($thumb->media_url, 'card') }}" alt="" class="w-full h-full object-cover">
                                                 @endif
                                             </div>
                                             <p class="text-[13px] font-bold text-[#060D26]">{{ $unit->unit_label }}</p>
@@ -594,7 +594,7 @@
                                     </td>
                                     <td class="px-4 py-3">
                                         <span class="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full {{ $vrBg }}">
-                                            {{ $unit->verification_status }}
+                                            {{ $unit->verificationLabel($property->verification_status) }}
                                         </span>
                                     </td>
                                     <td class="px-4 py-3">
@@ -663,7 +663,7 @@
                     @foreach($images as $i => $img)
                         <button onclick="openLightbox({{ $i }})"
                                 class="aspect-square rounded-xl overflow-hidden bg-[#ECEEF6] hover:opacity-90 transition-opacity duration-200">
-                            <img loading="lazy" decoding="async" src="{{ $img->media_url }}" alt="{{ $property->title }} photo {{ $i + 1 }}" class="w-full h-full object-cover">
+                            <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($img->media_url, 'card') }}" alt="{{ $property->title }} photo {{ $i + 1 }}" class="w-full h-full object-cover">
                         </button>
                     @endforeach
                 </div>
@@ -893,7 +893,7 @@
 @push('scripts')
 <script>
 (function () {
-    const mediaUrls = @json($images->pluck('media_url')->values());
+    const mediaUrls = @json($images->map(fn ($m) => \App\Support\Images::src($m->media_url, 'full'))->values());
     const total = mediaUrls.length;
     let currentIndex = 0;
 

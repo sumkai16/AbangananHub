@@ -7,6 +7,7 @@ use App\Rules\WithinCebu;
 use App\Support\PropertyPolicies;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Support\ListingPhotos;
 
 class UpdatePropertyRequest extends FormRequest
 {
@@ -41,12 +42,12 @@ class UpdatePropertyRequest extends FormRequest
                 'nullable',
                 'array',
                 function ($attribute, $value, $fail) use ($existingPhotoCount) {
-                    if (is_array($value) && $existingPhotoCount + count($value) > 10) {
-                        $fail('A property can have at most 10 photos total. Remove some before adding more.');
+                    if (is_array($value) && ListingPhotos::tooMany($existingPhotoCount, count($value), ListingPhotos::MAX_PROPERTY)) {
+                        $fail(ListingPhotos::propertyLimitMessage());
                     }
                 },
             ],
-            'photos.*'          => ['image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            'photos.*'          => ['image', 'mimes:jpeg,png,jpg,webp', 'max:'.ListingPhotos::MAX_KB],
             'amenities'         => ['nullable', 'array'],
             'amenities.*'       => ['integer', 'exists:amenities,amenity_id'],
         ];

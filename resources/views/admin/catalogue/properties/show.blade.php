@@ -15,6 +15,7 @@
     $isPending = $property->verification_status === 'Pending';
     $isSuspended = $property->publication_status === 'Suspended';
     $unitCount = $property->units->count();
+    $pendingUnitCount = $property->units->where('verification_status', 'Pending')->count();
     $unitStats = [
         'total' => $unitCount,
         'available' => $property->units->where('availability_status', 'Available')->count(),
@@ -70,8 +71,8 @@
     <div class="relative rounded-t-2xl bg-[#ECEEF6] h-64 sm:h-72 lg:h-80">
         <div class="absolute inset-0 rounded-t-2xl overflow-hidden">
             @if($images->isNotEmpty())
-                <a href="{{ $images->first()->media_url }}" target="_blank" rel="noopener" aria-label="Open the cover photo full size" class="absolute inset-0 block">
-                    <img src="{{ $images->first()->media_url }}" alt="{{ $property->title }}" class="absolute inset-0 h-full w-full object-cover">
+                <a href="{{ \App\Support\Images::src($images->first()->media_url, 'full') }}" target="_blank" rel="noopener" aria-label="Open the cover photo full size" class="absolute inset-0 block">
+                    <img src="{{ \App\Support\Images::src($images->first()->media_url, 'gallery') }}" alt="{{ $property->title }}" class="absolute inset-0 h-full w-full object-cover">
                 </a>
             @else
                 <div class="absolute inset-0 flex flex-col items-center justify-center gap-1.5 pb-16 text-[#5B6A8E]">
@@ -125,11 +126,20 @@
                     :approve-action="route('admin.listings.approve', $property->property_id)"
                     approve-label="Approve listing"
                     approve-confirm="Approve this listing?"
-                    approve-message="It becomes visible to tenants and the landlord is told. Check the photos and documents first."
+                    :approve-message="'It becomes visible to tenants and the landlord is told. Check the photos and documents first.'.($pendingUnitCount > 0 ? ' Its '.$pendingUnitCount.' pending '.\Illuminate\Support\Str::plural('unit', $pendingUnitCount).' will be approved too.' : '')"
                     :reject-action="route('admin.listings.reject', $property->property_id)"
                     reject-label="Reject listing"
                     reject-confirm="Reject this listing?" stacked>
-                    <x-slot:intro>{{ $readiness }}</x-slot:intro>
+                    <x-slot:intro>
+                        {{ $readiness }}
+                        @if($pendingUnitCount > 0)
+                            <p class="mt-2.5 text-[12.5px] leading-snug text-[#5B6A8E]">
+                                Approving this listing also approves its {{ $pendingUnitCount }} pending {{ \Illuminate\Support\Str::plural('unit', $pendingUnitCount) }}. Check the
+                                <button type="button" @click="$dispatch('open-tab', 'units')" class="font-semibold text-[#B35A3D] hover:underline cursor-pointer">Units tab</button>,
+                                and reject a unit first to hold it back.
+                            </p>
+                        @endif
+                    </x-slot:intro>
                 </x-admin.decision>
             @endif
 
@@ -339,8 +349,8 @@
                         @foreach($media as $item)
                             <div class="aspect-[4/3] overflow-hidden rounded-xl bg-[#ECEEF6]">
                                 @if($item->media_type === 'Image')
-                                    <a href="{{ $item->media_url }}" target="_blank" rel="noopener" class="block h-full w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/50" aria-label="Open photo {{ $loop->iteration }} full size">
-                                        <img src="{{ $item->media_url }}" alt="{{ $property->title }}" loading="lazy" class="h-full w-full object-cover transition-opacity duration-200 hover:opacity-90">
+                                    <a href="{{ \App\Support\Images::src($item->media_url, 'full') }}" target="_blank" rel="noopener" class="block h-full w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/50" aria-label="Open photo {{ $loop->iteration }} full size">
+                                        <img src="{{ \App\Support\Images::src($item->media_url, 'card') }}" alt="{{ $property->title }}" loading="lazy" class="h-full w-full object-cover transition-opacity duration-200 hover:opacity-90">
                                     </a>
                                 @else
                                     <video src="{{ $item->media_url }}" class="h-full w-full object-cover" muted controls></video>

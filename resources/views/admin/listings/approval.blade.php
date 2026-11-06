@@ -43,7 +43,7 @@
                     <tbody class="divide-y divide-[#E2E4EC]">
                         @foreach($pendingListings as $property)
                             @php
-                                $thumb = optional($property->media->firstWhere('media_type', 'Image'))->media_url;
+                                $thumb = \App\Support\Images::src(optional($property->media->firstWhere('media_type', 'Image'))->media_url, 'card');
 
                                 $locationLine = collect([$property->barangay, $property->city_municipality])
                                     ->filter()
