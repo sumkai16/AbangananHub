@@ -116,12 +116,9 @@ class PropertyWriteController extends Controller
     {
         $this->authorizeProperty($property);
 
-        if ($reason = $property->deletionBlockedReason()) {
+        if ($reason = $property->deleteWithFiles()) {
             throw ValidationException::withMessages(['property' => [$reason]]);
         }
-
-        $property->purgeFiles();
-        $property->delete();
 
         return response()->json(['message' => 'Property removed successfully.']);
     }
