@@ -198,7 +198,7 @@
         'landlord' => ['label' => 'For landlords', 'steps' => [
             ['title' => 'Apply and verify your identity',
              'desc' => 'Take a live photo of your government ID and a selfie right in the app. Uploads are not accepted, which keeps fake accounts out. An admin reviews it.',
-             'where' => 'Become a Landlord, in your account menu',
+             'where' => 'List your property, on the home page',
              'next' => 'You get a notification when you are approved. Then the landlord tools unlock.',
              'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
             ['title' => 'Add your property',

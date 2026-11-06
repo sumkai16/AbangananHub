@@ -80,12 +80,11 @@ class AppServiceProvider extends ServiceProvider
                 $counts = $user ? [
                     'unreadNotificationCount' => $user->notifications()->where('is_read', false)->count(),
                     'unreadMessageCount' => Conversation::unreadCountFor($user->user_id),
-                    // The place this person lives in now, for the "My Unit" link. Null for everyone else.
-                    'myUnitReservationId' => Reservation::where('tenant_id', $user->user_id)
-                        ->where('rental_status', 'Occupied')
-                        ->latest('reservation_id')
-                        ->value('reservation_id'),
-                ] : ['unreadNotificationCount' => 0, 'unreadMessageCount' => 0, 'myUnitReservationId' => null];
+                    // Whether this person has rented (or is renting) anywhere, for the "My Rentals" link.
+                    'hasRentals' => Reservation::where('tenant_id', $user->user_id)
+                        ->whereIn('rental_status', ['Occupied', 'Completed'])
+                        ->exists(),
+                ] : ['unreadNotificationCount' => 0, 'unreadMessageCount' => 0, 'hasRentals' => false];
                 $attributes->set('nav_counts', $counts);
             }
 

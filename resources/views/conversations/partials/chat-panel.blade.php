@@ -182,7 +182,17 @@
             {{-- LANDLORD --}}
             @if($isLandlord)
                 @if($rentalStatus === 'Inquiry')
-                    {{-- Accept and send the agreement in one step; the property's default lease terms are used. --}}
+                    {{-- Accept and send the agreement in one step; the property's default lease terms are used. A lease needs a
+                         start, so with no move-in date (the tenant only asked a question) only the negotiate route is offered. --}}
+                    @if(! $reservation->target_move_in_date)
+                        <div class="flex items-center gap-2">
+                            <p class="flex-1 text-[12px] leading-snug text-[#5B6A8E]"><span class="font-semibold text-[#060D26]">No move-in date yet.</span> Accept to talk it through, then set the date when you send the agreement.</p>
+                            <button type="button" @click="showReject = !showReject"
+                                class="px-4 py-2 border border-[#EF4444] text-[#EF4444] text-[12px] font-semibold rounded-xl hover:bg-[#EF4444]/5 cursor-pointer transition-all duration-200">
+                                Reject
+                            </button>
+                        </div>
+                    @else
                     <form action="{{ route('landlord.reservations.acceptAndSend', $reservation) }}" method="POST">
                         @csrf @method('PATCH')
                         @include('landlord.partials._lease-editor', ['reservation' => $reservation])
@@ -204,6 +214,7 @@
                             </button>
                         </div>
                     </form>
+                    @endif
                     <form action="{{ route('landlord.reservations.advanceNegotiation', $reservation) }}" method="POST" class="mt-2">
                         @csrf @method('PATCH')
                         <button type="submit" class="w-full border border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-[12px] font-semibold py-2 rounded-xl cursor-pointer transition-colors duration-200">

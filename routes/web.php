@@ -177,6 +177,7 @@ Route::middleware('auth')->group(function () {
 
         // A tenant's own tenancy and rent ledger — read-only except for the
         // one earliest unsettled period, which can be paid online via GCash.
+        Route::get('/tenancy', [TenancyController::class, 'index'])->name('tenancy.index');
         Route::get('/tenancy/{reservation}', [TenancyController::class, 'show'])->name('tenancy.show');
         // Read-only lease view — ReservationPolicy::viewLease already authorizes
         // the tenant, same as the landlord; this was the missing route.

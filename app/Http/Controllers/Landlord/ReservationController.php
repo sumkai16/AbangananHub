@@ -257,6 +257,12 @@ class ReservationController extends Controller
     {
         Gate::authorize('advanceStatus', $reservation);
 
+        // The one-step shortcut sends the lease as it stands, and a lease needs a start date. The tenant may have asked
+        // without one: the landlord accepts and negotiates first, then sets the date when sending the agreement.
+        if (! $reservation->target_move_in_date) {
+            return back()->with('error', 'This inquiry has no move-in date yet. Accept and negotiate first, then set the date when you send the agreement.');
+        }
+
         $request->validate([
             'agreement_terms_notes' => 'nullable|string|max:2000',
             'lease_body' => 'nullable|string|max:40000',

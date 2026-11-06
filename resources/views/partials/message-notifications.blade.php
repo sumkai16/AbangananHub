@@ -1,4 +1,5 @@
-{{-- Floating message bubble + panel + toast notifications --}}
+{{-- Toast notifications, plus the floating message bubble and its panel. The tenant layout passes floatingBubble => false:
+     its message icon sits beside the bell instead. The landlord layout keeps the bubble. --}}
 @auth
 @php
     $onConversationsPage = request()->routeIs('conversations.*');
@@ -48,7 +49,7 @@
         </template>
     </div>
 
-    @unless($onConversationsPage)
+    @unless($onConversationsPage || ! ($floatingBubble ?? true))
 
     {{-- Message panel (hidden by default, shown when bubble clicked) --}}
     <div x-show="panelOpen"

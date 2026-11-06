@@ -255,7 +255,7 @@
                         'chat_url' => $reservation->conversation ? route('conversations.show', $reservation->conversation) : null,
                     ];
                     $initials = mb_strtoupper(mb_substr($reservation->tenant->first_name ?? '?', 0, 1) . mb_substr($reservation->tenant->last_name ?? '', 0, 1));
-                    $moveIn = $reservation->target_move_in_date ?? $reservation->reservation_date;
+                    $moveIn = $reservation->target_move_in_date;
                     $photo = $reservation->property->media->firstWhere('media_type', 'Image');
                     $derived[$reservation->reservation_id] = compact('modalData', 'initials', 'moveIn', 'photo', 'requestStage');
                 }
@@ -320,8 +320,12 @@
                                     {{-- What the tenant asked for: move-in → move-out (or open), and how many people --}}
                                     <td class="px-4 py-4">
                                         <p class="text-[13px] text-[#060D26] font-medium whitespace-nowrap">
-                                            {{ $moveIn?->format('M d, Y') ?? '—' }} <span class="text-[#5B6A8E]">&rarr;</span>
-                                            {{ $reservation->target_move_out_date?->format('M d, Y') ?? 'open' }}
+                                            @if($moveIn)
+                                                {{ $moveIn->format('M d, Y') }} <span class="text-[#5B6A8E]">&rarr;</span>
+                                                {{ $reservation->target_move_out_date?->format('M d, Y') ?? 'open' }}
+                                            @else
+                                                <span class="text-[#5B6A8E]">Not decided yet</span>
+                                            @endif
                                         </p>
                                         <p class="text-[11.5px] text-[#5B6A8E]">{{ $reservation->occupants_count ? $reservation->occupants_count.' '.\Illuminate\Support\Str::plural('person', $reservation->occupants_count) : 'Occupants not given' }}</p>
                                     </td>
@@ -413,7 +417,7 @@
                             <div class="grid grid-cols-3 gap-2 text-[11.5px]">
                                 <div class="rounded-lg border border-[#E2E4EC] px-2.5 py-1.5">
                                     <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E]">Move in</p>
-                                    <p class="font-semibold text-[#060D26] mt-0.5">{{ $moveIn?->format('M d, Y') ?? '—' }}</p>
+                                    <p class="font-semibold text-[#060D26] mt-0.5">{{ $moveIn?->format('M d, Y') ?? 'Not decided yet' }}</p>
                                 </div>
                                 <div class="rounded-lg border border-[#E2E4EC] px-2.5 py-1.5">
                                     <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E]">Move out</p>
@@ -492,7 +496,7 @@
                                 </div>
                                 <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] px-3.5 py-2.5">
                                     <dt class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">Move-in</dt>
-                                    <dd class="mt-0.5 text-[14.5px] font-extrabold text-[#060D26]" x-text="selected.move_in || selected.reservation_date || '—'"></dd>
+                                    <dd class="mt-0.5 text-[14.5px] font-extrabold text-[#060D26]" x-text="selected.move_in || 'Not decided yet'"></dd>
                                 </div>
                                 <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] px-3.5 py-2.5">
                                     <dt class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">Move-out</dt>

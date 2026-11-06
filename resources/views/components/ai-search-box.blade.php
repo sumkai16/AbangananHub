@@ -60,14 +60,14 @@
     </div>
 @else
     <form action="{{ route('properties.index') }}" method="GET" role="search" x-data="aiSearchBox(@js(request('q', '')))"
-        class="w-full max-w-[860px] flex items-center gap-2 bg-white rounded-full border-[1.5px] border-[#FF8A66] ring-4 ring-[#FF8A66]/15 pl-4 pr-1.5 py-1.5">
+        class="w-full max-w-[860px] flex items-center gap-2 bg-white rounded-full border-[1.5px] border-[#FF8A66] ring-4 ring-[#FF8A66]/15 pl-5 pr-2.5 py-2.5">
         <svg class="w-[18px] h-[18px] text-[#B35A3D] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.6L18.5 9.4l-4.7 1.8L12 16l-1.8-4.8L5.5 9.4l4.7-1.8z" /></svg>
         <label for="ai-q-header" class="sr-only">Describe your ideal place</label>
         <input id="ai-q-header" type="text" name="q" maxlength="300" required x-model="q" autocomplete="off"
             placeholder="Describe the place you want…"
             class="flex-1 min-w-0 border-0 bg-transparent p-0 h-10 text-[16px] sm:text-[15px] text-[#060D26] placeholder-[#5B6A8E]/70 focus:ring-0 focus:outline-none">
         <button type="submit" aria-label="Search"
-            class="flex-shrink-0 h-10 sm:h-11 px-3.5 sm:px-5 rounded-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] font-jakarta font-bold text-[14px] inline-flex items-center gap-2 transition-colors cursor-pointer">
+            class="flex-shrink-0 h-10 px-3.5 sm:px-5 rounded-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] font-jakarta font-bold text-[14px] inline-flex items-center gap-2 transition-colors cursor-pointer">
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
             <span class="hidden sm:inline">Search</span>
         </button>

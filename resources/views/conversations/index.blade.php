@@ -1,8 +1,5 @@
 @extends(auth()->user()->usesLandlordShell() ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
 
-{{-- The page itself runs full width, so the tenant site header does too (it is capped at 1400px elsewhere). --}}
-@section('shell-wide', '1')
-
 @section('content')
     @php
         // Landlord and tenant share one layout: the full width as three separate cards
@@ -10,7 +7,8 @@
         $wide = true;
         $cardClass = 'rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)]';
     @endphp
-    <div class="{{ $wide ? 'max-w-none' : auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-5 min-h-[calc(100vh-72px)]" x-data="inboxApp()" x-cloak>
+    {{-- Tenants get the same 1400px column as the site header and every other tenant page; the landlord's sidebar shell keeps the full width. --}}
+    <div class="{{ auth()->user()->usesLandlordShell() ? 'max-w-none' : auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-5 min-h-[calc(100vh-72px)]" x-data="inboxApp()" x-cloak>
 
         <div class="flex flex-col {{ $wide ? 'gap-4' : 'overflow-hidden '.$cardClass }}"
             style="height: calc(100vh - 110px); height: calc(100dvh - 110px); min-height: 560px;">

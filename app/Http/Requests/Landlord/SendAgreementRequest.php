@@ -54,6 +54,11 @@ class SendAgreementRequest extends FormRequest
             $moveIn = $this->input('target_move_in_date') ?: $reservation?->target_move_in_date?->toDateString();
             $moveOut = $this->input('target_move_out_date');
 
+            // The tenant may have asked without dates; a lease needs a start, so it is set here or not sent.
+            if (! $moveIn) {
+                $v->errors()->add('target_move_in_date', 'Set a move-in date first. The tenant did not give one.');
+            }
+
             if ($moveIn && $moveOut && Carbon::parse($moveOut)->lt(Carbon::parse($moveIn)->addMonthNoOverflow())) {
                 $v->errors()->add('target_move_out_date', 'The lease runs at least a month. Pick a move-out date on or after '
                     .Carbon::parse($moveIn)->addMonthNoOverflow()->format('M j, Y').'.');

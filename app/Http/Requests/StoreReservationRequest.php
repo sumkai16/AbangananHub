@@ -9,9 +9,10 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
 
 /**
- * A tenant's inquiry (step 2 of the reservation flow, plans/reservation-final-terms.md): when they want to move in,
- * when they expect to leave if they know, and how many will live there. The landlord sets the final dates and terms
- * in the agreement; these are the tenant's ask.
+ * A tenant's inquiry (step 2 of the reservation flow, plans/reservation-final-terms.md): only the unit is needed. When
+ * they want to move in, when they expect to leave and how many will live there are optional, because someone still
+ * planning may only want to ask a question first (plans/tenant-feedback-nov-5.md). The landlord sets the final dates
+ * and terms in the agreement, and cannot send one until a move-in date exists.
  */
 class StoreReservationRequest extends FormRequest
 {
@@ -24,22 +25,30 @@ class StoreReservationRequest extends FormRequest
     {
         return [
             'unit_id'              => 'required|integer|exists:property_units,unit_id',
-            // Required: the contract's start, the rent due day and the agreement's defaults all come from it. Read in
-            // business time, like every other date rule.
-            'target_move_in_date'  => 'required|date|after_or_equal:' . BusinessTime::today() . '|before_or_equal:' . BusinessTime::now()->addYear()->toDateString(),
-            // Optional: a tenant still deciding can say so. When given, at least a month after move-in (checked in
+            // Optional: a tenant still planning can leave it. When given it is read in business time, like every other
+            // date rule. The agreement's start, the rent due day and its defaults come from it, so the landlord sets it
+            // there if the tenant did not.
+            'target_move_in_date'  => 'nullable|date|after_or_equal:' . BusinessTime::today() . '|before_or_equal:' . BusinessTime::now()->addYear()->toDateString(),
+            // Optional, and only with a move-in date. When given, at least a month after it (checked in
             // withValidator), because rent and the ledger are monthly.
             'target_move_out_date' => 'nullable|date|after:target_move_in_date',
-            'occupants_count'      => 'required|integer|min:1|max:20',
+            'occupants_count'      => 'nullable|integer|min:1|max:20',
             'message'              => 'nullable|string|max:300',
         ];
     }
 
     public function withValidator(Validator $validator): void
     {
-        $validator->after(fn (Validator $v) => self::checkStayAndOccupants(
-            $v, $this->input('unit_id'), $this->input('target_move_in_date'), $this->input('target_move_out_date'), $this->input('occupants_count'),
-        ));
+        $validator->after(function (Validator $v) {
+            // A move-out date means nothing without a move-in date to measure the stay from.
+            if ($this->filled('target_move_out_date') && ! $this->filled('target_move_in_date') && ! $v->errors()->has('target_move_out_date')) {
+                $v->errors()->add('target_move_out_date', 'Pick a move-in date first, or leave both blank.');
+            }
+
+            self::checkStayAndOccupants(
+                $v, $this->input('unit_id'), $this->input('target_move_in_date'), $this->input('target_move_out_date'), $this->input('occupants_count'),
+            );
+        });
     }
 
     /**
@@ -70,11 +79,9 @@ class StoreReservationRequest extends FormRequest
         return [
             'unit_id.required'                    => 'Please select a unit before sending your inquiry.',
             'unit_id.exists'                      => 'That unit no longer exists.',
-            'target_move_in_date.required'        => 'Choose when you would like to move in.',
             'target_move_in_date.after_or_equal'  => 'Your move-in date cannot be in the past.',
             'target_move_in_date.before_or_equal' => 'Please choose a move-in date within the next year.',
             'target_move_out_date.after'          => 'The move-out date must be after the move-in date.',
-            'occupants_count.required'            => 'Tell the landlord how many people will live there.',
             'occupants_count.min'                 => 'At least one person will live there.',
             'message.max'                         => 'Your message cannot be longer than 300 characters.',
         ];

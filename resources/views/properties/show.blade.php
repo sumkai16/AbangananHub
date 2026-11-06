@@ -158,12 +158,14 @@
                                                     selectedUnit: @js($defaultUnitId),
                                                     msg: @js(old('message', '')),
 
-                                                    // The inquiry asks when they want to move in (required), when they expect to leave
-                                                    // (optional, at least a month later) and how many will live there
-                                                    // (StoreReservationRequest). The landlord sets the final terms in the agreement.
+                                                    // An inquiry needs only the unit. Move-in, move-out (at least a month later) and how many
+                                                    // will live there are optional (StoreReservationRequest): someone still planning can just
+                                                    // ask a question. They sit in a fold that opens by itself when the server sent one back with
+                                                    // an error. The landlord sets the final terms in the agreement.
+                                                    moreOpen: {{ $errors->hasAny(['target_move_in_date', 'target_move_out_date', 'occupants_count']) ? 'true' : 'false' }},
                                                     moveIn: @js(old('target_move_in_date', '')),
                                                     moveOut: @js(old('target_move_out_date', '')),
-                                                    occupants: @js(old('occupants_count', 1)),
+                                                    occupants: @js(old('occupants_count', '')),
                                                     get minMoveOut() {
                                                         if (!this.moveIn) return null;
                                                         const d = new Date(this.moveIn + 'T00:00:00');
@@ -174,7 +176,7 @@
                                                     maxMoveIn: @js(now()->addYear()->toDateString()),
 
                                                     get canSubmit() {
-                                                        return !!this.selected && !!this.moveIn && Number(this.occupants) >= 1;
+                                                        return !!this.selected;
                                                     },
 
                                                     descExpanded: false,
@@ -228,7 +230,7 @@
                  centre there, so this copy would duplicate it above `xl`.
                  That header switch is pinned to `xl`, not the usual `lg`,
                  because at `lg` the logged-in right-actions cluster (theme
-                 toggle + Become a Landlord/dashboard pill + notifications +
+                 toggle + dashboard pill + messages + notifications +
                  avatar) is wide enough to collide with a dead-centred logo —
                  see the `$mobileBp` comment in the layout. Below `xl` the
                  header stays in its normal logo+hamburger form, so this is
@@ -1550,8 +1552,15 @@
                                 @csrf
                                 <input type="hidden" name="unit_id" :value="selected ? selected.id : ''">
 
-                                {{-- Move-in and occupants are required; move-out is optional (a tenant may not know yet).
-                                     The landlord sets the final dates in the agreement (StoreReservationRequest). --}}
+                                {{-- Only the unit is needed. The dates and occupants are an optional fold: a tenant may just be
+                                     asking a question, and viewings open in the chat once the landlord replies. --}}
+                                <div>
+                                    <button type="button" x-on:click="moreOpen = !moreOpen" :aria-expanded="moreOpen ? 'true' : 'false'"
+                                        class="flex w-full items-center justify-between gap-2 rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-left text-[13px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] transition-colors cursor-pointer">
+                                        <span>Add move-in details <span class="font-medium text-[#5B6A8E]">&middot; optional</span></span>
+                                        <svg class="h-4 w-4 shrink-0 text-[#5B6A8E] transition-transform duration-200 motion-reduce:transition-none" :class="moreOpen && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                                    </button>
+                                    <div x-show="moreOpen" x-cloak class="mt-3 space-y-4">
                                 <div class="grid grid-cols-2 gap-3 items-start">
                                     <div>
                                         <label for="target_move_in_date"
@@ -1581,14 +1590,17 @@
 
                                 <div>
                                     <label for="occupants_count"
-                                        class="block text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-1">Occupants</label>
+                                        class="block text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-1">Occupants
+                                        <span class="normal-case tracking-normal font-semibold">· optional</span></label>
                                     <input type="number" name="occupants_count" id="occupants_count" x-model="occupants"
-                                        min="1" :max="selected?.occupancy || 20" required inputmode="numeric"
+                                        min="1" :max="selected?.occupancy || 20" inputmode="numeric" placeholder="How many will live there?"
                                         class="h-11 w-full rounded-xl border border-[#E2E4EC] px-3.5 text-[14px] font-medium text-[#060D26] bg-white focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none">
                                     <p class="mt-1 text-[11px] text-[#5B6A8E]" x-show="selected?.occupancy" x-text="'This unit allows up to ' + selected?.occupancy + (selected?.occupancy == 1 ? ' person.' : ' people.')"></p>
                                     @error('occupants_count')
                                         <p class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
                                     @enderror
+                                </div>
+                                    </div>
                                 </div>
 
                                 {{-- Deposit is optional per-unit since Sept 2026 (see
@@ -1623,6 +1635,8 @@
                                         <span x-text="msg.length"></span>/300
                                     </p>
                                 </div>
+
+                                <p class="text-[11.5px] leading-snug text-[#5B6A8E]">You can ask for a visit in the chat once the landlord replies.</p>
 
                                 <template x-if="selected && selected.hasActive">
                                     <div
@@ -1782,13 +1796,18 @@
                                         </div>
                                     </template>
 
-                                    {{-- Both fields optional — see the desktop sidebar
-                                         form for why the old Inquiry/Reserve toggle was
-                                         removed (DESIGN.md). --}}
+                                    {{-- Only the unit is needed; the dates and occupants are an optional fold, as on the desktop form. --}}
                                     <form action="{{ route('reservations.store') }}" method="POST" class="space-y-3.5">
                                         @csrf
                                         <input type="hidden" name="unit_id" :value="selected ? selected.id : ''">
 
+                                        <div>
+                                            <button type="button" x-on:click="moreOpen = !moreOpen" :aria-expanded="moreOpen ? 'true' : 'false'"
+                                                class="flex w-full items-center justify-between gap-2 rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-left text-[13px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] transition-colors cursor-pointer">
+                                                <span>Add move-in details <span class="font-medium text-[#5B6A8E]">&middot; optional</span></span>
+                                                <svg class="h-4 w-4 shrink-0 text-[#5B6A8E] transition-transform duration-200 motion-reduce:transition-none" :class="moreOpen && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                                            </button>
+                                            <div x-show="moreOpen" x-cloak class="mt-3 space-y-3.5">
                                         <div class="grid grid-cols-2 gap-2.5">
                                             <div>
                                                 <label for="m_move_in" class="block text-[11px] font-bold text-[#5B6A8E] mb-1">Move in</label>
@@ -1812,14 +1831,16 @@
                                             </div>
                                         </div>
                                         <div>
-                                            <label for="m_occupants" class="block text-[11px] font-bold text-[#5B6A8E] mb-1">Occupants</label>
+                                            <label for="m_occupants" class="block text-[11px] font-bold text-[#5B6A8E] mb-1">Occupants <span class="font-semibold">(Optional)</span></label>
                                             <input type="number" name="occupants_count" id="m_occupants" x-model="occupants"
-                                                min="1" :max="selected?.occupancy || 20" required inputmode="numeric"
+                                                min="1" :max="selected?.occupancy || 20" inputmode="numeric" placeholder="How many will live there?"
                                                 class="h-11 w-full rounded-xl border border-[#E2E4EC] px-3.5 text-[14px] font-medium text-[#060D26] bg-white focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none">
                                             <p class="mt-1 text-[11px] text-[#5B6A8E]" x-show="selected?.occupancy" x-text="'This unit allows up to ' + selected?.occupancy + (selected?.occupancy == 1 ? ' person.' : ' people.')"></p>
                                             @error('occupants_count')
                                                 <p class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
                                             @enderror
+                                        </div>
+                                            </div>
                                         </div>
 
                                         {{-- Deposit is optional per-unit since Sept 2026 — the
@@ -1849,6 +1870,8 @@
                                                 class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder:text-[#5B6A8E]/60 focus:border-[#FF8A66]/60 focus:ring-4 focus:ring-[#FF8A66]/10 transition-all resize-none"></textarea>
                                             <p class="text-[10px] font-semibold text-[#5B6A8E]/70 text-right mt-0.5"><span x-text="msg.length"></span>/300</p>
                                         </div>
+
+                                        <p class="text-[11.5px] leading-snug text-[#5B6A8E]">You can ask for a visit in the chat once the landlord replies.</p>
 
                                         <template x-if="selected && selected.hasActive">
                                             <div class="w-full py-3 text-center rounded-xl bg-[#ECEEF6] text-[#060D26] text-sm font-bold cursor-not-allowed">
