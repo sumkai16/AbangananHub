@@ -156,6 +156,39 @@
                 @endif
             </x-card>
 
+            {{-- What happened on this listing, newest first: the history the landlord sees, written by the observers. Read-only
+                 and plain text: its links lead into landlord-only pages. --}}
+            <x-card flush>
+                <div class="flex items-baseline justify-between gap-3 px-5 sm:px-6 py-4 border-b border-[#E2E4EC]">
+                    <h2 class="text-[15px] font-semibold text-[#060D26]">Recent activity</h2>
+                    @if($activityTotal > 0)
+                        <p class="text-[12px] text-[#5B6A8E] tabular-nums">{{ $activityTotal > $activities->count() ? 'Latest '.$activities->count().' of '.$activityTotal : $activityTotal.' '.\Illuminate\Support\Str::plural('line', $activityTotal) }}</p>
+                    @endif
+                </div>
+                @if($activities->isEmpty())
+                    <p class="px-5 sm:px-6 py-6 text-[13px] text-[#5B6A8E]">Nothing has happened on this listing yet.</p>
+                @else
+                    <ul class="divide-y divide-[#E2E4EC]">
+                        @foreach($activities as $activity)
+                            @php
+                                $role = ['landlord' => 'Landlord', 'tenant' => 'Tenant', 'admin' => 'Admin'][$activity->actor_role] ?? 'System';
+                                $chip = match ($activity->actor_role) {
+                                    'landlord' => 'bg-[#ECEEF6] text-[#060D26]',
+                                    'tenant'   => 'bg-[#FF8A66]/15 text-[#B35A3D]',
+                                    'admin'    => 'bg-[#060D26] text-white',
+                                    default    => 'bg-[#F7F8FC] text-[#5B6A8E] ring-1 ring-inset ring-[#E2E4EC]',
+                                };
+                            @endphp
+                            <li class="flex items-start gap-3 px-5 sm:px-6 py-3.5">
+                                <span class="mt-0.5 inline-flex h-6 min-w-[4rem] shrink-0 items-center justify-center rounded-full px-2.5 text-[11px] font-semibold {{ $chip }}">{{ $role }}</span>
+                                <span class="min-w-0 flex-1"><span class="block text-[13.5px] leading-snug text-[#060D26]">{{ $activity->summary }}</span>
+                                    <time datetime="{{ $activity->created_at->toIso8601String() }}" title="{{ $activity->created_at->format('M j, Y \a\t g:i A') }}" class="mt-0.5 block text-[12px] text-[#5B6A8E]">{{ $activity->created_at->format($activity->created_at->isCurrentYear() ? 'M j · g:i A' : 'M j, Y') }}</time></span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </x-card>
+
         </div>
 
         {{-- Rail --}}

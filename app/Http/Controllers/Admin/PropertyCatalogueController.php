@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Property;
+use App\Models\PropertyActivity;
 use App\Support\Csv;
 use Illuminate\Http\Request;
 
@@ -136,7 +137,13 @@ class PropertyCatalogueController extends Controller
             'documents.verifier:user_id,first_name,last_name',
         ]);
 
-        return view('admin.catalogue.properties.show', compact('property'));
+        // The same history the landlord sees on their property page, newest first, read-only. Ten lines are enough to
+        // tell what happened lately; the total says whether there is more.
+        $activityTotal = PropertyActivity::where('property_id', $property->property_id)->count();
+        $activities = PropertyActivity::where('property_id', $property->property_id)
+            ->orderByDesc('created_at')->orderByDesc('activity_id')->limit(10)->get();
+
+        return view('admin.catalogue.properties.show', compact('property', 'activities', 'activityTotal'));
     }
 
     public function export(Request $request)

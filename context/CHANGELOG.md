@@ -2,6 +2,11 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 6 2026 — `joseph` admin pages brought into `axci`; activity list on the admin property page (branch `axci`)
+`git merge origin/joseph` would have **deleted 35 of axci's files** (the property activity log, notifications, payments calendar and their tests): `joseph` carries a merge of `axci` and its revert (`a4bb45a`). Its two real commits (`9b5ad62`, `9772e39`, the admin design pass) were **cherry-picked** instead; only `CHANGELOG.md` conflicted (both entries kept). Suite: 1712 passed. Before merging `joseph` for real, run `git revert a4bb45a` on it or the revert will undo `axci` again.
+- **Recent activity** on `admin/catalogue/properties/show`: the same `PropertyActivity` history the landlord sees, newest first, latest 10 of N, read-only plain text (the landlord version links into landlord-only pages). Roles read Landlord, Tenant, Admin, System (the landlord's own page says "You"). This is the list joseph's hand-off said had to wait for the merge. Test: `AdminPropertyActivityTest`.
+- Known difference, not a bug: admin status tags make good states orange (`x-admin.status`); the landlord and tenant pages use green for paid and red for owed. Admin only; Axcee to decide.
+
 ## Nov 6 2026 — Tenant rental page follows the landlord's rent ledger (branch `axci`)
 `/tenant/tenancy/{id}` was a header card with four buttons, three tiles, a pay block, a deposit card and a ledger table. It now has the same bento as `landlord/payments/ledger/{id}`, in the tenant's words. Plan: `plans/tenant-rental-page-redesign.md`. **Rendered in headless Chrome at 375px and 1440px (no JS errors, no sideways scroll); not clicked through by hand.**
 - **Identity row** (unit photo, unit, property, landlord, move-in date) and four quiet buttons (agreement, message landlord, review, report a concern). The status pill shows only when the rental is not running.
