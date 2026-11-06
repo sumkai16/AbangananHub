@@ -182,7 +182,13 @@
                             @endif
                         </div>
                         <div class="overflow-x-auto">
-                            <table class="w-full min-w-[980px] text-left">
+                            {{-- Fixed layout and shared widths: every property has its own table, and automatic widths made the
+                                 columns drift from one table to the next. --}}
+                            <table class="w-full min-w-[980px] text-left" style="table-layout: fixed">
+                                <colgroup>
+                                    <col style="width: 27%"><col style="width: 13%"><col style="width: 12%"><col style="width: 13%">
+                                    <col style="width: 17%"><col style="width: 12%"><col style="width: 6%">
+                                </colgroup>
                                 <thead>
                                     <tr class="border-b border-[#E2E4EC]">
                                         <th class="px-5 py-3.5 text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">Unit</th>

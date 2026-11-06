@@ -2,6 +2,10 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 7 2026 — Admin units list: aligned columns, one dead photo replaced (branch `axci`)
+- **`/admin/catalogue/units` table view:** each property has its own table, and automatic column widths made Verification, Tenant and Last updated drift from one block to the next. The tables now use a fixed layout with shared widths (inline styles, so no rebuild is needed). All 8 tables on the page share the same column positions.
+- **A deleted Unsplash photo (`photo-1560185008-b033106af5c8`, a 404)** was used by 10 units, so their thumbnails were broken. Replaced with a working one in the 10 dev rows and in `PropertySeeder`; all 30 other distinct photos checked and fine.
+
 ## Nov 6 2026 — Listing photos: shrink at upload, six-photo cap, named sizes (branch `axci`)
 Pages were heavy because of image weight, not queries. Plan, delete list and 8-step manual test guide: `plans/image-and-demo-data-cleanup.md`. Suite: 1743 passed (10 new: `ListingPhotosTest`, `ImagesTest`). **Not clicked through by hand; the numbers below were measured in Chrome against the dev data.** No migration. The demo-data trim (step 4) is **done**, see the last bullet.
 - **Standard format:** WebP or AVIF (the browser picks, via Cloudinary `f_auto` / Unsplash `auto=format`), JPEG fallback, at the size the screen shows: `thumb` 160, `card` 640, `gallery` 1200, `full` 1600. `Images::src($url, 'card')` (new, `app/Support/Images.php`) is the only way a view should print a listing photo.
