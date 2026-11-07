@@ -3,6 +3,9 @@
 <meta name="user-authenticated" content="{{ auth()->check() ? '1' : '0' }}">
 
 <head>
+    {{-- Shown inside the page panel (an iframe over the list): no sidebar, top bar, prefetch rules or notification
+         widgets, since the page around the frame already has them. See App\Http\Middleware\EmbeddedPage. --}}
+    @php $embedded = \App\Http\Middleware\EmbeddedPage::active(); @endphp
     @include('partials.theme-init')
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,6 +13,7 @@
     <title>{{ $title ?? 'AbangananHub' }}</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('images/brand/logo-app-icon.svg') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @unless($embedded)
     <script>
         (function () {
             if (localStorage.getItem('landlordSidebarCollapsed') === 'true') {
@@ -32,6 +36,11 @@
 
             .sidebar-pre-collapsed #landlord-main {
                 margin-left: 5rem;
+            }
+
+            /* The page panel starts at the sidebar's edge, so it follows a collapsed sidebar too. */
+            .sidebar-pre-collapsed [data-page-panel-section] {
+                left: 5rem;
             }
 
             .sidebar-pre-collapsed #landlord-sidebar nav a,
@@ -59,6 +68,7 @@
     <script type="speculationrules">
         @json($speculationRules)
     </script>
+    @endunless
 </head>
 
 <body class="font-sans bg-[#F7F8FC] text-[#060D26] min-h-screen" x-data="{
@@ -76,6 +86,7 @@
 
     <div class="landlord-shell flex min-h-screen">
 
+        @unless($embedded)
         {{-- Mobile overlay --}}
         <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false" class="fixed inset-0 bg-black/40 z-40 lg:hidden">
         </div>
@@ -331,11 +342,13 @@
                 </div>
             </div>
         </aside>
+        @endunless
 
         {{-- ============ MAIN ============ --}}
         <div id="landlord-main"
-            class="lg:ml-64 print:!ml-0 flex-1 flex flex-col min-w-0 transition-all duration-300">
+            class="{{ $embedded ? '' : 'lg:ml-64' }} print:!ml-0 flex-1 flex flex-col min-w-0 transition-all duration-300">
 
+            @unless($embedded)
             {{-- Mobile-only slim bar --}}
             <div
                 class="lg:hidden print:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-[#E2E4EC] sticky top-0 z-30">
@@ -398,6 +411,7 @@
                     </div>
                 </div>
             </div>
+            @endunless
 
             <main id="main" class="flex-1 overflow-x-clip">
                 @yield('content')
@@ -405,6 +419,7 @@
         </div>
     </div>
 
+    @unless($embedded)
     <script>
         function notificationDropdown() {
             return {
@@ -493,10 +508,24 @@
     </script>
     @include('partials.message-notifications')
     @include('partials.notification-toast')
+    <x-page-panel />
+    @endunless
 
     <x-confirm-modal />
     <script src="{{ asset('js/modal-confirm.js') }}"></script>
     @include('partials.flash-modal')
+
+    @if($embedded)
+        {{-- A link inside the panel that leaves the page (a receipt, another section) opens in the full window, not
+             inside the frame. Forms are not touched: they post inside the frame and come back embedded. --}}
+        <script>
+            document.addEventListener('click', function (e) {
+                var a = e.target.closest('a[href]');
+                if (!a || a.target || (a.getAttribute('href') || '').charAt(0) === '#' || /^(javascript|mailto|tel):/i.test(a.getAttribute('href'))) return;
+                a.target = '_top';
+            }, true);
+        </script>
+    @endif
 
     @stack('scripts')
 

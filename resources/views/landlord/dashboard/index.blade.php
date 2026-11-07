@@ -206,6 +206,7 @@
                             @foreach($actionQueue as $item)
                                 <li>
                                     <a href="{{ $item['url'] }}" title="{{ $item['cta'] }}"
+                                        @if(! empty($item['panel'])) data-page-panel data-page-panel-back="{{ $item['panel'] }}" @endif
                                         class="group flex items-center gap-3 px-4 py-3 hover:bg-[#F7F8FC] active:bg-[#ECEEF6] transition-colors duration-200 sm:px-5">
                                         <span class="w-2 h-2 rounded-full shrink-0 {{ $item['level'] === 'danger' ? 'bg-[#EF4444]' : 'bg-[#FBBF24]' }}"></span>
                                         <span class="sr-only">{{ $item['level'] === 'danger' ? 'Urgent:' : 'Needs action:' }}</span>

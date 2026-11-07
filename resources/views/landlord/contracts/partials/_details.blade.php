@@ -215,7 +215,7 @@
     @endif
     @if(in_array($reservation->rental_status, ['Occupied', 'Completed', 'Reserved'], true)
         || ($reservation->rental_status === 'Rental Agreement Signed' && $reservation->moveInSettled()))
-        <a href="{{ route('landlord.payments.ledger', $reservation) }}" class="{{ $ghostBtn }}">Open ledger</a>
+        <a href="{{ route('landlord.payments.ledger', $reservation) }}" data-page-panel data-page-panel-back="Tenants" class="{{ $ghostBtn }}">Open ledger</a>
     @endif
 
     {{-- Rating the tenant lives with the contract now (it used to be a Reservations row action). --}}

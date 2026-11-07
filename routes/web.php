@@ -208,7 +208,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/landlord/{user}/profile/properties', [App\Http\Controllers\Landlord\ProfileController::class, 'properties'])->name('landlord.profile.properties');
 
     // Landlord-specific prefix routes
-    Route::middleware('landlord')->prefix('landlord')->name('landlord.')->group(function () {
+    Route::middleware(['landlord', 'embeddable'])->prefix('landlord')->name('landlord.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         // Property management
         Route::get('/properties', [LandlordPropertyController::class, 'index'])->name('properties.index');

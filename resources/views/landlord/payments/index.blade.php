@@ -331,7 +331,7 @@
                         </div>
 
                         <div class="mt-3 flex gap-2">
-                            <a href="{{ route('landlord.payments.ledger', $reservation) }}"
+                            <a href="{{ route('landlord.payments.ledger', $reservation) }}" data-page-panel data-page-panel-back="Payments"
                                 class="flex-1 flex items-center justify-center h-10 rounded-xl border border-[#FF8A66] text-[#B35A3D] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">
                                 Open Ledger
                             </a>
@@ -463,7 +463,7 @@
                                                     </button>
                                                 </form>
                                             @endif
-                                            <a href="{{ route('landlord.payments.ledger', $reservation) }}"
+                                            <a href="{{ route('landlord.payments.ledger', $reservation) }}" data-page-panel data-page-panel-back="Payments"
                                                 class="inline-flex items-center gap-1 text-[#060D26] text-[12.5px] font-semibold hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer whitespace-nowrap">
                                                 Open ledger
                                                 <span aria-hidden="true">→</span>

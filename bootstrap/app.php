@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\DropArrayFilters;
+use App\Http\Middleware\EmbeddedPage;
 use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureLandlord;
@@ -33,6 +34,8 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'tenant'   => EnsureTenant::class,
             'landlord' => EnsureLandlord::class,
             'admin'    => EnsureAdmin::class,
+            // Landlord pages that can open inside the page panel (an iframe) without the sidebar and top bar.
+            'embeddable' => EmbeddedPage::class,
             // Aliased for the API, where it must run *after* auth:sanctum has
             // resolved the guard. Appending it to the api group instead would
             // run it before, find no authenticated user, and pass everything

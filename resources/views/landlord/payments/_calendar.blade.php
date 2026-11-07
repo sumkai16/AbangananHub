@@ -294,7 +294,7 @@ HTML;
                         <span class="font-semibold text-[#060D26]" x-text="peso(e.paid, 2)"></span>
                         <span class="text-[#5B6A8E]" x-text="'of ' + peso(e.expected, 2)"></span>
                     </p>
-                    <a :href="person(e).url"
+                    <a :href="person(e).url" data-page-panel data-page-panel-back="Payments"
                         class="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#060D26] hover:text-[#B35A3D] transition-colors duration-200 whitespace-nowrap">
                         Open ledger <span aria-hidden="true">→</span>
                     </a>
