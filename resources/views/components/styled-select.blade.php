@@ -60,7 +60,7 @@
             @if($onSelect)
                 {{ $onSelect }};
             @elseif($autosubmit)
-                this.$nextTick(() => this.$refs.hiddenInput ? this.$refs.hiddenInput.form.submit() : this.$refs.trigger.closest('form').submit());
+                this.$nextTick(() => this.$refs.hiddenInput ? this.$refs.hiddenInput.form.requestSubmit() : this.$refs.trigger.closest('form').requestSubmit());
             @endif
         },
     }"

@@ -211,7 +211,7 @@
         {{-- Filter bar --}}
         {{-- Bare on the page, same as Units: the inputs already have borders, and a card
              around them stacked a third container above the table card. --}}
-        <form method="GET" action="{{ route('landlord.payments.index') }}" class="mb-5">
+        <form data-live method="GET" action="{{ route('landlord.payments.index') }}" class="mb-5">
             @if($view === 'calendar')
                 <input type="hidden" name="view" value="calendar">
                 {{-- The calendar's level lives in the address; payments-calendar.js keeps these in step as you zoom, so a

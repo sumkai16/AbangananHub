@@ -53,7 +53,7 @@
     <x-stat-strip :cells="$summary" class="mb-3" />
 
     {{-- Search + filters, same bar as Properties --}}
-    <form method="GET" action="{{ route('admin.reservations.index') }}" class="mb-3">
+    <form data-live method="GET" action="{{ route('admin.reservations.index') }}" class="mb-3">
         @if(request('filter')) <input type="hidden" name="filter" value="{{ request('filter') }}"> @endif
         <div class="flex flex-col lg:flex-row lg:items-center gap-3">
             <div class="relative flex-1 min-w-[200px]">

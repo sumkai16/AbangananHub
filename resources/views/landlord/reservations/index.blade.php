@@ -71,7 +71,7 @@
         ]" />
 
         {{-- Search + filters: bare, the same as the other landlord lists --}}
-        <form method="GET" action="{{ route('landlord.reservations.index') }}"
+        <form data-live method="GET" action="{{ route('landlord.reservations.index') }}"
             class="mb-5 flex flex-col lg:flex-row lg:items-center gap-3">
             @if($stage !== 'open')
                 <input type="hidden" name="stage" value="{{ $stage }}">

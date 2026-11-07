@@ -22,7 +22,7 @@
     ]" />
 
     {{-- Search + filters, same bar as Reservations --}}
-    <form method="GET" action="{{ route('admin.deposit-charges.index') }}" class="mb-3">
+    <form data-live method="GET" action="{{ route('admin.deposit-charges.index') }}" class="mb-3">
         <div class="flex flex-col lg:flex-row lg:items-center gap-3">
             <div class="relative flex-1 min-w-[200px]">
                 <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B6A8E]" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">

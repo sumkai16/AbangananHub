@@ -65,7 +65,7 @@
 
 
     {{-- Search + filters + view toggle --}}
-    <form method="GET" action="{{ route('admin.catalogue.properties.index') }}" class="mb-4">
+    <form data-live method="GET" action="{{ route('admin.catalogue.properties.index') }}" class="mb-4">
         <input type="hidden" name="verification_status" value="{{ $status }}">
         <div class="flex flex-col lg:flex-row lg:items-center gap-3">
             <div class="relative flex-1 min-w-[200px]">

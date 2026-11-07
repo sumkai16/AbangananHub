@@ -1,6 +1,7 @@
 import './bootstrap';
 import './echo';
 import './field-validation';
+import './live-filter';
 import './page-swap';
 import { aiSearch, aiSearchBox } from './ai-search';
 import propertyCard from './property-card';
