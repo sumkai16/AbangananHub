@@ -2,6 +2,24 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 7 2026 — Route animation on the property page map, dark mode included (branch `axci`)
+Pressing **Get directions** on a listing now plays one sequence. Mockups of five options (Claude artifact "Route animation mockups"); Axcee picked 3 (ride along) + 2 (glow) + 1 (the footer figures count up). **Not run in a browser by me** (it needs the visitor's location or a typed address); build passes. Run `npm run build` after pulling. No migration, no route change.
+- **Sequence:** the map frames the route with no fly animation (the path must be at its final pixel size), the navy line draws on over 1.7 s while "60.2 km · ~2 hr by motorcycle" counts up from 0 and the "Rough estimate" note fades in, then a glowing coral marker rides the route at the mode's pace (about 3.2 s motorcycle, 4.4 car, 4.8 walk; for show, the estimate is unchanged) leaving a glowing coral trail, which fades out on arrival so the calm navy line stays.
+- **Mode buttons** replay only the ride. **Zoom** cancels the animation and shows the finished state (a zoom changes the path's pixel length). **Reduced motion** skips it. A second Get directions now removes the old route and start pin first (they used to stack). No count-up when walking is "too far".
+- **Dark mode:** the dark map is the same tiles filtered to navy-grey, so the navy route and start dot vanished. In `html.dark` the route is `#EAEEF9` with a thin dark edge (`.route-line`) and the start dot is light with a navy ring. Coral glow and marker unchanged.
+- **Files:** `resources/js/maps/property-map.js` (`playRoute`, `clearRoute`, `tween`), `resources/css/app.css` (`.route-trail`, `.route-rider`, `.route-line`), `resources/css/maps.css` (dark start pin). Kept the route navy on the light map on purpose: coral is about 2:1 there, below the 3:1 a line needs.
+
+## Nov 7 2026 — Listing page uses the standard header; Back moves into the page (branch `axci`)
+`properties/show` used a special header (Back at the far left, logo centred, via `backNav`). It now extends `layouts.app` like `/properties` (logo, Home, Browse Rentals, account icons) and the **Back link is the first row under the header at every width** (was phones and tablets only). It still returns to the previous listings search when you came from it. Related tests pass (207). `backNav` stays in the layout but no page uses it.
+
+## Nov 7 2026 — Admin list pages: stat cards, one filter bar, dropdowns that filter on pick (branch `axci`, merged in PR #30)
+Reservations, Payments, Payouts, Deposit Charges, Reviews, Reports and Conversations follow the Properties page. Suite: 1779 passed. **Not clicked through by hand.** No migration, no rebuild needed.
+- **Stat cards (`x-stat-strip`) above the list**, clickable where a card is one filter (click the active one again to clear). Reservations: Total, In progress, Reserved, Occupied, Needs review. Deposit Charges, Reviews and Reports gained one; Payments keeps its peso cards (now links); Payouts keeps its money strip. Numbers follow the search.
+- **Status tabs are gone from these pages**, replaced by a Status (or Visibility) dropdown with counts in the labels ("Held (3)"). Old `?status=` links still land on the right view. Other admin pages still use `x-admin.tabs`.
+- **One filter bar:** search (as you type) plus dropdowns, no Filter button; a Clear link shows when anything is set. `<x-styled-select autosubmit>` submits on pick; `<x-date-picker autosubmit>` is new (used on Audit logs). Applied to Properties, Audit logs, Conversations and Reviews too.
+- **Search and sort** added in the controllers: reservations (landlord, property type, sort by date or move-in), reports (reporter, target, reason), payments, deposit charges, conversations.
+- **Grid/list toggle** (same markup and `localStorage` approach as Properties) on Reservations, Reviews and Conversations only. Payments, Payouts, Deposit Charges and Reports stay tables. Tests: `AdminDesignPagesTest`, `AdminFilterBarsPaymentsTest`, `AdminFilterBarsInboxTest`.
+
 ## Nov 7 2026 — Properties page gets the stat cards (branch `axci`)
 `/admin/catalogue/properties` now has the same stat cards as Units: Total properties (with the unit total), Approved, Pending, Rejected and Needs attention, each with its dot and a note. They are the filter (click one to filter, click it again to clear), so they **replace the status tabs**, which showed the same numbers. Links and active states are the tabs' own. `PropertyCatalogueController::index()` adds `counts['units']`. The grid and table views are unchanged. Checked in Chrome; 189 related tests pass.
 

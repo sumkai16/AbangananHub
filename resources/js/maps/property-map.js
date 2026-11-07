@@ -52,6 +52,19 @@ const TRAVEL_MODES = {
 let lastRoute = null;
 let activeMode = 'motorcycle';
 
+// Route animation (Nov 2026): the line draws on while the figures count up, then a glowing marker rides it at the
+// mode's pace and leaves a coral trail that fades once it arrives. Skipped for people who reduce motion, and
+// cancelled the moment the map zooms (the path's pixel length changes, so a half-run dash would look broken).
+const prefersReducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const DRAW_MS = 1700;
+let animToken = 0;
+let routeLayer = null;
+let routeGeometry = null;
+let originMarker = null;
+let trailLayer = null;
+let riderMarker = null;
+
 function init() {
     const container = document.getElementById('property-map');
     if (!container) return;
@@ -109,7 +122,7 @@ function wireDirections(map, destLat, destLng) {
     // number we computed, but the panel is also where the geocoded-address
     // path lands, and one shared sink that never parses HTML cannot become an
     // injection point later.
-    function renderSummary() {
+    function renderSummary(progress = 1) {
         if (!lastRoute) return;
 
         const mode = TRAVEL_MODES[activeMode];
@@ -123,7 +136,7 @@ function wireDirections(map, destLat, destLng) {
 
         const dist = document.createElement('span');
         dist.className = 'text-[22px] font-bold tracking-tight text-[#060D26]';
-        dist.textContent = `${km.toFixed(1)} km`;
+        dist.textContent = `${(km * progress).toFixed(1)} km`;
 
         const dot = document.createElement('span');
         dot.className = tooFar ? 'text-[#5B6A8E]' : 'text-[#B35A3D]';
@@ -136,12 +149,13 @@ function wireDirections(map, destLat, destLng) {
             : 'text-[14px] font-semibold text-[#060D26]';
         time.textContent = tooFar
             ? 'too far to walk'
-            : `~${formatDuration(Math.round((km / mode.kmh) * 60))} ${mode.label}`;
+            : `~${formatDuration(Math.round((km / mode.kmh) * 60 * progress))} ${mode.label}`;
 
         line.append(dist, dot, time);
 
         const note = document.createElement('p');
-        note.className = 'mt-1 text-[11.5px] text-[#5B6A8E]';
+        note.className = 'mt-1 text-[11.5px] text-[#5B6A8E] transition-opacity duration-300';
+        note.style.opacity = progress >= 1 ? '1' : '0';
         // Says what it is. The previous wording ("typical Metro Cebu travel
         // speeds") implied a traffic dataset stands behind these numbers.
         note.textContent = tooFar
@@ -165,8 +179,115 @@ function wireDirections(map, destLat, destLng) {
             });
 
             renderSummary();
+            if (routeLayer) playRoute(false);
         });
     });
+
+    function pathOf(group) {
+        let el = null;
+        group.eachLayer((l) => { if (l.getElement) el = l.getElement(); });
+        return el;
+    }
+
+    function clearTransients() {
+        if (trailLayer) { map.removeLayer(trailLayer); trailLayer = null; }
+        if (riderMarker) { map.removeLayer(riderMarker); riderMarker = null; }
+    }
+
+    function clearRoute() {
+        animToken++;
+        clearTransients();
+        if (routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
+        if (originMarker) { map.removeLayer(originMarker); originMarker = null; }
+    }
+
+    function tween(token, ms, onFrame, ease) {
+        return new Promise((resolve) => {
+            const t0 = performance.now();
+            const tick = (now) => {
+                if (token !== animToken) return resolve(false);
+                const t = Math.min(1, (now - t0) / ms);
+                onFrame(ease(t));
+                if (t < 1) requestAnimationFrame(tick); else resolve(true);
+            };
+            requestAnimationFrame(tick);
+        });
+    }
+
+    /**
+     * @param {boolean} redraw  true: draw the route on first, then ride. false: ride again (mode changed).
+     */
+    async function playRoute(redraw) {
+        const token = ++animToken;
+        clearTransients();
+
+        const base = pathOf(routeLayer);
+        const len = base?.getTotalLength?.() ?? 0;
+        const mode = TRAVEL_MODES[activeMode];
+        const tooFar = mode.maxKm !== null && lastRoute.distance / 1000 > mode.maxKm;
+
+        // Nothing to animate against: reduced motion, a hidden map (zero length) or a canvas renderer.
+        if (prefersReducedMotion() || !base || len < 1) {
+            if (base) base.style.strokeDasharray = '';
+            renderSummary(1);
+            return;
+        }
+
+        // A zoom changes the path's pixel length, so stop and show the finished state instead.
+        const stop = () => {
+            animToken++;
+            clearTransients();
+            base.style.strokeDasharray = '';
+            base.style.strokeDashoffset = '';
+            renderSummary(1);
+        };
+        map.once('zoomstart', stop);
+        const done = () => map.off('zoomstart', stop);
+
+        if (redraw) {
+            base.style.strokeDasharray = String(len);
+            base.style.strokeDashoffset = String(len);
+            const ok = await tween(token, DRAW_MS, (p) => {
+                base.style.strokeDashoffset = String(len * (1 - p));
+                renderSummary(tooFar ? 1 : p);
+            }, easeInOut);
+            if (!ok) return done();
+            base.style.strokeDasharray = '';
+            base.style.strokeDashoffset = '';
+        }
+
+        renderSummary(1);
+
+        // Ride: coral glowing trail behind a glowing marker. Pace follows the mode (a car or a walker is slower than
+        // a motorcycle); it is for show, the estimate above is unchanged.
+        trailLayer = L.geoJSON(routeGeometry, {
+            style: { color: '#FF8A66', weight: 4.5, opacity: 1, className: 'route-trail' },
+            interactive: false,
+        }).addTo(map);
+        const trail = pathOf(trailLayer);
+        if (!trail) { clearTransients(); return done(); }
+        trail.style.strokeDasharray = String(len);
+        trail.style.strokeDashoffset = String(len);
+
+        riderMarker = L.marker(map.layerPointToLatLng(L.point(base.getPointAtLength(0))), {
+            icon: L.divIcon({ className: 'route-rider', html: '<span></span>', iconSize: [22, 22], iconAnchor: [11, 11] }),
+            interactive: false, keyboard: false, zIndexOffset: 1000,
+        }).addTo(map);
+
+        const rideMs = Math.min(4800, Math.max(2200, (3200 * 30) / mode.kmh));
+        const arrived = await tween(token, rideMs, (p) => {
+            trail.style.strokeDashoffset = String(len * (1 - p));
+            const pt = base.getPointAtLength(len * p);
+            riderMarker.setLatLng(map.layerPointToLatLng(L.point(pt.x, pt.y)));
+        }, (t) => t);
+        done();
+        if (!arrived) return;
+
+        // Arrived: drop the marker, let the trail fade out so the calm navy route is what stays.
+        if (riderMarker) { map.removeLayer(riderMarker); riderMarker = null; }
+        trail.style.opacity = '0';
+        setTimeout(() => { if (token === animToken) clearTransients(); }, 650);
+    }
 
     function resetButton() {
         btn.disabled = false;
@@ -185,15 +306,18 @@ function wireDirections(map, destLat, destLng) {
             const route = data.routes?.[0];
             if (!route) throw new Error('No route found');
 
-            const layer = L.geoJSON(route.geometry, {
-                style: { color: '#060D26', weight: 4, opacity: 0.85 },
+            clearRoute();
+            routeGeometry = route.geometry;
+            routeLayer = L.geoJSON(routeGeometry, {
+                style: { color: '#060D26', weight: 4, opacity: 0.85, className: 'route-line' },
             }).addTo(map);
 
-            createPin(map, fromLat, fromLng, 'origin', '<strong>Your starting point</strong>');
-            map.fitBounds(layer.getBounds().pad(0.15));
+            originMarker = createPin(map, fromLat, fromLng, 'origin', '<strong>Your starting point</strong>');
+            // No fly animation: the path must be at its final pixel size before it is measured and drawn on.
+            map.fitBounds(routeLayer.getBounds().pad(0.15), { animate: false });
 
             lastRoute = { distance: route.distance, duration: route.duration };
-            renderSummary();
+            playRoute(true);
         } catch (err) {
             console.error('Directions failed:', err);
             panel.replaceChildren();
