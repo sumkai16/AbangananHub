@@ -235,4 +235,47 @@ class ReservationPolicy
         return $reservation->tenant_id === $user->user_id
             && $reservation->canRequestViewing();
     }
+
+    /**
+     * The reservation's tenant reports a payment they made to the landlord: move-in money while the
+     * agreement is signed, rent while the tenancy runs.
+     */
+    public function fileClaim(User $user, Reservation $reservation): bool
+    {
+        return $reservation->tenant_id === $user->user_id
+            && in_array($reservation->rental_status, ['Rental Agreement Signed', 'Occupied'], true);
+    }
+
+    /**
+     * The landlord of the property answers (confirms or rejects) a tenant's payment report, or records
+     * the move-in money themselves. Not tied to a status here: the service re-checks it under a lock,
+     * and a landlord should still be able to answer a report that arrived just before the tenancy ended.
+     */
+    public function decidePayment(User $user, Reservation $reservation): bool
+    {
+        return $reservation->property?->landlord_id === $user->user_id;
+    }
+
+    /** Recording move-in money by hand, only before move-in. */
+    public function recordMoveInPayment(User $user, Reservation $reservation): bool
+    {
+        return $this->decidePayment($user, $reservation)
+            && $reservation->rental_status === 'Rental Agreement Signed'
+            && ! $reservation->moveInSettled();
+    }
+
+    /**
+     * Either party confirms the move-in once the move-in money is settled and nothing is held, so nothing
+     * rides on who presses it (the same reasoning as confirmWalkInMoveIn()). A PayMongo payment still Held is
+     * released by the tenant's own confirmation instead (agreements.confirmMoveIn); one an admin already
+     * released before the keys were handed over is finished here.
+     */
+    public function confirmDirectMoveIn(User $user, Reservation $reservation): bool
+    {
+        return $reservation->rental_status === 'Rental Agreement Signed'
+            && $reservation->moveInSettled()
+            && ! $reservation->payments()->where('status', 'Held')->exists()
+            && ($reservation->tenant_id === $user->user_id
+                || $reservation->property?->landlord_id === $user->user_id);
+    }
 }

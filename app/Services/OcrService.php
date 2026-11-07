@@ -11,7 +11,7 @@ class OcrService
 
     public function __construct()
     {
-        $this->apiKey = env('GOOGLE_VISION_API_KEY', '');
+        $this->apiKey = (string) config('services.google_vision.key', '');
     }
 
     /**
@@ -22,6 +22,7 @@ class OcrService
     {
         if (empty($this->apiKey)) {
             Log::warning('OcrService: GOOGLE_VISION_API_KEY not set');
+
             return '';
         }
 
@@ -52,6 +53,7 @@ class OcrService
                     'status' => $response->status(),
                     'body' => $response->body(),
                 ]);
+
                 return '';
             }
 
@@ -60,6 +62,7 @@ class OcrService
             return $result['responses'][0]['fullTextAnnotation']['text'] ?? '';
         } catch (\Exception $e) {
             Log::error('OcrService: Vision API exception', ['message' => $e->getMessage()]);
+
             return '';
         }
     }
@@ -70,8 +73,10 @@ class OcrService
      */
     public function matchName(string $extractedText, string $firstName, string $lastName): array
     {
-        if (empty($extractedText)) {
-            return ['name' => null, 'confidence' => 0, 'status' => 'fail'];
+        // No text at all means the reader returned nothing (a blurry photo, or the service refused the request).
+        // That is not the same as "your name is not on the ID", and the applicant must not be told it is.
+        if (trim($extractedText) === '') {
+            return ['name' => null, 'confidence' => 0, 'status' => 'unreadable'];
         }
 
         $fullName = strtolower(trim("$firstName $lastName"));
@@ -100,6 +105,20 @@ class OcrService
             return ['name' => "$firstName $lastName", 'confidence' => 95, 'status' => 'pass'];
         }
 
+        // OCR slips a letter or two on a slightly soft photo (CABUSAS read as CABUSA5, AXCEE as AXCFE). Compare
+        // word by word with a small edit-distance allowance before falling back to whole-line similarity.
+        $words = $this->words($extractedText);
+        $firstFuzzy = $this->nameFoundIn($firstName, $words);
+        $lastFuzzy = $this->nameFoundIn($lastName, $words);
+
+        if ($firstFuzzy && $lastFuzzy) {
+            return ['name' => "$firstName $lastName", 'confidence' => 90, 'status' => 'pass'];
+        }
+
+        if ($firstFuzzy || $lastFuzzy) {
+            return ['name' => $firstFuzzy ? $firstName : $lastName, 'confidence' => 65, 'status' => 'partial'];
+        }
+
         // Fuzzy match each line against both name orderings
         $bestScore = 0;
         $bestMatch = null;
@@ -107,7 +126,9 @@ class OcrService
 
         foreach ($lines as $line) {
             $line = trim($line);
-            if (strlen($line) < 3) continue;
+            if (strlen($line) < 3) {
+                continue;
+            }
 
             $lineLower = strtolower($line);
 
@@ -138,6 +159,51 @@ class OcrService
             'confidence' => $confidence,
             'status'     => $status,
         ];
+    }
+
+    /**
+     * Lower-case words of a text, accents flattened and punctuation removed, so "CABUSAS," and "Cabusás" compare.
+     *
+     * @return list<string>
+     */
+    private function words(string $text): array
+    {
+        $text = strtr(mb_strtolower($text), ['ñ' => 'n', 'á' => 'a', 'à' => 'a', 'é' => 'e', 'è' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u']);
+
+        return preg_split('/[^a-z0-9]+/', $text, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    }
+
+    /**
+     * Is every word of a (possibly multi-word) name present in the text, allowing a small spelling error per word?
+     * One edit for words of 4 to 6 letters and two for longer ones; short words must match exactly.
+     *
+     * @param  list<string>  $textWords
+     */
+    private function nameFoundIn(string $name, array $textWords): bool
+    {
+        $nameWords = $this->words($name);
+
+        if ($nameWords === []) {
+            return false;
+        }
+
+        foreach ($nameWords as $word) {
+            $allowed = strlen($word) >= 7 ? 2 : (strlen($word) >= 4 ? 1 : 0);
+            $found = false;
+
+            foreach ($textWords as $candidate) {
+                if (abs(strlen($candidate) - strlen($word)) <= $allowed && levenshtein($candidate, $word) <= $allowed) {
+                    $found = true;
+                    break;
+                }
+            }
+
+            if (! $found) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

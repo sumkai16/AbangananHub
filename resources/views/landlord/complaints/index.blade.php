@@ -16,7 +16,7 @@
         </x-page-header>
 
         {{-- Stat cards --}}
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+        <div class="stat-chips grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
             <x-stat-card label="Total Reports" :value="$stats['total']" sub="All reports you've filed">
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
@@ -46,7 +46,7 @@
                 {{-- Filter bar --}}
                 <form method="GET" action="{{ route('landlord.complaints.index') }}"
                     class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-4 mb-6">
-                    <div class="flex flex-wrap items-center gap-2.5">
+                    <div class="filter-row flex flex-wrap items-center gap-2.5">
                         <x-styled-select name="status" :options="['' => 'All Statuses', 'Pending' => 'Pending', 'Resolved' => 'Resolved']"
                             :selected="request('status', '')"
                             class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26]" />
@@ -69,13 +69,13 @@
                             </a>
                         @endif
 
-                        <a href="{{ route('reports.create') }}"
-                            class="ml-auto h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 inline-flex items-center gap-1.5">
+                        <button type="button" x-data x-on:click="$dispatch('open-file-report')"
+                            class="ml-auto cursor-pointer h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 inline-flex items-center gap-1.5">
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
                             File a Report
-                        </a>
+                        </button>
                     </div>
                 </form>
 
@@ -90,13 +90,13 @@
                         </div>
                         <p class="text-[15px] font-semibold text-[#060D26]">No reports filed</p>
                         <p class="text-[13px] text-[#5B6A8E] mt-1 max-w-xs">Reports you submit against listings or users will be tracked here, from filing to resolution.</p>
-                        <a href="{{ route('reports.create') }}"
-                            class="mt-5 inline-flex items-center gap-1.5 h-10 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] transition-all duration-200">
+                        <button type="button" x-data x-on:click="$dispatch('open-file-report')"
+                            class="mt-5 cursor-pointer inline-flex items-center gap-1.5 h-10 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] transition-all duration-200">
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
                             File a Report
-                        </a>
+                        </button>
                     </div>
                 @else
                     <div class="space-y-3">
@@ -196,4 +196,6 @@
             </aside>
         </div>
     </div>
+
+    @include('landlord.complaints.partials._file-report-modal')
 @endsection

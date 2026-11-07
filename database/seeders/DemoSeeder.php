@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Http\Controllers\Concerns\RecordsMoveInPayments;
 use App\Models\Conversation;
 use App\Models\LandlordVerification;
 use App\Models\Message;
+use App\Models\PaymentQrShare;
 use App\Models\Property;
 use App\Models\PropertyMedia;
 use App\Models\PropertyUnit;
@@ -15,7 +15,9 @@ use App\Models\UnitMedia;
 use App\Models\User;
 use App\Models\UserRole;
 use App\Models\ViewingRequest;
+use App\Services\MoveInPaymentRecorder;
 use App\Support\LeaseTerms;
+use App\Support\QrPh;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -42,8 +44,6 @@ use Illuminate\Support\Str;
  */
 class DemoSeeder extends TenantSeeder
 {
-    use RecordsMoveInPayments;
-
     private const KEEP_FREE = 3;
 
     /** Platform tenants who already moved in. Keys match TenantSeeder::TENANTS. */
@@ -122,6 +122,7 @@ class DemoSeeder extends TenantSeeder
 
         $this->sampleVerificationImages();
         $this->requests($maria);
+        $this->sharePaymentQr($maria);
         $this->walkIns($maria);
         $this->tenancies($maria);
         $this->tenancyChats($maria);
@@ -222,6 +223,41 @@ class DemoSeeder extends TenantSeeder
         }
     }
 
+    /**
+     * Maria has shared her payment QR with the tenant whose agreement is waiting to be signed, so the demo can go
+     * straight from signing to "I paid" to confirming. The code is a made-up QR Ph payload (valid checksum, not a real account).
+     */
+    private function sharePaymentQr(User $maria): void
+    {
+        $reservation = Reservation::where('rental_status', 'Pending Rental Agreement')
+            ->whereHas('property', fn ($q) => $q->where('landlord_id', $maria->user_id))
+            ->whereNotNull('conversation_id')
+            ->first();
+
+        if (! $reservation || PaymentQrShare::where('conversation_id', $reservation->conversation_id)->exists()) {
+            return;
+        }
+
+        $share = PaymentQrShare::create([
+            'conversation_id' => $reservation->conversation_id,
+            'shared_by'       => $maria->user_id,
+            'payload'         => QrPh::make('MARIA SANTOS'),
+            'account_name'    => 'MARIA SANTOS',
+            'note'            => 'Please pay on or before your move-in date, then tap "I paid" with the reference number.',
+        ]);
+
+        $message = new Message([
+            'conversation_id'     => $reservation->conversation_id,
+            'sender_id'           => $maria->user_id,
+            'message'             => 'Shared a payment QR (MARIA SANTOS)',
+            'kind'                => 'payment_qr',
+            'payment_qr_share_id' => $share->payment_qr_share_id,
+            'is_read'             => true,
+        ]);
+        $message->sent_at = now()->subMinutes(20);
+        $message->save();
+    }
+
     private function walkIns(User $maria): void
     {
         $units = $this->freeUnits($maria);
@@ -231,7 +267,7 @@ class DemoSeeder extends TenantSeeder
         $story  = ['email' => 'tomas.rubio', 'due_day' => 5, 'pay_offsets' => [0, 1, 2], 'cash_every' => 1, 'methods' => ['Cash']];
 
         $this->walkIn($maria, $units->shift(), 'Tomas', 'Rubio', '09175550177', $moveIn, 'Occupied', function (Reservation $r, PropertyUnit $unit) use ($maria, $moveIn, $story) {
-            $this->recordMoveInPayments($r, $unit, [
+            MoveInPaymentRecorder::record($r, $unit, [
                 'initial_amount'      => (float) $unit->rental_fee + (float) $unit->security_deposit,
                 'agreed_monthly_rent' => (float) $unit->rental_fee,
                 'move_in_date'        => $moveIn->toDateString(),

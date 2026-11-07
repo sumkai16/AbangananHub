@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\LandlordTenant;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use App\Models\User;
@@ -23,7 +24,9 @@ class LeaseTest extends TestCase
     use CreatesMarketplaceFixtures, DatabaseTransactions;
 
     private PropertyUnit $unit;
+
     private User $landlord;
+
     private User $tenant;
 
     protected function setUp(): void
@@ -50,15 +53,17 @@ class LeaseTest extends TestCase
         ]);
     }
 
+    /** A contract added by hand on the Contracts page (it replaced the walk-in form) for a tenant on the list. */
     private function walkIn(array $overrides = [])
     {
-        return $this->actingAs($this->landlord)->post(route('landlord.tenants.walkIn.store'), array_merge([
-            'first_name'     => 'Lease',
-            'last_name'      => 'Tester',
-            'contact_number' => '09170000000',
+        $row = LandlordTenant::ensureFor($this->landlord->user_id, $this->tenant->user_id);
+
+        return $this->actingAs($this->landlord)->post(route('landlord.contracts.store'), array_merge([
+            'landlord_tenant_id' => $row->landlord_tenant_id,
             'unit_id'        => $this->unit->unit_id,
             // Future move-in, so no initial payment is required.
             'move_in_date'   => today()->addDays(3)->toDateString(),
+            'move_out_date'  => today()->addDays(3)->addMonths(6)->toDateString(),
             'lease_mode'     => 'later',
         ], $overrides));
     }
@@ -71,7 +76,11 @@ class LeaseTest extends TestCase
     public function test_sending_the_agreement_freezes_the_lease(): void
     {
         $property = $this->unit->property;
-        $property->update(['house_rules' => ['No Smoking']]);
+        // House rules on the lease come from the property's policy (Policies page).
+        $policy = new \App\Models\LeaseTemplate(['name' => 'House policy', 'house_rule_sections' => [['title' => 'Rules', 'rules' => ['No Smoking']]]]);
+        $policy->landlord_id = $property->landlord_id;
+        $policy->save();
+        $property->forceFill(['lease_template_id' => $policy->lease_template_id])->save();
         $reservation = $this->negotiatingReservation();
 
         $this->actingAs($this->landlord)->patch(route('landlord.reservations.advanceAgreement', $reservation), [
@@ -99,7 +108,7 @@ class LeaseTest extends TestCase
         $reservation->update(['rental_status' => 'Pending Rental Agreement']);
         $this->assertNull($reservation->fresh()->lease_snapshot);
 
-        $this->actingAs($this->tenant)->get(route('agreements.show', $reservation))->assertOk()->assertSee('Lease Agreement');
+        $this->actingAs($this->tenant)->get(route('agreements.show', $reservation))->assertOk()->assertSee('Rental Agreement');
         $this->actingAs($this->landlord)->get(route('landlord.leases.show', $reservation))->assertOk();
     }
 
@@ -127,7 +136,7 @@ class LeaseTest extends TestCase
         $reservation = $this->latestWalkIn();
         $this->assertSame('missing', $reservation->leaseStatus());
 
-        $this->actingAs($this->landlord)->get(route('landlord.tenancies.show', $reservation))->assertOk()->assertSee('Lease missing');
+        $this->actingAs($this->landlord)->get(route('landlord.tenancies.show', $reservation))->assertOk()->assertSee('Agreement missing');
         $this->actingAs($this->landlord)->get(route('landlord.leases.show', $reservation))->assertOk()->assertSee('signature over printed name');
 
         $this->actingAs($this->landlord)->post(route('landlord.leases.upload', $reservation), [

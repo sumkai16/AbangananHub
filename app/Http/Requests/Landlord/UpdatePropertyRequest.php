@@ -7,6 +7,7 @@ use App\Rules\WithinCebu;
 use App\Support\PropertyPolicies;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Support\ListingPhotos;
 
 class UpdatePropertyRequest extends FormRequest
 {
@@ -25,6 +26,13 @@ class UpdatePropertyRequest extends FormRequest
             'property_type'     => ['required', 'in:' . PropertyType::rule()],
             ...PropertyPolicies::rules(),
             'default_lease_terms' => ['nullable', 'string', 'max:2000'],
+            'rent_grace_days'   => ['nullable', 'integer', 'between:0,30'],
+            'late_fee_type'     => ['nullable', 'in:percent,fixed'],
+            'late_fee_value'    => [
+                Rule::requiredIf(fn () => $this->filled('late_fee_type')),
+                'nullable', 'numeric', 'gt:0',
+                $this->input('late_fee_type') === 'percent' ? 'max:100' : 'max:100000',
+            ],
             'address'          => ['required', 'string', 'min:10', 'max:255'],
             'city_municipality' => ['required', 'string', Rule::in(config('cebu.lgus'))],
             'barangay'          => ['nullable', 'string', 'max:100'],
@@ -34,12 +42,12 @@ class UpdatePropertyRequest extends FormRequest
                 'nullable',
                 'array',
                 function ($attribute, $value, $fail) use ($existingPhotoCount) {
-                    if ($existingPhotoCount + count($value) > 10) {
-                        $fail('A property can have at most 10 photos total. Remove some before adding more.');
+                    if (is_array($value) && ListingPhotos::tooMany($existingPhotoCount, count($value), ListingPhotos::MAX_PROPERTY)) {
+                        $fail(ListingPhotos::propertyLimitMessage());
                     }
                 },
             ],
-            'photos.*'          => ['image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            'photos.*'          => ['image', 'mimes:jpeg,png,jpg,webp', 'max:'.ListingPhotos::MAX_KB],
             'amenities'         => ['nullable', 'array'],
             'amenities.*'       => ['integer', 'exists:amenities,amenity_id'],
         ];

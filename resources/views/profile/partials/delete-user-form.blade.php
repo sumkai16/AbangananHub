@@ -1,4 +1,6 @@
-<div class="rounded-2xl border border-[#EF4444]/20 bg-white p-6 sm:p-8">
+{{-- Inside Account Settings the x-settings-panel draws the card and the header; elsewhere (admin) this partial does. --}}
+@unless($inPanel ?? false)
+<div class="rounded-2xl border border-[#EF4444]/20 bg-white p-4 sm:p-8">
 
     {{-- Section header --}}
     <div class="mb-5 border-b border-[#EF4444]/20 pb-5 flex items-center gap-3">
@@ -12,6 +14,7 @@
             <p class="mt-0.5 text-sm text-[#5B6A8E]">Permanently delete your account and all associated data.</p>
         </div>
     </div>
+@endunless
 
     <div class="flex items-start justify-between gap-6 flex-wrap">
         <p class="max-w-sm text-sm text-[#5B6A8E]">
@@ -65,4 +68,6 @@
             </div>
         </form>
     </x-modal>
+@unless($inPanel ?? false)
 </div>
+@endunless

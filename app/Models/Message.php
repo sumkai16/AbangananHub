@@ -18,6 +18,7 @@ class Message extends Model
         'is_read',
         'kind',
         'concern_id',
+        'payment_qr_share_id',
     ];
 
     protected $casts = [
@@ -25,8 +26,8 @@ class Message extends Model
         'is_read' => 'boolean',
     ];
 
-    /** user | system (status narration, no sender) | inquiry_summary (the first card) | concern (a tenant's concern card). */
-    public const KINDS = ['user', 'system', 'inquiry_summary', 'concern'];
+    /** user | system (status narration, no sender) | inquiry_summary (the first card) | concern (a tenant's concern card) | payment_qr (a landlord's shared payment QR). */
+    public const KINDS = ['user', 'system', 'inquiry_summary', 'concern', 'payment_qr'];
 
     /** Read-only views of `kind`, so Blade, JS payloads and API resources keep their flag names. */
     public function getIsSystemAttribute(): bool
@@ -47,6 +48,11 @@ class Message extends Model
     public function concern(): BelongsTo
     {
         return $this->belongsTo(TenantConcern::class, 'concern_id', 'concern_id');
+    }
+
+    public function paymentQrShare(): BelongsTo
+    {
+        return $this->belongsTo(PaymentQrShare::class, 'payment_qr_share_id', 'payment_qr_share_id');
     }
 
     public function sender(): BelongsTo

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LandlordBlockedDate;
+use App\Models\LandlordViewingHour;
 use App\Models\Notification;
 use App\Models\Reservation;
 use App\Models\User;
@@ -25,6 +27,9 @@ use Illuminate\Support\Facades\Gate;
  */
 class ViewingController extends Controller
 {
+    /** How many bookable days the chip picker offers at once. */
+    private const SLOT_DAYS = 7;
+
     public function store(Request $request, Reservation $reservation)
     {
         Gate::authorize('requestViewing', $reservation);
@@ -82,6 +87,62 @@ class ViewingController extends Controller
         $viewing->broadcastUpdate();
 
         return back()->with('success', 'Viewing requested. Waiting for the landlord to confirm.');
+    }
+
+    /**
+     * The open slots behind the tenant's day and time chips: the next few days that have a bookable hour.
+     * Day-level data (weekly hours, blocked days) only decides which days to look at; whether a slot is
+     * bookable is always ViewingRequest::slotProblem(), the same check store() and reschedule() run.
+     * A slot another active viewing already holds is listed but closed.
+     */
+    public function slots(Reservation $reservation)
+    {
+        Gate::authorize('requestViewing', $reservation);
+
+        $landlordId = $reservation->property->landlord_id;
+        $week = LandlordViewingHour::weekFor($landlordId);
+        $lastDay = today()->addDays(config('rentals.viewing_max_days_ahead'));
+
+        $blocked = LandlordBlockedDate::where('landlord_id', $landlordId)
+            ->whereBetween('date', [today()->toDateString(), $lastDay->toDateString()])
+            ->get()
+            ->map(fn (LandlordBlockedDate $b) => $b->date->toDateString())
+            ->flip();
+
+        $held = ViewingRequest::active()
+            ->where('landlord_id', $landlordId)
+            ->where('scheduled_at', '>', now())
+            ->pluck('scheduled_at')
+            ->map(fn (Carbon $at) => $at->format('Y-m-d\TH:i'))
+            ->flip();
+
+        $days = [];
+
+        for ($day = today(); $day->lessThanOrEqualTo($lastDay) && count($days) < self::SLOT_DAYS; $day = $day->copy()->addDay()) {
+            if (! isset($week[$day->dayOfWeek]) || $blocked->has($day->toDateString())) {
+                continue;
+            }
+
+            $slots = [];
+            foreach (LandlordViewingHour::startHours($week[$day->dayOfWeek]) as $hour) {
+                $at = $day->copy()->setTime($hour, 0);
+                $key = $at->format('Y-m-d\TH:i');
+
+                $bookable = ViewingRequest::slotProblem($at, $landlordId) === null;
+                // Past hours of today are noise, not "taken": leave them out.
+                if (! $bookable && $at->lessThanOrEqualTo(now())) {
+                    continue;
+                }
+
+                $slots[] = ['at' => $key, 'label' => $at->format('g:i A'), 'open' => $bookable && ! $held->has($key)];
+            }
+
+            if (collect($slots)->contains('open', true)) {
+                $days[] = ['date' => $day->toDateString(), 'label' => $day->format('D, M j'), 'slots' => $slots];
+            }
+        }
+
+        return response()->json(['days' => $days]);
     }
 
     public function reschedule(Request $request, ViewingRequest $viewing)

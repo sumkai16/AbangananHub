@@ -16,17 +16,17 @@
         </a>
         <div class="flex-1">
             <div class="flex items-center gap-3 flex-wrap">
-                <h1 class="text-xl font-normal text-[#060D26] tracking-tight">Conversation Thread</h1>
-                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold border
+                <h1 class="text-xl font-semibold text-[#060D26] tracking-tight">Conversation Thread</h1>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold border
                     {{ ($conversation->status ?? 'Open') === 'Resolved' ? 'bg-[#F7F8FC] text-[#5B6A8E] border-[#E2E4EC]' : 'bg-[#ECEEF6] text-[#060D26] border-[#FF8A66]/25' }}">
                     {{ $conversation->status ?? 'Open' }}
                 </span>
-                <span class="text-[12px] text-[#94A3B8] font-medium">Read-only · Admin view</span>
+                <span class="text-[12px] text-[#5B6A8E] font-medium">Admin view</span>
             </div>
             @if($conversation->property)
                 <p class="text-[13px] text-[#5B6A8E] mt-1">
                     Re: <span class="font-semibold text-[#060D26]">{{ $conversation->property->title }}</span>
-                    @if($conversation->unit) · Unit {{ $conversation->unit->unit_number }} @endif
+                    @if($conversation->unit) · {{ $conversation->unit->unit_label }} @endif
                 </p>
             @endif
         </div>
@@ -38,8 +38,8 @@
         <div class="lg:col-span-2">
             <x-card flush>
                 <div class="px-6 py-4 border-b border-[#E2E4EC] flex items-center justify-between">
-                    <h2 class="text-[13.5px] font-normal text-[#060D26]">Messages</h2>
-                    <span class="text-[12px] text-[#94A3B8]">{{ $conversation->messages->count() }} message{{ $conversation->messages->count() !== 1 ? 's' : '' }}</span>
+                    <h2 class="text-[13.5px] font-semibold text-[#060D26]">Messages</h2>
+                    <span class="text-[12px] text-[#5B6A8E]">{{ $conversation->messages->count() }} message{{ $conversation->messages->count() !== 1 ? 's' : '' }}</span>
                 </div>
 
                 {{-- Same stepper the participants see, from the same partial —
@@ -53,10 +53,10 @@
 
                 @if($conversation->messages->isEmpty())
                     <div class="p-12 text-center">
-                        <svg class="w-10 h-10 text-[#94A3B8] mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <svg class="w-10 h-10 text-[#5B6A8E] mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.294 48.294 0 005.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
                         </svg>
-                        <p class="text-[13px] text-[#94A3B8]">No messages in this conversation yet.</p>
+                        <p class="text-[13px] text-[#5B6A8E]">No messages in this conversation yet.</p>
                     </div>
                 @else
                     <div class="p-5 space-y-4 max-h-[600px] overflow-y-auto">
@@ -65,6 +65,14 @@
                             $landlordId = $conversation->landlord_id ?? null;
                         @endphp
                         @foreach($conversation->messages as $msg)
+                            @if($msg->is_system)
+                                <div class="flex items-center gap-3 my-2 px-2">
+                                    <div class="flex-1 h-px bg-[#E2E4EC]"></div>
+                                    <p class="text-[11px] text-[#5B6A8E] text-center max-w-[70%] leading-relaxed">{{ $msg->message }}</p>
+                                    <div class="flex-1 h-px bg-[#E2E4EC]"></div>
+                                </div>
+                                @continue
+                            @endif
                             @php
                                 $isTenant   = $msg->sender_id === $tenantId;
                                 $senderName = trim(($msg->sender->first_name ?? '') . ' ' . ($msg->sender->last_name ?? '')) ?: 'Unknown';
@@ -85,9 +93,17 @@
                                         {{ $isTenant
                                             ? 'bg-[#FF8A66]/10 text-[#060D26] rounded-bl-sm border border-[#FF8A66]/10'
                                             : 'bg-[#ECEEF6] text-[#060D26] rounded-br-sm border border-[#E2E4EC]' }}">
-                                        {{ $msg->message }}
+                                        @if($msg->is_inquiry_summary)
+                                            <p class="text-[10.5px] font-bold uppercase tracking-wider text-[#5B6A8E] mb-1">Inquiry summary</p>
+                                            {{ $msg->message !== '' ? $msg->message : 'No note from the tenant. Move-in details are on the reservation.' }}
+                                        @elseif($msg->concern)
+                                            <p class="text-[10.5px] font-bold uppercase tracking-wider text-[#5B6A8E] mb-1">Concern &middot; {{ $msg->concern->category }} &middot; {{ $msg->concern->status }}</p>
+                                            {{ $msg->concern->description }}
+                                        @else
+                                            {{ $msg->message }}
+                                        @endif
                                     </div>
-                                    <p class="text-[10.5px] text-[#94A3B8] mt-1 {{ $isTenant ? '' : 'text-right' }}">
+                                    <p class="text-[10.5px] text-[#5B6A8E] mt-1 {{ $isTenant ? '' : 'text-right' }}">
                                         {{ $msg->sent_at?->format('M d, Y · g:i A') ?? $msg->created_at->format('M d, Y · g:i A') }}
                                     </p>
                                 </div>
@@ -120,7 +136,7 @@
                         : $reservation->move_in_deadline_at;
                 @endphp
                 <x-card flush class="p-4">
-                    <p class="text-[10.5px] font-bold uppercase tracking-widest text-[#94A3B8] mb-2.5">Move-in &amp; escrow</p>
+                    <p class="text-[10.5px] font-bold uppercase tracking-widest text-[#5B6A8E] mb-2.5">Move-in &amp; escrow</p>
 
                     @if ($reservation->move_in_disputed_at)
                         <div class="mb-3 rounded-xl bg-[#FBBF24]/[0.10] px-3 py-2.5">
@@ -137,31 +153,31 @@
 
                     <dl class="space-y-2 text-[12.5px]">
                         <div class="flex justify-between gap-3">
-                            <dt class="text-[#94A3B8] shrink-0">Escrow</dt>
+                            <dt class="text-[#5B6A8E] shrink-0">Escrow</dt>
                             <dd class="font-semibold text-right {{ $heldPayment ? 'text-[#060D26]' : ($releasedPayment ? 'text-[#15803D]' : 'text-[#5B6A8E]') }}">
                                 @if ($heldPayment)
-                                    Held &middot; &#8369;{{ number_format($heldPayment->amount, 2) }}
+                                    Held &middot; &#8369;{{ number_format($reservation->heldTotal(), 2) }}
                                 @elseif ($releasedPayment)
-                                    Released &middot; &#8369;{{ number_format($releasedPayment->amount, 2) }}
+                                    Released &middot; &#8369;{{ number_format($reservation->payments->where('status', 'Released')->sum('amount'), 2) }}
                                 @else
                                     Not funded
                                 @endif
                             </dd>
                         </div>
                         <div class="flex justify-between gap-3">
-                            <dt class="text-[#94A3B8] shrink-0">Clock</dt>
+                            <dt class="text-[#5B6A8E] shrink-0">Clock</dt>
                             <dd class="font-semibold text-[#060D26] text-right">
                                 {{ $onTurnoverClock ? 'Key turnover (landlord)' : 'Move-in confirmation (tenant)' }}
                             </dd>
                         </div>
                         <div class="flex justify-between gap-3">
-                            <dt class="text-[#94A3B8] shrink-0">Deadline</dt>
+                            <dt class="text-[#5B6A8E] shrink-0">Deadline</dt>
                             <dd class="font-semibold text-[#060D26] text-right">
                                 {{ $deadlineAt?->format('M d, Y') ?? '—' }}
                             </dd>
                         </div>
                         <div class="flex justify-between gap-3">
-                            <dt class="text-[#94A3B8] shrink-0">Handover</dt>
+                            <dt class="text-[#5B6A8E] shrink-0">Handover</dt>
                             <dd class="font-semibold text-right {{ $reservation->hasConfirmedHandover() ? 'text-[#15803D]' : 'text-[#5B6A8E]' }}">
                                 @if ($reservation->hasConfirmedHandover())
                                     {{ $reservation->handover_at->format('M d, g:i A') }}
@@ -174,18 +190,49 @@
                         </div>
                         @if ($reservation->keys_turned_over_at)
                             <div class="flex justify-between gap-3">
-                                <dt class="text-[#94A3B8] shrink-0">Keys marked</dt>
+                                <dt class="text-[#5B6A8E] shrink-0">Keys marked</dt>
                                 <dd class="font-semibold text-[#060D26] text-right">
                                     {{ $reservation->keys_turned_over_at->format('M d, Y') }}</dd>
                             </div>
                         @endif
                     </dl>
+
+                    {{-- Give the held money back to the tenant. Releasing it to the landlord stays in Payments. --}}
+                    @if ($heldPayment)
+                        @php
+                            $heldRows = $reservation->payments->where('status', 'Held')->filter(
+                                fn ($p) => $heldPayment->paymongo_checkout_session_id
+                                    ? $p->paymongo_checkout_session_id === $heldPayment->paymongo_checkout_session_id
+                                    : $p->payment_id === $heldPayment->payment_id
+                            );
+                            $heldQuote = \App\Services\PaymentRefunds::quote($heldRows);
+                            $heldRefundDetail = [
+                                'id' => $heldPayment->payment_id,
+                                'action' => route('admin.payments.refund', $heldPayment),
+                                'label' => trim(($conversation->tenant->first_name ?? '').' '.($conversation->tenant->last_name ?? '')).' · '.($reservation->property?->title ?? 'Reservation'),
+                                'rent' => $heldQuote['rent'],
+                                'fee' => $heldQuote['fee'],
+                                'rows' => $heldQuote['rows'],
+                            ];
+                        @endphp
+                        @if ($heldPayment->recorded_by === null && $heldQuote['paymongo_payment_id'])
+                            <button type="button" @click="$dispatch('open-refund-payment', {{ \Illuminate\Support\Js::from($heldRefundDetail) }})"
+                                class="mt-3 block w-full text-center py-2 text-[12px] font-semibold border border-[#EF4444]/30 text-[#DC2626] rounded-xl hover:bg-[#EF4444]/[0.06] transition-colors cursor-pointer">
+                                Refund tenant
+                            </button>
+                            <a href="{{ route('admin.payments.index', ['status' => 'Held']) }}"
+                                class="mt-2 block text-center text-[11.5px] font-semibold text-[#5B6A8E] hover:text-[#060D26] underline underline-offset-2">
+                                Or release it to the landlord in Payments
+                            </a>
+                        @endif
+                    @endif
                 </x-card>
+                @include('admin.payments.partials.refund-modal')
             @endif
 
             {{-- Tenant card --}}
             <x-card flush class="p-4">
-                <p class="text-[10.5px] font-bold uppercase tracking-widest text-[#94A3B8] mb-2.5">Tenant</p>
+                <p class="text-[10.5px] font-bold uppercase tracking-widest text-[#5B6A8E] mb-2.5">Tenant</p>
                 @if($conversation->tenant)
                     <div class="flex items-center gap-2.5 mb-3">
                         <div class="w-9 h-9 rounded-full bg-[#FF8A66]/10 flex items-center justify-center text-[13px] font-bold text-[#060D26]">
@@ -195,7 +242,7 @@
                             <p class="text-[13px] font-bold text-[#060D26]">
                                 {{ trim($conversation->tenant->first_name . ' ' . $conversation->tenant->last_name) }}
                             </p>
-                            <p class="text-[11px] text-[#94A3B8]">{{ $conversation->tenant->email }}</p>
+                            <p class="text-[11px] text-[#5B6A8E]">{{ $conversation->tenant->email }}</p>
                         </div>
                     </div>
                     <a href="{{ route('admin.users.show', $conversation->tenant) }}"
@@ -203,13 +250,13 @@
                         View Profile
                     </a>
                 @else
-                    <p class="text-[13px] text-[#94A3B8] italic">No tenant linked.</p>
+                    <p class="text-[13px] text-[#5B6A8E] italic">No tenant linked.</p>
                 @endif
             </x-card>
 
             {{-- Landlord card --}}
             <x-card flush class="p-4">
-                <p class="text-[10.5px] font-bold uppercase tracking-widest text-[#94A3B8] mb-2.5">Landlord</p>
+                <p class="text-[10.5px] font-bold uppercase tracking-widest text-[#5B6A8E] mb-2.5">Landlord</p>
                 @if($conversation->landlord)
                     <div class="flex items-center gap-2.5 mb-3">
                         <div class="w-9 h-9 rounded-full bg-[#22C55E]/[0.07] flex items-center justify-center text-[13px] font-bold text-[#15803D]">
@@ -219,7 +266,7 @@
                             <p class="text-[13px] font-bold text-[#060D26]">
                                 {{ trim($conversation->landlord->first_name . ' ' . $conversation->landlord->last_name) }}
                             </p>
-                            <p class="text-[11px] text-[#94A3B8]">{{ $conversation->landlord->email }}</p>
+                            <p class="text-[11px] text-[#5B6A8E]">{{ $conversation->landlord->email }}</p>
                         </div>
                     </div>
                     <a href="{{ route('admin.users.show', $conversation->landlord) }}"
@@ -227,36 +274,36 @@
                         View Profile
                     </a>
                 @else
-                    <p class="text-[13px] text-[#94A3B8] italic">No landlord linked.</p>
+                    <p class="text-[13px] text-[#5B6A8E] italic">No landlord linked.</p>
                 @endif
             </x-card>
 
             {{-- Property card --}}
             @if($conversation->property)
                 <x-card flush class="p-4">
-                    <p class="text-[10.5px] font-bold uppercase tracking-widest text-[#94A3B8] mb-2.5">Property</p>
+                    <p class="text-[10.5px] font-bold uppercase tracking-widest text-[#5B6A8E] mb-2.5">Property</p>
                     <p class="text-[13.5px] font-bold text-[#060D26] mb-0.5">{{ $conversation->property->title }}</p>
-                    <p class="text-[12px] text-[#94A3B8] mb-1">{{ $conversation->property->address ?? '' }}</p>
+                    <p class="text-[12px] text-[#5B6A8E] mb-1">{{ $conversation->property->address ?? '' }}</p>
                     @if($conversation->unit)
-                        <p class="text-[12px] font-semibold text-[#060D26]">Unit {{ $conversation->unit->unit_number }}</p>
+                        <p class="text-[12px] font-semibold text-[#060D26]">{{ $conversation->unit->unit_label }}</p>
                     @endif
                 </x-card>
             @endif
 
             {{-- Meta --}}
             <div class="bg-[#F7F8FC] border border-[#E2E4EC] rounded-2xl p-4">
-                <p class="text-[10.5px] font-bold uppercase tracking-widest text-[#94A3B8] mb-2.5">Details</p>
+                <p class="text-[10.5px] font-bold uppercase tracking-widest text-[#5B6A8E] mb-2.5">Details</p>
                 <div class="space-y-2 text-[12.5px]">
                     <div class="flex justify-between">
-                        <span class="text-[#94A3B8]">Started</span>
+                        <span class="text-[#5B6A8E]">Started</span>
                         <span class="font-semibold text-[#060D26]">{{ $conversation->created_at->format('M d, Y') }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-[#94A3B8]">Last activity</span>
+                        <span class="text-[#5B6A8E]">Last activity</span>
                         <span class="font-semibold text-[#060D26]">{{ $conversation->updated_at->diffForHumans() }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-[#94A3B8]">Status</span>
+                        <span class="text-[#5B6A8E]">Status</span>
                         <span class="font-bold {{ ($conversation->status ?? 'Open') === 'Resolved' ? 'text-[#5B6A8E]' : 'text-[#060D26]' }}">
                             {{ $conversation->status ?? 'Open' }}
                         </span>

@@ -5,12 +5,17 @@ namespace App\Http\Controllers\Api\Tenant;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ReservationResource;
 use App\Models\Notification;
+use App\Models\PaymentQrShare;
 use App\Models\Reservation;
 use App\Models\TenantDetail;
+use App\Services\TenancyDocuments;
+use App\Support\PaymentMethods;
+use App\Support\Payments;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -28,6 +33,8 @@ class AgreementController extends Controller
             'Pending Rental Agreement',
             'Rental Agreement Signed',
             'Occupied',
+            // A past tenant can still read what they signed, same as the web page.
+            'Completed',
         ], true)) {
             abort(404);
         }
@@ -38,17 +45,32 @@ class AgreementController extends Controller
             abort(404, 'This unit is no longer available.');
         }
 
-        return response()->json(['data' => new ReservationResource($reservation)]);
+        // Direct payments: when online checkout is off the app shows the landlord's shared QR instead of a pay button.
+        // Claim endpoints are a follow-up (plans/mobile-app.md); this is read-only.
+        return response()->json([
+            'data' => new ReservationResource($reservation),
+            'needs_tenant_details' => ! TenantDetail::completeFor(request()->user()),
+            'online_payments_enabled' => Payments::online(),
+            // This landlord can actually be paid online (GCash on file, no opt-out). When true the tenant chooses online or direct.
+            'online_available' => Payments::onlineFor($reservation),
+            // The ways this landlord takes (Settings > Payments): {online, qr, cash}. No QR is sent when they do not take QR.
+            'payment_methods' => PaymentMethods::forReservation($reservation),
+            'payment_qr' => PaymentMethods::forReservation($reservation)['qr'] ? PaymentQrShare::latestFor($reservation)?->toApi() : null,
+        ]);
     }
 
     public function sign(Request $request, Reservation $reservation): JsonResponse
     {
         Gate::authorize('sign', $reservation);
 
+        if ($missing = TenancyDocuments::missing($reservation)->pluck('label')->all()) {
+            throw ValidationException::withMessages(['documents' => ['Upload these first: '.implode(', ', $missing).'.']]);
+        }
+
         // Same rule as the web form: emergency contact and ID on file before signing, asked once.
         $needsDetails = ! TenantDetail::completeFor($request->user());
 
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'agree'     => 'accepted',
             'accept_tc' => 'accepted',
             ...($needsDetails ? TenantDetail::rules(true) : []),
@@ -57,6 +79,16 @@ class AgreementController extends Controller
             'accept_tc.accepted' => 'You must accept the platform terms and conditions.',
             ...TenantDetail::messages(),
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message'              => $validator->errors()->first(),
+                'errors'               => $validator->errors(),
+                'needs_tenant_details' => $needsDetails,
+            ], 422);
+        }
+
+        $validated = $validator->validated();
 
         $signed = DB::transaction(function () use ($reservation, $request, $validated, $needsDetails) {
             $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();

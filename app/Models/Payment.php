@@ -2,12 +2,33 @@
 
 namespace App\Models;
 
+use App\Observers\PaymentActivityObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
+#[ObservedBy(PaymentActivityObserver::class)]
 class Payment extends Model
 {
+    /**
+     * The status this row had before its last update. PaymentObserver runs after the enclosing
+     * transaction commits, by which time getOriginal('status') already holds the NEW value, so
+     * it cannot tell Pending -> Held from anything else. A plain property (not an attribute),
+     * so it is never saved.
+     */
+    public ?string $previousStatus = null;
+
+    protected static function booted(): void
+    {
+        static::updating(function (Payment $payment) {
+            $payment->previousStatus = $payment->getOriginal('status');
+        });
+    }
+
     protected $primaryKey = 'payment_id';
 
     protected $fillable = [
@@ -15,6 +36,7 @@ class Payment extends Model
         'payment_type',
         'billing_period',
         'amount',
+        'service_fee',
         'payment_method',
         'paymongo_payment_intent_id',
         'paymongo_payment_id',
@@ -34,15 +56,26 @@ class Payment extends Model
         'void_reason',
         'void_note',
         'replaces_payment_id',
+        'payment_claim_id',
+        'refunded_at',
+        'refunded_by',
+        'refund_reason',
+        'paymongo_refund_id',
+        'refund_status',
+        'refund_transfer_link',
+        'refund_includes_fee',
     ];
 
     protected $casts = [
         'billing_period' => 'date',
         'paid_at' => 'datetime',
         'amount' => 'decimal:2',
+        'service_fee' => 'decimal:2',
         'released_at' => 'datetime',
         'payout_owed_at' => 'datetime',
         'voided_at' => 'datetime',
+        'refunded_at' => 'datetime',
+        'refund_includes_fee' => 'boolean',
     ];
 
     /** Named causes a recorded payment can be voided for. Keys are the enum members. */
@@ -83,9 +116,24 @@ class Payment extends Model
         return $query->whereNotNull('payout_owed_at')->whereNull('payout_id');
     }
 
+    /** Sent to the landlord: in a payout PayMongo (or the admin) has confirmed. */
     public function scopePaidOut($query)
     {
-        return $query->whereNotNull('payout_id');
+        return $query->whereHas('payout', fn ($q) => $q->where('status', 'Sent'));
+    }
+
+    /** In a payout whose PayMongo transfer is not confirmed yet. */
+    public function scopeInTransit($query)
+    {
+        return $query->whereHas('payout', fn ($q) => $q->where('status', 'Processing'));
+    }
+
+    /** Owed and not yet sent: still in the queue, or on its way. What a landlord counts as "pending". */
+    public function scopeAwaitingPayout($query)
+    {
+        return $query->whereNotNull('payout_owed_at')->where(fn ($q) => $q
+            ->whereNull('payout_id')
+            ->orWhereHas('payout', fn ($p) => $p->where('status', 'Processing')));
     }
 
     /**
@@ -95,7 +143,8 @@ class Payment extends Model
     public function getPayoutStatusAttribute(): ?string
     {
         if ($this->payout_id !== null) {
-            return 'Paid Out';
+            // Only read the payout when it is already loaded: this attribute is read per row in lists.
+            return $this->relationLoaded('payout') && $this->payout?->isProcessing() ? 'Payout Processing' : 'Paid Out';
         }
 
         return $this->payout_owed_at !== null ? 'Pending Payout' : null;
@@ -132,6 +181,55 @@ class Payment extends Model
     }
 
     /**
+     * Every row funded by the same PayMongo checkout, this one included, oldest first: an online move-in is
+     * one payment on PayMongo's side but several rows here (rent, deposit). A row with no session id is a group
+     * of one. Anything that moves the money (settle, release, refund) must move the whole group together.
+     */
+    public function checkoutGroup(): Collection
+    {
+        if (! $this->paymongo_checkout_session_id) {
+            return collect([$this]);
+        }
+
+        return static::where('paymongo_checkout_session_id', $this->paymongo_checkout_session_id)
+            ->orderBy('payment_id')
+            ->get();
+    }
+
+    /**
+     * Everything the tenant was charged in this row's checkout: the rent, the deposit and the online fee.
+     * A single row outside any group is just its own amount plus its fee.
+     */
+    public function checkoutTotal(): float
+    {
+        return round((float) $this->checkoutGroup()->sum(fn (self $p) => (float) $p->amount + (float) $p->service_fee), 2);
+    }
+
+    /** Escrow ends for this row: it is now owed to the landlord. Callers hold the lock and release the whole group. */
+    public function markReleased(string $reason, ?int $releasedBy = null): void
+    {
+        // The observer reads the landlord off these once the row is saved; rows fetched as a collection may not
+        // lazy-load them (Model::preventLazyLoading), so load them explicitly.
+        $this->loadMissing('reservation.property');
+
+        $this->update([
+            'status' => 'Released',
+            'released_at' => now(),
+            // Null = released by the platform (tenant confirmed, or the timer ran out); release_reason says which.
+            'released_by' => $releasedBy,
+            'release_reason' => $reason,
+            // The money is now owed to the landlord, see docs/specs/2026-07-26-landlord-payout-design.md.
+            'payout_owed_at' => now(),
+        ]);
+    }
+
+    /** The tenant's "I paid" report this row was written from, when a landlord confirmed one. */
+    public function claim(): BelongsTo
+    {
+        return $this->belongsTo(PaymentClaim::class, 'payment_claim_id', 'payment_claim_id');
+    }
+
+    /**
      * Money the landlord collected offline and entered themselves, as opposed
      * to money PayMongo settled.
      *
@@ -165,6 +263,26 @@ class Payment extends Model
     }
 
     /**
+     * The one place a Pending checkout becomes settled. The webhook and the poll fallback can both see the same
+     * Pending row, so the row is re-read under a lock and only the first caller wins. Returns the settled row,
+     * or null when it was no longer Pending (a replayed webhook, a second poll): callers must then do nothing.
+     */
+    public function settlePending(array $attributes): ?Payment
+    {
+        return DB::transaction(function () use ($attributes) {
+            $locked = static::whereKey($this->getKey())->lockForUpdate()->first();
+
+            if (! $locked || $locked->status !== 'Pending') {
+                return null;
+            }
+
+            $locked->update($attributes);
+
+            return $locked;
+        });
+    }
+
+    /**
      * Money can still arrive after a reservation ended: the tenant opened a checkout, the reservation was
      * cancelled or rejected, then the checkout was paid. The payment is real, there is no refund path in the
      * app, and nothing else looks at a Cancelled reservation's payments, so tell the admins instead of leaving
@@ -194,6 +312,32 @@ class Payment extends Model
             ));
     }
 
+    /**
+     * PayMongo took a different amount from the one this checkout asked for, so the payment is left Pending
+     * instead of being settled. One alert per payment per day: the poll fallback runs on every page load.
+     */
+    public function alertAdminsAmountMismatch(int $paidCentavos): void
+    {
+        if (! Cache::add('paymongo-amount-mismatch:'.$this->payment_id, true, now()->addDay())) {
+            return;
+        }
+
+        User::whereHas('roles', fn ($q) => $q->where('role', 'Admin'))
+            ->pluck('user_id')
+            ->each(fn ($adminId) => Notification::notify(
+                $adminId,
+                'payment',
+                'Online payment amount does not match',
+                sprintf(
+                    'Payment #%d expected ₱%s but PayMongo took ₱%s. It was not settled; check the checkout in the PayMongo dashboard.',
+                    $this->payment_id,
+                    number_format($this->checkoutTotal(), 2),
+                    number_format($paidCentavos / 100, 2),
+                ),
+                route('admin.payments.index', ['status' => 'Pending']),
+            ));
+    }
+
     public function isHeld(): bool
     {
         return $this->status === 'Held';
@@ -212,6 +356,27 @@ class Payment extends Model
     public function isPaidOut(): bool
     {
         return $this->payout_id !== null;
+    }
+
+    /** A landlord-confirmed or landlord-recorded payment that still counts. PayMongo payments have PayMongo's own. */
+    public function hasReceipt(): bool
+    {
+        return $this->isManuallyRecorded() && $this->status === 'Paid';
+    }
+
+    /** "Four thousand pesos only" / "Four thousand pesos and 50/100 only", as printed on Philippine receipts. */
+    public function amountInWords(): ?string
+    {
+        if (! class_exists(\NumberFormatter::class)) {
+            return null;
+        }
+
+        $pesos = (int) floor((float) $this->amount);
+        $centavos = (int) round(((float) $this->amount - $pesos) * 100);
+        $words = ucfirst((new \NumberFormatter('en', \NumberFormatter::SPELLOUT))->format($pesos));
+
+        return $words . ' ' . ($pesos === 1 ? 'peso' : 'pesos')
+            . ($centavos > 0 ? sprintf(' and %02d/100', $centavos) : '') . ' only';
     }
 
     public function isVoided(): bool

@@ -8,6 +8,8 @@ use App\Http\Resources\PublicReviewResource;
 use App\Models\PropertyUnit;
 use App\Models\Review;
 use App\Models\User;
+use App\Services\LandlordPayouts;
+use App\Support\GcashNumber;
 use App\Support\NameLock;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -39,14 +41,19 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'first_name'            => ['required', 'string', 'max:255'],
             'last_name'             => ['required', 'string', 'max:255'],
-            'contact_number'        => ['nullable', 'string', 'max:20'],
-            'gcash_number'          => ['nullable', 'string', 'max:20'],
+            'contact_number'        => ['nullable', 'string', 'max:20', \App\Support\Phone::RULE],
+            'gcash_number'          => ['nullable', 'string', 'max:20', function ($attribute, $value, $fail) {
+                if (filled($value) && GcashNumber::normalize($value) === null) {
+                    $fail(GcashNumber::MESSAGE);
+                }
+            }],
             'gcash_account_name'    => ['nullable', 'string', 'max:255'],
+            'accepts_online'        => ['nullable', 'boolean'],
             'bio'                   => ['nullable', 'string', 'max:1000'],
             'profile_picture'       => ['nullable', 'image', 'max:2048'],
             'business_name'         => ['nullable', 'string', 'max:255'],
             'business_description'  => ['nullable', 'string', 'max:1000'],
-            'business_contact'      => ['nullable', 'string', 'max:20'],
+            'business_contact'      => ['nullable', 'string', 'max:20', \App\Support\Phone::RULE],
             'business_address'      => ['nullable', 'string', 'max:500'],
             'logo'                  => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
@@ -68,10 +75,23 @@ class ProfileController extends Controller
 
         // A key left out of the request keeps its stored value, like every other field above.
         $payout = $user->payoutAccount;
-        $user->savePayoutAccount(
-            array_key_exists('gcash_number', $validated) ? $validated['gcash_number'] : $payout?->gcash_number,
-            array_key_exists('gcash_account_name', $validated) ? $validated['gcash_account_name'] : $payout?->gcash_account_name,
-        );
+        // A typed number is read into 09XXXXXXXXX, so "+63 917 123 4567" and "0917 123 4567" are the same account.
+        $number = array_key_exists('gcash_number', $validated)
+            ? (filled($validated['gcash_number']) ? GcashNumber::normalize($validated['gcash_number']) : $validated['gcash_number'])
+            : $payout?->gcash_number;
+        $name = array_key_exists('gcash_account_name', $validated) ? $validated['gcash_account_name'] : $payout?->gcash_account_name;
+
+        // Changing where the money goes needs the password, so a stolen token cannot redirect payouts.
+        if (LandlordPayouts::changesDestination($user, $number, $name)) {
+            $request->validate(['current_password' => ['bail', 'required', 'string', 'current_password:sanctum']]);
+        }
+
+        $user->savePayoutAccount($number, $name);
+
+        // Only changes when the request carries the choice; saved after the GCash details because it lives on that row.
+        if (isset($validated['accepts_online'])) {
+            $user->setAcceptsOnlinePayments((bool) $validated['accepts_online']);
+        }
 
         $businessData = array_filter([
             'business_name'    => $validated['business_name'] ?? null,
@@ -134,7 +154,7 @@ class ProfileController extends Controller
         }
 
         $properties = $user->properties()
-            ->where('verification_status', 'Approved')
+            ->live()
             ->with('media')
             ->latest('created_at')
             ->get();
@@ -144,22 +164,22 @@ class ProfileController extends Controller
         $units = PropertyUnit::whereIn('property_id', $propertyIds)->get();
 
         $reviews = Review::whereIn('property_id', $propertyIds)
+            ->where('is_hidden', false)
             ->with(['tenant:user_id,first_name,last_name', 'property:property_id,title'])
             ->latest('created_at')
             ->take(10)
             ->get();
 
-        $averageRating = Review::whereIn('property_id', $propertyIds)->avg('rating');
+        $averageRating = Review::whereIn('property_id', $propertyIds)->where('is_hidden', false)->avg('rating');
 
         return response()->json([
             'data' => [
-                // The owner sees their own record; everyone else gets the business only, with the phone
-                // number behind a token (the web page puts it behind a login).
+                // The owner sees their own record; everyone else gets the business only, never its phone number.
                 'user' => $isOwner
                     ? $user->only(['user_id', 'first_name', 'last_name', 'profile_picture', 'bio', 'created_at'])
                     : ['user_id' => $user->user_id, 'business_name' => $user->publicName(), 'created_at' => $user->created_at],
                 'is_owner'        => $isOwner,
-                'business'        => $isOwner || $viewer
+                'business'        => $isOwner
                     ? $user->rentalBusiness
                     : $user->rentalBusiness?->only(['business_id', 'business_name', 'description', 'logo_url', 'business_address']),
                 'is_verified'     => (bool) $user->rentalBusiness,

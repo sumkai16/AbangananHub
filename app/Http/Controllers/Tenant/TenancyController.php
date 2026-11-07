@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
+use App\Models\Payment;
 use App\Models\Reservation;
 use App\Services\RentLedger;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
 /**
@@ -13,6 +15,31 @@ use Illuminate\Support\Facades\Gate;
  */
 class TenancyController extends Controller
 {
+    /**
+     * Every place this tenant rents or has rented ("My Rentals"), each opening its own page. Current rentals carry a
+     * one-line rent status from the ledger; finished ones are listed under "Past rentals". A reservation that has not
+     * started is not a rental yet and stays on My Reservations.
+     */
+    public function index()
+    {
+        $rentals = Reservation::where('tenant_id', Auth::id())
+            ->whereIn('rental_status', ['Occupied', 'Completed'])
+            // The same eager loads as show(): the ledger reads these, and lazy loading is off.
+            ->with(['property.landlord', 'tenant', 'unit.media', 'payments.recorder', 'depositCharges', 'paymentClaims'])
+            ->latest('reservation_id')
+            ->get();
+
+        $current = $rentals->where('rental_status', 'Occupied')->map(fn (Reservation $r) => [
+            'reservation' => $r,
+            'summary'     => RentLedger::for($r)->summary(),
+        ])->values();
+
+        return view('tenant.tenancy.index', [
+            'current' => $current,
+            'past'    => $rentals->where('rental_status', 'Completed')->values(),
+        ]);
+    }
+
     public function show(Reservation $reservation)
     {
         Gate::authorize('viewOwnTenancy', $reservation);
@@ -23,6 +50,7 @@ class TenancyController extends Controller
             'unit.media',
             'payments.recorder',
             'depositCharges',
+            'paymentClaims',
         ]);
 
         $ledger = RentLedger::for($reservation);
@@ -30,9 +58,33 @@ class TenancyController extends Controller
         return view('tenant.tenancy.show', [
             'reservation'    => $reservation,
             'periods'        => $ledger->periods(),
+            'monthlyTransactions' => $ledger->monthlyTransactions(),
             'otherCharges'   => $ledger->otherCharges(),
             'summary'        => $ledger->summary(),
             'payablePeriod'  => $ledger->unsettledPeriods()->first(),
+            // Nothing due: offer the next month so a tenant can pay ahead (direct payments only).
+            'advancePeriod'  => $ledger->advancePeriod(),
+        ]);
+    }
+
+    /**
+     * A printable proof of a payment the landlord confirmed or recorded. PayMongo payments are left out:
+     * PayMongo sends its own receipt, and a landlord-issued one would misstate who took the money.
+     */
+    public function receipt(Reservation $reservation, Payment $payment)
+    {
+        Gate::authorize('viewOwnTenancy', $reservation);
+
+        abort_unless($payment->reservation_id === $reservation->reservation_id, 404);
+        abort_unless($payment->hasReceipt(), 404);
+
+        $reservation->load(['property.landlord.rentalBusiness', 'tenant', 'unit']);
+        $payment->load(['recorder', 'claim']);
+
+        return view('tenant.tenancy.receipt', [
+            'payment'     => $payment,
+            'reservation' => $reservation,
+            'business'    => $reservation->property->landlord->rentalBusiness,
         ]);
     }
 }

@@ -10,38 +10,31 @@ use Illuminate\Support\Facades\DB;
 
 class ReservationController extends Controller
 {
-    private const STATUSES = [
-        'Inquiry',
-        'Under Negotiation',
-        'Pending Rental Agreement',
-        'Rental Agreement Signed',
-        'Occupied',
-        'Cancelled',
-        'Rejected',
-    ];
-
     public function index(Request $request)
     {
         $search = $request->input('search');
         $status = $request->input('status', 'all');
+        $type = $request->input('property_type', '');
+        $sort = $request->input('sort', 'newest');
 
         $base = Reservation::with(['property.media', 'property.landlord', 'unit', 'tenant'])
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($inner) use ($search) {
-                    $inner->whereHas('tenant', fn($t) =>
-                        $t->where('first_name', 'like', "%{$search}%")
-                          ->orWhere('last_name',  'like', "%{$search}%")
-                          ->orWhere('email',       'like', "%{$search}%")
-                    )->orWhereHas('property', fn($p) =>
-                        $p->where('title',   'like', "%{$search}%")
-                          ->orWhere('address', 'like', "%{$search}%")
+                    $inner->whereHas('tenant', fn ($t) => $t->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                    )->orWhereHas('property', fn ($p) => $p->where('title', 'like', "%{$search}%")
+                        ->orWhere('address', 'like', "%{$search}%")
+                    )->orWhereHas('property.landlord', fn ($l) => $l->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
                     );
                 });
-            });
+            })
+            ->when($type, fn ($q) => $q->whereHas('property', fn ($p) => $p->where('property_type', $type)));
 
-        $counts = Reservation::statusCounts($base, self::STATUSES);
+        $counts = Reservation::statusCounts($base, Reservation::STATUSES);
 
-        if (in_array($status, self::STATUSES, true)) {
+        if (in_array($status, Reservation::STATUSES, true)) {
             $base->where('rental_status', $status);
         }
 
@@ -53,9 +46,16 @@ class ReservationController extends Controller
 
         $disputedCount = Reservation::whereNotNull('move_in_disputed_at')->count();
 
-        $reservations = $base->latest()->paginate(15)->withQueryString();
+        match ($sort) {
+            'oldest' => $base->oldest(),
+            'move_in_soon' => $base->orderByRaw('target_move_in_date IS NULL')->orderBy('target_move_in_date'),
+            'move_in_late' => $base->orderByRaw('target_move_in_date IS NULL')->orderByDesc('target_move_in_date'),
+            default => $base->latest(),
+        };
 
-        return view('admin.reservations.index', compact('reservations', 'counts', 'status', 'search', 'disputedCount'));
+        $reservations = $base->paginate(15)->withQueryString();
+
+        return view('admin.reservations.index', compact('reservations', 'counts', 'status', 'search', 'disputedCount', 'type', 'sort'));
     }
 
     public function show(Reservation $reservation)

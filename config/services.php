@@ -40,9 +40,20 @@ return [
         'webhook_secret' => env('PAYMONGO_WEBHOOK_SECRET'),
         // Seconds a webhook's signed timestamp may differ from now before it is refused (replay guard).
         'webhook_tolerance' => (int) env('PAYMONGO_WEBHOOK_TOLERANCE', 300),
+        // Paying landlords out (PayMongo Send Money). Automatic payouts stay switched off, and money stays owed,
+        // until all three are set: the wallet account the money leaves from, and PayMongo's code for GCash as a
+        // receiving institution (`php artisan payouts:find-gcash-bic` prints what PayMongo lists).
+        'wallet_account_number' => env('PAYMONGO_WALLET_ACCOUNT_NUMBER'),
+        'wallet_account_name' => env('PAYMONGO_WALLET_ACCOUNT_NAME'),
+        'gcash_bic' => env('PAYMONGO_GCASH_BIC'),
         // PayMongo test keys start with sk_test_. Drives the "Test mode" notice
         // on checkout so visitors know no real money is charged.
         'test_mode' => str_starts_with((string) env('PAYMONGO_SECRET_KEY', ''), 'sk_test_'),
+        // Refund endpoints. QR Ph payments are refunded through their own host (PayMongo's QR Ph refund guide);
+        // everything else, GCash included, through the main API. Configurable because PayMongo's docs are not
+        // explicit about which host QR Ph needs.
+        'refunds_url' => env('PAYMONGO_REFUNDS_URL', 'https://api.paymongo.com/v1/refunds'),
+        'qrph_refunds_url' => env('PAYMONGO_QRPH_REFUNDS_URL', 'https://refunds-api.paymongo.com/v1/refunds'),
     ],
 
     'google' => [
@@ -55,6 +66,24 @@ return [
         'client_id' => env('FACEBOOK_CLIENT_ID'),
         'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
         'redirect' => env('FACEBOOK_REDIRECT_URI'),
+    ],
+
+    // Read via config() so OCR keeps working after `php artisan config:cache` (env() returns null then).
+    'google_vision' => [
+        'key' => env('GOOGLE_VISION_API_KEY'),
+    ],
+
+    // Face match for landlord verification (AWS Rekognition CompareFaces). Optional: with no keys the check is
+    // skipped and the admin sees "Not checked". Read via config() so it survives config:cache.
+    'rekognition' => [
+        'key' => env('AWS_REKOGNITION_KEY'),
+        'secret' => env('AWS_REKOGNITION_SECRET'),
+        'region' => env('AWS_REKOGNITION_REGION', 'ap-southeast-1'),
+        // Similarity percent at or above which the faces count as the same person. An ID photo is small and old,
+        // so this is lower than a strict 99; the admin still reviews every application.
+        'threshold' => (float) env('FACE_MATCH_THRESHOLD', 80),
+        // Between this and the threshold the admin sees "somewhat similar, compare by eye"; below it, "do not match".
+        'review_floor' => (float) env('FACE_MATCH_REVIEW_FLOOR', 60),
     ],
 
     // AI search (config/ai_search.php picks the driver). Gemini's free tier is for

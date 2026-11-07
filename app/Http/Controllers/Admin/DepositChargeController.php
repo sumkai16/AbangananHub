@@ -30,23 +30,43 @@ class DepositChargeController extends Controller
             $status = 'Active';
         }
 
-        $charges = DepositCharge::with(['reservation.tenant', 'reservation.property', 'reservation.unit', 'charger', 'voider'])
+        $search = trim((string) $request->query('search', ''));
+        $sort = $request->query('sort', 'newest');
+        $sort = in_array($sort, ['oldest', 'amount_desc', 'amount_asc'], true) ? $sort : 'newest';
+
+        $base = fn () => DepositCharge::query()->when($search !== '', fn ($q) => $q->whereHas('reservation', function ($r) use ($search) {
+            $r->whereHas('tenant', fn ($t) => $t->where('first_name', 'like', "%{$search}%")
+                ->orWhere('last_name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%"))
+                ->orWhereHas('property', fn ($p) => $p->where('title', 'like', "%{$search}%"))
+                ->orWhereHas('property.landlord', fn ($l) => $l->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%"));
+        }));
+
+        $charges = $base()->with(['reservation.tenant', 'reservation.property', 'reservation.unit', 'charger', 'voider'])
             ->when($status === 'Active', fn ($q) => $q->whereNull('voided_at'))
             ->when($status === 'Voided', fn ($q) => $q->whereNotNull('voided_at'))
-            ->latest('charged_at')
+            ->when($sort === 'oldest', fn ($q) => $q->oldest('charged_at'))
+            ->when($sort === 'amount_desc', fn ($q) => $q->orderByDesc('amount'))
+            ->when($sort === 'amount_asc', fn ($q) => $q->orderBy('amount'))
+            ->when($sort === 'newest', fn ($q) => $q->latest('charged_at'))
             ->paginate(15)
             ->withQueryString();
 
         $counts = [
-            'Active' => DepositCharge::whereNull('voided_at')->count(),
-            'Voided' => DepositCharge::whereNotNull('voided_at')->count(),
+            'Active' => $base()->whereNull('voided_at')->count(),
+            'Voided' => $base()->whereNotNull('voided_at')->count(),
         ];
         $counts['All'] = $counts['Active'] + $counts['Voided'];
+        $activeAmount = (float) $base()->whereNull('voided_at')->sum('amount');
 
         return view('admin.deposit-charges.index', [
             'charges' => $charges,
             'status'  => $status,
             'counts'  => $counts,
+            'search'  => $search,
+            'sort'    => $sort,
+            'activeAmount' => $activeAmount,
         ]);
     }
 
@@ -124,7 +144,7 @@ class DepositChargeController extends Controller
                 $reservation->property->title ?? 'a tenancy',
                 strtolower($voided->voidReasonLabel()),
             ),
-            route('landlord.tenancies.show', $reservation),
+            route('landlord.payments.ledger', $reservation),
         );
 
         return back()->with('success', 'Deposit charge voided. The original entry stays on record.');

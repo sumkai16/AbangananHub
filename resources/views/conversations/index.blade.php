@@ -1,28 +1,44 @@
 @extends(auth()->user()->usesLandlordShell() ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
 
 @section('content')
-    <div class="{{ auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-5 min-h-[calc(100vh-72px)]" x-data="inboxApp()" x-cloak>
+    @php
+        // Landlord and tenant share one layout: the full width as three separate cards
+        // (list, chat, property). The landlord's page is the reference.
+        $wide = true;
+        $cardClass = 'rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)]';
+    @endphp
+    {{-- Tenants get the same 1400px column as the site header and every other tenant page; the landlord's sidebar shell keeps the full width. --}}
+    <div class="{{ auth()->user()->usesLandlordShell() ? 'max-w-none' : auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-5 min-h-[calc(100vh-72px)]" x-data="inboxApp()" x-cloak>
 
-        <div class="flex flex-col overflow-hidden rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)]"
-            style="height: calc(100vh - 110px); min-height: 560px;">
+        <div class="flex flex-col {{ $wide ? 'gap-4' : 'overflow-hidden '.$cardClass }}"
+            style="height: calc(100vh - 110px); height: calc(100dvh - 110px); min-height: 560px;">
 
-        {{-- Header --}}
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#E2E4EC] p-4 flex-shrink-0">
-            <div class="flex items-center gap-3.5">
-                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#060D26]">
-                    <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+        {{-- A refused action (e.g. "Send agreement" while another reservation holds the unit) redirects back here
+             with an error. Without this the page just reloads and looks like nothing happened. --}}
+        @if($errors->any())
+            <div role="alert" class="flex-shrink-0 rounded-xl border border-[#EF4444]/25 bg-[#EF4444]/[0.07] px-4 py-3 text-[13px] font-medium text-[#DC2626]">
+                {{ $errors->first() }}
+            </div>
+        @endif
+
+        {{-- Header (the landlord shell shows the title in its mobile top bar instead) --}}
+        @push('mobile-title')<x-page-icon class="!h-7 !w-7 !rounded-lg" path="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /><span class="truncate text-[15px] font-semibold tracking-tight text-[#060D26]">{{ $box === 'tenancy' ? ($isLandlord ? 'Tenants' : 'My home') : ($isLandlord ? 'Inquiries' : 'Messages') }}</span>@endpush
+        <div class="flex items-center justify-between gap-3 flex-shrink-0 px-1 {{ auth()->user()->usesLandlordShell() ? '' : 'max-sm:hidden' }} {{ $isLandlord && $landlordProperties->isNotEmpty() ? '' : 'page-header-bare' }}">
+            <div class="page-header-title flex items-center gap-3 sm:gap-3.5 min-w-0">
+                <div class="flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-[#060D26]">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2" class="w-4 h-4 sm:w-[19px] sm:h-[19px]">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-semibold tracking-tight text-[#060D26]">
+                    <h1 class="text-xl sm:text-2xl font-semibold tracking-tight text-[#060D26]">
                         @if($box === 'tenancy')
                             {{ $isLandlord ? 'Tenants' : 'My home' }}
                         @else
                             {{ $isLandlord ? 'Inquiries' : 'Messages' }}
                         @endif
                     </h1>
-                    <p class="mt-0.5 text-sm text-[#5B6A8E]">
+                    <p class="mt-0.5 hidden text-sm text-[#5B6A8E] sm:block">
                         @if($box === 'tenancy')
                             {{ $isLandlord ? 'Chat with the people living in your properties and track their concerns.' : 'Chat with your landlord and report anything that needs fixing.' }}
                         @else
@@ -35,12 +51,12 @@
             @if($isLandlord && $landlordProperties->isNotEmpty())
                 <div class="relative" x-data="{ filterOpen: false }">
                     <button @click="filterOpen = !filterOpen" type="button"
-                        class="flex h-10 items-center gap-2 rounded-xl border border-[#E2E4EC] bg-white px-4 text-[13px] font-medium text-[#060D26] transition-colors duration-200 hover:border-[#060D26]/40 hover:bg-[#F7F8FC] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40">
+                        class="flex h-9 sm:h-10 max-w-[10.5rem] sm:max-w-none items-center gap-2 rounded-xl border border-[#E2E4EC] bg-white px-4 text-[13px] font-medium text-[#060D26] transition-colors duration-200 hover:border-[#060D26]/40 hover:bg-[#F7F8FC] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
                         </svg>
-                        {{ $propertyId ? $landlordProperties->firstWhere('property_id', $propertyId)?->title ?? 'All Properties' : 'All Properties' }}
+                        <span class="truncate">{{ $propertyId ? $landlordProperties->firstWhere('property_id', $propertyId)?->title ?? 'All Properties' : 'All Properties' }}</span>
                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                         </svg>
@@ -65,10 +81,10 @@
         </div>
 
         {{-- Split panel --}}
-        <div class="flex flex-1 overflow-hidden">
+        <div class="flex flex-1 {{ $wide ? 'min-h-0 gap-4' : 'overflow-hidden' }}">
 
             {{-- LEFT: Conversation list --}}
-            <div class="w-full lg:w-[340px] flex-shrink-0 lg:border-r border-[#5B6A8E]/10 flex-col"
+            <div class="w-full lg:w-[340px] flex-shrink-0 flex-col {{ $wide ? 'overflow-hidden '.$cardClass : 'lg:border-r border-[#5B6A8E]/10' }}"
                 :class="activeId ? 'hidden lg:flex' : 'flex'">
 
                 {{-- Box switch: deal chats vs. chats with people already living here --}}
@@ -128,7 +144,7 @@
                         <input type="text" name="search" value="{{ request('search') }}"
                             placeholder="Search by person or property..." aria-label="Search by person or property"
                             x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                            class="w-full rounded-xl border border-[#E2E4EC] bg-white py-2.5 pl-8 pr-3 text-[13px] text-[#060D26] placeholder-[#94A3B8] transition-colors duration-200 focus:border-[#FF8A66] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20" />
+                            class="w-full rounded-xl border border-[#E2E4EC] bg-white py-2.5 pl-8 pr-3 text-[16px] sm:text-[13px] text-[#060D26] placeholder-[#94A3B8] transition-colors duration-200 focus:border-[#FF8A66] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20" />
                     </form>
                 </div>
 
@@ -251,10 +267,18 @@
                 </div>
 
                 @if($conversations->isNotEmpty())
-                    <div class="px-4 py-2 border-t border-[#5B6A8E]/10 flex-shrink-0">
-                        <p class="text-[11px] text-[#5B6A8E] text-center">
-                            Showing 1 to {{ $conversations->count() }} of {{ $conversations->count() }} {{ $isLandlord ? Str::plural('inquiry', $conversations->count()) : Str::plural('conversation', $conversations->count()) }}
+                    <div class="px-4 py-2 border-t border-[#5B6A8E]/10 flex-shrink-0 flex items-center justify-between gap-2">
+                        @if($conversations->hasPages())
+                            <a @if($conversations->onFirstPage()) aria-disabled="true" @else href="{{ $conversations->previousPageUrl() }}" @endif
+                                class="h-8 px-2.5 inline-flex items-center rounded-lg border border-[#E2E4EC] text-[12px] font-semibold {{ $conversations->onFirstPage() ? 'text-[#CBD5E1] cursor-not-allowed' : 'text-[#060D26] hover:bg-[#ECEEF6]' }}">Prev</a>
+                        @endif
+                        <p class="text-[11px] text-[#5B6A8E] text-center flex-1">
+                            Showing {{ $conversations->firstItem() }} to {{ $conversations->lastItem() }} of {{ $conversations->total() }} {{ $isLandlord ? Str::plural('inquiry', $conversations->total()) : Str::plural('conversation', $conversations->total()) }}
                         </p>
+                        @if($conversations->hasPages())
+                            <a @if($conversations->hasMorePages()) href="{{ $conversations->nextPageUrl() }}" @else aria-disabled="true" @endif
+                                class="h-8 px-2.5 inline-flex items-center rounded-lg border border-[#E2E4EC] text-[12px] font-semibold {{ $conversations->hasMorePages() ? 'text-[#060D26] hover:bg-[#ECEEF6]' : 'text-[#CBD5E1] cursor-not-allowed' }}">Next</a>
+                        @endif
                     </div>
                 @endif
             </div>
@@ -271,7 +295,7 @@
                     All conversations
                 </button>
                 {{-- Empty state --}}
-                <div x-show="!activeId" class="flex flex-1 items-center justify-center bg-[#F7F8FC] px-6">
+                <div x-show="!activeId" class="flex flex-1 items-center justify-center bg-[#F7F8FC] px-6 {{ $wide ? $cardClass : '' }}">
                     <div class="text-center">
                         <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-[#ECEEF6]">
                             <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.5">
@@ -286,7 +310,7 @@
                 </div>
 
                 {{-- Loading state --}}
-                <div x-show="loading" class="flex-1 flex items-center justify-center">
+                <div x-show="loading" class="flex-1 flex items-center justify-center {{ $wide ? $cardClass : '' }}">
                     <div class="w-6 h-6 border-2 border-[#5B6A8E] border-t-transparent rounded-full animate-spin"></div>
                 </div>
 
@@ -302,6 +326,8 @@
         {{-- Loaded here, not from the component: the chat panel arrives by AJAX
              with no layout, so anything the component pushes never renders. --}}
         <script src="{{ asset('js/datetime-picker.js') }}"></script>
+        {{-- The Send-agreement form's move-in and move-out pickers (landlord.reservations._agreement-fields). --}}
+        <script src="{{ asset('js/date-picker.js') }}"></script>
         <script>
             function inboxApp() {
                 return {
@@ -464,7 +490,7 @@
                             .listen('.MessageSent', (e) => {
                                 // Concern cards and their status lines depend on who is
                                 // looking (the buttons differ), so refetch the panel.
-                                if (e.concern_id) { this.refreshPanel(); return; }
+                                if (e.concern_id || e.kind === 'payment_qr') { this.refreshPanel(); return; }
                                 this.appendMessage({
                                     sender_id: e.sender_id,
                                     sender_name: e.sender_name,
@@ -844,6 +870,82 @@
                             window.refreshInboxPanel?.();
                         } catch (e) {
                             this.errors.general = 'Could not send. Check your connection and try again.';
+                        } finally {
+                            this.busy = false;
+                        }
+                    },
+                };
+            }
+
+            // "Share payment QR" sheet (landlord). The browser reads the screenshot and posts only the decoded text.
+            function paymentQrSheet(conversationId, lastShareId = null) {
+                return {
+                    open: false, busy: false, reuseId: lastShareId,
+                    payload: '', preview: '', note: '',
+                    errors: {},
+
+                    close() {
+                        if (this.busy) return;
+                        this.open = false;
+                    },
+
+                    async pick(event) {
+                        const file = (event.target.files || [])[0];
+                        event.target.value = '';
+                        if (!file) return;
+
+                        this.errors = {};
+                        this.payload = '';
+                        if (this.preview) URL.revokeObjectURL(this.preview);
+                        this.preview = URL.createObjectURL(file);
+
+                        try {
+                            const text = await window.readPaymentQr(file);
+                            if (!text) {
+                                this.preview = '';
+                                this.errors.payload = 'No QR code found in that picture. Use a clear, full screenshot of your QR.';
+                                return;
+                            }
+                            this.payload = text;
+                        } catch (e) {
+                            this.preview = '';
+                            this.errors.payload = 'That picture could not be read. Try a screenshot instead of a photo.';
+                        }
+                    },
+
+                    async submit() {
+                        this.errors = {};
+                        if (!this.payload && !this.reuseId) { this.errors.payload = 'Choose a picture of your QR first.'; return; }
+
+                        this.busy = true;
+                        try {
+                            const res = await fetch('/conversations/' + conversationId + '/payment-qr', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                },
+                                body: JSON.stringify(this.reuseId
+                                    ? { reuse_share_id: this.reuseId, note: this.note.trim() || null }
+                                    : { payload: this.payload, note: this.note.trim() || null }),
+                            });
+                            if (res.status === 422) {
+                                const data = await res.json();
+                                for (const [field, msgs] of Object.entries(data.errors || {})) {
+                                    this.errors[field] = msgs[0];
+                                }
+                                return;
+                            }
+                            if (!res.ok) { this.errors.general = 'Could not share. Please try again.'; return; }
+
+                            if (this.preview) URL.revokeObjectURL(this.preview);
+                            this.payload = ''; this.preview = ''; this.note = '';
+                            this.reuseId = lastShareId;
+                            this.open = false;
+                            window.refreshInboxPanel?.();
+                        } catch (e) {
+                            this.errors.general = 'Could not share. Check your connection and try again.';
                         } finally {
                             this.busy = false;
                         }

@@ -36,6 +36,43 @@ class Conversation extends Model
         return $query->where('type', self::TYPE_INQUIRY);
     }
 
+    /**
+     * The deal chat a new inquiry goes into: the tenant's one thread with this landlord about this property
+     * (the table allows only one, so a closed thread can't be replaced by a new row), pointed at the unit asked
+     * about. A Cancelled thread, or a Resolved one (closed when an earlier tenancy moved in), is reopened: a new
+     * inquiry is a live deal, and the inbox hides closed threads, so the landlord would never see it.
+     */
+    public static function forInquiry(int $tenantId, Property $property, PropertyUnit $unit): self
+    {
+        $conversation = self::inquiries()
+            ->where('tenant_id', $tenantId)
+            ->where('landlord_id', $property->landlord_id)
+            ->where('property_id', $property->property_id)
+            ->first();
+
+        if (! $conversation) {
+            return self::create([
+                'tenant_id'   => $tenantId,
+                'landlord_id' => $property->landlord_id,
+                'property_id' => $property->property_id,
+                'unit_id'     => $unit->unit_id,
+            ]);
+        }
+
+        $changes = [];
+        if ($conversation->unit_id !== $unit->unit_id) {
+            $changes['unit_id'] = $unit->unit_id;
+        }
+        if (in_array($conversation->status, ['Cancelled', 'Resolved'], true)) {
+            $changes['status'] = 'Open';
+        }
+        if ($changes) {
+            $conversation->update($changes);
+        }
+
+        return $conversation;
+    }
+
     public function scopeTenancies(Builder $query): Builder
     {
         return $query->where('type', self::TYPE_TENANCY);
@@ -120,6 +157,20 @@ class Conversation extends Model
     {
         return $this->hasOne(Message::class, 'conversation_id', 'conversation_id')
             ->latestOfMany('message_id');
+    }
+
+    /**
+     * How many open chats are waiting on this person: the chat's latest message is from the other side and unread.
+     * The one rule behind the sidebar, the top bar and the floating bubble, so the three can never disagree. A
+     * cancelled or resolved chat is hidden from the inbox, so it is not counted either. Counting loose messages
+     * also counted those chats, and a second message in the same chat counted twice.
+     */
+    public static function unreadCountFor(int $userId): int
+    {
+        return static::where(fn ($q) => $q->where('tenant_id', $userId)->orWhere('landlord_id', $userId))
+            ->whereNotIn('status', ['Cancelled', 'Resolved'])
+            ->whereHas('latestMessage', fn ($q) => $q->where('sender_id', '!=', $userId)->where('is_read', false))
+            ->count();
     }
 
     public function isResolved(): bool

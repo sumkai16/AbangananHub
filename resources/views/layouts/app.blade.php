@@ -25,13 +25,13 @@
     <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#FF8A66] focus:text-[#060D26] focus:font-semibold">Skip to main content</a>
 
     <header id="site-header" x-data="{ mobileNavOpen: false }"
-        class="bg-white border-b border-[#E2E4EC] sticky top-0 z-[100] transition-all duration-300">
+        class="print:hidden bg-white border-b border-[#E2E4EC] sticky top-0 z-[100] transition-all duration-300">
 
         {{-- 1. Nav Row --}}
         @php
             // A detail page opts in via @extends('layouts.app', ['backNav' =>
-            // ['route' => ..., 'label' => ...]]) to swap Home/Browse/Areas/How
-            // it works for a single back link at `lg`, with the logo moving to
+            // ['route' => ..., 'label' => ...]]) to swap the primary nav links
+            // for a single back link at `lg`, with the logo moving to
             // dead-centre — see properties/show.blade.php for the first use.
             // Same "reuse the previous URL only if it's that index page" rule
             // as any other back link here, computed fresh from the given route
@@ -48,8 +48,8 @@
                 ];
             }
 
-            // backNav's right-actions cluster (theme toggle + Become a
-            // Landlord/dashboard pill + notifications + avatar) is wide
+            // backNav's right-actions cluster (theme toggle + dashboard pill +
+            // messages + notifications + avatar) is wide
             // enough that a dead-centred logo can collide with it once the
             // primary nav's flex space is gone, at widths just above `lg`.
             // Pushing the mobile-style header (logo left + hamburger) out to
@@ -74,6 +74,7 @@
              ~1462px the logo/back-link/actions drifted further from the
              photo edges the wider the screen got — a small lg:px-10 vs
              lg:px-8 padding mismatch (since fixed) was masking the real gap. --}}
+        {{-- Same 1400px column on every page, so the logo and the right-hand icons never move between pages. --}}
         <div class="max-w-[1400px] mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 h-[64px] relative">
 
             {{-- Logo — hidden at `lg` on a backNav page, since the centred
@@ -87,10 +88,8 @@
 
             @if($backNavData)
                 <a href="{{ $backNavData['url'] }}"
-                    class="hidden xl:inline-flex items-center gap-2 text-[13.5px] font-semibold text-[#060D26] hover:text-[#B35A3D] transition-colors duration-200">
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
-                    </svg>
+                    class="hidden xl:inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-[#060D26] hover:text-[#B35A3D] transition-colors duration-200">
+                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
                     {{ $backNavData['label'] }}
                 </a>
 
@@ -119,15 +118,25 @@
                         Browse Rentals
                     </a>
 
-                    <a href="{{ route('properties.areas') }}" @if($onAreas) aria-current="page" @endif
-                        class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onAreas ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
-                        Areas
-                    </a>
+                    {{-- Guests only: a signed-in tenant finds both on the landing page (PM feedback, Nov 2026). --}}
+                    @guest
+                        <a href="{{ route('properties.areas') }}" @if($onAreas) aria-current="page" @endif
+                            class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onAreas ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
+                            Areas
+                        </a>
 
-                    <a href="{{ route('about') }}#how-it-works"
-                        class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer">
-                        How it works
-                    </a>
+                        <a href="{{ route('about') }}#how-it-works"
+                            class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer">
+                            How it works
+                        </a>
+                    @endguest
+
+                    @if(! empty($hasRentals))
+                        <a href="{{ route('tenancy.index') }}" @if(request()->routeIs('tenancy.*')) aria-current="page" @endif
+                            class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ request()->routeIs('tenancy.*') ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
+                            My Rentals
+                        </a>
+                    @endif
                 </nav>
             @endif
 
@@ -139,7 +148,7 @@
 
                 {{-- Mobile nav toggle — this header has no `lg:flex` primary nav
                      below `lg` (see the comment above), so this is the only way a
-                     phone visitor reaches Browse/Areas/How it works. --}}
+                     phone visitor reaches the primary nav links. --}}
                 <button type="button" @click="mobileNavOpen = !mobileNavOpen" aria-label="Menu"
                     :aria-expanded="mobileNavOpen ? 'true' : 'false'" aria-haspopup="true" aria-controls="mobile-nav-panel"
                     :class="mobileNavOpen ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:bg-[#F7F8FC] hover:text-[#B35A3D]'"
@@ -150,27 +159,11 @@
                     </svg>
                 </button>
 
-                {{-- Messages — mobile equivalent of the floating chat bubble,
-                     which is desktop-only (see partials.message-notifications).
-                     Links to the full messages page; a popup panel is wrong on a phone. --}}
                 @auth
-                    @php
-                        $mobileUnreadMsgCount = $unreadMessageCount;
-                    @endphp
-                    <a href="{{ route('conversations.index') }}"
-                        aria-label="Messages"
-                        class="{{ $mobileBp }}:hidden relative flex items-center justify-center gap-1.5 h-10 w-10 sm:w-auto sm:px-3 rounded-full border border-[#E2E4EC] text-[#060D26] text-[12.5px] font-semibold hover:bg-[#F7F8FC] transition-colors cursor-pointer">
-                        <svg class="sm:hidden" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" /></svg>
-                        <span class="hidden sm:inline">Messages</span>
-                        @if($mobileUnreadMsgCount > 0)
-                            <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold absolute -top-1 -right-1 sm:static">{{ $mobileUnreadMsgCount > 99 ? '99+' : $mobileUnreadMsgCount }}</span>
-                        @endif
-                    </a>
-                @endauth
-
-                @auth
-
-                    {{-- Become a Landlord / My Listings / Admin Actions --}}
+                    {{-- Dashboard / Admin Dashboard / an applicant's Verification status. Nothing for a plain tenant: landlord
+                         sign-up has its own path now (/register/landlord, and "List your property" on the landing page). --}}
+                    @php $hasVerification = auth()->user()->verificationApplication !== null; @endphp
+                    @if(auth()->user()->hasRole('Landlord') || auth()->user()->hasRole('Admin') || $hasVerification)
                     <div class="hidden sm:block">
                         @if(auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin'))
                             <a href="{{ route('landlord.properties.index') }}"
@@ -178,53 +171,31 @@
                                 Landlord Dashboard
                             </a>
                         @elseif(auth()->user()->hasRole('Admin'))
-                            <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
-                                <button type="button" @click="open = !open" @click.outside="open = false"
-                                    :aria-expanded="open ? 'true' : 'false'" aria-haspopup="true"
-                                    class="flex items-center gap-2 h-10 px-5 rounded-full bg-[#ECEEF6] text-[13.5px] font-semibold text-[#060D26] hover:brightness-95 transition-all cursor-pointer">
-                                    Admin Actions
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2.5" class="transition-transform duration-200 motion-reduce:transition-none"
-                                        :class="open && 'rotate-180'" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-
-                                <div x-show="open" x-cloak
-                                    x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-200"
-                                    x-transition:enter-start="opacity-0 scale-95 -translate-y-1 motion-reduce:scale-100 motion-reduce:translate-y-0"
-                                    x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                                    x-transition:leave="transition ease-in duration-150"
-                                    x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                                    x-transition:leave-end="opacity-0 scale-95 -translate-y-1 motion-reduce:scale-100 motion-reduce:translate-y-0"
-                                    class="absolute top-[calc(100%+10px)] right-0 w-[236px] bg-white rounded-2xl shadow-[0_16px_48px_-12px_rgba(6,13,38,0.20)] ring-1 ring-[#E2E4EC] p-1.5 z-50">
-                                    @php
-                                        $adminLinks = [
-                                            ['route' => \Illuminate\Support\Facades\Route::has('admin.listings.approval') ? route('admin.listings.approval') : '#', 'label' => 'Listing Approval', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
-                                            ['route' => route('admin.verifications.index'), 'label' => 'Verification Requests', 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
-                                            ['route' => route('admin.users.index'), 'label' => 'Manage Users', 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'],
-                                        ];
-                                    @endphp
-                                    @foreach($adminLinks as $link)
-                                        <a href="{{ $link['route'] }}"
-                                            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors">
-                                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                                stroke-width="1.9" class="text-[#5B6A8E] group-hover:text-[#B35A3D] transition-colors duration-200" aria-hidden="true">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $link['icon'] }}" />
-                                            </svg>
-                                            {{ $link['label'] }}
-                                        </a>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @else
-                            @php $hasVerification = auth()->user()->verificationApplication !== null; @endphp
-                            <a href="{{ route($hasVerification ? 'landlord.verification.show' : 'landlord.verification.create') }}"
+                            <a href="{{ route('admin.dashboard') }}"
                                 class="flex items-center gap-2 h-10 px-5 rounded-full bg-[#ECEEF6] text-[13.5px] font-semibold text-[#060D26] hover:brightness-95 transition-all cursor-pointer">
-                                {{ $hasVerification ? 'Verification status' : 'Become a Landlord' }}
+                                Admin Dashboard
+                            </a>
+                        @else
+                            <a href="{{ route('landlord.verification.show') }}"
+                                class="flex items-center gap-2 h-10 px-5 rounded-full bg-[#ECEEF6] text-[13.5px] font-semibold text-[#060D26] hover:brightness-95 transition-all cursor-pointer">
+                                Verification status
                             </a>
                         @endif
                     </div>
+                    @endif
+
+                    {{-- Messages, beside the bell at every width. Opens the full messages page. The number is the live
+                         one from the navBadges store (partials.message-notifications). --}}
+                    @php $onMessages = request()->routeIs('conversations.*'); @endphp
+                    <a href="{{ route('conversations.index') }}" aria-label="Messages" @if($onMessages) aria-current="page" @endif
+                        class="relative flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer {{ $onMessages ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
+                        <span x-show="$store.navBadges.messages > 0" x-cloak
+                            class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] ring-2 ring-white text-white text-[10px] font-bold leading-none flex items-center justify-center tabular-nums"
+                            x-text="$store.navBadges.messages > 99 ? '99+' : $store.navBadges.messages"></span>
+                        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                        </svg>
+                    </a>
 
                     {{-- Notifications Dropdown --}}
                     <div class="relative" x-data="notificationDropdown()" @click.away="close()"
@@ -232,8 +203,10 @@
                         <button type="button" @click="toggle()" aria-label="Notifications"
                             :class="open ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:bg-[#F7F8FC] hover:text-[#B35A3D]'"
                             class="relative flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
+                            {{-- Red and numbered, the same badge as the message icon beside it (PM feedback, Nov 2026). --}}
                             <span x-show="unreadCount > 0" x-cloak
-                                class="absolute top-[7px] right-[8px] w-2.5 h-2.5 rounded-full bg-[#060D26] ring-2 ring-white"></span>
+                                class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] ring-2 ring-white text-white text-[10px] font-bold leading-none flex items-center justify-center tabular-nums"
+                                x-text="unreadCount > 99 ? '99+' : unreadCount"></span>
                             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                 stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -326,6 +299,15 @@
 
                             {{-- Section: Activity --}}
                             <p class="{{ $menuLabel }}">Activity</p>
+
+                            @if($userRoles->contains('Tenant') && ! empty($hasRentals))
+                                <a href="{{ route('tenancy.index') }}" class="{{ $menuRow }}">
+                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="{{ $menuIcon }}" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5 12 3l9 7.5M5 9.5V20a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V9.5" />
+                                    </svg>
+                                    My Rentals
+                                </a>
+                            @endif
 
                             @if($userRoles->contains('Tenant'))
                                 <a href="{{ route('reservations.index') }}" class="{{ $menuRow }}">
@@ -464,19 +446,30 @@
                 Browse Rentals
             </a>
 
-            <a href="{{ route('properties.areas') }}" @click="mobileNavOpen = false"
-                @if($onAreas) aria-current="page" @endif
-                class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold {{ $onAreas ? 'text-[#060D26] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC]' }}">
-                Areas
-            </a>
+            @guest
+                <a href="{{ route('properties.areas') }}" @click="mobileNavOpen = false"
+                    @if($onAreas) aria-current="page" @endif
+                    class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold {{ $onAreas ? 'text-[#060D26] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC]' }}">
+                    Areas
+                </a>
 
-            <a href="{{ route('about') }}#how-it-works" @click="mobileNavOpen = false"
-                class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold text-[#060D26] hover:bg-[#F7F8FC]">
-                How it works
-            </a>
+                <a href="{{ route('about') }}#how-it-works" @click="mobileNavOpen = false"
+                    class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold text-[#060D26] hover:bg-[#F7F8FC]">
+                    How it works
+                </a>
+            @endguest
+
+            @if(! empty($hasRentals))
+                <a href="{{ route('tenancy.index') }}" @click="mobileNavOpen = false"
+                    class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold text-[#060D26] hover:bg-[#F7F8FC]">
+                    My Rentals
+                </a>
+            @endif
 
             @auth
-                <div class="h-px bg-[#E2E4EC] my-2"></div>
+                @if(auth()->user()->hasRole('Landlord') || auth()->user()->hasRole('Admin') || $hasVerification)
+                    <div class="h-px bg-[#E2E4EC] my-2"></div>
+                @endif
 
                 @if(auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin'))
                     <a href="{{ route('landlord.properties.index') }}" @click="mobileNavOpen = false"
@@ -484,24 +477,14 @@
                         Landlord Dashboard
                     </a>
                 @elseif(auth()->user()->hasRole('Admin'))
-                    @php
-                        $mobileAdminLinks = [
-                            ['route' => \Illuminate\Support\Facades\Route::has('admin.listings.approval') ? route('admin.listings.approval') : '#', 'label' => 'Listing Approval'],
-                            ['route' => route('admin.verifications.index'), 'label' => 'Verification Requests'],
-                            ['route' => route('admin.users.index'), 'label' => 'Manage Users'],
-                        ];
-                    @endphp
-                    @foreach($mobileAdminLinks as $link)
-                        <a href="{{ $link['route'] }}" @click="mobileNavOpen = false"
-                            class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold text-[#060D26] bg-[#ECEEF6] hover:brightness-95 {{ !$loop->first ? 'mt-1.5' : '' }}">
-                            {{ $link['label'] }}
-                        </a>
-                    @endforeach
-                @else
-                    @php $hasVerification = auth()->user()->verificationApplication !== null; @endphp
-                    <a href="{{ route($hasVerification ? 'landlord.verification.show' : 'landlord.verification.create') }}" @click="mobileNavOpen = false"
+                    <a href="{{ route('admin.dashboard') }}" @click="mobileNavOpen = false"
                         class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold text-[#060D26] bg-[#ECEEF6] hover:brightness-95">
-                        {{ $hasVerification ? 'Verification status' : 'Become a Landlord' }}
+                        Admin Dashboard
+                    </a>
+                @elseif($hasVerification)
+                    <a href="{{ route('landlord.verification.show') }}" @click="mobileNavOpen = false"
+                        class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold text-[#060D26] bg-[#ECEEF6] hover:brightness-95">
+                        Verification status
                     </a>
                 @endif
             @endauth
@@ -514,7 +497,7 @@
          (@section('sticky_search')) so search + filters stay put on desktop while only the listings scroll. z-[60] keeps the search
          pill's dropdowns above the listings but under the sticky header (z-[100]). --}}
     @if(($searchBar ?? true) && !View::hasSection('hide_search'))
-        <div id="header-search-expanded" class="{{ View::hasSection('sticky_search') ? 'relative lg:sticky lg:top-[64px]' : 'relative' }} z-[60] bg-white border-b border-[#E2E4EC]">
+        <div id="header-search-expanded" class="print:hidden {{ View::hasSection('sticky_search') ? 'relative lg:sticky lg:top-[64px]' : 'relative' }} z-[60] bg-white border-b border-[#E2E4EC]">
             <div class="bg-[#060D26]">
                 <div id="browse-search-pill" class="max-w-[1400px] mx-auto flex justify-center px-4 sm:px-6 py-5">
                     <x-ai-search-box variant="header" />
@@ -532,78 +515,79 @@
         @yield('content')
     </main>
 
-    <footer class="bg-[#060D26] mt-auto">
-        <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-8">
+    <footer class="print:hidden bg-[#060D26] mt-auto">
+        <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 pb-[max(2rem,env(safe-area-inset-bottom))]">
 
-            {{-- Logo --}}
-            <a href="{{ route('home') }}" class="inline-flex items-center gap-2.5 no-underline mb-10">
-                <x-brand-logo tone="on-dark" mark="w-8 h-8" text="text-[16px]" />
-            </a>
+            {{-- Brand --}}
+            <div class="mb-8 sm:mb-10">
+                <a href="{{ route('home') }}" class="inline-flex items-center gap-2.5 no-underline">
+                    <x-brand-logo tone="on-dark" mark="w-8 h-8" text="text-[16px]" />
+                </a>
+                <p class="mt-3 max-w-[34ch] text-[13.5px] leading-relaxed text-white/60">Verified rentals across Cebu, from the first message to move-in.</p>
+            </div>
 
             {{-- Link columns --}}
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-x-8 gap-y-10 pb-12">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-x-6 sm:gap-x-8 gap-y-8 sm:gap-y-10 pb-8 sm:pb-12 max-sm:[&>*:last-child:nth-child(odd)]:col-span-2">
 
                 <div>
-                    <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-4">Explore</p>
-                    <ul class="space-y-3 text-[14px]">
-                        <li><a href="{{ route('home') }}" class="text-white/75 hover:text-white transition-colors">Home</a></li>
-                        <li><a href="{{ route('properties.index') }}" class="text-white/75 hover:text-white transition-colors">Browse Properties</a></li>
-                        <li><a href="{{ route('about') }}" class="text-white/75 hover:text-white transition-colors">About Us</a></li>
+                    <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-2">Explore</p>
+                    <ul class="text-[14px] leading-snug">
+                        <li><a href="{{ route('home') }}" class="block py-2 text-white/75 hover:text-white transition-colors">Home</a></li>
+                        <li><a href="{{ route('properties.index') }}" class="block py-2 text-white/75 hover:text-white transition-colors">Browse Properties</a></li>
+                        <li><a href="{{ route('about') }}" class="block py-2 text-white/75 hover:text-white transition-colors">About Us</a></li>
                     </ul>
                 </div>
 
                 @auth
                     <div>
-                        <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-4">For Tenants</p>
-                        <ul class="space-y-3 text-[14px]">
-                            <li><a href="{{ route('favorites.index') }}" class="text-white/75 hover:text-white transition-colors">Saved Listings</a></li>
-                            <li><a href="{{ route('conversations.index') }}" class="text-white/75 hover:text-white transition-colors">Messages</a></li>
-                            <li><a href="{{ route('reservations.index') }}" class="text-white/75 hover:text-white transition-colors">My Reservations</a></li>
-                            <li><a href="{{ route('reports.create') }}" class="text-white/75 hover:text-white transition-colors">Report a Problem</a></li>
+                        <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-2">For Tenants</p>
+                        <ul class="text-[14px] leading-snug">
+                            <li><a href="{{ route('favorites.index') }}" class="block py-2 text-white/75 hover:text-white transition-colors">Saved Listings</a></li>
+                            <li><a href="{{ route('conversations.index') }}" class="block py-2 text-white/75 hover:text-white transition-colors">Messages</a></li>
+                            <li><a href="{{ route('reservations.index') }}" class="block py-2 text-white/75 hover:text-white transition-colors">My Reservations</a></li>
+                            <li><a href="{{ route('reports.create') }}" class="block py-2 text-white/75 hover:text-white transition-colors">Report a Problem</a></li>
                         </ul>
                     </div>
                 @endauth
 
-                @auth
+                @if(auth()->user()?->hasRole('Landlord'))
                     <div>
-                        <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-4">For Landlords</p>
-                        <ul class="space-y-3 text-[14px]">
-                            @php $hasVerification = auth()->user()->verificationApplication !== null; @endphp
-                            <li><a href="{{ route($hasVerification ? 'landlord.verification.show' : 'landlord.verification.create') }}" class="text-white/75 hover:text-white transition-colors">{{ $hasVerification ? 'Verification status' : 'Become a Landlord' }}</a></li>
-                            <li><a href="{{ route('landlord.dashboard') }}" class="text-white/75 hover:text-white transition-colors">Landlord Dashboard</a></li>
-                            <li><a href="{{ route('landlord.analytics.index') }}" class="text-white/75 hover:text-white transition-colors">Analytics &amp; Occupancy</a></li>
+                        <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-2">For Landlords</p>
+                        <ul class="text-[14px] leading-snug">
+                            <li><a href="{{ route('landlord.dashboard') }}" class="block py-2 text-white/75 hover:text-white transition-colors">Landlord Dashboard</a></li>
+                            <li><a href="{{ route('landlord.analytics.index') }}" class="block py-2 text-white/75 hover:text-white transition-colors">Analytics &amp; Occupancy</a></li>
                         </ul>
                     </div>
-                @endauth
+                @endif
 
                 <div>
-                    <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-4">Company</p>
-                    <ul class="space-y-3 text-[14px]">
-                        <li><a href="{{ route('privacy') }}" class="text-white/75 hover:text-white transition-colors">Privacy Policy</a></li>
-                        <li><a href="{{ route('terms') }}" class="text-white/75 hover:text-white transition-colors">Terms of Service</a></li>
-                        <li><a href="#" class="text-white/75 hover:text-white transition-colors">Help Center</a></li>
+                    <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-2">Company</p>
+                    <ul class="text-[14px] leading-snug">
+                        <li><a href="{{ route('privacy') }}" class="block py-2 text-white/75 hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="{{ route('terms') }}" class="block py-2 text-white/75 hover:text-white transition-colors">Terms of Service</a></li>
+                        <li><a href="#" class="block py-2 text-white/75 hover:text-white transition-colors">Help Center</a></li>
                     </ul>
                 </div>
 
                 <div>
-                    <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-4">Social</p>
-                    <ul class="space-y-3 text-[14px]">
-                        <li><a href="#" class="text-white/75 hover:text-white transition-colors">Facebook</a></li>
-                        <li><a href="#" class="text-white/75 hover:text-white transition-colors">Instagram</a></li>
-                        <li><a href="#" class="text-white/75 hover:text-white transition-colors">X (Twitter)</a></li>
+                    <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-2">Social</p>
+                    <ul class="text-[14px] leading-snug">
+                        <li><a href="#" class="block py-2 text-white/75 hover:text-white transition-colors">Facebook</a></li>
+                        <li><a href="#" class="block py-2 text-white/75 hover:text-white transition-colors">Instagram</a></li>
+                        <li><a href="#" class="block py-2 text-white/75 hover:text-white transition-colors">X (Twitter)</a></li>
                     </ul>
                 </div>
             </div>
 
             {{-- Bottom bar --}}
-            <div class="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <p class="text-[13px] text-white/60 text-center sm:text-left">
+            <div class="pt-6 border-t border-white/10 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                <p class="text-[13px] text-white/60">
                     &copy; {{ date('Y') }} AbangananHub. All rights reserved.
                 </p>
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 text-[12px] font-semibold text-white/70">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66]"></span>
+                <p class="inline-flex items-center gap-2 text-[12.5px] text-white/60">
+                    <span class="w-1.5 h-1.5 shrink-0 rounded-full bg-[#FF8A66]" aria-hidden="true"></span>
                     Supporting UN SDG 11 &middot; Cebu, Philippines
-                </span>
+                </p>
             </div>
         </div>
     </footer>
@@ -750,7 +734,7 @@
 
                             <div class="mb-3">
                                 <label class="block font-jakarta text-[12.5px] font-bold text-[#060D26] mb-1.5">Contact number</label>
-                                <input type="tel" name="contact_number" required pattern="[0-9+()\s\-]{7,20}" data-error-tag="Numbers only" title="Use digits only, e.g. 0917 123 4567" placeholder="e.g. 0917 123 4567" aria-label="Contact number" autocomplete="tel" inputmode="tel"
+                                <input type="tel" name="contact_number" required pattern="[0-9+\(\)\s\-]{7,20}" data-error-tag="Numbers only" title="Use digits only, e.g. 0917 123 4567" placeholder="e.g. 0917 123 4567" aria-label="Contact number" autocomplete="tel" inputmode="tel"
                                     class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
                                     id="error-register-contact_number"></span>
@@ -796,6 +780,10 @@
                         <p class="text-[13px] text-center text-[#5B6A8E] mt-6">
                             Already have an account? <a href="#" onclick="openAuthModal('login'); return false;"
                                 class="text-[#060D26] font-bold hover:underline">Log in</a>
+                        </p>
+                        <p class="text-[13px] text-center text-[#5B6A8E] mt-2">
+                            Become a landlord? <a href="{{ route('register.landlord') }}"
+                                class="text-[#060D26] font-bold hover:underline">Sign up here.</a>
                         </p>
                     </div>
 
@@ -953,19 +941,42 @@
                 if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = form.id === 'ajax-register-form' ? 'Creating account…' : 'Signing in…'; }
 
                 try {
-                    const res = await fetch(endpoint, {
+                    const send = (token) => fetch(endpoint, {
                         method: 'POST',
                         headers: {
-                            'X-CSRF-TOKEN': csrfToken || '',
+                            'X-CSRF-TOKEN': token || '',
                             'Accept': 'application/json',
                             'X-Requested-With': 'XMLHttpRequest'
                         },
                         body: formData
                     });
 
+                    let res = await send(csrfToken);
+
+                    // 419: this tab's token belongs to a session that has since expired or been reset (a tab left open
+                    // overnight, a restarted server). Fetch the page again for a fresh token and retry once, so the
+                    // visitor is not stuck on "CSRF token mismatch" until they reload by hand.
+                    if (res.status === 419) {
+                        const fresh = await fetch(window.location.href, { credentials: 'same-origin', headers: { 'Accept': 'text/html' } })
+                            .then((r) => r.text())
+                            .then((html) => new DOMParser().parseFromString(html, 'text/html').querySelector('meta[name="csrf-token"]')?.getAttribute('content'))
+                            .catch(() => null);
+
+                        if (fresh) {
+                            document.querySelector('meta[name="csrf-token"]')?.setAttribute('content', fresh);
+                            formData.set('_token', fresh);
+                            res = await send(fresh);
+                        }
+                    }
+
                     const data = await res.json().catch(() => ({}));
 
                     if (!res.ok) {
+                        if (res.status === 419) {
+                            errorBag.classList.remove('hidden');
+                            errorBag.innerText = 'Your session expired. Reload the page and try again.';
+                            return;
+                        }
                         if (data?.errors) {
                             // Register: each error sits on its own field. Anything with no visible field (and all of login) uses the banner.
                             window.fieldValidation?.clear(form);
@@ -1045,7 +1056,7 @@
         </script>
     @endguest
 
-    {{-- The avatar and Admin Actions menus are Alpine-driven (x-data / @click.outside),
+    {{-- The avatar menu is Alpine-driven (x-data / @click.outside),
          matching the Areas and notification dropdowns — no bespoke JS handler needed. --}}
 
     @auth
@@ -1133,7 +1144,8 @@
             }
         </script>
     @endauth
-    @include('partials.message-notifications')
+    @include('partials.message-notifications', ['floatingBubble' => false])
+    @include('partials.notification-toast')
 
     <x-confirm-modal />
     <script src="{{ asset('js/modal-confirm.js') }}"></script>

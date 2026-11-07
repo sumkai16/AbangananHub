@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\Payment;
 use App\Models\Reservation;
+use App\Services\AccountFilePurger;
 use App\Services\ImageUploader;
 use App\Services\RentLedger;
 use Illuminate\Http\RedirectResponse;
@@ -53,7 +54,7 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $request->user()->fill($request->safe()->except('current_password'));
 
         if ($request->user()->isDirty('email')) {
             $request->user()->email_verified_at = null;
@@ -102,7 +103,7 @@ class ProfileController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
+            'password' => ['bail', 'required', 'string', 'current_password'],
         ]);
 
         $user = $request->user();
@@ -111,9 +112,13 @@ class ProfileController extends Controller
             return back()->with('error', $blocker);
         }
 
+        $files = AccountFilePurger::snapshot($user);
+
         Auth::logout();
 
         $user->delete();
+
+        AccountFilePurger::purge($files);
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

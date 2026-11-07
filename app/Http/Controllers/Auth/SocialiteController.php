@@ -14,17 +14,27 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Laravel\Socialite\AbstractUser;
 use Laravel\Socialite\Contracts\User as SocialiteUser;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\InvalidStateException;
 
 class SocialiteController extends Controller
 {
+    private const LINK_REFUSED = 'An account with this email already exists. Log in with your email and password (and verify your email) instead.';
+
     /**
      * Send the browser to the provider's consent screen.
      */
     public function redirect(string $provider): RedirectResponse
     {
+        // A landlord sign-up page asks for ?intent=landlord so the provider round trip ends in the verification wizard.
+        if (request()->query('intent') === 'landlord') {
+            session(['auth.intent' => 'landlord']);
+        } else {
+            session()->forget('auth.intent');
+        }
+
         return Socialite::driver($provider)->redirect();
     }
 
@@ -33,6 +43,8 @@ class SocialiteController extends Controller
      */
     public function callback(string $provider): RedirectResponse
     {
+        $intent = session()->pull('auth.intent');
+
         try {
             $socialUser = Socialite::driver($provider)->user();
         } catch (InvalidStateException|\Exception $e) {
@@ -49,8 +61,16 @@ class SocialiteController extends Controller
 
         $user = $this->resolveSocialUser($provider, $socialUser);
 
+        if (! $user) {
+            return redirect()->route('login')->with('error', self::LINK_REFUSED);
+        }
+
         Auth::login($user, remember: true);
         request()->session()->regenerate();
+
+        if ($intent === 'landlord' && ! $user->hasRole('Landlord')) {
+            return redirect()->route('register.landlord');
+        }
 
         return redirect($user->homeRoute());
     }
@@ -89,21 +109,26 @@ class SocialiteController extends Controller
 
         $user = $this->resolveSocialUser($provider, $socialUser);
 
+        if (! $user) {
+            return response()->json(['message' => self::LINK_REFUSED], 409);
+        }
+
         return response()->json([
-            'user'  => new UserResource($user->load('payoutAccount')),
+            'user' => new UserResource($user->load('payoutAccount')),
             'token' => $user->createToken($request->string('device_name'))->plainTextToken,
             'roles' => $user->roles()->pluck('role'),
         ]);
     }
 
     /**
-     * Find-or-create the account behind a verified social identity.
-     * Existing accounts (password-based or a different provider) are linked
-     * by verified email rather than duplicated; brand-new accounts get the
-     * Tenant role immediately, matching RegisteredUserController's web
-     * self-registration and Api\AuthController's mobile registration.
+     * Find-or-create the account behind a social identity. A provider identity already stored in
+     * social_accounts always resolves to its account. An existing account with the same email is linked
+     * ONLY when its own email_verified_at is set (otherwise anyone could pre-register someone's address
+     * and inherit their Google login) and it is not a walk-in/inactive placeholder; in those cases this
+     * returns null and the caller refuses. Brand-new emails get an account with the Tenant role,
+     * matching RegisteredUserController's web self-registration and Api\AuthController's mobile one.
      */
-    private function resolveSocialUser(string $provider, SocialiteUser $socialUser): User
+    private function resolveSocialUser(string $provider, SocialiteUser $socialUser): ?User
     {
         // A provider identity we have seen before always resolves to the same account.
         $linked = SocialAccount::where('provider', $provider)
@@ -117,6 +142,10 @@ class SocialiteController extends Controller
         $user = User::where('email', $socialUser->getEmail())->first();
 
         if ($user) {
+            if ($user->email_verified_at === null || $user->is_walk_in || $user->account_status === 'inactive') {
+                return null;
+            }
+
             // Adds a row; an existing link (this or another provider) is never overwritten.
             SocialAccount::firstOrCreate(
                 ['user_id' => $user->user_id, 'provider' => $provider],
@@ -138,8 +167,13 @@ class SocialiteController extends Controller
             'email'             => $socialUser->getEmail(),
             'password'          => Hash::make(Str::random(40)),
             'profile_picture'   => $socialUser->getAvatar(),
-            'email_verified_at' => now(),
         ]);
+
+        // email_verified_at is not mass-assignable, so passing it to create() silently left every social account
+        // unverified. Set it explicitly, and only when the provider itself says the address is confirmed.
+        if ($this->providerVerifiedEmail($provider, $socialUser)) {
+            $user->forceFill(['email_verified_at' => now()])->save();
+        }
 
         $user->socialAccounts()->create([
             'provider'    => $provider,
@@ -151,6 +185,18 @@ class SocialiteController extends Controller
         event(new Registered($user));
 
         return $user;
+    }
+
+    /** Google reports whether the address is confirmed; other providers do not reliably, so they count as unverified. */
+    private function providerVerifiedEmail(string $provider, SocialiteUser $socialUser): bool
+    {
+        if ($provider !== 'google' || ! $socialUser instanceof AbstractUser) {
+            return false;
+        }
+
+        $raw = $socialUser->getRaw();
+
+        return ($raw['email_verified'] ?? $raw['verified_email'] ?? false) === true;
     }
 
     private function splitName(?string $name, string $email): array

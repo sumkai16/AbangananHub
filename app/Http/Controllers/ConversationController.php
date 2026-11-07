@@ -75,7 +75,7 @@ class ConversationController extends Controller
             $query->whereNotIn('status', ['Cancelled', 'Resolved']);
         }
 
-        $conversations = $query->orderByDesc('updated_at')->get();
+        $conversations = $query->orderByDesc('updated_at')->orderByDesc('conversation_id')->paginate(20)->withQueryString();
 
         // Landlord property filter list
         $user = Auth::user();
@@ -91,6 +91,12 @@ class ConversationController extends Controller
     }
 
     /** Conversations of one type with an unread message from the other person, still open. */
+    /** The number behind every messages badge, so a live page can refresh it exactly instead of counting up. */
+    public function unreadCount()
+    {
+        return response()->json(['count' => Conversation::unreadCountFor(Auth::id())]);
+    }
+
     private function unreadIn(string $type, int $userId): int
     {
         return Conversation::where(fn ($q) => $q->where('tenant_id', $userId)->orWhere('landlord_id', $userId))
@@ -123,8 +129,8 @@ class ConversationController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'property_id' => ['required', 'exists:properties,property_id'],
-            'unit_id' => ['nullable', 'exists:property_units,unit_id'],
+            'property_id' => ['bail', 'required', 'integer', 'exists:properties,property_id'],
+            'unit_id' => ['bail', 'nullable', 'integer', 'exists:property_units,unit_id'],
         ]);
 
         $property = Property::findOrFail($validated['property_id']);
@@ -138,8 +144,10 @@ class ConversationController extends Controller
             'tenant_id' => $tenantId,
             'landlord_id' => $property->landlord_id,
             'property_id' => $property->property_id,
-            'unit_id' => $validated['unit_id'] ?? null,
             'type' => Conversation::TYPE_INQUIRY,
+        ], [
+            // Not in the match: the unique key is (tenant, landlord, property, type), so a different unit would collide.
+            'unit_id' => $validated['unit_id'] ?? null,
         ]);
 
         return redirect()->route('conversations.show', $conversation);
@@ -162,9 +170,9 @@ class ConversationController extends Controller
 
         // One load() with every path: a second load('messages.…') would re-fetch the
         // messages and drop the sender eager load (Model::preventLazyLoading then throws).
-        $relations = ['tenant', 'landlord', 'property.media', 'unit', 'messages.sender', 'activeReservation.payments'];
+        $relations = ['tenant', 'landlord', 'property.media', 'unit.media', 'messages.sender', 'messages.paymentQrShare.sharedBy', 'activeReservation.payments', 'activeReservation.paymentClaims', 'activeReservation.unit', 'activeReservation.property'];
         if ($conversation->isTenancy()) {
-            array_push($relations, 'reservation', 'concerns', 'messages.concern.tenant');
+            array_push($relations, 'reservation', 'concerns', 'messages.concern.tenant', 'reservation.payments', 'reservation.depositCharges', 'reservation.unit');
         }
         $conversation->load($relations);
 
@@ -179,6 +187,10 @@ class ConversationController extends Controller
                 compact('conversation', 'otherParty')
             );
         }
+
+        // A full page load of this route only forwards to the inbox. Flash data lasts one request, so keep
+        // it for the inbox or "Conversation marked as resolved." is gone before anyone sees it.
+        session()->reflash();
 
         return redirect()->route('conversations.index', array_filter([
             'active' => $conversation->conversation_id,

@@ -28,6 +28,44 @@ class ProfileSettingsPageTest extends TestCase
             ->assertSee('Your account is fully set up.');
     }
 
+    public function test_landlord_settings_holds_only_the_private_account(): void
+    {
+        $landlord = $this->makeLandlord();
+        $this->actingAs($landlord);
+
+        // Business page: My Profile's sheet (LandlordBusinessSheetTest). GCash: Payments > Payouts (PayoutsTabTest).
+        // Bio, profile strength and the trust tip are a tenant's.
+        $this->get(route('profile.edit'))->assertOk()
+            ->assertSee('name="first_name"', false)->assertSee('name="email"', false)->assertSee('name="contact_number"', false)
+            ->assertSee('name="profile_visibility"', false)->assertSee('other landlords can view it')
+            ->assertSee('update_password_password', false)->assertSee('Danger zone')
+            ->assertDontSee('Business information')->assertDontSee('Payout details')
+            ->assertDontSee('name="bio"', false)->assertDontSee('Profile strength')->assertDontSee('Email status')
+            // Settings is its own sidebar item for a landlord, not a page under My Profile.
+            ->assertDontSee('Back to Profile');
+
+        // The update action still saves both kinds of field when both are sent.
+        $this->patch(route('landlord.profile.update'), [
+            'gcash_number' => '09171112222', 'gcash_account_name' => 'Maria Santos',
+            'business_name' => 'Santos Rentals', 'business_address' => 'Cebu City',
+        ])->assertRedirect(route('profile.edit'));
+
+        $landlord = $landlord->fresh();
+        $this->assertSame('09171112222', $landlord->payoutAccount->gcash_number);
+        $this->assertSame('Santos Rentals', $landlord->rentalBusiness->business_name);
+    }
+
+    public function test_the_old_landlord_edit_url_redirects_and_a_tenant_sees_no_landlord_sections(): void
+    {
+        $landlord = $this->makeLandlord();
+        $this->actingAs($landlord)->get(route('landlord.profile.edit'))->assertRedirect(route('profile.edit'));
+
+        $this->actingAs($this->makeTenant())->get(route('profile.edit'))
+            ->assertOk()->assertDontSee('Payout details')->assertDontSee('Business information')
+            // A tenant's Settings is unchanged.
+            ->assertSee('name="bio"', false)->assertSee('Profile strength')->assertSee('reserved with')->assertDontSee('other landlords can view it')->assertSee(route('profile.show'), false)->assertSee('to profile');
+    }
+
     private function fakeUploader(): void
     {
         $this->app->instance(ImageUploader::class, new class extends ImageUploader

@@ -41,7 +41,7 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'first_name'      => ['sometimes', 'required', 'string', 'max:255'],
             'last_name'       => ['sometimes', 'required', 'string', 'max:255'],
-            'contact_number'  => ['nullable', 'string', 'max:20'],
+            'contact_number'  => ['nullable', 'string', 'max:20', \App\Support\Phone::RULE],
             'bio'             => ['nullable', 'string', 'max:1000'],
             'profile_picture' => ['nullable', 'image', 'max:2048'],
         ]);
@@ -73,8 +73,8 @@ class ProfileController extends Controller
     public function updatePassword(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'current_password' => ['required', 'current_password:sanctum'],
-            'password'         => ['required', 'confirmed', Rules\Password::defaults()],
+            'current_password' => ['bail', 'required', 'string', 'current_password:sanctum'],
+            'password'         => ['bail', 'required', 'string', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $request->user()->update([

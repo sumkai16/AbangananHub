@@ -7,7 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\SendMessageRequest;
 use App\Http\Resources\MessageResource;
 use App\Models\Conversation;
+use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class MessageController extends Controller
 {
@@ -33,7 +35,15 @@ class MessageController extends Controller
 
         $message->load('sender:user_id,first_name,last_name,profile_picture');
 
-        broadcast(new MessageSent($message))->toOthers();
+        // The row is the message of record; a stopped Reverb must not 500 here or the app retries and duplicates it.
+        try {
+            broadcast(new MessageSent($message))->toOthers();
+        } catch (BroadcastException $e) {
+            Log::warning('Message broadcast failed, continuing without it', [
+                'message_id' => $message->message_id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return response()->json([
             'data' => array_merge((new MessageResource($message))->resolve(), [

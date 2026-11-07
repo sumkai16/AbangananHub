@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\Api\Tenant;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreReservationRequest;
 use App\Http\Resources\ReservationResource;
-use App\Models\Conversation;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class ReservationController extends Controller
@@ -49,23 +50,29 @@ class ReservationController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $request->validate([
-            'unit_id'             => 'required|integer|exists:property_units,unit_id',
-            'target_move_in_date' => 'nullable|date|after_or_equal:today',
-            // Mirrors the web StoreReservationRequest: the app is
-            // monthly-only, so duration is months, not a free move-out date —
-            // target_move_out_date is derived below, never taken from the
-            // client.
-            'duration_months'     => 'nullable|integer|in:1,3,6,12',
-            'remarks'             => 'nullable|string|max:300',
-            'message'             => 'nullable|string|max:300',
+        // Same fields as the web StoreReservationRequest (move-out date, occupants), with two allowances for app
+        // builds already installed: move-in and occupants stay optional here, and the old duration_months is still
+        // turned into a move-out date when no move-out date is sent.
+        $validator = Validator::make($request->all(), [
+            'unit_id'              => 'required|integer|exists:property_units,unit_id',
+            'target_move_in_date'  => 'nullable|date|after_or_equal:today',
+            'target_move_out_date' => 'nullable|date|after:target_move_in_date',
+            'duration_months'      => 'nullable|integer|in:1,3,6,12',
+            'occupants_count'      => 'nullable|integer|min:1|max:20',
+            'remarks'              => 'nullable|string|max:300',
+            'message'              => 'nullable|string|max:300',
         ]);
+        $validator->after(fn ($v) => StoreReservationRequest::checkStayAndOccupants(
+            $v, $request->unit_id, $request->target_move_in_date, $request->target_move_out_date, $request->occupants_count,
+        ));
+        $validator->validate();
 
         $tenantId = $request->user()->user_id;
 
-        $targetMoveOutDate = ($request->target_move_in_date && $request->duration_months)
-            ? Carbon::parse($request->target_move_in_date)->addMonthsNoOverflow((int) $request->duration_months)->toDateString()
-            : null;
+        $targetMoveOutDate = $request->target_move_out_date
+            ?? (($request->target_move_in_date && $request->duration_months)
+                ? Carbon::parse($request->target_move_in_date)->addMonthsNoOverflow((int) $request->duration_months)->toDateString()
+                : null);
 
         $unit = PropertyUnit::where('unit_id', $request->unit_id)
             ->where('availability_status', 'Available')
@@ -86,56 +93,17 @@ class ReservationController extends Controller
             throw ValidationException::withMessages(['property' => ['This property is not available.']]);
         }
 
-        $exists = Reservation::where('unit_id', $unit->unit_id)
-            ->where('tenant_id', $tenantId)
-            ->whereNotIn('rental_status', Reservation::TERMINAL_STATUSES)
-            ->exists();
-
-        if ($exists) {
-            throw ValidationException::withMessages(['unit' => ['You already have an active inquiry or reservation for this unit.']]);
-        }
-
-        $conversation = Conversation::inquiries()->where('tenant_id', $tenantId)
-            ->where('landlord_id', $property->landlord_id)
-            ->where('property_id', $property->property_id)
-            ->where('status', '!=', 'Cancelled')
-            ->first();
-
-        if ($conversation) {
-            if ($conversation->unit_id !== $unit->unit_id) {
-                $conversation->update(['unit_id' => $unit->unit_id]);
-            }
-        } else {
-            $conversation = Conversation::create([
-                'tenant_id'   => $tenantId,
-                'landlord_id' => $property->landlord_id,
-                'property_id' => $property->property_id,
-                'unit_id'     => $unit->unit_id,
-            ]);
-        }
-
-        $reservation = Reservation::create([
-            'property_id'          => $property->property_id,
-            'unit_id'              => $unit->unit_id,
-            'tenant_id'            => $tenantId,
-            'conversation_id'      => $conversation->conversation_id,
-            'reservation_date'     => now(),
-            'rental_status'        => 'Inquiry',
+        // Accepts either key for the first message, for client convenience.
+        $reservation = Reservation::startInquiry($unit, $tenantId, [
             'target_move_in_date'  => $request->target_move_in_date,
             'target_move_out_date' => $targetMoveOutDate,
+            'occupants_count'      => $request->occupants_count,
             'remarks'              => $request->remarks,
-        ]);
+        ], $request->input('message', $request->input('remarks')) ?? '');
 
-        // First message is always the inquiry summary card — it carries the
-        // move-in/rent details the tenant just reviewed, so it's worth
-        // showing even when they left the note blank. Accepts either key
-        // for client convenience.
-        $firstMessage = $request->input('message', $request->input('remarks'));
-        $conversation->messages()->create([
-            'sender_id'           => $tenantId,
-            'message'             => $firstMessage ?? '',
-            'kind'                => 'inquiry_summary',
-        ]);
+        if (! $reservation) {
+            throw ValidationException::withMessages(['unit' => ['You already have an active inquiry or reservation for this unit.']]);
+        }
 
         return response()->json([
             'data' => new ReservationResource($reservation->load(['property.media', 'unit', 'conversation'])),
@@ -164,15 +132,6 @@ class ReservationController extends Controller
 
     private function statusCounts($base): array
     {
-        return [
-            'all'                      => (clone $base)->count(),
-            'Inquiry'                  => (clone $base)->where('rental_status', 'Inquiry')->count(),
-            'Under Negotiation'        => (clone $base)->where('rental_status', 'Under Negotiation')->count(),
-            'Pending Rental Agreement' => (clone $base)->where('rental_status', 'Pending Rental Agreement')->count(),
-            'Rental Agreement Signed'  => (clone $base)->where('rental_status', 'Rental Agreement Signed')->count(),
-            'Occupied'                 => (clone $base)->where('rental_status', 'Occupied')->count(),
-            'Cancelled'                => (clone $base)->where('rental_status', 'Cancelled')->count(),
-            'Rejected'                 => (clone $base)->where('rental_status', 'Rejected')->count(),
-        ];
+        return Reservation::statusCounts($base, Reservation::STATUSES);
     }
 }

@@ -6,10 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\Payment;
+use App\Models\PaymentClaim;
 use App\Models\Property;
 use App\Models\Reservation;
+use App\Services\LandlordPayouts;
 use App\Services\RentLedger;
 use App\Services\RentPaymentRecorder;
+use App\Services\RentReminderNotifier;
+use App\Support\BusinessTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -83,7 +87,8 @@ class PaymentController extends Controller
         // to see what an ex-tenant left unpaid.
         $query = Reservation::whereIn('rental_status', ['Occupied', 'Completed'])
             ->whereHas('property', fn ($q) => $q->where('landlord_id', $landlordId))
-            ->with(['tenant', 'property:property_id,title', 'unit:unit_id,unit_label,rental_fee', 'payments', 'depositCharges']);
+            // lateFeeWaivers and renewals are read by every ledger below; loading them here stops one query per tenancy each.
+            ->with(['tenant', 'property:property_id,title', 'unit:unit_id,unit_label,rental_fee', 'payments', 'depositCharges', 'lateFeeWaivers', 'renewals']);
 
         if ($propertyId && $properties->contains('property_id', $propertyId)) {
             $query->where('property_id', $propertyId);
@@ -157,19 +162,19 @@ class PaymentController extends Controller
             : null;
 
         $view = $request->query('view') === 'calendar' ? 'calendar' : 'list';
-        $calendar = $view === 'calendar'
-            ? $this->buildCalendar($rows, $this->parseMonth($request->query('month')))
-            : null;
+        // One payload holds every year, so zooming between years, months and days never asks the server again.
+        $calendar = $view === 'calendar' ? $this->buildCalendar($rows, $request) : null;
 
-        // Month navigation fetches just the calendar so the page doesn't reload.
-        if ($calendar && $request->ajax()) {
-            return view('landlord.payments._calendar', [
-                'calendar'      => $calendar,
-                'paymentStyles' => self::STATUS_STYLES,
-            ]);
-        }
+        // Payment reports waiting for this landlord's answer, shown first on the page so cash and QR payments are never
+        // missed. Every tenancy of this landlord, whatever the filters above say: an answer is owed either way.
+        $pendingClaims = PaymentClaim::pending()
+            ->whereHas('reservation.property', fn ($q) => $q->where('landlord_id', $landlordId))
+            ->with(['reservation.tenant', 'reservation.property', 'reservation.unit'])
+            ->oldest()
+            ->get();
 
         return view('landlord.payments.index', [
+            'pendingClaims' => $pendingClaims,
             'paymentStyles' => self::STATUS_STYLES,
             'rows'         => $rows,
             'properties'   => $properties,
@@ -180,13 +185,113 @@ class PaymentController extends Controller
             'hasDueThisMonth' => $hasDueThisMonth,
             'view'         => $view,
             'calendar'    => $calendar,
+            // The Payouts tab, and the "waiting to be sent" line pointing at it, only while payouts apply.
+            'awaitingPayout' => $request->user()->showsPayoutTools() ? LandlordPayouts::awaitingTotal($request->user()) : null,
         ]);
     }
 
-    /** `?month=2026-09` → first of that month; anything else falls back to this month. */
+    /**
+     * "Remind all overdue": one in-app reminder to every tenant who is overdue right now. Same message the
+     * per-row bell and the nightly job send (RentReminderNotifier). Walk-ins and inactive accounts have
+     * nobody to notify, and a tenant who already got a rent reminder for this tenancy in the last 24 hours is
+     * skipped, so a second click cannot nag anyone. The reply says how many went out and why others did not.
+     */
+    public function remindOverdue(Request $request, RentReminderNotifier $notifier)
+    {
+        $data = $request->validate(['property' => ['nullable', 'integer']]);
+        $today = Carbon::today();
+        $sent = 0;
+        $alreadyToday = 0;
+        $noAccount = 0;
+
+        $reservations = Reservation::where('rental_status', 'Occupied')
+            ->whereHas('property', fn ($q) => $q->where('landlord_id', Auth::id()))
+            ->when(! empty($data['property']), fn ($q) => $q->where('property_id', $data['property']))
+            ->with(['tenant', 'property:property_id,title,landlord_id', 'unit:unit_id,unit_label,rental_fee', 'payments', 'depositCharges', 'lateFeeWaivers'])
+            ->get();
+
+        foreach ($reservations as $reservation) {
+            $ledger = RentLedger::for($reservation);
+
+            if ($ledger->summary()['paymentStatus'] !== 'overdue') {
+                continue;
+            }
+
+            $tenant = $reservation->tenant;
+
+            if (! $tenant || $tenant->is_walk_in || $tenant->account_status !== 'active') {
+                $noAccount++;
+
+                continue;
+            }
+
+            $recently = Notification::where('user_id', $tenant->user_id)
+                ->where('link', route('tenancy.show', $reservation))
+                ->whereIn('title', ['Rent overdue', 'Rent due soon'])
+                ->where('created_at', '>=', now()->subDay())
+                ->exists();
+
+            if ($recently) {
+                $alreadyToday++;
+
+                continue;
+            }
+
+            $period = $ledger->periods()->firstWhere(fn ($p) => $p['status'] !== 'paid');
+
+            if ($period && $notifier->sendToTenant($reservation, $period, $today)) {
+                $sent++;
+            }
+        }
+
+        if ($sent === 0 && $alreadyToday === 0 && $noAccount === 0) {
+            return back()->with('warning', 'Nobody is overdue right now.');
+        }
+
+        $notes = array_filter([
+            $alreadyToday ? "{$alreadyToday} already reminded in the last 24 hours" : null,
+            $noAccount ? "{$noAccount} without an app account (walk-ins), remind them in person" : null,
+        ]);
+
+        return back()->with(
+            $sent > 0 ? 'success' : 'warning',
+            ($sent > 0 ? "Reminder sent to {$sent} " . Str::plural('tenant', $sent) . '.' : 'No new reminders were sent.')
+                . ($notes ? ' Skipped: ' . implode('; ', $notes) . '.' : '')
+        );
+    }
+
+    /** The calendar opens on any year in this span (an address outside it falls back to now); the arrows stop here too. */
+    private const CALENDAR_MIN_YEAR = 1990;
+
+    private const CALENDAR_MAX_YEAR = 2100;
+
+    /** How far past this month an open-ended tenancy's rent is projected on the calendar. */
+    private const CALENDAR_PROJECTION_MONTHS = 12;
+
+    /** The furthest an end-dated tenancy's rent is projected, so a far-off move-out date cannot bloat the page. */
+    private const CALENDAR_PROJECTION_MAX_MONTHS = 60;
+
+    /** Years shown after the current one by default, so a landlord can look ahead at leases that run longer. */
+    private const CALENDAR_YEARS_AHEAD = 2;
+
+    /** A year from the address, or null when it is missing, not four digits, or outside the span. */
+    private function parseYear(mixed $value): ?int
+    {
+        if (is_string($value) && preg_match('/^\d{4}$/', $value)) {
+            $year = (int) $value;
+
+            if ($year >= self::CALENDAR_MIN_YEAR && $year <= self::CALENDAR_MAX_YEAR) {
+                return $year;
+            }
+        }
+
+        return null;
+    }
+
+    /** `?month=2026-09` → first of that month; anything else (or a month outside the span) falls back to this month. */
     private function parseMonth(mixed $value): Carbon
     {
-        if (is_string($value) && preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $value)) {
+        if (is_string($value) && preg_match('/^(\d{4})-(0[1-9]|1[0-2])$/', $value, $m) && $this->parseYear($m[1]) !== null) {
             return Carbon::createFromFormat('!Y-m', $value);
         }
 
@@ -194,82 +299,134 @@ class PaymentController extends Controller
     }
 
     /**
-     * Rent due dates for one month, keyed by 'Y-m-d'.
+     * Everything the zoomable calendar needs, for every year at once: the levels are all years, one year, one month
+     * (the day grid), and the page switches between them in the browser (public/js/payments-calendar.js).
      *
-     * A month the ledger has already billed (or that was prepaid into) comes
-     * straight from RentLedger::periods(), so the calendar can never disagree
-     * with the table. A later month has no ledger row yet — RentLedger stops at
-     * the current month on purpose — so an occupied tenancy still inside its
-     * term is projected as an upcoming due date; that projection is the whole
-     * point of looking ahead on a calendar.
+     * A month the ledger has already billed (or that was prepaid into) comes straight from RentLedger::periods(), so
+     * the calendar can never disagree with the ledger. A later month has no ledger row yet, so an occupied tenancy
+     * still inside its term is projected as an upcoming due date, up to its move-out month, or a year ahead when it
+     * is open-ended. The ledger runs once per tenancy, not once per month.
+     *
+     * The payload is kept small: a tenancy's name, unit and link are sent once under `people`, and each due date is
+     * just [reservation id, status, expected, paid]. `months` holds the per-month totals the year views draw from.
+     *
+     * Only years with ledger data are in the payload (the first year rent fell due to the last year projected, and at least
+     * two years ahead). Any other year or month the page can still open: the browser draws it empty, nothing is invented.
+     *
+     * @return array{today: string, level: string, year: int, start: int, month: string, years: list<int>, minYear: int, maxYear: int, months: array, days: array, people: array}
      */
-    private function buildCalendar($rows, Carbon $month): array
+    private function buildCalendar($rows, Request $request): array
     {
+        $today = now();
+        $thisMonth = $today->copy()->startOfMonth();
+        $horizon = $thisMonth->copy()->addMonthsNoOverflow(self::CALENDAR_PROJECTION_MONTHS);
+        $farthest = $thisMonth->copy()->addMonthsNoOverflow(self::CALENDAR_PROJECTION_MAX_MONTHS);
+
+        $month = $this->parseMonth($request->query('month'));
+        $level = match ($request->query('zoom')) {
+            'years' => 'years',
+            'year' => 'year',
+            default => 'month',
+        };
+        $asked = $this->parseYear($request->query('year'));
+        $year = $asked ?? $month->year;
+
+        $people = [];
         $days = [];
-        $expected = 0.0;
-        $collected = 0.0;
+        $months = [];
+        $firstYear = $today->year;
+        $lastYear = $today->year + self::CALENDAR_YEARS_AHEAD;
+
+        $add = function (Reservation $reservation, Carbon $dueOn, string $status, float $expected, float $paid) use (&$people, &$days, &$months, &$lastYear) {
+            $id = $reservation->reservation_id;
+
+            if (! isset($people[$id])) {
+                $tenant = $reservation->tenant;
+                $people[$id] = [
+                    'name'     => trim(($tenant->first_name ?? '') . ' ' . ($tenant->last_name ?? '')) ?: 'Unknown',
+                    'unit'     => $reservation->unit->unit_label ?? '—',
+                    'property' => $reservation->property->title ?? '',
+                    'url'      => route('landlord.payments.ledger', $reservation),
+                ];
+            }
+
+            $days[$dueOn->format('Y-m-d')][] = [$id, $status, round($expected, 2), round($paid, 2)];
+
+            $lastYear = max($lastYear, $dueOn->year);
+            $ym = $dueOn->format('Y-m');
+            $totals = $months[$ym] ?? ['expected' => 0.0, 'collected' => 0.0, 'due' => 0, 'overdue' => 0, 'partial' => 0, 'paid' => 0, 'upcoming' => 0];
+            $totals['expected'] += $expected;
+            $totals['collected'] += $paid;
+            $totals['due']++;
+            // Paid ahead counts as paid here; the day view still tells the two apart.
+            $totals[$status === 'paid_ahead' ? 'paid' : $status]++;
+            $months[$ym] = $totals;
+        };
 
         foreach ($rows as $row) {
             /** @var Reservation $reservation */
             $reservation = $row['reservation'];
-            $period = RentLedger::for($reservation)->periods()
-                ->first(fn ($p) => $p['period']->isSameMonth($month));
+            $covered = [];
 
-            if ($period) {
+            foreach (RentLedger::for($reservation)->periods() as $period) {
+                $covered[$period['period']->format('Y-m')] = true;
+                $firstYear = min($firstYear, $period['period']->year);
+
                 $status = match (true) {
                     $period['is_future'] => $period['status'] === 'paid' ? 'paid_ahead' : 'upcoming',
                     $period['status'] === 'due' => 'upcoming',
                     default => $period['status'],
                 };
-                $dueOn = $period['due_on'];
-                $entryExpected = $period['expected'];
-                $entryPaid = $period['paid'];
-            } else {
-                $start = $reservation->tenancyStartDate();
-                $end = $reservation->target_move_out_date;
 
-                if (
-                    $reservation->rental_status !== 'Occupied'
-                    || ! $start
-                    || $month->lte(now()->startOfMonth())
-                    || $month->lt($start->copy()->startOfMonth())
-                    || ($end && $month->gt($end->copy()->startOfMonth()))
-                ) {
+                $add($reservation, $period['due_on'], $status, (float) $period['expected'], (float) $period['paid']);
+            }
+
+            $start = $reservation->tenancyStartDate();
+
+            if ($reservation->rental_status !== 'Occupied' || ! $start) {
+                continue;
+            }
+
+            $startMonth = $start->copy()->startOfMonth();
+            $end = $reservation->target_move_out_date?->copy()->startOfMonth();
+            $last = $end ?? $horizon;
+            $last = $last->lt($farthest) ? $last : $farthest;
+
+            for ($next = $thisMonth->copy()->addMonthNoOverflow(); $next->lte($last); $next->addMonthNoOverflow()) {
+                if (isset($covered[$next->format('Y-m')]) || $next->lt($startMonth)) {
                     continue;
                 }
 
-                $status = 'upcoming';
-                $dueOn = $month->copy()->day($reservation->rentDueDay());
-                $entryExpected = $reservation->monthlyRent();
-                $entryPaid = 0.0;
+                $add($reservation, $next->copy()->day($reservation->rentDueDay()), 'upcoming', (float) $reservation->rentFor($next), 0.0);
             }
-
-            $tenant = $reservation->tenant;
-            $days[$dueOn->format('Y-m-d')][] = [
-                'name'     => trim(($tenant->first_name ?? '') . ' ' . ($tenant->last_name ?? '')) ?: 'Unknown',
-                'unit'     => $reservation->unit->unit_label ?? '—',
-                'property' => $reservation->property->title ?? '',
-                'expected' => $entryExpected,
-                'paid'     => $entryPaid,
-                'balance'  => max(0, round($entryExpected - $entryPaid, 2)),
-                'status'   => $status,
-                'url'      => route('landlord.tenancies.show', $reservation),
-            ];
-
-            $expected += $entryExpected;
-            $collected += $entryPaid;
         }
 
         foreach ($days as &$entries) {
-            usort($entries, fn ($a, $b) => (self::STATUS_ORDER[$a['status']] ?? 99) <=> (self::STATUS_ORDER[$b['status']] ?? 99));
+            usort($entries, fn ($a, $b) => (self::STATUS_ORDER[$a[1]] ?? 99) <=> (self::STATUS_ORDER[$b[1]] ?? 99));
         }
         unset($entries);
+        ksort($days);
+        ksort($months);
+
+        foreach ($months as &$totals) {
+            $totals['expected'] = round($totals['expected'], 2);
+            $totals['collected'] = round($totals['collected'], 2);
+        }
+        unset($totals);
 
         return [
-            'month'     => $month,
-            'days'      => $days,
-            'expected'  => round($expected, 2),
-            'collected' => round($collected, 2),
+            'today'   => $today->format('Y-m-d'),
+            'level'   => $level,
+            // The year level opens on this year; the all-years level opens on a window that starts at ?year=, or at the first year with data.
+            'year'    => $year,
+            'start'   => $level === 'years' && $asked ? $asked : $firstYear,
+            'month'   => $month->format('Y-m'),
+            'years'   => range($firstYear, $lastYear),
+            'minYear' => self::CALENDAR_MIN_YEAR,
+            'maxYear' => self::CALENDAR_MAX_YEAR,
+            'months'  => $months,
+            'days'    => $days,
+            'people'  => $people,
         ];
     }
 
@@ -292,7 +449,7 @@ class PaymentController extends Controller
             'billing_period' => ['required_if:payment_type,Monthly', 'nullable', 'date'],
             'amount'         => ['required', 'numeric', 'min:1', 'max:1000000'],
             'payment_method' => ['required', Rule::in(self::METHODS)],
-            'paid_at'        => ['required', 'date', 'before_or_equal:today'],
+            'paid_at'        => ['required', 'date', 'before_or_equal:' . BusinessTime::today()],
             'reference_no'   => ['nullable', 'string', 'max:255'],
             'payment_notes'  => ['nullable', 'string', 'max:1000'],
             // Set only by the "void and record a correction" flow — every
@@ -445,7 +602,7 @@ class PaymentController extends Controller
      */
     public function receipt(Payment $payment)
     {
-        $payment->load(['reservation.property', 'reservation.tenant', 'reservation.unit', 'recorder']);
+        $payment->load(['reservation.property.landlord', 'reservation.tenant', 'reservation.unit', 'recorder', 'claim']);
 
         $reservation = $payment->reservation;
 
@@ -480,7 +637,7 @@ class PaymentController extends Controller
 
         return response()->streamDownload(function () use ($reservations) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, [
+            \App\Support\Csv::put($handle, [
                 'Tenant', 'Type', 'Property', 'Unit', 'Status', 'Monthly Rent', 'Due Date',
                 'Months Billed', 'Paid', 'Total Unpaid', 'Overdue Months', 'Overdue Amount',
             ]);
@@ -494,7 +651,7 @@ class PaymentController extends Controller
                 $row = $summary['oldestUnpaid'];
                 $dueOn = $row['due_on'] ?? null;
 
-                fputcsv($handle, [
+                \App\Support\Csv::put($handle, [
                     $tenant ? trim($tenant->first_name . ' ' . $tenant->last_name) : '',
                     $tenant?->is_walk_in ? 'Walk-in' : 'Platform',
                     $reservation->property->title ?? '',

@@ -126,3 +126,21 @@ Manual with fixtures, the posture the rest of this codebase uses.
   with what `_move-in-clock.blade.php` renders for the same reservation.
 - Reverb: subscribe to `conversation.{id}` from a physical device and see a
   web-sent message arrive live.
+
+---
+
+## Mobile catch-up backlog (noted Oct 20 2026, nothing done in the app yet)
+
+Server changes the mobile client (`AbangananHubMobile`) has not picked up. None of them break a build, but several change what it receives.
+
+| Area | Server change | What the app should do |
+|---|---|---|
+| Unit fields | `unit_type`, `bathroom_type`, `kitchen_type`, `pets_allowed`, `smoking_allowed`, `visitors_allowed`, `is_furnished` were dropped from `property_units` (Oct 18) | Remove the UI and payload keys for them |
+| Push | Tokens live in `user_devices`; the server deletes a device on `DeviceNotRegistered` | Send `expo_push_token` on logout so a signed-out phone stops getting pushes |
+| Chat | `messages.kind` (`user`, `system`, `inquiry_summary`, `concern`) and `concern_id` are in `MessageResource` | Use `kind` and `concern_id` to draw concern cards |
+| Public identity | Listing and business endpoints return the business (`business_name`, `logo_url`) and `short_name` for reviewers, not personal names or contact | Move screens off the old `landlord.first_name`, `email`, `contact_number`, `profile_picture` keys |
+| GCash | `gcash_*` is only in the owner's own profile response, never in nested users | Confirm nothing reads `user.gcash_*` from a nested user |
+| Signing | Signing an agreement needs the five tenant-details fields (emergency contact and ID) or it returns 422 | Add the fields to the sign screen |
+| Late fee (Oct 20) | Each ledger period carries `rent`, `late_fee`, `late_fee_waived`, and `expected` already includes the fee | Show "Rent + late fee" and "late fee waived" on the rent ledger and the payment screen |
+| Late fee | Rent checkout line item is "Rent (Oct 2026) + late fee" and the amount includes the fee | Nothing to do, but the amount a tenant sees may be higher than the plain rent |
+| Direct payments (phase 4, not built) | Will add a gate on API rent checkout when the landlord chose direct-only | Handle the refusal; claim endpoints come later |

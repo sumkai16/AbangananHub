@@ -6,7 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\PropertyUnit;
 use App\Models\Review;
 use App\Models\User;
-use App\Support\NameLock;
+use App\Services\LandlordPayouts;
+use App\Support\GcashNumber;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -97,7 +98,7 @@ class ProfileController extends Controller
 
     private function approvedProperties(User $user)
     {
-        return $user->properties()->where('verification_status', 'Approved');
+        return $user->properties()->live();
     }
 
     /**
@@ -135,6 +136,7 @@ class ProfileController extends Controller
 
         // Reviews received on this landlord's properties
         $reviews = Review::whereIn('property_id', $propertyIds)
+            ->where('is_hidden', false)
             ->with(['tenant:user_id,first_name,last_name,profile_picture', 'property:property_id,title'])
             ->latest('created_at')
             ->take(10)
@@ -169,62 +171,44 @@ class ProfileController extends Controller
         ]);
     }
 
-    public function edit()
-    {
-        $user = Auth::user();
-        $business = $user->rentalBusiness;
-
-        return view('landlord.profile.edit', compact('user', 'business'));
-    }
-
     public function update(Request $request)
     {
         $user = Auth::user();
 
-        NameLock::apply($request, $user);
-
         $validated = $request->validate([
-            'first_name' => ['required', 'string', 'max:255'],
-            'last_name' => ['required', 'string', 'max:255'],
-            'contact_number' => ['nullable', 'string', 'max:20'],
-            'gcash_number' => ['nullable', 'string', 'max:20'],
+            'gcash_number' => ['nullable', 'string', 'max:20', function ($attribute, $value, $fail) {
+                if (filled($value) && GcashNumber::normalize($value) === null) {
+                    $fail(GcashNumber::MESSAGE);
+                }
+            }],
             'gcash_account_name' => ['nullable', 'string', 'max:255'],
-            'bio' => ['nullable', 'string', 'max:1000'],
-            'profile_picture' => ['nullable', 'image', 'max:2048'],
+            'accepts_online' => ['nullable', 'boolean'],
             'business_name' => ['nullable', 'string', 'max:255'],
             'business_description' => ['nullable', 'string', 'max:1000'],
-            'business_contact' => ['nullable', 'string', 'max:20'],
+            'business_contact' => ['nullable', 'string', 'max:20', \App\Support\Phone::RULE],
             'business_address' => ['nullable', 'string', 'max:500'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
-        if ($request->hasFile('profile_picture')) {
-            $result = cloudinary()->uploadApi()->upload(
-                $request->file('profile_picture')->getRealPath(),
-                [
-                    'folder' => 'abanganganhub/profile-pictures',
-                    'transformation' => [
-                        'width' => 400,
-                        'height' => 400,
-                        'crop' => 'fill',
-                        'gravity' => 'face',
-                    ],
-                ]
-            );
-            $validated['profile_picture'] = $result['secure_url'];
-        }
-
-        // Update user fields
-        $user->update(collect($validated)->only([
-            'first_name', 'last_name', 'contact_number', 'bio', 'profile_picture',
-        ])->toArray());
-
         // A key left out of the request keeps its stored value, like every other field above.
         $payout = $user->payoutAccount;
-        $user->savePayoutAccount(
-            array_key_exists('gcash_number', $validated) ? $validated['gcash_number'] : $payout?->gcash_number,
-            array_key_exists('gcash_account_name', $validated) ? $validated['gcash_account_name'] : $payout?->gcash_account_name,
-        );
+        // A typed number is read into 09XXXXXXXXX, so "+63 917 123 4567" and "0917 123 4567" are the same account.
+        $number = array_key_exists('gcash_number', $validated)
+            ? (filled($validated['gcash_number']) ? GcashNumber::normalize($validated['gcash_number']) : $validated['gcash_number'])
+            : $payout?->gcash_number;
+        $name = array_key_exists('gcash_account_name', $validated) ? $validated['gcash_account_name'] : $payout?->gcash_account_name;
+
+        // Changing where the money goes needs the password, so a borrowed session cannot redirect payouts.
+        if (LandlordPayouts::changesDestination($user, $number, $name)) {
+            $request->validate(['current_password' => ['required', 'current_password']]);
+        }
+
+        $user->savePayoutAccount($number, $name);
+
+        // Only changes when the request carries the choice; saved after the GCash details because it lives on that row.
+        if (isset($validated['accepts_online'])) {
+            $user->setAcceptsOnlinePayments((bool) $validated['accepts_online']);
+        }
 
         // Update or create rental business
         $businessData = array_filter([
@@ -264,6 +248,27 @@ class ProfileController extends Controller
                 ->updateOrCreate(['landlord_id' => $user->user_id], $businessData);
         }
 
-        return redirect()->route('landlord.profile.me')->with('success', 'Profile updated successfully.');
+        // The account name is checked against the landlord's name and verified ID. A mismatch does not block the
+        // save (a spouse's or business GCash is legitimate), it tells them an admin will look at it.
+        // The forms that post here each carry only their own fields, so the others' stored values are left as they
+        // were: the GCash form on Payments > Payouts (return_to=payouts) and on Settings > Payments (return_to=settings),
+        // and the business sheet on My Profile (return_to=profile).
+        $returnTo = $request->input('return_to');
+        $back = match ($returnTo) {
+            'payouts' => route('landlord.payouts.index'),
+            'profile' => route('landlord.profile.me'),
+            'settings' => route('profile.edit').'#payments',
+            default => route('profile.edit'),
+        };
+
+        if ($returnTo === 'profile') {
+            return redirect($back, 303)->with('success', 'Business page saved.');
+        }
+
+        if (filled($name) && LandlordPayouts::nameMatchesIdentity($user, $name) === false) {
+            return redirect($back, 303)->with('warning', 'Saved. The name on your GCash account does not match the name on your verified ID, so an administrator will check it before your first payout. If you meant to use your own account, correct the name.');
+        }
+
+        return redirect($back, 303)->with('success', in_array($returnTo, ['payouts', 'settings'], true) ? 'Payout details saved.' : 'Payout and business details saved.');
     }
 }

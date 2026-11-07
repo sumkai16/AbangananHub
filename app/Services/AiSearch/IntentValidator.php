@@ -170,9 +170,10 @@ class IntentValidator
         if (! is_numeric($value)) {
             return null;
         }
-        $int = (int) round((float) $value);
+        $float = round((float) $value);
 
-        return $int >= self::PRICE_MIN && $int <= self::PRICE_MAX ? $int : null;
+        // Range first: casting a float past PHP_INT_MAX to int throws on PHP 8.5+.
+        return is_finite($float) && $float >= self::PRICE_MIN && $float <= self::PRICE_MAX ? (int) $float : null;
     }
 
     /** @param list<string> $allowed */

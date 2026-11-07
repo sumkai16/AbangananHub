@@ -1,6 +1,6 @@
 # Stakeholder feedback pass: direct payments, late fees, tenant records, lease terms
 
-**Status:** Phases 1 and 2 implemented Oct 18 2026 on branch `axci`, pending manual verification (checklist below). Phases 3 and 4 not started.
+**Status:** Phases 1 and 2 implemented Oct 18 2026 and phase 3 on Oct 20 2026, all on branch `axci`, pending manual verification (checklist below). Phase 4 not started.
 **Source:** 41-minute Q&A with two landlords (a couple, both nurses, who own a multi-floor dormitory
 near St. Cecilia's). The project manager ran the demo. Transcript notes: see "Source notes" at the end.
 
@@ -158,6 +158,10 @@ shows "Late fee waived". The waiver is audit-logged with `AuditLog::record()`, l
 ---
 
 ## Phase 4 — Pay the landlord directly (item 1)
+
+> **Superseded Oct 24 2026 by `plans/direct-payments-record-and-confirm.md`.** AbangananHub stops
+> holding money altogether (PayMongo behind an admin switch, off by default), and landlords are
+> never asked for GCash details. The design below is kept for history only; do not build it.
 
 ### The idea
 The tenant pays the landlord outside AbangananHub (scan the landlord's GCash QR, or hand over cash),

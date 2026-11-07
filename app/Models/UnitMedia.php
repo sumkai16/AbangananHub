@@ -2,9 +2,12 @@
 
 namespace App\Models;
 
+use App\Observers\UnitMediaObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
+#[ObservedBy(UnitMediaObserver::class)]
 class UnitMedia extends Model
 {
     protected $table = 'unit_media';

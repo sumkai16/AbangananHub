@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Notification;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Support\RentPaymentAllocator;
@@ -19,7 +20,7 @@ use Illuminate\Support\Carbon;
 class RentPaymentRecorder
 {
     /**
-     * @param  array{payment_type: string, billing_period?: ?string, amount: numeric-string|float|int, payment_method: string, paid_at: string, reference_no?: ?string, payment_notes?: ?string, replaces_payment_id?: int|string|null}  $data  validated input
+     * @param  array{payment_type: string, billing_period?: ?string, amount: numeric-string|float|int, payment_method: string, paid_at: string, reference_no?: ?string, payment_notes?: ?string, replaces_payment_id?: int|string|null, payment_claim_id?: ?int}  $data  validated input
      * @return int the number of Payment rows written
      */
     public static function record(Reservation $locked, array $data, int $recordedBy): int
@@ -43,6 +44,7 @@ class RentPaymentRecorder
             'payment_notes' => $data['payment_notes'] ?? null,
             'recorded_by' => $recordedBy,
             'replaces_payment_id' => $replaces,
+            'payment_claim_id' => $data['payment_claim_id'] ?? null,
         ];
 
         if ($data['payment_type'] !== 'Monthly') {
@@ -52,6 +54,8 @@ class RentPaymentRecorder
                 'amount' => $data['amount'],
             ]);
 
+            self::notifyTenant($locked, (float) $data['amount']);
+
             return 1;
         }
 
@@ -60,7 +64,8 @@ class RentPaymentRecorder
         $rows = RentPaymentAllocator::allocate(
             RentLedger::for($locked)->periods(),
             $startMonth,
-            $locked->monthlyRent(),
+            // Months the ledger has no row for yet owe that month's rent, which a renewal may have changed.
+            fn (Carbon $month) => $locked->rentFor($month),
             (float) $data['amount']
         );
 
@@ -79,6 +84,22 @@ class RentPaymentRecorder
             ]);
         }
 
+        self::notifyTenant($locked, (float) $data['amount']);
+
         return count($rows);
+    }
+
+    // One notification per recording, however many months it was spread over; walk-ins have no login.
+    private static function notifyTenant(Reservation $locked, float $amount): void
+    {
+        $locked->loadMissing('tenant');
+
+        Notification::notify(
+            $locked->tenant?->is_walk_in ? null : $locked->tenant_id,
+            'payment',
+            'Payment recorded',
+            'Your landlord recorded a payment of ₱'.number_format($amount, 2).' on your tenancy.',
+            route('tenancy.show', $locked),
+        );
     }
 }

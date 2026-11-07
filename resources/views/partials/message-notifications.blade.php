@@ -1,39 +1,36 @@
-{{-- Floating message bubble + panel + toast notifications --}}
+{{-- Toast notifications, plus the floating message bubble and its panel. The tenant layout passes floatingBubble => false:
+     its message icon sits beside the bell instead. The landlord layout keeps the bubble. --}}
 @auth
 @php
     $onConversationsPage = request()->routeIs('conversations.*');
-    $unreadMsgCount = \App\Models\Message::whereHas('conversation', function ($q) {
-        $q->where('tenant_id', auth()->id())
-          ->orWhere('landlord_id', auth()->id());
-    })
-    ->where('sender_id', '!=', auth()->id())
-    ->where('is_read', false)
-    ->count();
+    // The one rule for every messages badge (see Conversation::unreadCountFor), passed in by the layout composer.
+    $unreadMsgCount = $unreadMessageCount ?? \App\Models\Conversation::unreadCountFor(auth()->id());
 @endphp
 
 <div x-data="messageNotifications()" x-cloak x-on:open-messages-panel.window="openBubblePanel()">
 
     {{-- Toast container --}}
-    <div style="position: fixed; bottom: 80px; right: 20px; z-index: 9998; display: flex; flex-direction: column-reverse; gap: 8px; pointer-events: none;">
+    {{-- Phone: a small toast at the TOP under the header (a bottom one sits under the browser bar). Desktop: bottom right as before. --}}
+    <div class="fixed inset-x-3 top-[calc(env(safe-area-inset-top,0px)+68px)] lg:inset-x-auto lg:top-auto lg:bottom-20 lg:right-5 z-[9998] flex flex-col lg:flex-col-reverse gap-2 pointer-events-none">
         <template x-for="toast in toasts" :key="toast.id">
             <div @click="openConversation(toast.conversation_id)"
                 x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="opacity-0 translate-y-4"
+                x-transition:enter-start="opacity-0 translate-y-4 max-lg:-translate-y-2"
                 x-transition:enter-end="opacity-100 translate-y-0"
                 x-transition:leave="transition ease-in duration-200"
                 x-transition:leave-start="opacity-100 translate-y-0"
-                x-transition:leave-end="opacity-0 translate-y-4"
-                class="pointer-events-auto cursor-pointer w-[calc(100vw-2.5rem)] max-w-[340px] bg-white border border-[#5B6A8E]/20 rounded-2xl p-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.16)] transition-shadow duration-200">
-                <div class="flex gap-3 items-start">
-                    <div class="w-10 h-10 rounded-full bg-[#060D26] flex items-center justify-center shrink-0">
-                        <span class="text-white text-[14px] font-bold" x-text="toast.sender_initial"></span>
+                x-transition:leave-end="opacity-0 translate-y-4 max-lg:-translate-y-2"
+                class="pointer-events-auto cursor-pointer w-full max-w-[340px] mx-auto lg:mx-0 bg-white border border-[#5B6A8E]/20 rounded-2xl p-2.5 lg:p-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.16)] transition-shadow duration-200">
+                <div class="flex gap-2.5 lg:gap-3 items-start">
+                    <div class="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-[#060D26] flex items-center justify-center shrink-0">
+                        <span class="text-white text-[12px] lg:text-[14px] font-bold" x-text="toast.sender_initial"></span>
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between gap-2 mb-0.5">
                             <span class="text-[13px] font-bold text-[#060D26] truncate" x-text="toast.sender_name"></span>
                             <span class="text-[11px] text-[#5B6A8E] shrink-0">now</span>
                         </div>
-                        <div class="text-[11px] text-[#5B6A8E] truncate mb-1" x-show="toast.property_title">
+                        <div class="max-lg:hidden text-[11px] text-[#5B6A8E] truncate mb-1" x-show="toast.property_title">
                             <span x-text="toast.property_title"></span>
                             <template x-if="toast.unit_label">
                                 <span> · <span x-text="toast.unit_label"></span></span>
@@ -52,7 +49,7 @@
         </template>
     </div>
 
-    @unless($onConversationsPage)
+    @unless($onConversationsPage || ! ($floatingBubble ?? true))
 
     {{-- Message panel (hidden by default, shown when bubble clicked) --}}
     <div x-show="panelOpen"
@@ -62,7 +59,7 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
         x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-        class="fixed bottom-5 right-5 z-[9997] w-[calc(100vw-2.5rem)] max-w-[360px] bg-white rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.15)] border border-[#5B6A8E]/15 overflow-hidden"
+        class="print:hidden fixed bottom-5 right-5 z-[9997] w-[calc(100vw-2.5rem)] max-w-[360px] bg-white rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.15)] border border-[#5B6A8E]/15 overflow-hidden"
         @click.away="closeBubblePanel()">
         <div x-ref="bubblePanelBody">
             <div class="px-4 py-8 text-center">
@@ -74,7 +71,7 @@
     {{-- Floating bubble (hidden when panel is open). Desktop only — mobile
          links to the full messages page from the top bar instead. --}}
     <button x-show="!panelOpen" @click="openBubblePanel()"
-        class="hidden lg:flex fixed bottom-5 right-5 z-[9997] w-[52px] h-[52px] rounded-full bg-[#060D26] items-center justify-center shadow-[0_4px_16px_rgba(97,178,240,0.35)] hover:brightness-95 transition-all duration-200 focus:outline-none"
+        class="hidden lg:flex print:!hidden fixed bottom-5 right-5 z-[9997] w-[52px] h-[52px] rounded-full bg-[#060D26] items-center justify-center shadow-[0_4px_16px_rgba(97,178,240,0.35)] hover:brightness-95 transition-all duration-200 focus:outline-none"
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 scale-75"
         x-transition:enter-end="opacity-100 scale-100">
@@ -82,9 +79,9 @@
             <path stroke-linecap="round" stroke-linejoin="round"
                 d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
         </svg>
-        <div x-show="unreadCount > 0"
+        <div x-show="$store.navBadges.messages > 0"
             class="absolute -top-0.5 -right-0.5 min-w-[20px] h-[20px] rounded-full bg-[#EF4444] text-white text-[11px] font-bold flex items-center justify-center px-1 border-2 border-white"
-            x-text="unreadCount > 99 ? '99+' : unreadCount">
+            x-text="$store.navBadges.messages > 99 ? '99+' : $store.navBadges.messages">
         </div>
     </button>
 
@@ -93,10 +90,51 @@
 </div>
 
 <script>
+    // One live number for every messages badge on the page (sidebar, top bar, floating bubble). The server renders the
+    // first value; after that it is re-read from the server rather than counted up, because the rule is "open chats
+    // waiting on you", and a second message in the same chat must not add one.
+    document.addEventListener('alpine:init', () => {
+        if (Alpine.store('navBadges')) return;
+
+        Alpine.store('navBadges', {
+            messages: {{ (int) $unreadMsgCount }},
+            _timer: null,
+
+            refreshMessages(delay = 250) {
+                clearTimeout(this._timer);
+                this._timer = setTimeout(async () => {
+                    try {
+                        const res = await fetch('{{ route("conversations.unreadCount") }}', {
+                            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                        });
+                        if (res.ok) this.messages = (await res.json()).count;
+                    } catch (e) { /* offline or throttled: keep the last number */ }
+                }, delay);
+            },
+        });
+    });
+
+    // Opening a chat marks it read on the server; read the number again once that request has finished.
+    (function () {
+        const original = window.fetch;
+        window.fetch = function (input, init) {
+            const promise = original.apply(this, arguments);
+            try {
+                const url = typeof input === 'string' ? input : (input && input.url) || '';
+                const method = ((init && init.method) || (input && input.method) || 'GET').toUpperCase();
+                if (method === 'GET' && /\/conversations\/\d+(\?|$)/.test(url)) {
+                    promise.then(() => window.Alpine && Alpine.store('navBadges') && Alpine.store('navBadges').refreshMessages(600), () => {});
+                }
+            } catch (e) { /* never let the badge break a request */ }
+            return promise;
+        };
+    })();
+
+    window.addEventListener('focus', () => window.Alpine && Alpine.store('navBadges') && Alpine.store('navBadges').refreshMessages(0));
+
     function messageNotifications() {
         return {
             toasts: [],
-            unreadCount: {{ $unreadMsgCount }},
             nextId: 0,
             maxToasts: 3,
             panelOpen: false,
@@ -107,9 +145,10 @@
 
                 window.Echo.private('user.{{ auth()->id() }}')
                     .listen('.MessageSent', (e) => {
+                        // A message in the chat you are reading is read at once; any other one may add to the badge.
+                        Alpine.store('navBadges').refreshMessages(this.isViewingConversation(e.conversation_id) ? 1500 : 250);
                         if (this.isViewingConversation(e.conversation_id)) return;
 
-                        this.unreadCount++;
                         this.panelLoaded = false;
                         this.addToast(e);
                     });

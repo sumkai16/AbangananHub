@@ -8,7 +8,9 @@ use App\Http\Resources\UserResource;
 use App\Models\Conversation;
 use App\Models\Notification;
 use App\Models\Property;
+use App\Models\Reservation;
 use App\Models\User;
+use App\Support\ApiPage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -67,7 +69,10 @@ class ConversationController extends Controller
             $query->whereNotIn('status', ['Cancelled', 'Resolved']);
         }
 
-        $conversations = $query->orderByDesc('updated_at')->get()
+        $page = $query->orderByDesc('updated_at')->orderByDesc('conversation_id')
+            ->paginate(ApiPage::perPage($request))->withQueryString();
+
+        $conversations = $page->getCollection()
             ->map(function (Conversation $conversation) use ($userId) {
                 $isTenant = $conversation->tenant_id === $userId;
 
@@ -80,8 +85,9 @@ class ConversationController extends Controller
             });
 
         return response()->json([
-            'data'   => $conversations,
+            'data'   => $conversations->values(),
             'counts' => $counts,
+            'meta'   => ApiPage::meta($page),
         ]);
     }
 
@@ -93,9 +99,9 @@ class ConversationController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'property_id' => ['required', 'exists:properties,property_id'],
-            'unit_id'     => ['nullable', 'exists:property_units,unit_id'],
-            'tenant_id'   => ['nullable', 'exists:users,user_id'],
+            'property_id' => ['bail', 'required', 'integer', 'exists:properties,property_id'],
+            'unit_id'     => ['bail', 'nullable', 'integer', 'exists:property_units,unit_id'],
+            'tenant_id'   => ['bail', 'nullable', 'integer', 'exists:users,user_id'],
         ]);
 
         $property = Property::findOrFail($validated['property_id']);
@@ -112,6 +118,16 @@ class ConversationController extends Controller
                 abort(403, 'You cannot start a conversation with yourself.');
             }
             $tenantId = (int) $validated['tenant_id'];
+
+            // Otherwise any account id could be probed for a name and photo.
+            $knownToLandlord = Reservation::where('tenant_id', $tenantId)
+                ->whereHas('property', fn ($q) => $q->where('landlord_id', $userId))
+                ->exists()
+                || Conversation::where('tenant_id', $tenantId)->where('landlord_id', $userId)->exists();
+
+            if (! $knownToLandlord) {
+                abort(403, 'You can only message tenants who have a reservation or conversation with you.');
+            }
         } else {
             $tenantId = $userId;
         }
@@ -120,8 +136,10 @@ class ConversationController extends Controller
             'tenant_id'   => $tenantId,
             'landlord_id' => $property->landlord_id,
             'property_id' => $property->property_id,
-            'unit_id'     => $validated['unit_id'] ?? null,
             'type'        => Conversation::TYPE_INQUIRY,
+        ], [
+            // Not in the match: the unique key is (tenant, landlord, property, type), so a different unit would collide.
+            'unit_id'     => $validated['unit_id'] ?? null,
         ]);
 
         $conversation->load([

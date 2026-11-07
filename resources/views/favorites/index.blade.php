@@ -4,16 +4,16 @@
 <div class="{{ auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-16 min-h-[calc(100vh-72px)]">
 
     {{-- HEADER --}}
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4 sm:mb-6">
         <div class="flex items-center gap-3.5">
-            <div class="w-11 h-11 rounded-xl bg-[#060D26] flex items-center justify-center shrink-0">
-                <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+            <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#060D26] flex items-center justify-center shrink-0">
+                <svg fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2" class="w-4 h-4 sm:w-[19px] sm:h-[19px]">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
             </div>
             <div>
-                <h1 class="text-2xl font-normal tracking-tight text-[#060D26]">Saved Listings</h1>
-                <p class="text-sm text-[#5B6A8E] mt-0.5">Properties you've saved for later.</p>
+                <h1 class="text-xl sm:text-2xl font-normal tracking-tight text-[#060D26]">Saved Listings</h1>
+                <p class="hidden sm:block text-sm text-[#5B6A8E] mt-0.5">Properties you've saved for later.</p>
             </div>
         </div>
     </div>
@@ -53,7 +53,7 @@
     @if($favorites->count() > 0)
 
         <p class="text-[13px] text-[#5B6A8E] font-medium mb-6">
-            {{ $favorites->count() }} {{ Str::plural('property', $favorites->count()) }} saved
+            {{ $favorites->total() }} {{ Str::plural('property', $favorites->total()) }} saved
         </p>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -72,7 +72,7 @@
                     <div class="relative w-full aspect-square rounded-2xl overflow-hidden bg-[#ECEEF6]">
                         @if($property->media->first())
                             <img
-                                src="{{ $property->media->first()->media_url }}"
+                                src="{{ \App\Support\Images::src($property->media->first()->media_url, 'card') }}"
                                 alt="{{ $property->title }}"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                         @else
@@ -142,6 +142,8 @@
                 </div>
             @endforeach
         </div>
+
+        <div class="mt-6">{{ $favorites->links() }}</div>
 
     @else
         <x-card flush class="py-16 px-8 text-center">

@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
-use App\Models\Message;
+use App\Models\Conversation;
 use App\Models\Payment;
+use App\Models\Property;
 use App\Models\PropertyUnit;
+use App\Models\RentalBusiness;
 use App\Models\Reservation;
 use App\Models\Setting;
 use App\Observers\PaymentObserver;
@@ -12,6 +14,7 @@ use App\Observers\PropertyUnitObserver;
 use App\Observers\ReservationObserver;
 use App\Services\AiSearch\AiSearchDriver;
 use App\Services\AiSearch\GeminiDriver;
+use App\Services\AiSearch\NameMatcher;
 use App\Services\AiSearch\NullDriver;
 use App\Services\AiSearch\OpenRouterDriver;
 use Illuminate\Database\Eloquent\Model;
@@ -49,6 +52,20 @@ class AppServiceProvider extends ServiceProvider
         PropertyUnit::observe(PropertyUnitObserver::class);
         Reservation::observe(ReservationObserver::class);
 
+        // The name index feeds AI search; refresh it when a name, or whether a listing is live, changes.
+        RentalBusiness::saved(function (RentalBusiness $business) {
+            if ($business->wasRecentlyCreated || $business->wasChanged('business_name')) {
+                NameMatcher::flush();
+            }
+        });
+        RentalBusiness::deleted(fn () => NameMatcher::flush());
+        Property::saved(function (Property $property) {
+            if ($property->wasRecentlyCreated || $property->wasChanged(['title', 'landlord_id', 'publication_status', 'verification_status'])) {
+                NameMatcher::flush();
+            }
+        });
+        Property::deleted(fn () => NameMatcher::flush());
+
         // Header badges, computed once per request. Each layout used to run the
         // notification count twice (the server-rendered dot plus the Alpine
         // dropdown's initial value) and the message count inline in a @php block.
@@ -62,12 +79,12 @@ class AppServiceProvider extends ServiceProvider
                 $user = auth()->user();
                 $counts = $user ? [
                     'unreadNotificationCount' => $user->notifications()->where('is_read', false)->count(),
-                    'unreadMessageCount' => Message::whereHas('conversation', fn ($q) => $q
-                        ->where('tenant_id', $user->user_id)->orWhere('landlord_id', $user->user_id))
-                        ->where('sender_id', '!=', $user->user_id)
-                        ->where('is_read', false)
-                        ->count(),
-                ] : ['unreadNotificationCount' => 0, 'unreadMessageCount' => 0];
+                    'unreadMessageCount' => Conversation::unreadCountFor($user->user_id),
+                    // Whether this person has rented (or is renting) anywhere, for the "My Rentals" link.
+                    'hasRentals' => Reservation::where('tenant_id', $user->user_id)
+                        ->whereIn('rental_status', ['Occupied', 'Completed'])
+                        ->exists(),
+                ] : ['unreadNotificationCount' => 0, 'unreadMessageCount' => 0, 'hasRentals' => false];
                 $attributes->set('nav_counts', $counts);
             }
 

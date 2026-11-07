@@ -2,11 +2,41 @@
 
 return [
     /*
+     * Whether tenants can pay online through PayMongo checkout (and held payments, payouts and the move-in
+     * clocks come with it). Off by default: tenants pay the landlord directly by QR, report it, and the
+     * landlord confirms. See plans/direct-payments-record-and-confirm.md. Admin-editable in System Settings.
+     */
+    'online_payments_enabled' => env('ONLINE_PAYMENTS_ENABLED', false),
+
+    /*
+     * Whether landlords are paid automatically through PayMongo Send Money (the instant job and the hourly sweep).
+     * Off = manual mode: nothing is sent to PayMongo, what landlords are owed stays owed, and an administrator pays
+     * them by hand and presses "Mark Paid Out". Use it while PayMongo cannot send to GCash yet. Payouts PayMongo is
+     * already processing still finish. Admin-editable in System Settings.
+     */
+    'automatic_payouts_enabled' => env('AUTOMATIC_PAYOUTS_ENABLED', true),
+
+    /*
+     * The fee a tenant pays on top of the rent for paying online (move-in and monthly rent): percent of the
+     * rent plus a fixed amount, in pesos. Both 0 = no fee. Never applied to direct or cash payments, which
+     * cost the platform nothing. Admin-editable in System Settings; frozen on each payment when its checkout
+     * starts (payments.service_fee), so changing it never alters a payment already in flight.
+     */
+    'online_payment_fee_percent' => 0,
+    'online_payment_fee_fixed' => 0,
+
+    /*
      * Version tag for the Terms & Conditions / Privacy Policy. The property page remembers a visitor's
      * "I agree" tick on their device against this value — change it whenever the legal text changes and
      * everyone is asked once more.
      */
     'terms_version' => '2026-09',
+    /*
+     * The clock the business runs on. app.timezone stays UTC (changing it would shift every stored
+     * timestamp), so anything that means "today" or "08:00" to a landlord or tenant (scheduled
+     * reminders, date validation) uses this zone via App\Support\BusinessTime and ->timezone().
+     */
+    'timezone' => 'Asia/Manila',
     /*
      * Clock 2 — days the tenant has to confirm move-in after keys are turned over.
      * Expiry releases the held deposit to the landlord.
@@ -95,6 +125,12 @@ return [
     'lease_notice_days' => 30,
 
     /*
+     * How close to its end date a running contract starts reading "Ends in N days" on the Contracts page,
+     * and the window in which the landlord is offered Renew.
+     */
+    'renewal_window_days' => 60,
+
+    /*
      * Rental statuses in which the tenant may request a viewing: after the
      * landlord accepts the inquiry, up to signing.
      */
@@ -106,4 +142,32 @@ return [
      * and the old session is expired first so it can never also pay.
      */
     'checkout_stale_minutes' => 30,
+
+    /*
+     * Quiet reservations (reservations:process-stale, daily). A reservation that waits on a person for too long is
+     * reminded once, then cancelled. Days of silence: Inquiry counts from the day it was sent (the landlord has not
+     * answered); Under Negotiation from the last chat message; Pending Rental Agreement from the day the agreement
+     * was sent (the tenant has not signed; it is the only one that blocks the unit, so it is the shortest).
+     * Anything with held money or an open checkout is never cancelled (Reservation::cancellationBlockedReason).
+     * auto_cancel off = reminders only. A null cancel_days = that stage only reminds.
+     */
+    'stale_reservations' => [
+        'auto_cancel' => env('STALE_AUTO_CANCEL', true),
+        'inquiry' => ['remind_days' => 2, 'cancel_days' => 7],
+        'negotiation' => ['remind_days' => 5, 'cancel_days' => 14],
+        'agreement' => ['remind_days' => 2, 'cancel_days' => 5],
+        // Signed but the move-in money has not arrived (counted from the signature). A tenant with a payment report
+        // waiting on the landlord is left alone: that is the landlord's turn.
+        'signed' => ['remind_days' => 3, 'cancel_days' => 10],
+        // Move-in money paid straight to the landlord but nobody confirmed the move-in (counted from the payment, or
+        // the move-in date if later). Reminds only: the money is paid, so it is never cancelled.
+        'paid' => ['remind_days' => 3, 'cancel_days' => null],
+    ],
+
+    /*
+     * Payment reports the landlord has not answered (payment-claims:remind, daily). A tenant's "I paid" tells the
+     * landlord once; this nudges again after each number of days since it was filed. The last nudge also tells the
+     * tenant their landlord has not answered yet.
+     */
+    'claim_reminder_days' => [1, 3],
 ];

@@ -1,3 +1,4 @@
+@props(['intent' => null])
 {{-- Divider + "Continue with Google/Facebook" button row, shared by the
      AJAX auth modal (layouts/app.blade.php) and the full-page login/register
      fallbacks. Plain links, not AJAX — OAuth needs a real browser redirect. --}}
@@ -10,7 +11,7 @@
     </div>
 </div>
 <div class="grid grid-cols-2 gap-3">
-    <a href="{{ route('social.redirect', 'google') }}"
+    <a href="{{ route('social.redirect', array_filter(['provider' => 'google', 'intent' => $intent])) }}"
         class="flex items-center justify-center gap-2 border border-[#E2E4EC] rounded-xl py-3 font-jakarta text-[14px] font-bold text-[#060D26] hover:border-[#FF8A66] hover:bg-[#FF8A66]/5 cursor-pointer transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20">
         <svg class="w-4 h-4" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.43 3.58v2.98h3.93c2.3-2.12 3.62-5.24 3.62-8.8z"/>
@@ -20,7 +21,7 @@
         </svg>
         Google
     </a>
-    <a href="{{ route('social.redirect', 'facebook') }}"
+    <a href="{{ route('social.redirect', array_filter(['provider' => 'facebook', 'intent' => $intent])) }}"
         class="flex items-center justify-center gap-2 border border-[#E2E4EC] rounded-xl py-3 font-jakarta text-[14px] font-bold text-[#060D26] hover:border-[#FF8A66] hover:bg-[#FF8A66]/5 cursor-pointer transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20">
         <svg class="w-4 h-4" fill="#1877F2" viewBox="0 0 24 24">
             <path d="M24 12.07C24 5.68 18.63.4 12 .4S0 5.68 0 12.07c0 5.77 4.39 10.56 10.13 11.44v-8.09H7.08v-3.35h3.05V9.41c0-3 1.79-4.66 4.53-4.66 1.31 0 2.68.24 2.68.24v2.94h-1.51c-1.49 0-1.95.92-1.95 1.87v2.24h3.32l-.53 3.35h-2.79v8.09C19.61 22.63 24 17.84 24 12.07z"/>

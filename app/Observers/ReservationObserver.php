@@ -4,8 +4,12 @@ namespace App\Observers;
 
 use App\Events\HandoverScheduleUpdated;
 use App\Events\ReservationStatusUpdated;
+use App\Models\Conversation;
+use App\Models\LandlordTenant;
 use App\Models\Notification;
 use App\Models\Reservation;
+use App\Services\LandlordRentDueCount;
+use App\Services\TenancyDocuments;
 use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Support\Facades\Log;
 
@@ -24,8 +28,11 @@ class ReservationObserver
 {
     public function created(Reservation $reservation): void
     {
+        LandlordRentDueCount::forgetForReservation($reservation->reservation_id);
+
         // A tenancy recorded straight as Occupied (rather than reaching it through the pipeline).
         $this->syncTenancyThread($reservation);
+        $this->syncRoster($reservation);
 
         if (! $reservation->conversation_id) {
             return;
@@ -47,10 +54,16 @@ class ReservationObserver
 
     public function updated(Reservation $reservation): void
     {
+        // The sidebar's Payments number depends on who is in a running tenancy and what rent they owe.
+        if ($reservation->wasChanged(['rental_status', 'target_move_in_date', 'target_move_out_date', 'agreed_monthly_rent', 'rent_due_day'])) {
+            LandlordRentDueCount::forgetForReservation($reservation->reservation_id);
+        }
+
         // Before the early return below: a tenancy thread does not depend on the
         // inquiry thread, and walk-ins (which have none) are skipped inside.
         if ($reservation->wasChanged('rental_status')) {
             $this->syncTenancyThread($reservation);
+            $this->syncRoster($reservation);
         }
 
         // A reservation created outside the inquiry flow has no thread to
@@ -78,8 +91,30 @@ class ReservationObserver
         ));
 
         $this->cancelViewingsIfEnded($reservation);
+        $this->scheduleDocumentRemovalIfEnded($reservation);
 
         $this->notifyTransition($reservation);
+    }
+
+    /**
+     * A tenant with a signed lease, a held unit or a unit they live in belongs on the landlord's Tenants list.
+     * Hooked on the save so walk-ins, online bookings, seeders and the mobile API all land there the same way.
+     */
+    private function syncRoster(Reservation $reservation): void
+    {
+        if (! in_array($reservation->rental_status, LandlordTenant::ACTIVE_STATUSES, true)) {
+            return;
+        }
+
+        // Queried, not read through the relation: caching the property on the model here would leave the caller
+        // holding a stale copy (e.g. a lease template assigned after the reservation was created).
+        $landlordId = $reservation->relationLoaded('property')
+            ? $reservation->property?->landlord_id
+            : $reservation->property()->value('landlord_id');
+
+        if ($landlordId) {
+            LandlordTenant::ensureFor($landlordId, $reservation->tenant_id);
+        }
     }
 
     /**
@@ -91,6 +126,15 @@ class ReservationObserver
     {
         if ($reservation->rental_status === 'Occupied') {
             $reservation->openTenancyThread();
+
+            // The inquiry did its job. Closing it moves the chat out of the landlord's Inquiries list and the
+            // tenant's inbox, so everything from here on lives in the tenancy chat and nobody keeps two threads.
+            if ($reservation->conversation_id) {
+                Conversation::where('conversation_id', $reservation->conversation_id)
+                    ->where('type', Conversation::TYPE_INQUIRY)
+                    ->where('status', '!=', 'Resolved')
+                    ->update(['status' => 'Resolved']);
+            }
         } elseif ($reservation->rental_status === 'Completed') {
             $reservation->tenancyThread()->update(['status' => 'Resolved']);
         }
@@ -98,11 +142,19 @@ class ReservationObserver
 
     /**
      * A rejected, cancelled or completed reservation can't still have a
-     * viewing on the landlord's calendar. Hooked here for the same reason as
+     * viewing on the landlord's calendar, or a payment report waiting to be confirmed. Hooked here for the same reason as
      * the broadcast: every path that ends a reservation goes through save().
      * The status change's own notification already tells both parties, so
      * no separate viewing notice.
      */
+    /** Tenant documents are deleted after a tenancy ends (at once if it was never signed). Same hook as above. */
+    private function scheduleDocumentRemovalIfEnded(Reservation $reservation): void
+    {
+        if (in_array($reservation->rental_status, Reservation::TERMINAL_STATUSES, true)) {
+            TenancyDocuments::scheduleRemoval($reservation);
+        }
+    }
+
     private function cancelViewingsIfEnded(Reservation $reservation): void
     {
         if (! in_array($reservation->rental_status, Reservation::TERMINAL_STATUSES, true)) {
@@ -112,6 +164,12 @@ class ReservationObserver
         $reservation->viewings()->active()->update([
             'status'       => 'Cancelled',
             'responded_at' => now(),
+        ]);
+
+        // A report waiting for a landlord's answer on a reservation that ended has nothing left to decide.
+        $reservation->paymentClaims()->pending()->update([
+            'status'     => 'Withdrawn',
+            'decided_at' => now(),
         ]);
     }
 
@@ -149,6 +207,23 @@ class ReservationObserver
                 // but leave tenant_confirmed_move_in_at null on purpose, and
                 // both send their own "deposit released" notices; telling the
                 // landlord the tenant confirmed would be untrue and a duplicate.
+                if ($reservation->move_in_paid_at !== null) {
+                    // Paid directly, nothing was held. Tell whoever did not press the button.
+                    $actorId = auth()->id();
+
+                    if ($actorId !== $tenantId) {
+                        Notification::notify($tenantId, 'reservation', 'Move-in confirmed',
+                            "Your landlord confirmed your move-in to {$unitLabel}.",
+                            route('agreements.show', $reservation), $conversationId);
+                    }
+
+                    if ($actorId !== $landlordId) {
+                        Notification::notify($landlordId, 'reservation', 'Move-in confirmed',
+                            "{$tenantName} confirmed move-in for {$unitLabel}.", $thread, $conversationId);
+                    }
+                    break;
+                }
+
                 if (! $reservation->wasChanged('tenant_confirmed_move_in_at')) {
                     break;
                 }
@@ -171,6 +246,12 @@ class ReservationObserver
                 break;
 
             case 'Cancelled':
+                // Closed by the daily stale check (no actor). It sends its own "Reservation closed" notices, so
+                // say nothing here rather than "the tenant cancelled".
+                if ($reservation->systemCancelReason !== null) {
+                    break;
+                }
+
                 // Notify whoever did not press the button. Falls back to
                 // telling both when there is no authenticated actor (CLI,
                 // scheduled job), which is better than telling neither.

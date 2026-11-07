@@ -3,8 +3,12 @@
 namespace App\Observers;
 
 use App\Events\PaymentStatusUpdated;
+use App\Jobs\SendLandlordPayout;
 use App\Models\Notification;
 use App\Models\Payment;
+use App\Services\RentDueNotices;
+use Illuminate\Broadcasting\BroadcastException;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Broadcasts every payment status transition, and raises the notifications
@@ -40,17 +44,92 @@ class PaymentObserver
      */
     public bool $afterCommit = true;
 
+    /** A new row (a recorded payment, a checkout) changes what a tenancy owes, so the sidebar count and notices follow. */
+    public function created(Payment $payment): void
+    {
+        RentDueNotices::refresh($payment->reservation_id);
+    }
+
+    public function deleted(Payment $payment): void
+    {
+        RentDueNotices::refresh($payment->reservation_id);
+    }
+
     public function updated(Payment $payment): void
     {
+        if ($payment->wasChanged(['status', 'amount', 'voided_at', 'billing_period'])) {
+            RentDueNotices::refresh($payment->reservation_id);
+        }
+
+        // Money just became payable to the landlord (rent paid, or escrow released): send it now. The hourly
+        // `payouts:send` sweep covers anything this misses. Runs after the commit, like everything here.
+        if ($payment->wasChanged('payout_owed_at') && $payment->payout_owed_at !== null && $payment->getOriginal('payout_owed_at') === null) {
+            $landlordId = $payment->reservation?->property?->landlord_id;
+
+            if ($landlordId) {
+                SendLandlordPayout::dispatch($landlordId);
+            }
+        }
+
         if (! $payment->wasChanged('status')) {
             return;
         }
 
-        PaymentStatusUpdated::dispatch($payment);
+        // The status change is the record; a stopped Reverb must not turn the PayMongo webhook into a 500
+        // or skip the notifications below.
+        try {
+            PaymentStatusUpdated::dispatch($payment);
+        } catch (BroadcastException $e) {
+            Log::warning('Payment status broadcast failed, continuing without it', [
+                'payment_id' => $payment->payment_id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
-        if ($payment->getOriginal('status') === 'Pending' && $payment->status === 'Held') {
+        // One online move-in funds several rows (rent, deposit); tell the parties once, for the lead row. Held is only
+        // ever reached from Pending (PaymongoCheckout::settle). getOriginal() cannot be used to check that here: the
+        // settle runs in a transaction, so this runs after the commit, by which time the model's original values have
+        // already been synced to the new ones.
+        if ($payment->status === 'Held' && $payment->payment_type !== 'Deposit') {
             $this->notifyEscrowFunded($payment);
         }
+
+        if ($payment->previousStatus === 'Pending' && $payment->status === 'Paid'
+            && $payment->payment_type === 'Monthly' && $payment->recorded_by === null) {
+            $this->notifyRentPaidOnline($payment);
+        }
+    }
+
+    /** Rent paid through checkout: the landlord needs to know it landed, the tenant gets a receipt line. */
+    private function notifyRentPaidOnline(Payment $payment): void
+    {
+        $reservation = $payment->reservation;
+
+        if (! $reservation) {
+            return;
+        }
+
+        $unitLabel = $reservation->unit?->unit_label ?? $reservation->property?->title;
+        $amount = '₱' . number_format((float) $payment->amount, 2);
+        $period = $payment->billing_period?->format('M Y') ?? 'this period';
+
+        Notification::notify(
+            $reservation->property?->landlord_id,
+            'payment',
+            'Rent received',
+            "{$amount} rent for {$period} ({$unitLabel}) was paid online.",
+            route('landlord.tenancies.show', $reservation),
+            $reservation->conversation_id,
+        );
+
+        Notification::notify(
+            $reservation->tenant_id,
+            'payment',
+            'Rent payment received',
+            "Your {$amount} rent payment for {$period} ({$unitLabel}) went through.",
+            route('tenancy.show', $reservation),
+            $reservation->conversation_id,
+        );
     }
 
     /**
@@ -66,7 +145,8 @@ class PaymentObserver
         }
 
         $unitLabel = $reservation->unit?->unit_label ?? $reservation->property?->title;
-        $amount = '₱' . number_format((float) $payment->amount, 2);
+        // What is held for the tenant: the rent and the deposit of the whole checkout, not the online fee.
+        $amount = '₱' . number_format((float) $payment->checkoutGroup()->sum('amount'), 2);
 
         Notification::notify(
             $reservation->tenant_id,

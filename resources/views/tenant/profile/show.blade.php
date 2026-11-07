@@ -7,7 +7,7 @@
         $liveReservations = $activeReservations->filter(fn ($r) => $r->property)->values();
         $liveReviews = $reviews->filter(fn ($r) => $r->property)->values();
         $tabs = ['overview' => 'Overview', 'reservations' => 'Reservations', 'reviews' => 'Reviews'];
-        $subtitle = implode(' · ', array_filter([$user->email, $user->contact_number, 'Member since ' . $user->created_at->format('F Y')]));
+        $subtitle = implode(' · ', array_filter(['Member since ' . $user->created_at->format('F Y')]));
         $starPath = 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z';
         $statusColors = [
             'Inquiry' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
@@ -105,18 +105,17 @@
                                 @endif
                             </div>
                             <dl class="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-5 border-t border-[#E2E4EC] pt-6">
+                                {{-- Masked on purpose: a profile page gets screenshotted and shared. Full values are in Account Settings. --}}
                                 <div class="min-w-0">
                                     <dt class="text-[12px] font-semibold text-[#5B6A8E]">Email</dt>
-                                    <dd class="mt-1 text-[14px] font-semibold text-[#060D26] truncate" title="{{ $user->email }}">
-                                        <a href="mailto:{{ $user->email }}" class="hover:text-[#B35A3D] hover:underline">{{ $user->email }}</a>
-                                    </dd>
+                                    <dd class="mt-1 text-[14px] font-semibold text-[#060D26] truncate">{{ \Illuminate\Support\Str::mask($user->email, '•', 1, max(1, strpos($user->email, '@') - 1)) }}</dd>
                                     <p class="text-[12px] text-[#5B6A8E]">{{ $user->email_verified_at ? 'Email verified' : 'Email not verified' }}</p>
                                 </div>
                                 <div class="min-w-0">
                                     <dt class="text-[12px] font-semibold text-[#5B6A8E]">Contact number</dt>
                                     <dd class="mt-1 text-[14px] font-semibold text-[#060D26]">
                                         @if($user->contact_number)
-                                            <a href="tel:{{ preg_replace('/[^\d+]/', '', $user->contact_number) }}" class="hover:text-[#B35A3D] hover:underline">{{ $user->contact_number }}</a>
+                                            {{ \Illuminate\Support\Str::mask($user->contact_number, '•', 4, -2) }}
                                         @else
                                             <span class="font-normal text-[#5B6A8E]">Not provided</span>
                                         @endif
@@ -144,7 +143,7 @@
                                 <a href="{{ route('reservations.index') }}" class="group mt-3 flex items-center gap-3 rounded-xl p-2 -mx-2 hover:bg-[#F7F8FC] transition-colors duration-200">
                                     <div class="h-12 w-14 shrink-0 overflow-hidden rounded-lg bg-[#ECEEF6]">
                                         @if($thumb)
-                                            <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="" class="h-full w-full object-cover">
+                                            <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($thumb->media_url, 'card') }}" alt="" class="h-full w-full object-cover">
                                         @endif
                                     </div>
                                     <div class="min-w-0 flex-1">
@@ -201,7 +200,7 @@
                                     <a href="{{ route('reservations.index') }}" class="group block h-full overflow-hidden rounded-2xl border border-[#E2E4EC] bg-white hover:border-[#5B6A8E]/40 transition-colors duration-200">
                                         <div class="h-36 overflow-hidden bg-[#ECEEF6]">
                                             @if($thumb)
-                                                <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="" class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300 motion-reduce:transition-none">
+                                                <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($thumb->media_url, 'card') }}" alt="" class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300 motion-reduce:transition-none">
                                             @else
                                                 <div class="h-full w-full flex items-center justify-center" aria-hidden="true">
                                                     <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#5B6A8E" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $houseIcon }}" /></svg>

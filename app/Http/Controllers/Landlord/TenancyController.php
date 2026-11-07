@@ -3,18 +3,24 @@
 namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
+use App\Models\LateFeeWaiver;
 use App\Models\Notification;
 use App\Models\Reservation;
 use App\Models\TenantDetail;
 use App\Services\RentLedger;
 use App\Services\RentReminderNotifier;
+use App\Support\BusinessTime;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 /**
- * One tenancy and its rent ledger, from the landlord's side.
+ * One tenancy from the landlord's side: the contract page and its actions (tenant details, end, reminder, late
+ * fee waiver). Its rent ledger page is LedgerController, under Payments.
  *
  * Serves walk-in and platform tenancies identically: both are an occupied unit
  * with rent falling due every month, and the escrow only ever covered the
@@ -23,35 +29,29 @@ use Illuminate\Support\Facades\Gate;
  */
 class TenancyController extends Controller
 {
+    /**
+     * The contract page: who the tenant is, the lease, their details, the unit, and ending the tenancy. The money
+     * (ledger, payments, deposit charges) is under Payments (LedgerController); this page only shows the balance
+     * and links there.
+     */
     public function show(Reservation $reservation)
     {
         Gate::authorize('viewTenancy', $reservation);
 
-        // Eager-loaded up front: the ledger reads payments, the header reads
-        // the tenant and unit, and Model::preventLazyLoading is on in dev.
+        // Eager-loaded up front: the balance strip reads the ledger summary, the header reads the tenant and
+        // unit, and Model::preventLazyLoading is on in dev.
         $reservation->load([
             'tenant.tenantDetail',
             'property',
             'unit.media',
-            'payments.recorder',
-            'payments.voider',
-            'payments.replacements',
-            'depositCharges.charger',
-            'depositCharges.voider',
+            'payments',
+            'depositCharges',
             'conversation',
         ]);
 
-        $ledger = RentLedger::for($reservation);
-
         return view('landlord.tenancies.show', [
-            'reservation'         => $reservation,
-            'ledger'              => $ledger,
-            'periods'             => $ledger->periods(),
-            'otherCharges'        => $ledger->otherCharges(),
-            'summary'             => $ledger->summary(),
-            'unsettledPeriods'    => $ledger->unsettledPeriods(),
-            'monthlyTransactions' => $ledger->monthlyTransactions(),
-            'voidedTransactions'  => $ledger->voidedTransactions(),
+            'reservation' => $reservation,
+            'summary' => RentLedger::for($reservation)->summary(),
         ]);
     }
 
@@ -76,6 +76,30 @@ class TenancyController extends Controller
     }
 
     /**
+     * The tenant's full ID number, fetched only when the landlord taps Show, so it is never in the page
+     * HTML. Each reveal is audited (without the number itself).
+     */
+    public function revealTenantId(Reservation $reservation): JsonResponse
+    {
+        Gate::authorize('viewTenantDetails', $reservation);
+
+        $reservation->load('tenant.tenantDetail');
+        $idNumber = $reservation->tenant?->tenantDetail?->id_number;
+
+        abort_if(blank($idNumber), 404);
+
+        AuditLog::record(
+            'tenant_details.reveal_id',
+            'Landlord viewed a tenant\'s ID number',
+            $reservation,
+            null,
+            ['tenant_id' => $reservation->tenant_id],
+        );
+
+        return response()->json(['id_number' => $idNumber])->header('Cache-Control', 'no-store, private');
+    }
+
+    /**
      * Close out the tenancy and hand the unit back to the available pool.
      *
      * Locked and re-checked inside the transaction per RULES.md: this flips a
@@ -88,7 +112,7 @@ class TenancyController extends Controller
         Gate::authorize('endTenancy', $reservation);
 
         $data = $request->validate([
-            'move_out_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'move_out_date' => ['nullable', 'date', 'before_or_equal:' . BusinessTime::today()],
         ], [
             'move_out_date.before_or_equal' => 'A move-out date cannot be in the future.',
         ]);
@@ -172,7 +196,7 @@ class TenancyController extends Controller
         $tenant = $reservation->tenant;
 
         if (! $tenant || $tenant->is_walk_in || $tenant->account_status !== 'active') {
-            return back()->with('warning', 'This tenant has no AbangananHub account to notify.');
+            return $this->remindReply('warning', 'This tenant has no AbangananHub account to notify.');
         }
 
         $target = RentLedger::for($reservation)
@@ -180,11 +204,63 @@ class TenancyController extends Controller
             ->firstWhere(fn ($p) => $p['status'] !== 'paid');
 
         if (! $target) {
-            return back()->with('warning', $tenant->first_name . ' has no outstanding rent to be reminded about.');
+            return $this->remindReply('warning', $tenant->first_name . ' has no outstanding rent to be reminded about.');
         }
 
         $notifier->sendToTenant($reservation, $target, Carbon::today());
 
-        return back()->with('success', 'Rent reminder sent to ' . $tenant->first_name . '.');
+        return $this->remindReply('success', 'Rent reminder sent to ' . $tenant->first_name . '.');
+    }
+
+    /**
+     * Drop the late fee on one month. Only a month that really carries a fee can be waived, so the button cannot
+     * be used to pre-waive a fee that has not happened. Idempotent: a second click finds the waiver and says so.
+     * Audit-logged like a void, because it changes what a tenant owes.
+     */
+    public function waiveLateFee(Request $request, Reservation $reservation)
+    {
+        Gate::authorize('viewTenancy', $reservation);
+
+        $data = $request->validate([
+            'billing_period' => ['required', 'date_format:Y-m-d'],
+            'reason'         => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $month = Carbon::parse($data['billing_period'])->startOfMonth();
+        $reservation->load(['payments', 'depositCharges', 'lateFeeWaivers', 'property']);
+
+        $period = RentLedger::for($reservation)->periods()
+            ->first(fn ($p) => $p['period']->isSameMonth($month));
+
+        if (! $period || ($period['late_fee'] <= 0 && ! $period['late_fee_waived'])) {
+            return back()->with('warning', 'There is no late fee on that month to waive.');
+        }
+
+        $waiver = LateFeeWaiver::firstOrCreate(
+            ['reservation_id' => $reservation->reservation_id, 'billing_period' => $month->toDateString()],
+            ['waived_by' => Auth::id(), 'reason' => $data['reason'] ?? null],
+        );
+
+        if ($waiver->wasRecentlyCreated) {
+            AuditLog::record(
+                'late_fee.waive',
+                'Late fee waived for ' . $period['label'] . ' on ' . ($reservation->property->title ?? 'a tenancy'),
+                $reservation,
+                $data['reason'] ?? null,
+                ['reservation_id' => $reservation->reservation_id, 'billing_period' => $month->toDateString(), 'amount' => $period['late_fee']],
+            );
+        }
+
+        return back()->with('success', 'Late fee waived for ' . $period['label'] . '.');
+    }
+
+    /** The chat page posts this by fetch and wants JSON; the tenant cards post a form and want the flash. */
+    private function remindReply(string $level, string $message)
+    {
+        if (request()->expectsJson()) {
+            return response()->json(['ok' => $level === 'success', 'message' => $message], $level === 'success' ? 200 : 422);
+        }
+
+        return back()->with($level, $message);
     }
 }

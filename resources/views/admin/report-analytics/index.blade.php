@@ -1,29 +1,22 @@
 @extends('layouts.admin')
 
-@section('page-title', 'Reports')
+@section('page-title', 'Analytics')
 
 @section('content')
 <div class="max-w-[1600px] mx-auto">
 
-    {{-- Header --}}
-    <x-page-header title="Reports" subtitle="Platform analytics and data export">
-        <x-slot:icon>
-            <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-            </svg>
-        </x-slot:icon>
-    </x-page-header>
+    <x-page-header icon-path="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" title="Analytics" subtitle="Platform numbers and data export." />
 
     {{-- Top bar: dropdown + export --}}
     <div class="flex items-center justify-between mb-5">
         <form method="GET" action="{{ route('admin.report-analytics.index') }}" id="sectionForm">
             <x-styled-select name="section" :options="['properties' => 'Properties and units', 'reservations' => 'Reservations', 'users' => 'Users']"
                 :selected="$section" :autosubmit="true"
-                class="text-sm font-medium pl-3 pr-8 py-2 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26]" />
+                class="h-10 text-[13.5px] font-semibold pl-3 pr-8 rounded-xl border border-[#E2E4EC] bg-white text-[#060D26]" />
         </form>
 
        <a href="{{ route('admin.report-analytics.export', array_merge(request()->query(), ['section' => $section])) }}"
-           class="inline-flex items-center gap-1.5 text-xs font-medium text-[#060D26] border border-[#E2E4EC] rounded-lg px-3 py-2 hover:bg-[#ECEEF6] transition-colors">
+           class="inline-flex h-10 items-center gap-1.5 text-[13.5px] font-semibold text-[#060D26] border border-[#E2E4EC] bg-white rounded-xl px-4 hover:bg-[#ECEEF6] transition-colors">
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
             </svg>
@@ -34,30 +27,17 @@
     {{-- ===== PROPERTIES & UNITS ===== --}}
     @if($section === 'properties')
 
-        {{-- Stat cards --}}
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-4">
-            <x-stat-card label="Total properties" :value="$totalProperties">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" /></svg>
-                </x-slot:icon>
-            </x-stat-card>
-            <x-stat-card label="Total units" :value="$totalUnits">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm0 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0115.75 3.75H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6z" /></svg>
-                </x-slot:icon>
-            </x-stat-card>
-            <x-stat-card label="Occupancy rate" :value="$occupancyRate.'%'" value-color="#060D26" icon-bg="#ECEEF6">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" /><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" /></svg>
-                </x-slot:icon>
-            </x-stat-card>
-        </div>
+        <x-stat-strip class="mb-4" :cells="[
+            ['label' => 'Properties', 'value' => number_format($totalProperties)],
+            ['label' => 'Units', 'value' => number_format($totalUnits)],
+            ['label' => 'Occupancy', 'value' => $occupancyRate.'%'],
+        ]" />
 
         {{-- Donut + detail cards --}}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
             {{-- Donut chart --}}
-            <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
-                <h2 class="text-sm font-normal text-[#060D26] mb-4">Unit status distribution</h2>
+            <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5">
+                <h2 class="text-[15px] font-semibold text-[#060D26] mb-4">Unit status distribution</h2>
                 <div class="flex justify-center mb-3">
                     <canvas id="unitStatusChart" width="160" height="160"></canvas>
                 </div>
@@ -69,38 +49,32 @@
                 </div>
             </div>
 
-            {{-- Detail cards by type --}}
-            <div class="space-y-2.5 max-h-[340px] overflow-y-auto pr-1">
-                @foreach($typeBreakdown as $tb)
-                    <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-3.5">
-                        <div class="mb-2">
-                            <span class="text-[10px] font-semibold px-2.5 py-0.5 rounded-full
-                                @if($tb['type'] === 'Bedspace') bg-[#ECEEF6] text-[#060D26]
-                                @elseif($tb['type'] === 'Boarding House') bg-[#22C55E]/[0.07] text-[#15803D]
-                                @elseif($tb['type'] === 'Apartment') bg-[#FBBF24]/[0.10] text-[#B45309]
-                                @elseif($tb['type'] === 'Dormitory') bg-[#5B6A8E]/[0.12] text-[#5B6A8E]
-                                @else bg-[#EF4444]/[0.07] text-[#DC2626]
-                                @endif">{{ $tb['type'] }}</span>
-                        </div>
-                        <div class="flex justify-between text-xs mb-0.5">
-                            <span class="text-[#5B6A8E]">Properties</span>
-                            <span class="font-medium text-[#060D26]">{{ $tb['property_count'] }}</span>
-                        </div>
-                        <div class="flex justify-between text-xs mb-0.5">
-                            <span class="text-[#5B6A8E]">Units</span>
-                            <span class="font-medium text-[#060D26]">{{ $tb['unit_count'] }}</span>
-                        </div>
-                        <div class="flex justify-between text-xs">
-                            <span class="text-[#5B6A8E]">Occupied</span>
-                            <span class="font-medium text-[#060D26]">{{ $tb['occupied_count'] }}</span>
-                        </div>
-                        <div class="mt-2 h-1 bg-[#ECEEF6] rounded-full overflow-hidden">
-                            <div class="h-full bg-[#FF8A66] rounded-full" style="width: {{ $tb['rate'] }}%"></div>
-                        </div>
-                        <p class="text-[10px] text-[#5B6A8E] mt-1">{{ $tb['rate'] }}% occupancy</p>
-                    </div>
-                @endforeach
-            </div>
+            <x-card flush>
+                <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
+                            <x-admin.th>Type</x-admin.th>
+                            <x-admin.th align="right">Properties</x-admin.th>
+                            <x-admin.th align="right">Units</x-admin.th>
+                            <x-admin.th align="right">Occupied</x-admin.th>
+                            <x-admin.th align="right">Occupancy</x-admin.th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[#E2E4EC]">
+                        @foreach($typeBreakdown as $tb)
+                            <tr>
+                                <td class="px-4 py-2.5 text-[13px] font-semibold text-[#060D26]">{{ $tb['type'] }}</td>
+                                <td class="px-4 py-2.5 text-right text-[13px] tabular-nums text-[#060D26]">{{ $tb['property_count'] }}</td>
+                                <td class="px-4 py-2.5 text-right text-[13px] tabular-nums text-[#060D26]">{{ $tb['unit_count'] }}</td>
+                                <td class="px-4 py-2.5 text-right text-[13px] tabular-nums text-[#060D26]">{{ $tb['occupied_count'] }}</td>
+                                <td class="px-4 py-2.5 text-right text-[13px] tabular-nums text-[#060D26]">{{ $tb['rate'] }}%</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                </div>
+            </x-card>
         </div>
 
         {{-- Filters + table --}}
@@ -112,25 +86,25 @@
                     $propStatusOptions = ['' => 'All statuses'] + array_combine(['Approved', 'Pending', 'Rejected'], ['Approved', 'Pending', 'Rejected']);
                 @endphp
                 <x-styled-select name="type" :options="$propTypeOptions" :selected="$typeFilter" :autosubmit="true"
-                    class="text-xs px-2.5 py-1.5 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26]" />
+                    class="h-10 text-[13.5px] pl-3 pr-8 rounded-xl border border-[#E2E4EC] bg-white text-[#060D26]" />
                 <x-styled-select name="status" :options="$propStatusOptions" :selected="$statusFilter" :autosubmit="true"
-                    class="text-xs px-2.5 py-1.5 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26]" />
+                    class="h-10 text-[13.5px] pl-3 pr-8 rounded-xl border border-[#E2E4EC] bg-white text-[#060D26]" />
             </form>
-            <span class="text-xs text-[#5B6A8E]">Showing {{ $properties->total() }} properties</span>
+            <span class="text-[13px] text-[#5B6A8E]">Showing {{ $properties->total() }} properties</span>
         </div>
 
-        <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+        <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)] overflow-hidden">
             <div class="overflow-x-auto">
-            <table class="w-full text-xs">
+            <table class="w-full text-[13px]">
                 <thead>
-                    <tr class="border-b border-[#E2E4EC]">
-                        <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-[#5B6A8E] uppercase tracking-wider">Property</th>
-                        <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-[#5B6A8E] uppercase tracking-wider">Type</th>
-                        <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-[#5B6A8E] uppercase tracking-wider">Status</th>
-                        <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-[#5B6A8E] uppercase tracking-wider">Units</th>
-                        <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-[#5B6A8E] uppercase tracking-wider">Available</th>
-                        <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-[#5B6A8E] uppercase tracking-wider">Occupied</th>
-                        <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-[#5B6A8E] uppercase tracking-wider">Rate</th>
+                    <tr class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
+                        <x-admin.th>Property</x-admin.th>
+                        <x-admin.th>Type</x-admin.th>
+                        <x-admin.th>Status</x-admin.th>
+                        <x-admin.th align="right">Units</x-admin.th>
+                        <x-admin.th align="right">Available</x-admin.th>
+                        <x-admin.th align="right">Occupied</x-admin.th>
+                        <x-admin.th align="right">Rate</x-admin.th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-[#E2E4EC]">
@@ -140,20 +114,16 @@
                             $pOccupied = $property->occupied_units_count;
                             $pRate = $pTotal > 0 ? round(($pOccupied / $pTotal) * 100, 1) : 0;
                         @endphp
-                        <tr class="hover:bg-[#ECEEF6] transition-colors">
+                        <tr class="hover:bg-[#F7F8FC] transition-colors">
                             <td class="px-4 py-2.5 font-medium text-[#060D26]">{{ $property->title }}</td>
                             <td class="px-4 py-2.5 text-[#5B6A8E]">{{ $property->property_type }}</td>
                             <td class="px-4 py-2.5">
-                                <span class="text-[10px] font-medium px-2 py-0.5 rounded-full
-                                    @if($property->verification_status === 'Approved') bg-[#22C55E]/[0.07] text-[#15803D]
-                                    @elseif($property->verification_status === 'Pending') bg-[#FBBF24]/[0.10] text-[#B45309]
-                                    @else bg-[#EF4444]/[0.07] text-[#DC2626]
-                                    @endif">{{ $property->verification_status }}</span>
+                                <x-admin.status :status="$property->verification_status" />
                             </td>
-                            <td class="px-4 py-2.5 text-[#060D26]">{{ $pTotal }}</td>
-                            <td class="px-4 py-2.5 text-[#5B6A8E]">{{ $property->available_units_count }}</td>
-                            <td class="px-4 py-2.5 text-[#5B6A8E]">{{ $pOccupied }}</td>
-                            <td class="px-4 py-2.5 font-medium text-[#060D26]">{{ $pRate }}%</td>
+                            <td class="px-4 py-2.5 text-right tabular-nums text-[#060D26]">{{ $pTotal }}</td>
+                            <td class="px-4 py-2.5 text-right tabular-nums text-[#5B6A8E]">{{ $property->available_units_count }}</td>
+                            <td class="px-4 py-2.5 text-right tabular-nums text-[#5B6A8E]">{{ $pOccupied }}</td>
+                            <td class="px-4 py-2.5 text-right font-medium tabular-nums text-[#060D26]">{{ $pRate }}%</td>
                         </tr>
                     @empty
                         <tr><td colspan="7" class="px-4 py-8 text-center text-[#5B6A8E]">No properties found.</td></tr>
@@ -170,27 +140,15 @@
     {{-- ===== RESERVATIONS ===== --}}
     @elseif($section === 'reservations')
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-4">
-            <x-stat-card label="Total reservations" :value="$allReservations">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
-                </x-slot:icon>
-            </x-stat-card>
-            <x-stat-card label="Occupied units" :value="$occupiedUnits">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
-                </x-slot:icon>
-            </x-stat-card>
-            <x-stat-card label="Approval rate" :value="$approvalRate.'%'" value-color="#22C55E" icon-bg="rgba(34,197,94,0.07)">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#22C55E" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                </x-slot:icon>
-            </x-stat-card>
-        </div>
+        <x-stat-strip class="mb-4" :cells="[
+            ['label' => 'Reservations', 'value' => number_format($allReservations)],
+            ['label' => 'Occupied units', 'value' => number_format($occupiedUnits)],
+            ['label' => 'Approval rate', 'value' => $approvalRate.'%'],
+        ]" />
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
-            <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
-                <h2 class="text-sm font-normal text-[#060D26] mb-4">Reservation status distribution</h2>
+            <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5">
+                <h2 class="text-[15px] font-semibold text-[#060D26] mb-4">Reservation status distribution</h2>
                 <div class="flex justify-center mb-3">
                     <canvas id="reservationStatusChart" width="160" height="160"></canvas>
                 </div>
@@ -203,33 +161,30 @@
                 </div>
             </div>
 
-            <div class="space-y-2.5 max-h-[340px] overflow-y-auto pr-1">
-                @foreach($typeBreakdown as $tb)
-                    <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-3.5">
-                        <div class="mb-2">
-                            <span class="text-[10px] font-semibold px-2.5 py-0.5 rounded-full
-                                @if($tb['type'] === 'Bedspace') bg-[#ECEEF6] text-[#060D26]
-                                @elseif($tb['type'] === 'Boarding House') bg-[#22C55E]/[0.07] text-[#15803D]
-                                @elseif($tb['type'] === 'Apartment') bg-[#FBBF24]/[0.10] text-[#B45309]
-                                @elseif($tb['type'] === 'Dormitory') bg-[#5B6A8E]/[0.12] text-[#5B6A8E]
-                                @else bg-[#EF4444]/[0.07] text-[#DC2626]
-                                @endif">{{ $tb['type'] }}</span>
-                        </div>
-                        <div class="flex justify-between text-xs mb-0.5">
-                            <span class="text-[#5B6A8E]">Reservations</span>
-                            <span class="font-medium text-[#060D26]">{{ $tb['total'] }}</span>
-                        </div>
-                        <div class="flex justify-between text-xs">
-                            <span class="text-[#5B6A8E]">Approved</span>
-                            <span class="font-medium text-[#060D26]">{{ $tb['approved'] }}</span>
-                        </div>
-                        <div class="mt-2 h-1 bg-[#ECEEF6] rounded-full overflow-hidden">
-                            <div class="h-full bg-[#060D26] rounded-full" style="width: {{ $tb['pct'] }}%"></div>
-                        </div>
-                        <p class="text-[10px] text-[#5B6A8E] mt-1">{{ $tb['pct'] }}% of total</p>
-                    </div>
-                @endforeach
-            </div>
+            <x-card flush>
+                <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
+                            <x-admin.th>Type</x-admin.th>
+                            <x-admin.th align="right">Reservations</x-admin.th>
+                            <x-admin.th align="right">Approved</x-admin.th>
+                            <x-admin.th align="right">Share</x-admin.th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[#E2E4EC]">
+                        @foreach($typeBreakdown as $tb)
+                            <tr>
+                                <td class="px-4 py-2.5 text-[13px] font-semibold text-[#060D26]">{{ $tb['type'] }}</td>
+                                <td class="px-4 py-2.5 text-right text-[13px] tabular-nums text-[#060D26]">{{ $tb['total'] }}</td>
+                                <td class="px-4 py-2.5 text-right text-[13px] tabular-nums text-[#060D26]">{{ $tb['approved'] }}</td>
+                                <td class="px-4 py-2.5 text-right text-[13px] tabular-nums text-[#060D26]">{{ $tb['pct'] }}%</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                </div>
+            </x-card>
         </div>
 
         <div class="flex items-center justify-between mb-2.5">
@@ -241,43 +196,33 @@
                     $resTimeOptions = ['' => 'All time', '7' => 'Last 7 days', '30' => 'Last 30 days', '90' => 'Last 90 days'];
                 @endphp
                 <x-styled-select name="status" :options="$resStatusOptions" :selected="$statusFilter" :autosubmit="true"
-                    class="text-xs px-2.5 py-1.5 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26]" />
+                    class="h-10 text-[13.5px] pl-3 pr-8 rounded-xl border border-[#E2E4EC] bg-white text-[#060D26]" />
                 <x-styled-select name="time" :options="$resTimeOptions" :selected="$timeFilter" :autosubmit="true"
-                    class="text-xs px-2.5 py-1.5 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26]" />
+                    class="h-10 text-[13.5px] pl-3 pr-8 rounded-xl border border-[#E2E4EC] bg-white text-[#060D26]" />
             </form>
-            <span class="text-xs text-[#5B6A8E]">Showing {{ $reservations->total() }} reservations</span>
+            <span class="text-[13px] text-[#5B6A8E]">Showing {{ $reservations->total() }} reservations</span>
         </div>
 
-        <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+        <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)] overflow-hidden">
             <div class="overflow-x-auto">
-            <table class="w-full text-xs">
+            <table class="w-full text-[13px]">
                 <thead>
-                    <tr class="border-b border-[#E2E4EC]">
-                        <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-[#5B6A8E] uppercase tracking-wider">Tenant</th>
-                        <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-[#5B6A8E] uppercase tracking-wider">Property</th>
-                        <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-[#5B6A8E] uppercase tracking-wider">Unit</th>
-                        <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-[#5B6A8E] uppercase tracking-wider">Status</th>
-                        <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-[#5B6A8E] uppercase tracking-wider">Date</th>
+                    <tr class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
+                        <x-admin.th>Tenant</x-admin.th>
+                        <x-admin.th>Property</x-admin.th>
+                        <x-admin.th>Unit</x-admin.th>
+                        <x-admin.th>Status</x-admin.th>
+                        <x-admin.th>Date</x-admin.th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-[#E2E4EC]">
                     @forelse($reservations as $reservation)
-                        <tr class="hover:bg-[#ECEEF6] transition-colors">
+                        <tr class="hover:bg-[#F7F8FC] transition-colors">
                             <td class="px-4 py-2.5 font-medium text-[#060D26]">{{ $reservation->tenant->first_name ?? '' }} {{ $reservation->tenant->last_name ?? '' }}</td>
                             <td class="px-4 py-2.5 text-[#5B6A8E]">{{ $reservation->property->title ?? '—' }}</td>
                             <td class="px-4 py-2.5 text-[#060D26]">{{ $reservation->unit->unit_label ?? '—' }}</td>
                             <td class="px-4 py-2.5">
-                                @php
-                                    $rStatus = $reservation->rental_status;
-                                    $rClass = match($rStatus) {
-                                        'Occupied', 'Rental Agreement Signed', 'Under Negotiation', 'Pending Rental Agreement' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
-                                        'Inquiry' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
-                                        'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626]',
-                                        'Cancelled' => 'bg-[#ECEEF6] text-[#5B6A8E]',
-                                        default => 'bg-[#ECEEF6] text-[#5B6A8E]',
-                                    };
-                                @endphp
-                                <span class="text-[10px] font-medium px-2 py-0.5 rounded-full {{ $rClass }}">{{ $rStatus }}</span>
+                                <x-admin.status :status="$reservation->rental_status" />
                             </td>
                             <td class="px-4 py-2.5 text-[#5B6A8E]">{{ $reservation->created_at->format('M j, Y') }}</td>
                         </tr>
@@ -296,27 +241,15 @@
     {{-- ===== USERS ===== --}}
     @elseif($section === 'users')
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-4">
-            <x-stat-card label="Registered users" :value="$totalUsers">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0Zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0Z" /></svg>
-                </x-slot:icon>
-            </x-stat-card>
-            <x-stat-card label="Verified landlords" :value="$verifiedCount" value-color="#22C55E" icon-bg="rgba(34,197,94,0.07)">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#22C55E" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
-                </x-slot:icon>
-            </x-stat-card>
-            <x-stat-card label="Suspended" :value="$suspendedCount">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
-                </x-slot:icon>
-            </x-stat-card>
-        </div>
+        <x-stat-strip class="mb-4" :cells="[
+            ['label' => 'Users', 'value' => number_format($totalUsers)],
+            ['label' => 'Verified landlords', 'value' => number_format($verifiedCount)],
+            ['label' => 'Suspended', 'value' => number_format($suspendedCount)],
+        ]" />
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
-            <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
-                <h2 class="text-sm font-normal text-[#060D26] mb-4">Users by role</h2>
+            <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5">
+                <h2 class="text-[15px] font-semibold text-[#060D26] mb-4">Users by role</h2>
                 <div class="flex justify-center mb-3">
                     <canvas id="userRoleChart" width="160" height="160"></canvas>
                 </div>
@@ -328,25 +261,21 @@
                 </div>
             </div>
 
-            <div class="space-y-2.5 max-h-[340px] overflow-y-auto pr-1">
-                <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-3.5">
-                    <div class="mb-2"><span class="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-[#ECEEF6] text-[#060D26]">Verification pipeline</span></div>
-                    <div class="flex justify-between text-xs mb-0.5"><span class="text-[#5B6A8E]">Total applications</span><span class="font-medium text-[#060D26]">{{ $verifiedCount + $pendingVerif + $rejectedVerif }}</span></div>
-                    <div class="flex justify-between text-xs mb-0.5"><span class="text-[#5B6A8E]">Approved</span><span class="font-medium text-[#22C55E]">{{ $verifiedCount }}</span></div>
-                    <div class="flex justify-between text-xs mb-0.5"><span class="text-[#5B6A8E]">Pending</span><span class="font-medium text-[#D97706]">{{ $pendingVerif }}</span></div>
-                    <div class="flex justify-between text-xs"><span class="text-[#5B6A8E]">Rejected</span><span class="font-medium text-[#EF4444]">{{ $rejectedVerif }}</span></div>
-                </div>
-                <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-3.5">
-                    <div class="mb-2"><span class="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-[#ECEEF6] text-[#060D26]">Account status</span></div>
-                    <div class="flex justify-between text-xs mb-0.5"><span class="text-[#5B6A8E]">Active</span><span class="font-medium text-[#22C55E]">{{ $totalUsers - $suspendedCount }}</span></div>
-                    <div class="flex justify-between text-xs"><span class="text-[#5B6A8E]">Suspended</span><span class="font-medium text-[#060D26]">{{ $suspendedCount }}</span></div>
-                </div>
-                <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-3.5">
-                    <div class="mb-2"><span class="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-[#ECEEF6] text-[#060D26]">Registration trend</span></div>
-                    <div class="flex justify-between text-xs mb-0.5"><span class="text-[#5B6A8E]">This week</span><span class="font-medium text-[#060D26]">{{ $thisWeek }}</span></div>
-                    <div class="flex justify-between text-xs"><span class="text-[#5B6A8E]">Last 30 days</span><span class="font-medium text-[#060D26]">{{ $last30Days }}</span></div>
-                </div>
-            </div>
+            <x-card flush>
+                <dl class="divide-y divide-[#E2E4EC]">
+                    <div class="bg-[#F7F8FC] px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-[#5B6A8E]">Verification</div>
+                    <div class="flex items-center justify-between px-4 py-2"><dt class="text-[13px] text-[#5B6A8E]">Applications</dt><dd class="text-[13px] font-semibold tabular-nums text-[#060D26]">{{ $verifiedCount + $pendingVerif + $rejectedVerif }}</dd></div>
+                    <div class="flex items-center justify-between px-4 py-2"><dt class="text-[13px] text-[#5B6A8E]">Approved</dt><dd class="text-[13px] font-semibold tabular-nums text-[#060D26]">{{ $verifiedCount }}</dd></div>
+                    <div class="flex items-center justify-between px-4 py-2"><dt class="text-[13px] text-[#5B6A8E]">Pending</dt><dd class="text-[13px] font-semibold tabular-nums text-[#060D26]">{{ $pendingVerif }}</dd></div>
+                    <div class="flex items-center justify-between px-4 py-2"><dt class="text-[13px] text-[#5B6A8E]">Rejected</dt><dd class="text-[13px] font-semibold tabular-nums text-[#060D26]">{{ $rejectedVerif }}</dd></div>
+                    <div class="bg-[#F7F8FC] px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-[#5B6A8E]">Accounts</div>
+                    <div class="flex items-center justify-between px-4 py-2"><dt class="text-[13px] text-[#5B6A8E]">Active</dt><dd class="text-[13px] font-semibold tabular-nums text-[#060D26]">{{ $totalUsers - $suspendedCount }}</dd></div>
+                    <div class="flex items-center justify-between px-4 py-2"><dt class="text-[13px] text-[#5B6A8E]">Suspended</dt><dd class="text-[13px] font-semibold tabular-nums text-[#060D26]">{{ $suspendedCount }}</dd></div>
+                    <div class="bg-[#F7F8FC] px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-[#5B6A8E]">New sign-ups</div>
+                    <div class="flex items-center justify-between px-4 py-2"><dt class="text-[13px] text-[#5B6A8E]">This week</dt><dd class="text-[13px] font-semibold tabular-nums text-[#060D26]">{{ $thisWeek }}</dd></div>
+                    <div class="flex items-center justify-between px-4 py-2"><dt class="text-[13px] text-[#5B6A8E]">Last 30 days</dt><dd class="text-[13px] font-semibold tabular-nums text-[#060D26]">{{ $last30Days }}</dd></div>
+                </dl>
+            </x-card>
         </div>
 
         <div class="flex items-center justify-between mb-2.5">
@@ -357,60 +286,46 @@
                     $userStatusOptions = ['' => 'All statuses', 'active' => 'Active', 'suspended' => 'Suspended', 'inactive' => 'Inactive'];
                 @endphp
                 <x-styled-select name="role" :options="$userRoleOptions" :selected="$roleFilter" :autosubmit="true"
-                    class="text-xs px-2.5 py-1.5 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26]" />
+                    class="h-10 text-[13.5px] pl-3 pr-8 rounded-xl border border-[#E2E4EC] bg-white text-[#060D26]" />
                 <x-styled-select name="status" :options="$userStatusOptions" :selected="$statusFilter" :autosubmit="true"
-                    class="text-xs px-2.5 py-1.5 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26]" />
+                    class="h-10 text-[13.5px] pl-3 pr-8 rounded-xl border border-[#E2E4EC] bg-white text-[#060D26]" />
             </form>
-            <span class="text-xs text-[#5B6A8E]">Showing {{ $users->total() }} users</span>
+            <span class="text-[13px] text-[#5B6A8E]">Showing {{ $users->total() }} users</span>
         </div>
 
-        <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+        <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)] overflow-hidden">
             <div class="overflow-x-auto">
-            <table class="w-full text-xs">
+            <table class="w-full text-[13px]">
                 <thead>
-                    <tr class="border-b border-[#E2E4EC]">
-                        <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-[#5B6A8E] uppercase tracking-wider">Name</th>
-                        <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-[#5B6A8E] uppercase tracking-wider">Email</th>
-                        <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-[#5B6A8E] uppercase tracking-wider">Role</th>
-                        <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-[#5B6A8E] uppercase tracking-wider">Account</th>
-                        <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-[#5B6A8E] uppercase tracking-wider">Verification</th>
-                        <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-[#5B6A8E] uppercase tracking-wider">Joined</th>
+                    <tr class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
+                        <x-admin.th>Name</x-admin.th>
+                        <x-admin.th>Email</x-admin.th>
+                        <x-admin.th>Role</x-admin.th>
+                        <x-admin.th>Account</x-admin.th>
+                        <x-admin.th>Verification</x-admin.th>
+                        <x-admin.th>Joined</x-admin.th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-[#E2E4EC]">
                     @forelse($users as $user)
                         @php $userRole = $user->roles->first()?->role; @endphp
-                        <tr class="hover:bg-[#ECEEF6] transition-colors">
+                        <tr class="hover:bg-[#F7F8FC] transition-colors">
                             <td class="px-4 py-2.5 font-medium text-[#060D26]">{{ $user->first_name }} {{ $user->last_name }}</td>
                             <td class="px-4 py-2.5 text-[#5B6A8E]">{{ $user->email }}</td>
                             <td class="px-4 py-2.5">
-                                @if($userRole)
-                                    <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#ECEEF6] text-[#060D26]">{{ $userRole }}</span>
-                                @else
-                                    <span class="text-[10px] text-[#5B6A8E]">&mdash;</span>
-                                @endif
+                                <span class="text-[13px] text-[#060D26]">{{ $userRole ?? '—' }}</span>
                             </td>
                             <td class="px-4 py-2.5">
-                                <span class="text-[10px] font-medium px-2 py-0.5 rounded-full
-                                    {{ $user->account_status === 'active' ? 'bg-[#22C55E]/[0.07] text-[#15803D]' : 'bg-[#EF4444]/[0.07] text-[#DC2626]' }}">{{ ucfirst($user->account_status) }}</span>
+                                <x-admin.status :status="ucfirst($user->account_status)" />
                             </td>
                             <td class="px-4 py-2.5">
                                 @if($user->verificationApplication)
-                                    @php
-                                        $vStatus = $user->verificationApplication->verification_status;
-                                        $vClass = match($vStatus) {
-                                            'Approved' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
-                                            'Pending' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
-                                            'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626]',
-                                            default => 'bg-[#ECEEF6] text-[#5B6A8E]',
-                                        };
-                                    @endphp
-                                    <span class="text-[10px] font-medium px-2 py-0.5 rounded-full {{ $vClass }}">{{ $vStatus }}</span>
+                                    <x-admin.status :status="$user->verificationApplication->verification_status" />
                                 @else
-                                    <span class="text-[10px] text-[#5B6A8E]">&mdash;</span>
+                                    <span class="text-[13px] text-[#5B6A8E]">&mdash;</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-2.5 text-[#5B6A8E]">{{ $user->created_at->format('M j') }}</td>
+                            <td class="px-4 py-2.5 text-[#5B6A8E]">{{ $user->created_at->format('M j, Y') }}</td>
                         </tr>
                     @empty
                         <tr><td colspan="6" class="px-4 py-8 text-center text-[#5B6A8E]">No users found.</td></tr>

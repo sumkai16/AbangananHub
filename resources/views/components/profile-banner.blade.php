@@ -41,7 +41,7 @@
     <div class="flex flex-col sm:flex-row sm:gap-5">
         <div class="relative z-10 -mt-10 sm:-mt-12 shrink-0">
             @if($imageUrl)
-                <img loading="lazy" decoding="async" src="{{ $imageUrl }}" alt="{{ $displayName }}" class=""h-20 w-20 sm:h-24 sm:w-24 {{ $avatarRadius }} object-cover ring-4 ring-[#F7F8FC] bg-[#060D26]">
+                <img loading="lazy" decoding="async" src="{{ $imageUrl }}" alt="{{ $displayName }}" class="h-20 w-20 sm:h-24 sm:w-24 {{ $avatarRadius }} object-cover ring-4 ring-[#F7F8FC] bg-[#060D26]">
             @else
                 <div class="h-20 w-20 sm:h-24 sm:w-24 {{ $avatarRadius }} bg-[#060D26] ring-4 ring-[#F7F8FC] flex items-center justify-center text-[26px] sm:text-[30px] font-bold text-white" aria-hidden="true">{{ $initials }}</div>
             @endif

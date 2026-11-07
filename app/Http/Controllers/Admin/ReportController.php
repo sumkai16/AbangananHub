@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\Report;
+use App\Services\PaymentClaims;
 use Illuminate\Http\Request;
 
 class ReportController extends Controller
@@ -20,12 +21,25 @@ class ReportController extends Controller
             $status = 'Pending';
         }
 
-        $query = Report::with(['reporter', 'property', 'reportedUser'])
-            ->when($status !== 'All', fn ($q) => $q->where('report_status', $status));
+        $search = $request->query('search');
 
-        $reports = $query->latest('report_id')->paginate(15)->withQueryString();
+        $searched = Report::query()->when($search, function ($q) use ($search) {
+            $q->where(function ($inner) use ($search) {
+                $inner->where('report_reason', 'like', "%{$search}%")
+                    ->orWhereHas('reporter', fn ($u) => $u->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%"))
+                    ->orWhereHas('property', fn ($p) => $p->where('title', 'like', "%{$search}%"))
+                    ->orWhereHas('reportedUser', fn ($u) => $u->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%"));
+            });
+        });
 
-        $statusTotals = Report::selectRaw('report_status, COUNT(*) as total')->groupBy('report_status')->pluck('total', 'report_status');
+        $reports = (clone $searched)->with(['reporter', 'property', 'reportedUser'])
+            ->when($status !== 'All', fn ($q) => $q->where('report_status', $status))
+            ->latest('report_id')->paginate(15)->withQueryString();
+
+        $statusTotals = (clone $searched)->selectRaw('report_status, COUNT(*) as total')->groupBy('report_status')->pluck('total', 'report_status');
         $counts = [
             'Pending' => $statusTotals['Pending'] ?? 0,
             'Resolved' => $statusTotals['Resolved'] ?? 0,
@@ -36,14 +50,20 @@ class ReportController extends Controller
             'reports' => $reports,
             'status' => $status,
             'counts' => $counts,
+            'search' => $search,
         ]);
     }
 
     public function show(Report $report)
     {
-        $report->load(['reporter', 'property', 'reportedUser']);
+        $report->load(['reporter', 'property', 'reportedUser', 'paymentClaim.reservation.property']);
 
-        return view('admin.reports.show', compact('report'));
+        // A payment dispute: the evidence the admin would otherwise hunt for, and the landlord's track record.
+        $claim = $report->paymentClaim;
+        $landlordId = $report->reported_user_id ?? $claim?->reservation?->property?->landlord_id;
+        $landlordRecord = $claim && $landlordId ? PaymentClaims::landlordRecord($landlordId) : null;
+
+        return view('admin.reports.show', compact('report', 'claim', 'landlordRecord'));
     }
 
     public function resolve(Request $request, Report $report)
@@ -52,13 +72,29 @@ class ReportController extends Controller
 
         $validated = $request->validate([
             'admin_notes'  => 'required|string|max:1000',
-            'action_taken' => 'required|in:none,suspend_user,delist_property',
+            'action_taken' => 'required|in:none,warn_user,suspend_user,delist_property',
         ]);
 
         $actionLabel = 'No action taken';
 
         // Enforce action
-        if ($validated['action_taken'] === 'suspend_user') {
+        if ($validated['action_taken'] === 'warn_user') {
+            $targetUser = $report->reported_user_id
+                ? $report->reportedUser
+                : ($report->property ? $report->property->landlord : null);
+
+            if ($targetUser) {
+                // A first offence: say what is expected and what repeat reports lead to. No reporter is named.
+                Notification::notify(
+                    $targetUser->user_id,
+                    'report',
+                    'Warning from AbangananHub',
+                    'AbangananHub reviewed a complaint about how a payment was handled on one of your listings. Please confirm or record every payment you receive, and give a clear reason when you reject one. Repeated complaints can lead to your account being suspended.',
+                    route('notifications.index'),
+                );
+                $actionLabel = "Warned user: {$targetUser->first_name} {$targetUser->last_name}";
+            }
+        } elseif ($validated['action_taken'] === 'suspend_user') {
             $targetUser = $report->reported_user_id
                 ? $report->reportedUser
                 : ($report->property ? $report->property->landlord : null);

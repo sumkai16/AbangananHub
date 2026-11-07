@@ -255,6 +255,33 @@ class TenantReconcileTest extends TestCase
     }
 
     #[DataProvider('entryPoints')]
+    public function test_a_session_paid_for_a_different_amount_is_not_settled(string $flow, string $surface): void
+    {
+        $session = $this->paidSession('cs_checkout_short');
+        $session['data']['attributes']['payments'][0]['attributes']['amount'] = 100;
+        $this->fakeSession('cs_checkout_short', $session);
+        $t = $this->tenancyWithCheckout($flow, 'cs_checkout_short', ['amount' => 5000]);
+        $before = $this->noise($t);
+
+        $this->reconcile($flow, $surface, $t['tenant'], $t['reservation']);
+
+        $this->assertNothingSettled($t, $before, 'A payment for the wrong amount must stay Pending.');
+    }
+
+    #[DataProvider('entryPoints')]
+    public function test_a_session_paid_for_the_amount_asked_is_settled(string $flow, string $surface): void
+    {
+        $session = $this->paidSession('cs_checkout_exact');
+        $session['data']['attributes']['payments'][0]['attributes']['amount'] = 500000;
+        $this->fakeSession('cs_checkout_exact', $session);
+        $t = $this->tenancyWithCheckout($flow, 'cs_checkout_exact', ['amount' => 5000]);
+
+        $this->reconcile($flow, $surface, $t['tenant'], $t['reservation']);
+
+        $this->assertNotSame('Pending', $t['payment']->fresh()->status);
+    }
+
+    #[DataProvider('entryPoints')]
     public function test_settling_tells_the_conversation_and_funding_escrow_notifies_both_parties(string $flow, string $surface): void
     {
         $this->fakeSession('cs_checkout_notify', $this->paidSession('cs_checkout_notify'));
@@ -271,8 +298,11 @@ class TenantReconcileTest extends TestCase
             $this->assertSame(1, Notification::where('user_id', $t['landlord']->user_id)->where('type', 'payment')->count());
         } else {
             $this->assertStringContainsString('paid rent for Aug 2026 online', $system->first()->message);
-            $this->assertSame(0, Notification::whereIn('user_id', [$t['tenant']->user_id, $t['landlord']->user_id])->where('type', 'payment')->count(),
-                'The escrow-funded notification belongs to Pending -> Held only.');
+            // Online rent is announced once to each party; the escrow-funded pair belongs to Pending -> Held only.
+            $this->assertSame(1, Notification::where('user_id', $t['tenant']->user_id)->where('type', 'payment')->where('title', 'Rent payment received')->count());
+            $this->assertSame(1, Notification::where('user_id', $t['landlord']->user_id)->where('type', 'payment')->where('title', 'Rent received')->count());
+            $this->assertSame(2, Notification::whereIn('user_id', [$t['tenant']->user_id, $t['landlord']->user_id])->where('type', 'payment')->count(),
+                'Exactly one rent notice each, and no escrow-funded notice.');
         }
     }
 

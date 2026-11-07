@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Notification;
 use App\Models\Reservation;
+use App\Support\Payments;
 use Illuminate\Support\Carbon;
 
 /**
@@ -28,16 +29,36 @@ class RentReminderNotifier
             return;
         }
 
+        $reservation->loadMissing(['tenant', 'unit', 'property']);
         $tenant = $reservation->tenant;
         $name = $tenant ? trim($tenant->first_name . ' ' . $tenant->last_name) : 'A tenant';
+        $overdue = ($period['status'] ?? 'overdue') === 'overdue';
 
+        // One sentence a landlord can act on without opening Payments: who, how much, how many months. A single
+        // month keeps the plain due-date sentence; several say what the whole debt is.
+        $summary = RentLedger::for($reservation)->summary();
+        $months = (int) $summary['unpaidMonthCount'];
+
+        if ($months > 1) {
+            $where = collect([$reservation->unit?->unit_label, $reservation->property?->title])->filter()->implode(', ');
+            $message = $name . ' owes ' . $this->peso($summary['outstanding']) . ' for ' . $months . ' months'
+                . ($where !== '' ? " ({$where})" : '') . '. The oldest, ' . $period['label'] . ', '
+                . $this->timing($period['due_on'], $today, $overdue) . '.';
+        } else {
+            $message = $name . "'s " . $period['label'] . ' rent (' . $this->amount($period) . ') '
+                . $this->timing($period['due_on'], $today, $overdue) . '.';
+        }
+
+        // Its own type, about the tenancy: the "Needs action" tab filters on it, and RentDueNotices marks it read
+        // once the tenant has paid.
         Notification::notify(
             $landlordId,
-            'payment',
-            $this->title($today->greaterThan($period['due_on'])),
-            $name . "'s " . $period['label'] . ' rent (' . $this->peso($period['balance']) . ') '
-                . $this->timing($period['due_on'], $today) . '.',
-            route('landlord.tenancies.show', $reservation),
+            'rent_due',
+            $this->title(($period['status'] ?? '') === 'overdue'),
+            $message,
+            route('landlord.payments.ledger', $reservation),
+            null,
+            $reservation,
         );
     }
 
@@ -57,9 +78,11 @@ class RentReminderNotifier
         Notification::notify(
             $tenant->user_id,
             'payment',
-            $this->title($today->greaterThan($period['due_on'])),
-            'Your ' . $period['label'] . ' rent (' . $this->peso($period['balance']) . ') '
-                . $this->timing($period['due_on'], $today) . '. You can pay it online from your tenancy page, or arrange it with your landlord.',
+            $this->title(($period['status'] ?? '') === 'overdue'),
+            'Your ' . $period['label'] . ' rent (' . $this->amount($period) . ') '
+                . $this->timing($period['due_on'], $today, ($period['status'] ?? 'overdue') === 'overdue') . (Payments::onlineFor($reservation)
+                    ? '. Pay it online from your tenancy page, or pay your landlord directly and tap "I\'ve paid" there.'
+                    : '. Pay your landlord, then tap "I\'ve paid" on your tenancy page so they can confirm it.'),
             route('tenancy.show', $reservation),
         );
 
@@ -71,16 +94,27 @@ class RentReminderNotifier
         return $overdue ? 'Rent overdue' : 'Rent due soon';
     }
 
-    private function timing(Carbon $dueOn, Carbon $today): string
+    /** Past the due date but still inside the grace period is "due", not "overdue" - the same word the ledger uses. */
+    private function timing(Carbon $dueOn, Carbon $today, bool $overdue = true): string
     {
-        $days = $today->diffInDays($dueOn, false); // positive = due date is ahead
+        $days = (int) round($today->diffInDays($dueOn, false)); // positive = due date is ahead
 
         return match (true) {
             $days > 1   => "is due in {$days} days",
             $days === 1 => 'is due tomorrow',
             $days === 0 => 'is due today',
-            default     => 'is ' . abs($days) . ' ' . (abs($days) === 1 ? 'day' : 'days') . ' overdue',
+            default     => ($overdue ? 'is ' : 'was due ') . abs($days) . ' ' . (abs($days) === 1 ? 'day' : 'days') . ($overdue ? ' overdue' : ' ago'),
         };
+    }
+
+    /** The balance, and a mention of the late fee when it is part of it. */
+    private function amount(array $period): string
+    {
+        $text = $this->peso($period['balance']);
+
+        return ($period['late_fee'] ?? 0) > 0
+            ? $text . ', including a ' . $this->peso($period['late_fee']) . ' late fee'
+            : $text;
     }
 
     private function peso(float $amount): string

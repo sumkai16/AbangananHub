@@ -26,7 +26,7 @@
         @endif
 
         {{-- Summary cards --}}
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div class="stat-chips grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             <x-stat-card label="Total" :value="$counts['all']">
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
@@ -70,7 +70,9 @@
                 'Under Negotiation' => 'Negotiation',
                 'Pending Rental Agreement' => 'Pending Agreement',
                 'Rental Agreement Signed' => 'Signed',
+                'Reserved' => 'Reserved',
                 'Occupied' => 'Occupied',
+                'Completed' => 'Completed',
                 'Rejected' => 'Rejected',
                 'Cancelled' => 'Cancelled',
             ] as $key => $label)
@@ -113,163 +115,137 @@
                     @endif
                 </div>
             @else
-                {{-- Mobile card list — same data/actions as the table below, stacked for a phone screen --}}
-                <div class="lg:hidden divide-y divide-[#5B6A8E]/10">
-                    @foreach($reservations as $reservation)
-                        @continue(!$reservation->property)
-                        @php
-                            $mStatusStyles = [
-                                'Inquiry' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
-                                'Under Negotiation' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
-                                'Pending Rental Agreement' => 'bg-[#ECEEF6] text-[#060D26]',
-                                'Rental Agreement Signed' => 'bg-[#ECEEF6] text-[#060D26]',
-                                'Occupied' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
-                                'Completed' => 'bg-[#FF8A66]/[0.08] text-[#060D26]',
-                                'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626]',
-                                'Cancelled' => 'bg-[#5B6A8E]/10 text-[#5B6A8E]',
-                            ];
-                            $mCanReview = in_array($reservation->rental_status, ['Occupied', 'Completed'], true)
-                                && \App\Models\Review::canReview(auth()->id(), $reservation->property_id);
-                            $mLandlordName = trim(($reservation->property->landlord->first_name ?? '') . ' ' . ($reservation->property->landlord->last_name ?? ''));
-                            $mModalData = [
-                                'reservation_id' => $reservation->reservation_id,
-                                'reservation_date' => $reservation->reservation_date?->format('M d, Y'),
-                                'move_in_date' => $reservation->target_move_in_date?->format('M d, Y') ?? 'Flexible',
-                                'duration_of_stay' => $reservation->duration_of_stay,
-                                'occupants_count' => $reservation->occupants_count,
-                                'remarks' => $reservation->remarks,
-                                'rental_status' => $reservation->rental_status,
-                                'landlord_name' => $mLandlordName !== '' ? $mLandlordName : 'Unknown',
-                                'landlord_contact' => $reservation->property->landlord->contact_number ?? '—',
-                                'property_title' => $reservation->property->title,
-                                'unit_label' => $reservation->unit->unit_label ?? 'No unit',
-                                'property_photo' => $reservation->property->media->first()?->media_url,
-                                'is_terminal' => in_array($reservation->rental_status, ['Rejected', 'Cancelled']),
-                                'step_index' => in_array($reservation->rental_status, ['Rejected', 'Cancelled']) ? -1 : array_search($reservation->rental_status, ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied']),
-                            ];
-                        @endphp
-                        <div class="p-4">
+                @php
+                    // One row model for both layouts, so the phone cards and the desktop table can't drift apart.
+                    $statusPill = [
+                        'Inquiry' => ['Inquiry sent', 'bg-[#FBBF24]/[0.12] text-[#92400E]'],
+                        'Under Negotiation' => ['Negotiating', 'bg-[#FBBF24]/[0.12] text-[#92400E]'],
+                        'Pending Rental Agreement' => ['Agreement to sign', 'bg-[#FF8A66]/[0.14] text-[#9A3412]'],
+                        'Rental Agreement Signed' => ['Signed', 'bg-[#ECEEF6] text-[#060D26]'],
+                        'Reserved' => ['Reserved', 'bg-[#ECEEF6] text-[#060D26]'],
+                        'Occupied' => ['Living here', 'bg-[#22C55E]/[0.10] text-[#15803D]'],
+                        'Completed' => ['Ended', 'bg-[#5B6A8E]/10 text-[#334155]'],
+                        'Rejected' => ['Declined', 'bg-[#EF4444]/[0.08] text-[#B91C1C]'],
+                        'Cancelled' => ['Cancelled', 'bg-[#5B6A8E]/10 text-[#5B6A8E]'],
+                    ];
+                    $journeySteps = ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied'];
+                    $rows = $reservations->filter(fn ($r) => $r->property)->map(function ($r) use ($statusPill, $journeySteps) {
+                        $landlord = $r->property->landlord;
+                        $landlordName = trim(($landlord->first_name ?? '').' '.($landlord->last_name ?? ''));
+                        $closed = in_array($r->rental_status, ['Rejected', 'Cancelled'], true);
+                        $moveIn = $r->target_move_in_date?->format('M j, Y') ?? 'Flexible';
+
+                        return [
+                            'r' => $r,
+                            'photo' => \App\Support\Images::src($r->property->media->first()?->media_url, 'card'),
+                            'unit' => $r->unit->unit_label ?? 'No unit',
+                            'landlord' => $landlordName !== '' ? $landlordName : 'Unknown',
+                            'moveIn' => $moveIn,
+                            'duration' => $r->duration_of_stay ?: 'Open-ended',
+                            // A signed lease says where the money stands (the same answer as the primary button), not just "Signed".
+                            'pill' => match ($r->paymentState()) {
+                                'due' => ['Payment due', 'bg-[#FF8A66]/[0.14] text-[#9A3412]'],
+                                'reported' => ['Payment sent', 'bg-[#FBBF24]/[0.12] text-[#92400E]'],
+                                'paid' => ['Paid · move in', 'bg-[#22C55E]/[0.10] text-[#15803D]'],
+                                default => $statusPill[$r->rental_status] ?? [$r->rental_status, 'bg-[#ECEEF6] text-[#060D26]'],
+                            },
+                            'closed' => $closed,
+                            'canReview' => in_array($r->rental_status, ['Occupied', 'Completed'], true)
+                                && \App\Models\Review::canReview(auth()->id(), $r->property_id),
+                            'details' => [
+                                'reservation_id' => $r->reservation_id,
+                                'reservation_date' => $r->reservation_date?->format('M d, Y'),
+                                'move_in_date' => $r->target_move_in_date?->format('M d, Y') ?? 'Flexible',
+                                'duration_of_stay' => $r->duration_of_stay,
+                                'occupants_count' => $r->occupants_count,
+                                'remarks' => $r->remarks,
+                                'rejection_reason' => $r->rental_status === 'Rejected' ? $r->rejection_reason : null,
+                                'rental_status' => $r->rental_status,
+                                'landlord_name' => $landlordName !== '' ? $landlordName : 'Unknown',
+                                'landlord_contact' => $landlord->contact_number ?? '—',
+                                'property_title' => $r->property->title,
+                                'unit_label' => $r->unit->unit_label ?? 'No unit',
+                                'property_photo' => \App\Support\Images::src($r->property->media->first()?->media_url, 'card'),
+                                'is_terminal' => $closed,
+                                'step_index' => $closed ? -1 : array_search($r->rental_status, $journeySteps),
+                            ],
+                        ];
+                    });
+                @endphp
+
+                {{-- Phones and tablets: one card per reservation --}}
+                <ul class="lg:hidden divide-y divide-[#E2E4EC]">
+                    @foreach($rows as $row)
+                        <li class="p-4 {{ $row['closed'] ? 'bg-[#F7F8FC]/60' : '' }}">
                             <div class="flex items-start gap-3">
-                                <div class="w-12 h-12 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0">
-                                    @if($photo = $reservation->property->media->first())
-                                        <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
+                                <div class="w-14 h-14 rounded-xl bg-[#ECEEF6] overflow-hidden shrink-0 {{ $row['closed'] ? 'opacity-60 grayscale' : '' }}">
+                                    @if($row['photo'])
+                                        <img loading="lazy" decoding="async" src="{{ $row['photo'] }}" alt="" class="w-full h-full object-cover">
                                     @endif
                                 </div>
                                 <div class="min-w-0 flex-1">
-                                    <p class="text-sm font-medium text-[#060D26] truncate">{{ $reservation->property->title }}</p>
-                                    <p class="text-[12px] text-[#5B6A8E] truncate">{{ $reservation->unit->unit_label ?? 'No unit' }}</p>
-                                    <span class="inline-flex mt-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold {{ $mStatusStyles[$reservation->rental_status] ?? '' }}">
-                                        {{ $reservation->rental_status }}
-                                    </span>
+                                    <div class="flex items-start justify-between gap-2">
+                                        <p class="min-w-0 text-[14px] font-semibold leading-snug {{ $row['closed'] ? 'text-[#5B6A8E]' : 'text-[#060D26]' }}">{{ $row['r']->property->title }}</p>
+                                        <span class="shrink-0 inline-flex items-center h-6 px-2.5 rounded-full text-[11px] font-bold whitespace-nowrap {{ $row['pill'][1] }}">{{ $row['pill'][0] }}</span>
+                                    </div>
+                                    <p class="mt-0.5 text-[12.5px] text-[#5B6A8E] truncate">{{ $row['unit'] }} · {{ $row['landlord'] }}</p>
+                                    <p class="mt-1 text-[12.5px] text-[#060D26] tabular-nums">
+                                        Move-in: {{ $row['moveIn'] }} <span class="text-[#5B6A8E]">· {{ $row['duration'] }}</span>
+                                    </p>
+                                    @if($row['details']['rejection_reason'])
+                                        <p class="mt-1 text-[12.5px] text-[#B91C1C]">Reason: {{ $row['details']['rejection_reason'] }}</p>
+                                    @endif
                                 </div>
                             </div>
-                            <div class="flex items-center justify-between mt-3 text-[12px] text-[#5B6A8E]">
-                                <span>Move-in: {{ $reservation->target_move_in_date?->format('M d, Y') ?? 'Flexible' }}</span>
-                                <span>{{ $reservation->duration_of_stay ?? '—' }}</span>
-                            </div>
                             <div class="flex flex-wrap items-center gap-2 mt-3">
-                                <button @click="openModal({{ Js::from($mModalData) }})"
-                                    class="flex-1 text-center text-[12px] font-semibold text-[#060D26] border border-[#060D26]/25 rounded-lg px-3 py-2">
-                                    View Details
-                                </button>
-                                @include('tenant.reservations._actions', ['reservation' => $reservation, 'canReview' => $mCanReview, 'pad' => 'py-2'])
+                                @include('tenant.reservations._actions', ['reservation' => $row['r'], 'canReview' => $row['canReview'], 'details' => $row['details'], 'mobile' => true])
                             </div>
-                        </div>
+                        </li>
                     @endforeach
-                </div>
+                </ul>
 
-                <div class="hidden lg:block overflow-x-auto scrollbar-thin-light">
-                <table class="w-full min-w-[820px] text-left">
+                {{-- Desktop: four columns, every cell on one line, one coloured button per row --}}
+                <div class="hidden lg:block">
+                {{-- Rental is capped at 40% and Move-in / Status shrink to their content, so the spare width goes to
+                     Actions and the buttons stay on one line instead of the title column sitting half empty. --}}
+                <table class="w-full text-left">
                     <thead>
                         <tr class="bg-[#F7F8FC] text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wider">
-                            <th class="px-5 py-3">Property / Unit</th>
-                            <th class="px-5 py-3">Landlord</th>
-                            <th class="px-5 py-3">Move-in date</th>
-                            <th class="px-5 py-3">Duration</th>
-                            <th class="px-5 py-3">Status</th>
+                            <th class="w-[40%] px-5 py-3">Rental</th>
+                            <th class="w-px whitespace-nowrap px-4 py-3">Move-in</th>
+                            <th class="w-px whitespace-nowrap px-4 py-3">Status</th>
                             <th class="px-5 py-3 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @foreach($reservations as $reservation)
-                            @continue(!$reservation->property)
-                            @php
-                                $statusStyles = [
-                                    'Inquiry' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
-                                    'Under Negotiation' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
-                                    'Pending Rental Agreement' => 'bg-[#ECEEF6] text-[#060D26]',
-                                    'Rental Agreement Signed' => 'bg-[#ECEEF6] text-[#060D26]',
-                                    'Occupied' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
-                                    'Completed' => 'bg-[#FF8A66]/[0.08] text-[#060D26]',
-                                    'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626]',
-                                    'Cancelled' => 'bg-[#5B6A8E]/10 text-[#5B6A8E]',
-                                ];
-                                $canReview = in_array($reservation->rental_status, ['Occupied', 'Completed'], true)
-                                    && \App\Models\Review::canReview(auth()->id(), $reservation->property_id);
-                                $landlordName = trim(($reservation->property->landlord->first_name ?? '') . ' ' . ($reservation->property->landlord->last_name ?? ''));
-                                $journeySteps = ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied'];
-                                $isTerminal = in_array($reservation->rental_status, ['Rejected', 'Cancelled']);
-                                $stepIndex = array_search($reservation->rental_status, $journeySteps);
-                                $modalData = [
-                                    'reservation_id' => $reservation->reservation_id,
-                                    'reservation_date' => $reservation->reservation_date?->format('M d, Y'),
-                                    'move_in_date' => $reservation->target_move_in_date?->format('M d, Y') ?? 'Flexible',
-                                    'duration_of_stay' => $reservation->duration_of_stay,
-                                    'occupants_count' => $reservation->occupants_count,
-                                    'remarks' => $reservation->remarks,
-                                    'rental_status' => $reservation->rental_status,
-                                    'landlord_name' => $landlordName !== '' ? $landlordName : 'Unknown',
-                                    'landlord_contact' => $reservation->property->landlord->contact_number ?? '—',
-                                    'property_title' => $reservation->property->title,
-                                    'unit_label' => $reservation->unit->unit_label ?? 'No unit',
-                                    'property_photo' => $reservation->property->media->first()?->media_url,
-                                    'is_terminal' => $isTerminal,
-                                    'step_index' => $isTerminal ? -1 : $stepIndex,
-                                ];
-                            @endphp
-                            <tr class="border-t border-[#5B6A8E]/10 hover:bg-[#ECEEF6] transition-colors duration-150">
-                                <td class="px-5 py-4">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-10 h-10 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0">
-                                            @if($photo = $reservation->property->media->first())
-                                                <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
+                    <tbody class="divide-y divide-[#E2E4EC]">
+                        @foreach($rows as $row)
+                            <tr class="{{ $row['closed'] ? 'bg-[#F7F8FC]/60' : 'hover:bg-[#F7F8FC]' }} transition-colors duration-150">
+                                <td class="max-w-0 px-5 py-3.5">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <div class="w-11 h-11 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0 {{ $row['closed'] ? 'opacity-60 grayscale' : '' }}">
+                                            @if($row['photo'])
+                                                <img loading="lazy" decoding="async" src="{{ $row['photo'] }}" alt="" class="w-full h-full object-cover">
                                             @endif
                                         </div>
                                         <div class="min-w-0">
-                                            <p class="text-sm font-medium text-[#060D26] truncate">
-                                                {{ $reservation->property->title }}</p>
-                                            <p class="text-[12px] text-[#5B6A8E] truncate">
-                                                {{ $reservation->unit->unit_label ?? 'No unit' }}</p>
+                                            <p class="text-[14px] font-semibold truncate {{ $row['closed'] ? 'text-[#5B6A8E]' : 'text-[#060D26]' }}" title="{{ $row['r']->property->title }}">{{ $row['r']->property->title }}</p>
+                                            <p class="text-[12.5px] text-[#5B6A8E] truncate">{{ $row['unit'] }} · {{ $row['landlord'] }}</p>
+                                            @if($row['details']['rejection_reason'])
+                                                <p class="text-[12.5px] text-[#B91C1C] truncate" title="{{ $row['details']['rejection_reason'] }}">Reason: {{ $row['details']['rejection_reason'] }}</p>
+                                            @endif
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-5 py-4">
-                                    <p class="text-sm font-semibold text-[#060D26]">
-                                        {{ $landlordName !== '' ? $landlordName : 'Unknown' }}
-                                    </p>
-                                    <p class="text-[12px] text-[#5B6A8E]">{{ $reservation->property->landlord->contact_number ?? '—' }}</p>
+                                <td class="px-4 py-3.5 whitespace-nowrap">
+                                    <p class="text-[13.5px] text-[#060D26] tabular-nums">{{ $row['moveIn'] }}</p>
+                                    <p class="text-[12px] text-[#5B6A8E]">{{ $row['duration'] }}</p>
                                 </td>
-                                <td class="px-5 py-4">
-                                    <p class="text-sm text-[#060D26]">{{ $reservation->target_move_in_date?->format('M d, Y') ?? 'Flexible' }}
-                                    </p>
+                                <td class="whitespace-nowrap px-4 py-3.5">
+                                    <span class="inline-flex items-center h-6 px-2.5 rounded-full text-[11px] font-bold whitespace-nowrap {{ $row['pill'][1] }}">{{ $row['pill'][0] }}</span>
                                 </td>
-                                <td class="px-5 py-4">
-                                    <p class="text-sm text-[#060D26]">{{ $reservation->duration_of_stay ?? '—' }}</p>
-                                </td>
-                                <td class="px-5 py-4">
-                                    <span
-                                        class="inline-flex px-2.5 py-1 rounded-full text-[11px] font-bold {{ $statusStyles[$reservation->rental_status] ?? '' }}">
-                                        {{ $reservation->rental_status }}
-                                    </span>
-                                </td>
-                                <td class="px-5 py-4">
-                                    <div class="flex flex-wrap items-center justify-end gap-2">
-                                        <button @click="openModal({{ Js::from($modalData) }})"
-                                            class="text-[12px] font-semibold text-[#060D26] hover:underline px-2 py-1.5">
-                                            View Details
-                                        </button>
-
-                                        @include('tenant.reservations._actions', ['reservation' => $reservation, 'canReview' => $canReview, 'pad' => 'py-1.5'])
+                                <td class="px-5 py-3.5">
+                                    <div class="flex flex-wrap items-center justify-end gap-1.5">
+                                        @include('tenant.reservations._actions', ['reservation' => $row['r'], 'canReview' => $row['canReview'], 'details' => $row['details']])
                                     </div>
                                 </td>
                             </tr>
@@ -352,13 +328,18 @@
                         </template>
 
                         <template x-if="selected.is_terminal">
-                            <div class="flex items-center gap-3 rounded-xl px-4 py-3"
+                            <div class="rounded-xl px-4 py-3"
                                 :class="selected.rental_status === 'Rejected' ? 'bg-[#EF4444]/[0.07]' : 'bg-[#5B6A8E]/10'">
-                                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                                    :class="selected.rental_status === 'Rejected' ? 'stroke-[#DC2626]' : 'stroke-[#5B6A8E]'">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                <p class="text-[13px] font-bold" :class="selected.rental_status === 'Rejected' ? 'text-[#DC2626]' : 'text-[#5B6A8E]'" x-text="'This reservation was ' + selected.rental_status.toLowerCase()"></p>
+                                <div class="flex items-center gap-3">
+                                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2" class="shrink-0"
+                                        :class="selected.rental_status === 'Rejected' ? 'stroke-[#DC2626]' : 'stroke-[#5B6A8E]'">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    <p class="text-[13px] font-bold" :class="selected.rental_status === 'Rejected' ? 'text-[#DC2626]' : 'text-[#5B6A8E]'" x-text="'This reservation was ' + selected.rental_status.toLowerCase()"></p>
+                                </div>
+                                <p x-show="selected.rejection_reason" class="mt-2 pl-[30px] text-[13px] text-[#060D26]">
+                                    <span class="font-semibold">Reason:</span> <span x-text="selected.rejection_reason"></span>
+                                </p>
                             </div>
                         </template>
 

@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Conversation;
 use App\Models\Property;
 use App\Models\Report;
 use App\Models\User;
+use App\Support\ReportTargets;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -43,23 +43,11 @@ class ReportController extends Controller
         $users = collect();
 
         if (!$targetType || $targetType === 'property') {
-            $properties = Property::where('landlord_id', '!=', $userId)
-                ->orderBy('title')
-                ->get(['property_id', 'title', 'landlord_id']);
+            $properties = ReportTargets::properties($userId);
         }
 
         if (!$targetType || $targetType === 'user') {
-            // Only people this user has shared a conversation with. The list used to be every account, with email
-            // addresses, so any logged-in user could harvest them. Anyone else is reported from their profile's
-            // Report button (?user_id=), which pre-selects them.
-            $partnerIds = Conversation::where('tenant_id', $userId)->pluck('landlord_id')
-                ->merge(Conversation::where('landlord_id', $userId)->pluck('tenant_id'))
-                ->unique()
-                ->reject(fn ($id) => (int) $id === (int) $userId);
-
-            $users = User::whereIn('user_id', $partnerIds)
-                ->orderBy('first_name')
-                ->get(['user_id', 'first_name', 'last_name']);
+            $users = ReportTargets::users($userId);
         }
 
         return view('reports.create', [
@@ -78,8 +66,8 @@ class ReportController extends Controller
     {
         $validated = $request->validate([
             'target_type' => 'required|in:property,user',
-            'property_id' => 'required_if:target_type,property|nullable|exists:properties,property_id',
-            'reported_user_id' => 'required_if:target_type,user|nullable|exists:users,user_id',
+            'property_id' => 'bail|required_if:target_type,property|nullable|integer|exists:properties,property_id',
+            'reported_user_id' => 'bail|required_if:target_type,user|nullable|integer|exists:users,user_id',
             'category' => 'required|in:' . implode(',', self::CATEGORIES),
             'details' => 'nullable|string|max:1000',
         ]);
@@ -109,6 +97,11 @@ class ReportController extends Controller
         // returns 422 JSON on this path, so errors need no special handling.
         if ($request->expectsJson()) {
             return response()->json(['message' => $message]);
+        }
+
+        // The landlord's "File a report" modal on My Complaints: back to the list, where the new report now shows.
+        if ($request->input('return_to') === 'complaints' && $request->user()->hasRole('Landlord')) {
+            return redirect()->route('landlord.complaints.index')->with('success', $message);
         }
 
         return redirect()->route('reports.create')->with('success', $message);

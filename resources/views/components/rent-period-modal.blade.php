@@ -2,7 +2,8 @@
     Detail for one row of the rent ledger: the month's figures plus the individual
     payments that made it up. Opened by dispatching `open-period-detail` with the
     array from RentLedger::periodPayload() (plus `pill` / `status_label` for the
-    status chip, and `void_action` on a payment the landlord may void).
+    status chip, `void_action` on a payment the landlord may void, and `record` on an unpaid month the landlord
+    can record a payment for).
 
     Shared by the landlord and tenant tenancy pages — a payment without
     `void_action` simply renders without the Void button.
@@ -17,6 +18,12 @@
         close() { this.show = false; },
         peso(value) {
             return '₱' + (value || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+        // The month's own Record: close this popup, then open the record form for the month and what it still owes.
+        recordPayment() {
+            const detail = { period: this.period.record.period, balance: this.period.record.balance };
+            this.close();
+            this.$nextTick(() => window.dispatchEvent(new CustomEvent('open-record-payment', { detail })));
         },
         voidPayment(p) {
             const detail = { id: p.id, action: p.void_action, amount: p.amount, label: this.period.label + ' Rent, recorded ' + p.date };
@@ -89,6 +96,26 @@
                                 </div>
                             </dl>
 
+                            {{-- Late fee: what it is, and the landlord's way to drop it --}}
+                            <template x-if="period.late_fee > 0 || period.late_fee_waived">
+                                <p class="mt-4 rounded-xl bg-[#F7F8FC] px-4 py-3 text-[13px] leading-5 text-[#060D26]">
+                                    <template x-if="period.late_fee > 0">
+                                        <span>Rent <span class="font-semibold tabular-nums" x-text="peso(period.rent)"></span> + late fee <span class="font-semibold tabular-nums" x-text="peso(period.late_fee)"></span>. Rent was not paid in full by the end of the grace period.</span>
+                                    </template>
+                                    <template x-if="period.late_fee_waived">
+                                        <span class="font-semibold">Late fee waived.</span>
+                                    </template>
+                                </p>
+                            </template>
+                            <form x-show="period.waive_action" method="POST" :action="period.waive_action" class="mt-3">
+                                @csrf
+                                <input type="hidden" name="billing_period" :value="period.billing_period">
+                                <button type="submit"
+                                    class="h-9 px-3 rounded-lg border border-[#E2E4EC] text-[12.5px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] transition-colors duration-200 cursor-pointer">
+                                    Waive late fee
+                                </button>
+                            </form>
+
                             {{-- Payments that made up this month --}}
                             <h3 class="mt-6 text-[13px] font-semibold text-[#060D26]">Payments received</h3>
                             <template x-if="period.payments.length === 0">
@@ -105,6 +132,10 @@
                                                 <template x-if="p.reference"><span> · Ref <span x-text="p.reference"></span></span></template>
                                             </p>
                                         </div>
+                                        <a x-show="p.receipt_url" :href="p.receipt_url"
+                                            class="shrink-0 h-8 px-2 inline-flex items-center text-[12.5px] font-semibold text-[#B35A3D] hover:underline">
+                                            Receipt
+                                        </a>
                                         <button type="button" x-show="p.void_action" @click="voidPayment(p)"
                                             class="shrink-0 h-8 px-2 text-[12.5px] font-semibold text-[#5B6A8E] hover:text-[#DC2626] transition-colors duration-200 cursor-pointer">
                                             Void
@@ -114,10 +145,15 @@
                             </ul>
                         </div>
 
-                        <div class="px-5 sm:px-6 py-4 border-t border-[#E2E4EC] flex justify-end">
+                        <div class="px-5 sm:px-6 py-4 border-t border-[#E2E4EC] flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
                             <button type="button" @click="close()"
                                 class="h-10 px-5 rounded-xl border border-[#E2E4EC] text-[13px] font-semibold text-[#060D26] hover:border-[#060D26]/40 hover:bg-[#F7F8FC] transition-colors duration-200 cursor-pointer">
                                 Close
+                            </button>
+                            {{-- Only on the landlord's ledger, for an unpaid month of a running tenancy (RentLedger payload `record`). --}}
+                            <button type="button" x-show="period.record" @click="recordPayment()"
+                                class="h-11 sm:h-10 px-5 rounded-xl bg-[#FF8A66] text-[13px] font-semibold text-[#060D26] hover:bg-[#E96F4F] transition-colors duration-200 cursor-pointer">
+                                Record payment
                             </button>
                         </div>
                     </div>

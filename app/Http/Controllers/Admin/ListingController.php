@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\RejectListingRequest;
 use App\Models\AuditLog;
+use App\Models\LandlordVerification;
 use App\Models\Notification;
 use App\Models\Property;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ListingController extends Controller
 {
@@ -25,20 +28,27 @@ class ListingController extends Controller
      */
     public function approval(Request $request)
     {
-        $status = $request->query('status', 'Pending');
+        $status = $request->query('status', 'All');
 
         if (! in_array($status, self::STATUSES, true)) {
-            $status = 'Pending';
+            $status = 'All';
         }
 
-        $query = Property::with(['landlord', 'media', 'units'])
+        $query = Property::with(['landlord', 'media', 'units', 'documents'])
+            ->withCount(['media as photos_count' => fn ($q) => $q->where('media_type', 'Image'), 'documents', 'documents as verified_documents_count' => fn ($q) => $q->where('status', 'Verified')])
             ->submitted()
             ->when($status === 'Suspended', fn ($q) => $q->where('publication_status', 'Suspended'))
             ->when(! in_array($status, ['All', 'Suspended'], true), fn ($q) => $q->where('verification_status', $status));
 
-        $pendingListings = $status === 'Pending'
-            ? $query->oldest()->paginate(15)->withQueryString()
-            : $query->latest()->paginate(15)->withQueryString();
+        // Waiting listings oldest first. On All they sit above everything else, then newest first.
+        $pendingListings = match ($status) {
+            'Pending' => $query->oldest(),
+            'All' => $query->orderByRaw("properties.verification_status = 'Pending' desc")
+                ->orderByRaw("case when properties.verification_status = 'Pending' then properties.created_at end asc")
+                ->latest('properties.created_at'),
+            default => $query->latest(),
+        };
+        $pendingListings = $pendingListings->paginate(10)->withQueryString();
 
         // One grouped query for the verification tabs instead of one count each.
         $byStatus = Property::submitted()
@@ -54,15 +64,36 @@ class ListingController extends Controller
             'All' => (int) $byStatus->sum(),
         ];
 
-        return view('admin.listings.approval', compact('pendingListings', 'status', 'counts'));
+        $since = now()->subDays(30);
+        $summary = [
+            'oldest'   => ($o = Property::submitted()->where('verification_status', 'Pending')->min('created_at')) ? Carbon::parse($o) : null,
+            'approved' => Property::submitted()->where('verification_status', 'Approved')->where('updated_at', '>=', $since)->count(),
+            'rejected' => Property::submitted()->where('verification_status', 'Rejected')->where('updated_at', '>=', $since)->count(),
+            // Waiting listings with no photo or no unit: not ready to be shown to tenants.
+            'incomplete' => Property::submitted()->where('verification_status', 'Pending')
+                ->where(fn ($q) => $q->whereDoesntHave('media', fn ($m) => $m->where('media_type', 'Image'))->orWhereDoesntHave('units'))->count(),
+        ];
+
+        // The desk shows one listing in full: the one in ?open=, else the first on the page.
+        $selected = $pendingListings->getCollection()->firstWhere('property_id', (int) $request->query('open')) ?? $pendingListings->first();
+        // What the desk needs beyond the list row: each unit's photos, and whether the landlord's application was approved.
+        $selected?->loadMissing('units.media');
+        $landlordVerified = $selected ? LandlordVerification::where('user_id', $selected->landlord_id)->where('verification_status', 'Approved')->exists() : false;
+
+        return view('admin.listings.approval', compact('pendingListings', 'status', 'counts', 'summary', 'selected', 'landlordVerified'));
     }
 
     /**
-     * Approve a property listing.
+     * Approve a property listing, and the units that were submitted with it.
+     *
+     * One submission is one decision: every unit still Pending goes Approved in the same transaction. A unit the
+     * admin already rejected stays Rejected (reject it first to hold it back). Units are updated one by one, not with
+     * a mass update, so PropertyUnitObserver still writes "Unit X approved" to the property's activity log.
+     * plans/approve-property-with-units.md
      */
     public function approve($property_id)
     {
-        $property = DB::transaction(function () use ($property_id) {
+        [$property, $unitCount] = DB::transaction(function () use ($property_id) {
             $property = Property::where('property_id', $property_id)->lockForUpdate()->firstOrFail();
             abort_if($property->verification_status !== 'Pending', 409, 'This listing has already been reviewed.');
             $property->update(['verification_status' => 'Approved']);
@@ -75,18 +106,34 @@ class ListingController extends Controller
                 ['landlord_id' => $property->landlord_id],
             );
 
-            return $property;
+            $units = $property->units()->where('verification_status', 'Pending')->lockForUpdate()->get();
+            foreach ($units as $unit) {
+                $unit->update(['verification_status' => 'Approved', 'rejection_reason' => null]);
+
+                AuditLog::record(
+                    'unit.approve',
+                    "Approved unit '{$unit->unit_label}' in {$property->title}.",
+                    $unit,
+                    null,
+                    ['property_id' => $property->property_id, 'landlord_id' => $property->landlord_id, 'via' => 'listing.approve'],
+                );
+            }
+
+            return [$property, $units->count()];
         });
+
+        $withUnits = $unitCount > 0 ? ', with '.$unitCount.' '.Str::plural('unit', $unitCount).',' : '';
 
         Notification::notify(
             $property->landlord_id,
             'listing',
             'Listing approved',
-            "Your listing '{$property->title}' was approved and is now visible to tenants.",
+            "Your listing '{$property->title}' was approved{$withUnits} and is now visible to tenants.",
             route('properties.show', $property->property_id),
         );
 
-        return redirect()->back()->with('success', "The listing '{$property->title}' has been approved successfully.");
+        return redirect()->back()->with('success', "The listing '{$property->title}' has been approved successfully"
+            .($unitCount > 0 ? ", with {$unitCount} ".Str::plural('unit', $unitCount).'.' : '.'));
     }
 
     /**

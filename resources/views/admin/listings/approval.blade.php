@@ -3,236 +3,331 @@
 @section('page-title', 'Property Verifications')
 
 @section('content')
-<div class="max-w-[1600px] mx-auto" x-data="{ rejectTarget: { id: null, title: '' }, openReject(id, title) { this.rejectTarget = { id, title }; window.dispatchEvent(new CustomEvent('open-modal', { detail: 'reject-listing' })); } }">
+@vite(['resources/js/maps/admin-property-map.js'])
+@php
+    $empty = [
+        'Pending' => ['check', 'No listings waiting', 'New listings show here once a landlord submits them.'],
+        'Approved' => ['inbox', 'No approved listings yet', 'Listings you approve show here.'],
+        'Rejected' => ['inbox', 'No rejected listings', 'Listings you reject show here, with your reason.'],
+        'Suspended' => ['inbox', 'No suspended listings', 'Listings taken down after a report show here.'],
+        'All' => ['inbox', 'No listings yet', 'Listings landlords submit show here.'],
+    ][$status] ?? ['inbox', 'No properties here', null];
+    $plural = fn ($n, $word) => $n.' '.\Illuminate\Support\Str::plural($word, $n);
+@endphp
+<div class="admin-compact admin-fit">
 
-    {{-- Page header --}}
-    <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div class="flex items-center gap-3.5">
-            <x-page-icon path="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0 1 18 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3 1.5 1.5 3-3.75" />
-            <div>
-                <h1 class="text-2xl font-normal text-[#060D26] tracking-tight">Property Verifications</h1>
-                <p class="text-sm text-[#5B6A8E] mt-1">Review pending property listings before they go live.</p>
-            </div>
-        </div>
-        @if ($counts['Pending'] > 0)
-            <span class="inline-flex items-center gap-1.5 rounded-full bg-[#FBBF24]/15 px-3 py-1.5 text-xs font-semibold text-[#92600A]">
-                <svg class="h-3.5 w-3.5 text-[#FBBF24]" viewBox="0 0 24 24" fill="currentColor">
-                    <path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
-                </svg>
-                {{ $counts['Pending'] }} awaiting review
-            </span>
-        @endif
-    </div>
+    <x-admin.header title="Property Verifications" subtitle="Listings waiting to go live, and what is missing from each.">
+        <x-slot:actions>
+            <x-admin.stat-line :cells="[
+                ['label' => 'Waiting', 'value' => number_format($counts['Pending']), 'note' => $summary['oldest'] ? 'Oldest '.$summary['oldest']->diffForHumans() : 'Nothing in the queue'],
+                ['label' => 'Not ready', 'value' => number_format($summary['incomplete']), 'note' => 'No photo or no unit yet'],
+                ['label' => 'Approved', 'value' => number_format($summary['approved']), 'note' => 'Last 30 days'],
+                ['label' => 'Rejected', 'value' => number_format($summary['rejected']), 'note' => 'Last 30 days'],
+            ]" />
+        </x-slot:actions>
+    </x-admin.header>
 
-    {{-- Stat summary --}}
-    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
-        @php
-            $stats = [
-                'Pending' => ['label' => 'Pending', 'value' => $counts['Pending'], 'accent' => 'text-[#B45309]', 'dot' => 'bg-[#FBBF24]'],
-                'Approved' => ['label' => 'Approved', 'value' => $counts['Approved'], 'accent' => 'text-[#15803D]', 'dot' => 'bg-[#22C55E]'],
-                'Rejected' => ['label' => 'Rejected', 'value' => $counts['Rejected'], 'accent' => 'text-[#B91C1C]', 'dot' => 'bg-[#EF4444]'],
-                'Suspended' => ['label' => 'Suspended', 'value' => $counts['Suspended'], 'accent' => 'text-[#B91C1C]', 'dot' => 'bg-[#EF4444]'],
-                'All' => ['label' => 'Total', 'value' => $counts['All'], 'accent' => 'text-[#060D26]', 'dot' => 'bg-[#060D26]'],
-            ];
-        @endphp
-        @foreach ($stats as $key => $stat)
-            <a href="{{ route('admin.listings.approval', ['status' => $key]) }}"
-                class="bg-white border border-[#E2E4EC] rounded-2xl px-4 py-3.5 shadow-[0_1px_3px_rgba(6,13,38,0.06)] transition-all duration-200 hover:shadow-xl {{ $status === $key ? 'ring-2 ring-[#FF8A66]' : '' }}">
-                <div class="flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 rounded-full {{ $stat['dot'] }}"></span>
-                    <p class="text-[11px] font-semibold uppercase tracking-wider text-[#5B6A8E]">{{ $stat['label'] }}</p>
-                </div>
-                <p class="text-2xl font-bold {{ $stat['accent'] }} mt-1">{{ $stat['value'] }}</p>
-            </a>
-        @endforeach
-    </div>
+    <x-admin.tabs class="mb-3" :tabs="collect(['All', 'Pending', 'Approved', 'Rejected', 'Suspended'])->map(fn ($tab) => [
+        'label' => $tab,
+        'count' => $counts[$tab],
+        'href' => route('admin.listings.approval', ['status' => $tab]),
+        'active' => $status === $tab,
+    ])->all()" />
 
-    {{-- Tabs --}}
-    <div class="flex items-center gap-0.5 border-b border-[#E2E4EC] mb-6 overflow-x-auto">
-        @foreach (['Pending', 'Approved', 'Rejected', 'Suspended', 'All'] as $tab)
-            <a href="{{ route('admin.listings.approval', ['status' => $tab]) }}"
-                class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                    {{ $status === $tab ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
-                {{ $tab }}
-                <span class="ml-1 text-[11px] {{ $status === $tab ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $counts[$tab] }}</span>
-            </a>
-        @endforeach
-    </div>
-
-    {{-- List --}}
-    @if ($pendingListings->isEmpty())
-        <div class="bg-white border border-[#E2E4EC] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
-            <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] border border-[#E2E4EC] flex items-center justify-center mx-auto mb-4">
-                <svg class="w-7 h-7 text-[#B35A3D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            </div>
-            <p class="text-[15px] font-bold text-[#060D26]">{{ $status === 'Pending' ? 'All caught up!' : 'No properties here' }}</p>
-            <p class="text-[13px] text-[#5B6A8E] mt-1 max-w-xs mx-auto">
-                {{ $status === 'Pending' ? 'No pending property listings. Check back later for new submissions.' : 'No properties match this tab right now.' }}
-            </p>
-        </div>
+    @if (! $selected)
+        <x-card flush fill>
+            <x-empty-state flat fill :symbol="$empty[0]" :title="$empty[1]" :note="$empty[2]">
+                @if ($status !== 'All')
+                    <a href="{{ route('admin.listings.approval', ['status' => 'All']) }}" class="inline-flex h-9 items-center rounded-lg border border-[#E2E4EC] bg-white px-3.5 text-[13px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#F7F8FC]">See all listings</a>
+                @endif
+            </x-empty-state>
+        </x-card>
     @else
-        <x-card flush class="divide-y divide-[#E2E4EC]">
-            @foreach($pendingListings as $property)
-                @php
-                    $thumb = optional($property->media->firstWhere('media_type', 'Image'))->media_url;
+        @php
+            $p = $selected;
+            $photos = $p->media->where('media_type', 'Image')->values();
+            $fees = $p->units->pluck('rental_fee')->filter();
+            $rentLine = $fees->isEmpty() ? 'No units yet' : ($fees->min() == $fees->max() ? '₱'.number_format($fees->min()) : '₱'.number_format($fees->min()).' to ₱'.number_format($fees->max()));
+            $place = collect([$p->barangay, $p->city_municipality])->filter()->implode(', ') ?: $p->address;
+            $docsDone = $p->documents->where('status', 'Verified')->count();
+            $docsAll = $p->documents->count();
+            $landlordName = $p->landlord->name ?? '—';
+            // Never pinned: the default Cebu City point, not the property.
+            $unpinned = (float) $p->latitude === 10.3157 && (float) $p->longitude === 123.8854;
+            // The same five checks as the full property page. A warning, never a block: the admin decides.
+            $checks = [
+                'photos' => ['Photos', $photos->isNotEmpty(), $photos->count() ? $plural($photos->count(), 'photo').' uploaded' : 'None uploaded yet'],
+                'location' => ['Map pin', ! $unpinned, $unpinned ? 'Never pinned: the map shows the Cebu City default' : 'Pinned. Check it sits on the street below'],
+                'units' => ['Units', $p->units->count() > 0, $p->units->count() ? $plural($p->units->count(), 'unit').', '.$rentLine : 'No unit added yet'],
+                'documents' => ['Documents', $docsAll > 0 && $docsDone === $docsAll, $docsAll ? $docsDone.' of '.$docsAll.' verified' : 'None uploaded'],
+                'landlord' => ['Landlord', (bool) $landlordVerified, $landlordVerified ? 'Application approved' : 'Application not approved'],
+            ];
+            $passing = collect($checks)->filter(fn ($c) => $c[1])->count();
+            $utilityLabels = ['water_included' => 'Water', 'electricity_included' => 'Electricity', 'internet_included' => 'Internet', 'association_fees_included' => 'Association fees'];
+            $utilitiesIn = collect($utilityLabels)->filter(fn ($l, $k) => $p->{$k})->values();
+            $utilitiesOut = collect($utilityLabels)->reject(fn ($l, $k) => $p->{$k})->values();
+        @endphp
 
-                    $locationLine = collect([$property->barangay, $property->city_municipality])
-                        ->filter()
-                        ->implode(', ') ?: $property->address;
+        <div class="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
 
-                    $fees = $property->units->pluck('rental_fee')->filter();
-                    $rentLine = $fees->isEmpty()
-                        ? 'No units yet'
-                        : ($fees->min() == $fees->max()
-                            ? '₱' . number_format($fees->min())
-                            : '₱' . number_format($fees->min()) . '–' . number_format($fees->max()));
-                @endphp
-                <div class="p-5 sm:p-6 flex flex-col sm:flex-row gap-5 transition-colors duration-150 hover:bg-[#F7F8FC]">
+            {{-- Queue --}}
+            <x-card flush fill class="lg:w-[21rem] lg:flex-none">
+                <div class="flex items-center justify-between border-b border-[#E2E4EC] px-4 py-2.5">
+                    <h2 class="text-[14px] font-semibold text-[#060D26]">{{ number_format($pendingListings->total()) }} {{ $status === 'Pending' ? 'waiting' : 'listings' }}</h2>
+                    <span class="text-[12px] text-[#5B6A8E]">{{ match ($status) { 'Pending' => 'Oldest first', 'All' => 'Waiting first', default => 'Newest first' } }}</span>
+                </div>
+                <ul class="min-h-0 flex-1 overflow-y-auto">
+                    @foreach ($pendingListings as $row)
+                        @php
+                            $isOpen = $row->property_id === $p->property_id;
+                            $rowThumb = \App\Support\Images::src(optional($row->media->firstWhere('media_type', 'Image'))->media_url, 'thumb');
+                            $rowReady = $row->photos_count > 0 && $row->units->count() > 0;
+                        @endphp
+                        <li class="border-b border-[#E2E4EC] last:border-b-0">
+                            <a href="{{ route('admin.listings.approval', array_filter(['status' => $status, 'open' => $row->property_id, 'page' => $pendingListings->currentPage() > 1 ? $pendingListings->currentPage() : null])) }}"
+                                @if ($isOpen) aria-current="true" @endif
+                                class="flex gap-2.5 px-3.5 py-2 transition-colors duration-200 {{ $isOpen ? 'bg-[#FFF3EE] ring-2 ring-inset ring-[#FF8A66]' : 'hover:bg-[#F7F8FC]' }}">
+                                <span class="h-10 w-12 shrink-0 overflow-hidden rounded-lg {{ $rowThumb ? 'bg-[#ECEEF6]' : 'border-[1.5px] border-dashed border-[#F3B4B4] bg-white' }}">
+                                    @if ($rowThumb)<img src="{{ $rowThumb }}" alt="" loading="lazy" decoding="async" class="h-full w-full object-cover">@endif
+                                </span>
+                                <span class="min-w-0 flex-1">
+                                    <span class="block truncate text-[13px] font-semibold text-[#060D26]">{{ $row->title }}</span>
+                                    <span class="block truncate text-[12px] leading-4 text-[#5B6A8E]">{{ $row->landlord->name ?? '—' }} · {{ $row->created_at->diffForHumans() }}</span>
+                                    <span class="block truncate text-[12px] leading-4 text-[#5B6A8E]">{{ $plural($row->photos_count, 'photo') }} · {{ $plural($row->units->count(), 'unit') }} · docs {{ $row->verified_documents_count }}/{{ $row->documents_count }}</span>
+                                </span>
+                                @if ($row->verification_status === 'Pending')
+                                    <x-admin.status :status="$rowReady ? 'Ready' : 'Not ready'" :tone="$rowReady ? 'green' : 'red'" class="self-start" />
+                                @else
+                                    <x-admin.status :status="$row->verification_status" class="self-start" />
+                                @endif
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+                <div class="mt-auto border-t border-[#E2E4EC] bg-[#F7F8FC] px-4 py-2.5 text-[13px] text-[#5B6A8E]">
+                    @if ($pendingListings->hasPages())
+                        {{ $pendingListings->links() }}
+                    @else
+                        Showing <span class="font-semibold tabular-nums text-[#060D26]">{{ $pendingListings->firstItem() }}–{{ $pendingListings->lastItem() }}</span> of <span class="font-semibold tabular-nums text-[#060D26]">{{ number_format($pendingListings->total()) }}</span>
+                    @endif
+                </div>
+            </x-card>
 
-                    {{-- Thumbnail --}}
-                    <div class="w-full sm:w-[132px] aspect-[4/3] rounded-xl overflow-hidden bg-[#ECEEF6] border border-[#E2E4EC] shrink-0">
-                        @if($thumb)
-                            <img loading="lazy" decoding="async" src="{{ $thumb }}" alt="{{ $property->title }}" class="w-full h-full object-cover" />
-                        @else
-                            <div class="w-full h-full flex items-center justify-center">
-                                <svg class="w-7 h-7 text-[#B35A3D]/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                                </svg>
-                            </div>
-                        @endif
+            {{-- The selected listing --}}
+            <x-card flush fill class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-start justify-between gap-3 border-b border-[#E2E4EC] px-5 py-4">
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-2.5">
+                            <h2 class="text-[17px] font-semibold leading-6 tracking-tight text-[#060D26]">{{ $p->title }}</h2>
+                            <x-admin.status :status="$p->verification_status" />
+                            @if ($p->publication_status !== 'Published')<x-admin.status :status="$p->publication_status" />@endif
+                        </div>
+                        <p class="text-[13px] leading-5 text-[#5B6A8E]">{{ $landlordName }} @if ($landlordVerified)· Verified landlord @endif · Sent {{ $p->created_at->format('M j, Y') }}, {{ $p->created_at->diffForHumans() }}</p>
                     </div>
+                    <a href="{{ route('admin.catalogue.properties.show', $p) }}" class="inline-flex h-8 items-center rounded-lg border border-[#E2E4EC] bg-white px-3 text-[12.5px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#F7F8FC]">Open full page</a>
+                </div>
 
-                    {{-- Content --}}
-                    <div class="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-start gap-4">
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-start justify-between gap-3 flex-wrap">
-                                <a href="{{ route('admin.catalogue.properties.show', $property) }}"
-                                    class="text-[16px] font-bold text-[#060D26] leading-snug hover:text-[#060D26] transition-colors">
-                                    {{ $property->title }}
-                                </a>
-                                <div class="flex items-center gap-1.5 shrink-0">
-                                    <x-verification-status-badge :status="$property->verification_status" />
-                                    @if ($property->publication_status !== 'Published')
-                                        <x-publication-status-badge :status="$property->publication_status" />
+                <div class="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-4">
+                    <div class="grid items-start gap-5 xl:grid-cols-2">
+                        <div>
+                            @if ($photos->isEmpty())
+                                <div class="grid h-64 place-items-center rounded-xl border-[1.5px] border-dashed border-[#F3B4B4] bg-white text-[13px] font-semibold text-[#B91C1C]">No photos uploaded</div>
+                            @else
+                                {{-- One photo at a time; Next and Previous (or the arrow keys) move through them. The image opens full size in a new tab. --}}
+                                <div x-data="{ i: 0, n: {{ $photos->count() }}, next() { this.i = (this.i + 1) % this.n }, prev() { this.i = (this.i - 1 + this.n) % this.n } }"
+                                    @keydown.right="next()" @keydown.left="prev()" tabindex="0" role="group" aria-roledescription="carousel" aria-label="Photos of {{ $p->title }}"
+                                    class="relative h-64 overflow-hidden rounded-xl bg-[#ECEEF6] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]">
+                                    @foreach ($photos as $i => $photo)
+                                        <a href="{{ \App\Support\Images::src($photo->media_url, 'full') }}" target="_blank" rel="noopener" x-show="i === {{ $i }}" @if ($i > 0) x-cloak @endif class="absolute inset-0" aria-label="Open photo {{ $i + 1 }} full size">
+                                            <img src="{{ \App\Support\Images::src($photo->media_url, 'gallery') }}" alt="Photo {{ $i + 1 }} of {{ $p->title }}" @if ($i > 0) loading="lazy" @endif decoding="async" class="h-full w-full object-cover">
+                                        </a>
+                                    @endforeach
+                                    @if ($photos->count() > 1)
+                                        <button type="button" @click="prev()" aria-label="Previous photo" class="absolute left-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-[#060D26] shadow-sm transition-colors duration-200 hover:bg-white cursor-pointer">
+                                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                                        </button>
+                                        <button type="button" @click="next()" aria-label="Next photo" class="absolute right-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-[#060D26] shadow-sm transition-colors duration-200 hover:bg-white cursor-pointer">
+                                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                                        </button>
                                     @endif
+                                    <span class="pointer-events-none absolute bottom-2 right-2 rounded-full bg-[#060D26]/70 px-2.5 py-0.5 text-[12px] font-semibold tabular-nums text-white" aria-live="polite"><span x-text="i + 1"></span> / {{ $photos->count() }}</span>
                                 </div>
-                            </div>
+                            @endif
 
-                            <div class="flex items-center flex-wrap gap-x-2 gap-y-1 mt-2 text-[12.5px] text-[#5B6A8E]">
-                                <span class="font-semibold text-[#060D26]">{{ $property->property_type }}</span>
-                                <span class="text-[#CBD5E1]" aria-hidden="true">&middot;</span>
-                                <span class="inline-flex items-center gap-1">
-                                    <svg class="w-3.5 h-3.5 text-[#94A3B8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                                    </svg>
-                                    {{ $property->landlord->name }}
-                                </span>
-                                <span class="text-[#CBD5E1]" aria-hidden="true">&middot;</span>
-                                <span class="inline-flex items-center gap-1 min-w-0">
-                                    <svg class="w-3.5 h-3.5 text-[#94A3B8] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                                    </svg>
-                                    <span class="truncate">{{ $locationLine }}</span>
-                                </span>
-                                <span class="text-[#CBD5E1]" aria-hidden="true">&middot;</span>
-                                <span class="font-semibold text-[#060D26]">{{ $rentLine }}</span>
+                        </div>
+                        {{-- Sized to sit level with the photo beside it: rent first, then the details, then who is behind the listing. --}}
+                        <div class="flex flex-col gap-3 rounded-xl border border-[#E2E4EC] bg-white p-4 xl:h-64">
+                            <div>
+                                <p class="text-[11px] font-semibold uppercase tracking-wide text-[#5B6A8E]">Rent</p>
+                                <p class="text-[22px] font-semibold leading-7 tracking-tight tabular-nums text-[#060D26]">{{ $rentLine }}@if ($fees->isNotEmpty())<span class="ml-1 text-[13px] font-normal tracking-normal text-[#5B6A8E]">a month</span>@endif</p>
+                            </div>
+                            <dl class="grid grid-cols-2 gap-x-5 gap-y-2.5 border-t border-[#E2E4EC] pt-3">
+                                <div class="min-w-0"><dt class="text-[11px] font-semibold uppercase tracking-wide text-[#5B6A8E]">Type</dt><dd class="truncate text-[13px] font-semibold text-[#060D26]" title="{{ $p->property_type }}@if ($p->living_arrangement) · {{ $p->living_arrangement }}@endif">{{ $p->property_type }}@if ($p->living_arrangement) · {{ $p->living_arrangement }}@endif</dd></div>
+                                <div class="min-w-0"><dt class="text-[11px] font-semibold uppercase tracking-wide text-[#5B6A8E]">Included in rent</dt><dd class="truncate text-[13px] font-semibold text-[#060D26]">{{ $utilitiesIn->isNotEmpty() ? $utilitiesIn->implode(', ') : 'Nothing' }}</dd></div>
+                            </dl>
+                            <p class="flex items-start gap-2 text-[13px] leading-5 text-[#060D26]">
+                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="mt-[3px] shrink-0 text-[#5B6A8E]" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
+                                <span class="min-w-0"><span class="sr-only">Address: </span>{{ $p->address ?: ($place ?: 'No address given') }}</span>
+                            </p>
+                            <div class="mt-auto flex items-center gap-2.5 border-t border-[#E2E4EC] pt-3">
+                                <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#ECEEF6] text-[11px] font-bold text-[#060D26]" aria-hidden="true">{{ strtoupper(collect(explode(' ', $landlordName))->filter()->take(2)->map(fn ($w) => substr($w, 0, 1))->implode('')) }}</span>
+                                <div class="min-w-0 flex-1"><p class="truncate text-[13px] font-semibold leading-4 text-[#060D26]">{{ $landlordName }}</p><p class="truncate text-[12px] leading-4 text-[#5B6A8E]">{{ $p->landlord->email ?? '' }}</p></div>
+                                <x-admin.status :status="$landlordVerified ? 'Verified' : 'Not verified'" :tone="$landlordVerified ? 'green' : 'amber'" />
                             </div>
                         </div>
-
-                        {{-- Actions --}}
-                        @if ($property->verification_status === 'Pending')
-                            <div class="flex sm:flex-col gap-2 sm:items-stretch shrink-0 sm:w-[130px]">
-                                <a href="{{ route('admin.catalogue.properties.show', $property) }}"
-                                    class="flex-1 sm:flex-none w-full h-10 inline-flex items-center justify-center gap-2 rounded-xl border border-[#5B6A8E]/30 text-[#060D26] text-[13px] font-bold hover:bg-[#ECEEF6] transition-colors duration-200">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                    Review
-                                </a>
-                                <form method="POST" action="{{ route('admin.listings.approve', $property->property_id) }}" class="flex-1 sm:flex-none">
-                                    @csrf
-                                    <button type="submit"
-                                        class="w-full h-10 inline-flex items-center justify-center gap-2 rounded-xl bg-[#22C55E] hover:brightness-95 text-white text-[13px] font-bold transition-all duration-200 shadow-[0_1px_2px_rgba(21,128,61,0.35)] cursor-pointer">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                        Approve
-                                    </button>
-                                </form>
-                                <button type="button" x-on:click="openReject({{ $property->property_id }}, @js($property->title))"
-                                    class="w-full h-10 inline-flex items-center justify-center gap-2 rounded-xl bg-[#EF4444] hover:brightness-95 text-white text-[13px] font-bold transition-all duration-200 shadow-[0_1px_2px_rgba(185,28,28,0.35)] cursor-pointer">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                    Reject
-                                </button>
-                            </div>
-                        @elseif ($property->publication_status === 'Suspended')
-                            <div class="flex sm:flex-col gap-2 sm:items-stretch shrink-0 sm:w-[130px]">
-                                <form method="POST" action="{{ route('admin.listings.unsuspend', $property->property_id) }}"
-                                    data-confirm="Reinstate this listing?"
-                                    data-confirm-message="It will become visible to tenants again immediately.">
-                                    @csrf
-                                    <button type="submit"
-                                        class="w-full h-10 inline-flex items-center justify-center gap-2 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[13px] font-bold transition-all duration-200 shadow-[0_1px_2px_rgba(6,13,38,0.35)] cursor-pointer">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                        Unsuspend
-                                    </button>
-                                </form>
+                    <section aria-label="About" class="xl:col-span-2">
+                        <h3 class="text-[11px] font-semibold uppercase tracking-wide text-[#5B6A8E]">About</h3>
+                        <p class="mt-1.5 max-w-[75ch] text-[13px] leading-5 {{ $p->description ? 'text-[#060D26]' : 'text-[#5B6A8E]' }}">{{ $p->description ?: 'The landlord has not written a description.' }}</p>
+                        @if (! empty($p->house_rules))
+                            <div class="mt-3 flex flex-wrap gap-1.5">
+                                @foreach ($p->house_rules as $rule)<span class="inline-flex h-6 items-center rounded-full bg-[#ECEEF6] px-2.5 text-[12px] font-medium text-[#060D26]">{{ $rule }}</span>@endforeach
                             </div>
                         @endif
+                        @if ($utilitiesOut->isNotEmpty())
+                            <p class="mt-2 text-[12.5px] text-[#5B6A8E]">Billed separately: {{ $utilitiesOut->map(fn ($l) => \Illuminate\Support\Str::lower($l))->implode(', ') }}@if ($p->utilities_separately_metered), separately metered @endif</p>
+                        @endif
+                    </section>
+                    {{-- The five checks, the thing an approval turns on, so it gets the tinted panel. --}}
+                    <section aria-labelledby="ready-{{ $p->property_id }}" class="rounded-xl border {{ $passing === count($checks) ? 'border-[#BFE3CC] bg-[#F3FAF5]' : 'border-[#F4D58A] bg-[#FFFBEF]' }} p-4">
+                        <div class="flex flex-wrap items-baseline justify-between gap-x-4">
+                            <h3 id="ready-{{ $p->property_id }}" class="text-[13px] font-semibold text-[#060D26]">{{ $passing }} of {{ count($checks) }} checks pass</h3>
+                            <p class="text-[12.5px] text-[#5B6A8E]">{{ $passing === count($checks) ? 'Nothing is missing.' : 'A warning, not a block: you can still decide.' }}</p>
+                        </div>
+                        <div class="mt-2 flex h-1.5 gap-0.5" role="img" aria-label="{{ $passing }} of {{ count($checks) }} checks pass">
+                            @foreach ($checks as $c)<span class="flex-1 rounded-full {{ $c[1] ? 'bg-[#22C55E]' : 'bg-[#FBBF24]' }}"></span>@endforeach
+                        </div>
+                        <ul class="mt-2 divide-y divide-[#060D26]/[0.06]">
+                            @foreach ($checks as $c)
+                                @php $tone = $c[1] ? 'bg-[#E6F4EA] text-[#166534]' : 'bg-[#FEF3D6] text-[#92400E]'; @endphp
+                                <li class="flex items-center gap-3 py-1.5 text-[13px]">
+                                    <span class="grid h-5 w-5 shrink-0 place-items-center rounded-full {{ $tone }}" aria-hidden="true"><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $c[1] ? 'M5 13l4 4L19 7' : 'M12 7v6m0 4h.01' }}" /></svg></span>
+                                    <span class="w-24 shrink-0 font-semibold text-[#060D26]">{{ $c[0] }}<span class="sr-only">: {{ $c[1] ? 'in place' : 'needs attention' }}</span></span>
+                                    <span class="text-[#5B6A8E]">{{ $c[2] }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                        @if ($docsAll)
+                            <ul class="mt-2 flex flex-wrap gap-1.5">
+                                @foreach ($p->documents as $doc)
+                                    <li><a href="{{ route('admin.documents.show', $doc) }}" class="inline-flex"><x-admin.status :status="$doc->document_type.': '.($doc->isRequested() ? 'Requested' : $doc->display_status)" /></a></li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </section>
+                    {{-- Check 2 of the checklist, "the address and the map pin agree", needs the map in view. Collapsible: it opens by
+                         default (the pin is worth a look) and the map measures itself again when it is shown. --}}
+                    <section aria-label="Location" x-data="{ mapOpen: true }">
+                        <button type="button" @click="mapOpen = ! mapOpen; if (mapOpen) $nextTick(() => window.dispatchEvent(new Event('admin-tab-shown')))" :aria-expanded="mapOpen ? 'true' : 'false'" aria-controls="map-{{ $p->property_id }}"
+                            class="mb-1.5 flex w-full items-center justify-between gap-3 text-left cursor-pointer">
+                            <span class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-[#5B6A8E]">
+                                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true" class="transition-transform duration-200" :class="mapOpen || '-rotate-90'"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                Location
+                            </span>
+                            <span class="min-w-0 truncate text-[12px] {{ $unpinned ? 'font-semibold text-[#B45309]' : 'text-[#5B6A8E]' }}"><span x-show="mapOpen">{{ $unpinned ? 'Never pinned: the map shows the Cebu City default' : 'Is the pin on the street in the address?' }}</span><span x-show="! mapOpen" x-cloak>{{ $unpinned ? 'Never pinned' : 'Pinned' }} · {{ $p->address ?: 'No address given' }}</span></span>
+                        </button>
+                        <div id="map-{{ $p->property_id }}" x-show="mapOpen">
+                            <div class="relative isolate h-56 overflow-hidden rounded-xl border border-[#E2E4EC] bg-[#ECEEF6]">
+                                <div id="admin-property-map" class="h-full w-full" data-lat="{{ $p->latitude }}" data-lng="{{ $p->longitude }}" data-pinned="{{ $unpinned ? '0' : '1' }}"></div>
+                                <button type="button" id="admin-property-map-satellite" aria-pressed="false"
+                                    class="absolute right-2 top-2 z-[500] inline-flex h-8 items-center rounded-lg border border-[#E2E4EC] bg-white px-2.5 text-[12.5px] font-semibold text-[#060D26] shadow-sm transition-colors duration-200 hover:bg-[#F7F8FC] cursor-pointer"><span>Satellite</span></button>
+                            </div>
+                            <p class="mt-1.5 truncate text-[12.5px] text-[#5B6A8E]" title="{{ $p->address }}">{{ $p->address ?: 'No address given' }}</p>
+                        </div>
+                    </section>
                     </div>
+
+
+                    {{-- The units, as the landlord sees them on their Units tab, only smaller. --}}
+                    <section aria-label="Units">
+                        <div class="mb-1.5 flex items-center justify-between gap-3">
+                            <h3 class="text-[11px] font-semibold uppercase tracking-wide text-[#5B6A8E]">{{ $plural($p->units->count(), 'unit') }}</h3>
+                            @if ($p->units->count() > 8)<span class="text-[12px] text-[#5B6A8E]">First 8 of {{ $p->units->count() }}; the rest are on the full page</span>@endif
+                        </div>
+                        @if ($p->units->isEmpty())
+                            <p class="rounded-xl border border-dashed border-[#F3B4B4] px-4 py-6 text-center text-[13px] font-semibold text-[#B91C1C]">No unit added yet</p>
+                        @else
+                            <div class="grid grid-cols-2 gap-3 md:grid-cols-3 2xl:grid-cols-4">
+                                @foreach ($p->units->sortBy('unit_label')->take(8) as $unit)
+                                    @php
+                                        $thumb = $unit->media->firstWhere('media_type', 'Image');
+                                        $avTone = match ($unit->availability_status) {
+                                            'Available' => 'bg-[#22C55E]/[0.07] text-[#15803D] ring-[#22C55E]/25',
+                                            'Reserved' => 'bg-[#FBBF24]/[0.10] text-[#B45309] ring-[#FBBF24]/35',
+                                            'Occupied' => 'bg-[#EF4444]/[0.07] text-[#DC2626] ring-[#EF4444]/25',
+                                            default => 'bg-[#ECEEF6] text-[#5B6A8E] ring-[#5B6A8E]/20',
+                                        };
+                                        $vrTone = match ($unit->verification_status) {
+                                            'Approved' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
+                                            'Pending' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
+                                            'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626]',
+                                            default => 'bg-[#ECEEF6] text-[#5B6A8E]',
+                                        };
+                                    @endphp
+                                    <article class="group flex flex-col overflow-hidden rounded-xl bg-white ring-1 ring-[#5B6A8E]/15 transition-shadow duration-300 hover:shadow-md">
+                                        <a href="{{ route('admin.units.show', [$p->property_id, $unit->unit_id]) }}" aria-label="Open {{ $unit->unit_label }}" class="relative block aspect-[16/10] overflow-hidden {{ $thumb ? 'bg-[#ECEEF6]' : 'border-b-[1.5px] border-dashed border-[#F3B4B4] bg-white' }}">
+                                            @if ($thumb)
+                                                <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($thumb->media_url, 'card') }}" alt="" class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]">
+                                            @else
+                                                <span class="absolute inset-0 grid place-items-center text-[12px] font-semibold text-[#B91C1C]">No photos</span>
+                                            @endif
+                                            <span class="absolute left-2 top-2 rounded-full bg-white"><span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 {{ $avTone }}">{{ $unit->availability_status }}</span></span>
+                                        </a>
+                                        <div class="flex flex-1 flex-col gap-1.5 p-3">
+                                            <div class="flex items-start justify-between gap-2">
+                                                <p class="truncate text-[13.5px] font-bold leading-snug text-[#060D26]">{{ $unit->unit_label }}</p>
+                                                <span class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium {{ $vrTone }}">{{ $unit->verification_status }}</span>
+                                            </div>
+                                            <p class="text-[13.5px] font-semibold tabular-nums text-[#060D26]">₱{{ number_format($unit->rental_fee, 0) }}<span class="text-[12px] font-normal text-[#5B6A8E]">/mo</span></p>
+                                            <p class="text-[12px] text-[#5B6A8E]">Up to {{ $plural($unit->occupancy_limit, 'person') }}</p>
+                                        </div>
+                                    </article>
+                                @endforeach
+                            </div>
+                        @endif
+                    </section>
+
+                    @if ($p->verification_status === 'Rejected' && $p->rejection_reason)
+                        <p class="rounded-lg bg-[#EF4444]/[0.07] px-3 py-2 text-[13px] leading-5 text-[#060D26]"><span class="font-semibold text-[#DC2626]">Rejected:</span> {{ $p->rejection_reason }}</p>
+                    @endif
+
+                    @if ($p->verification_status === 'Pending')
+                        <div>
+                            <h3 class="text-[11px] font-semibold uppercase tracking-wide text-[#5B6A8E]">Before you approve</h3>
+                            <p class="mt-0.5 text-[12px] text-[#5B6A8E]">A memory aid only; nothing is saved or blocked.</p>
+                            <div class="mt-2 space-y-1.5">
+                                @foreach (['The photos show the property and look like the listing.', 'The address and the map pin agree.', 'There is at least one unit with a realistic rent.', 'The landlord is verified and the documents are in order.'] as $line)
+                                    <label class="flex items-start gap-2.5 text-[13px] leading-5 text-[#060D26]"><input type="checkbox" class="mt-[3px] h-4 w-4 accent-[#15803D]">{{ $line }}</label>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
                 </div>
-            @endforeach
-        </x-card>
-        @if ($pendingListings->hasPages())
-            <div class="mt-4 bg-white border border-[#E2E4EC] rounded-2xl px-6 py-3 shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
-                {{ $pendingListings->links() }}
-            </div>
-        @endif
+
+                @if ($p->verification_status === 'Pending')
+                    <x-admin.decision-bar
+                        :approve-action="route('admin.listings.approve', $p->property_id)"
+                        approve-label="Approve listing"
+                        approve-confirm="Approve this listing?"
+                        approve-message="It becomes visible to tenants, with its pending units, and the landlord is told. Check the photos and documents first."
+                        :reject-action="route('admin.listings.reject', $p->property_id)"
+                        reject-confirm="Reject this listing?"
+                        reject-message="The landlord will see your reason and can resubmit."
+                        placeholder="Explain what needs to change. The landlord will see this." />
+                @elseif ($p->publication_status === 'Suspended')
+                    <div class="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-[#E2E4EC] bg-[#F7F8FC] px-5 py-3">
+                        <p class="text-[13px] text-[#5B6A8E]">This listing is suspended and hidden from tenants.</p>
+                        <form method="POST" action="{{ route('admin.listings.unsuspend', $p->property_id) }}"
+                            data-confirm="Reinstate this listing?" data-confirm-message="It will become visible to tenants again immediately.">
+                            @csrf
+                            <button type="submit" class="h-9 rounded-lg bg-[#FF8A66] px-4 text-[13px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#E96F4F] cursor-pointer">Unsuspend</button>
+                        </form>
+                    </div>
+                @else
+                    <div class="mt-auto border-t border-[#E2E4EC] bg-[#F7F8FC] px-5 py-3 text-[13px] text-[#5B6A8E]">Decided. Open the full page to see its history.</div>
+                @endif
+            </x-card>
+        </div>
     @endif
-
-    {{-- Reject reason modal — shared across every row instead of an inline
-         per-row form, since this page can list dozens of pending listings.
-         The landlord previously got no reason at all when rejected (see
-         admin/documents/show.blade.php for the pattern this mirrors, which
-         already required one for document rejection). --}}
-    <x-modal name="reject-listing" focusable>
-        <form method="POST" x-bind:action="`{{ url('admin/listings') }}/${rejectTarget.id}/reject`" class="p-6">
-            @csrf
-            <h2 class="text-[15px] font-bold text-[#060D26]">Reject listing</h2>
-            <p class="mt-1 text-[13px] text-[#5B6A8E]">
-                <span x-text="rejectTarget.title"></span> will be rejected and the landlord notified with your reason below.
-            </p>
-
-            <label for="rejection_reason" class="block mt-4 text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1.5">
-                Reason for rejection
-            </label>
-            <textarea name="rejection_reason" id="rejection_reason" rows="4" required
-                class="w-full rounded-lg border border-[#E2E4EC] px-3 py-2.5 text-[13px] text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all resize-none"
-                placeholder="Explain what needs to change — the landlord will see this and can resubmit."></textarea>
-            @error('rejection_reason')
-                <p class="mt-1 text-xs text-[#DC2626]">{{ $message }}</p>
-            @enderror
-
-            <div class="mt-4 flex justify-end gap-2">
-                <button type="button" x-on:click="show = false"
-                    class="h-10 px-4 rounded-lg border border-[#E2E4EC] text-[13px] font-semibold text-[#5B6A8E] hover:text-[#060D26] transition-colors">
-                    Cancel
-                </button>
-                <button type="submit"
-                    class="h-10 px-4 rounded-lg bg-[#EF4444] hover:brightness-95 text-white text-[13px] font-bold transition-all">
-                    Confirm rejection
-                </button>
-            </div>
-        </form>
-    </x-modal>
 
 </div>
 @endsection

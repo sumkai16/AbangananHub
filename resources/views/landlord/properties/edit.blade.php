@@ -92,14 +92,9 @@
                                     @error('property_type')<p class="{{ $error }}">{{ $message }}</p>@enderror
                                 </div>
                                 <div>
-                                    <label for="rental_fee" class="{{ $label }}">Monthly rent</label>
-                                    <div class="relative">
-                                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#5B6A8E] font-semibold text-sm" aria-hidden="true">₱</span>
-                                        <input type="number" step="0.01" min="500" max="999999" name="rental_fee" id="rental_fee"
-                                            value="{{ old('rental_fee', $property->rental_fee) }}"
-                                            class="{{ $input }} !pl-8 font-semibold" required>
-                                    </div>
-                                    @error('rental_fee')<p class="{{ $error }}">{{ $message }}</p>@enderror
+                                    <span class="{{ $label }}">Rent and deposit</span>
+                                    <p class="text-[13px] text-[#5B6A8E] leading-snug">Set per unit, not per property. Change them on each unit's own edit page.</p>
+                                    <a href="{{ route('landlord.properties.show', $property) }}" class="inline-block mt-1 text-[13px] font-semibold text-[#FF8A66] hover:underline">Open units</a>
                                 </div>
                             </div>
 
@@ -204,7 +199,7 @@
                         </div>
                     </x-form-section>
 
-                    <x-form-section title="Standard lease terms" description="Private to you. Not shown on the listing.">
+                    <x-form-section title="Standard agreement terms" description="Private to you. Not shown on the listing.">
                         <x-slot:icon>{!! $ico('M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z') !!}</x-slot:icon>
 
                         <div>
@@ -213,6 +208,64 @@
                             <textarea id="default_lease_terms" name="default_lease_terms" rows="5" maxlength="2000"
                                 class="w-full px-3.5 py-3 rounded-xl border border-[#E2E4EC] bg-white text-[14px] text-[#060D26] leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/25 focus:border-[#FF8A66] transition-all duration-200">{{ old('default_lease_terms', $property->default_lease_terms) }}</textarea>
                             @error('default_lease_terms')<p class="{{ $error }}">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div class="mt-5 border-t border-[#E2E4EC] pt-5">
+                            <p class="{{ $label }}">Policy</p>
+                            <p class="text-[13px] text-[#060D26]">
+                                {{ $property->leaseTemplate?->name ?? 'Standard policy' }}
+                                <span class="text-[#5B6A8E]">&middot; units can use their own.</span>
+                                <a href="{{ route('landlord.leases.index', ['property' => $property->property_id]) }}" class="ml-1 font-semibold text-[#060D26] underline underline-offset-2">Change in Lease policies</a>
+                            </p>
+                            @if($property->leaseTemplate && ($property->leaseTemplate->rent_grace_days !== null || $property->leaseTemplate->late_fee_type !== null))
+                                <p class="mt-1 text-[12px] text-[#B45309]">This policy sets its own rent rules, so the rent rules below apply only to units on another policy.</p>
+                            @endif
+                        </div>
+                    </x-form-section>
+
+                    <x-form-section title="Rent rules" description="Private to you. Each lease keeps the rules that were in force when it was sent.">
+                        <x-slot:icon>{!! $ico('M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z') !!}</x-slot:icon>
+
+                        <div x-data="{
+                                grace: @js(old('rent_grace_days', $property->rent_grace_days)),
+                                type: @js(old('late_fee_type', $property->late_fee_type) ?? ''),
+                                value: @js(old('late_fee_value', $property->late_fee_value !== null ? (float) $property->late_fee_value : null)),
+                                rent: 3500,
+                                ord(n) { const s = ['th','st','nd','rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); },
+                                get g() { return parseInt(this.grace) || 0; },
+                                get fee() { const v = parseFloat(this.value); if (!this.type || !v) return 0; return this.type === 'percent' ? Math.round(this.rent * v) / 100 : v; },
+                                peso(n) { return '₱' + Number(n).toLocaleString('en-PH', { maximumFractionDigits: 2 }); },
+                            }" class="space-y-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div>
+                                    <label for="rent_grace_days" class="{{ $label }}">Grace days</label>
+                                    <input id="rent_grace_days" name="rent_grace_days" type="number" min="0" max="30" x-model="grace" placeholder="0"
+                                        class="w-full px-3.5 py-3 rounded-xl border border-[#E2E4EC] bg-white text-[14px] text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/25 focus:border-[#FF8A66] transition-all duration-200">
+                                    @error('rent_grace_days')<p class="{{ $error }}">{{ $message }}</p>@enderror
+                                </div>
+                                <div>
+                                    <label for="late_fee_type" class="{{ $label }}">Late fee</label>
+                                    <select id="late_fee_type" name="late_fee_type" x-model="type"
+                                        class="w-full px-3.5 py-3 rounded-xl border border-[#E2E4EC] bg-white text-[14px] text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/25 focus:border-[#FF8A66] transition-all duration-200">
+                                        <option value="">None</option>
+                                        <option value="percent">Percent of rent</option>
+                                        <option value="fixed">Fixed amount</option>
+                                    </select>
+                                    @error('late_fee_type')<p class="{{ $error }}">{{ $message }}</p>@enderror
+                                </div>
+                                <div x-show="type" x-cloak>
+                                    <label for="late_fee_value" class="{{ $label }}"><span x-text="type === 'percent' ? 'Percent' : 'Amount (₱)'"></span></label>
+                                    <input id="late_fee_value" name="late_fee_value" type="number" step="0.01" min="0.01" x-model="value" :disabled="!type"
+                                        class="w-full px-3.5 py-3 rounded-xl border border-[#E2E4EC] bg-white text-[14px] text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/25 focus:border-[#FF8A66] transition-all duration-200">
+                                    @error('late_fee_value')<p class="{{ $error }}">{{ $message }}</p>@enderror
+                                </div>
+                            </div>
+                            <p class="text-[12.5px] leading-5 text-[#5B6A8E]">
+                                Example: rent due on the 1st can be paid until the <span class="font-semibold text-[#060D26]" x-text="ord(1 + g)"></span>.
+                                <template x-if="fee > 0"><span>From the <span class="font-semibold text-[#060D26]" x-text="ord(2 + g)"></span>, a one-time late fee of <span class="font-semibold text-[#060D26]" x-text="type === 'percent' ? value + '%' : peso(fee)"></span> (<span x-text="peso(fee)"></span> on <span x-text="peso(rent)"></span>) is added.</span></template>
+                                <template x-if="fee <= 0"><span>No late fee is charged.</span></template>
+                            </p>
+                            <p class="text-[12px] text-[#5B6A8E]">The fee is charged once per month, not daily, and you can waive it for any month.</p>
                         </div>
                     </x-form-section>
 
@@ -251,7 +304,7 @@
 
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 @forelse($property->media as $img)
-                                    @php $url = $img->media_url; @endphp
+                                    @php $url = \App\Support\Images::src($img->media_url, 'card'); @endphp
                                     <div class="relative aspect-square rounded-xl overflow-hidden bg-[#ECEEF6] border border-[#E2E4EC] group/img">
                                         <img src="{{ str_starts_with($url, 'http') ? $url : Storage::url($url) }}" loading="lazy" decoding="async"
                                             class="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300" alt="Property photo">

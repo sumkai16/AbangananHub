@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreReservationRequest;
-use App\Models\Conversation;
 use App\Models\Property;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
@@ -17,17 +16,16 @@ class ReservationController extends Controller
     {
         $base = Reservation::where('tenant_id', Auth::id());
 
-        $counts = Reservation::statusCounts($base, ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied', 'Cancelled', 'Rejected']);
+        $counts = Reservation::statusCounts($base, Reservation::STATUSES);
 
         $status = $request->query('status', 'all');
-        $validStatuses = ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied', 'Completed', 'Cancelled', 'Rejected'];
 
-        if (in_array($status, $validStatuses, true)) {
+        if (in_array($status, Reservation::STATUSES, true)) {
             $base->where('rental_status', $status);
         }
 
         $reservations = $base
-            ->with(['property.media', 'property.landlord', 'unit', 'tenant', 'conversation', 'payments'])
+            ->with(['property.media', 'property.landlord', 'unit', 'tenant', 'conversation', 'payments', 'paymentClaims'])
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -56,67 +54,19 @@ class ReservationController extends Controller
             return back()->withInput()->with('error', 'This property is not currently available for inquiries.');
         }
 
-        // Check for existing active reservation on this unit by this tenant
-        $exists = Reservation::where('unit_id', $unit->unit_id)
-            ->where('tenant_id', Auth::id())
-            ->whereNotIn('rental_status', Reservation::TERMINAL_STATUSES)
-            ->exists();
+        $reservation = Reservation::startInquiry(
+            $unit,
+            Auth::id(),
+            $request->only(['target_move_in_date', 'target_move_out_date', 'occupants_count']),
+            $request->message ?? '',
+        );
 
-        if ($exists) {
+        // Null: this tenant already has an open inquiry or reservation on this unit.
+        if (! $reservation) {
             return back()->with('warning', 'You already have an active inquiry or reservation for this unit.');
         }
 
-        // Any conversation, cancelled included: the table allows only one per
-        // (tenant, landlord, property), so a cancelled thread can't be
-        // replaced by a new row — creating one threw a duplicate-key error
-        // and left the tenant unable to inquire about this property again.
-        $conversation = Conversation::inquiries()->where('tenant_id', Auth::id())
-            ->where('landlord_id', $property->landlord_id)
-            ->where('property_id', $property->property_id)
-            ->first();
-
-        if ($conversation) {
-            // Reopen a cancelled thread and point it at the unit asked about.
-            $changes = [];
-            if ($conversation->unit_id !== $unit->unit_id) {
-                $changes['unit_id'] = $unit->unit_id;
-            }
-            if ($conversation->status === 'Cancelled') {
-                $changes['status'] = 'Open';
-            }
-            if ($changes) {
-                $conversation->update($changes);
-            }
-        } else {
-            $conversation = Conversation::create([
-                'tenant_id'   => Auth::id(),
-                'landlord_id' => $property->landlord_id,
-                'property_id' => $property->property_id,
-                'unit_id'     => $unit->unit_id,
-            ]);
-        }
-
-        Reservation::create([
-            'property_id'          => $property->property_id,
-            'unit_id'              => $unit->unit_id,
-            'tenant_id'            => Auth::id(),
-            'conversation_id'      => $conversation->conversation_id,
-            'reservation_date'     => now(),
-            'rental_status'        => 'Inquiry',
-            'target_move_in_date'  => $request->target_move_in_date,
-            'target_move_out_date' => $request->target_move_out_date,
-        ]);
-
-        // First message is always the inquiry summary card — it carries the
-        // move-in/rent details the tenant just reviewed in the modal, so it's
-        // worth showing even when they left the note blank.
-        $conversation->messages()->create([
-            'sender_id'           => Auth::id(),
-            'message'             => $request->message ?? '',
-            'kind'                => 'inquiry_summary',
-        ]);
-
-        return redirect()->route('conversations.show', $conversation)
+        return redirect()->route('conversations.show', $reservation->conversation)
             ->with('success', 'Inquiry started — discuss the details with your landlord.');
     }
 

@@ -9,14 +9,26 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\SocialiteController;
+use App\Http\Controllers\Auth\TenantInviteController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
+
+// Landlord sign-up lives on ONE address for the whole flow: a guest sees the account steps, and once the account
+// exists the same page shows the ID and face check (step 3). Open to both, so it sits outside the guest group.
+Route::get('register/landlord', [RegisteredUserController::class, 'createLandlord'])->name('register.landlord');
 
 Route::middleware('guest')->group(function () {
     Route::get('register', [RegisteredUserController::class, 'create'])
         ->name('register');
 
-    Route::post('register', [RegisteredUserController::class, 'store']);
+    // Live "is this email free?" for the sign-up forms. Throttled: it is the same fact the form's own
+    // "email has already been taken" error gives away, but a loop must not be able to list accounts quickly.
+    Route::get('register/email-available', [RegisteredUserController::class, 'emailAvailable'])
+        ->middleware('throttle:30,1')
+        ->name('register.emailAvailable');
+
+    // Throttled per IP: sign-up sends a verification email and creates a row, so it is a spam target (the mobile API already is).
+    Route::post('register', [RegisteredUserController::class, 'store'])->middleware('throttle:10,1');
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
@@ -27,6 +39,7 @@ Route::middleware('guest')->group(function () {
         ->name('password.request');
 
     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
+        ->middleware('throttle:6,1')
         ->name('password.email');
 
     Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])
@@ -34,6 +47,14 @@ Route::middleware('guest')->group(function () {
 
     Route::post('reset-password', [NewPasswordController::class, 'store'])
         ->name('password.store');
+
+    // A tenant the landlord added by hand accepting their invite (App\Support\TenantInvites).
+    Route::get('invite/{token}', [TenantInviteController::class, 'show'])
+        ->name('invite.show');
+
+    Route::post('invite', [TenantInviteController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('invite.store');
 
     Route::get('auth/{provider}/redirect', [SocialiteController::class, 'redirect'])
         ->whereIn('provider', ['google', 'facebook'])

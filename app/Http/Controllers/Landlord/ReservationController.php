@@ -3,22 +3,56 @@
 namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Landlord\SendAgreementRequest;
 use App\Models\Notification;
+use App\Models\PaymentClaim;
 use App\Models\Property;
 use App\Models\Reservation;
 use App\Models\ViewingRequest;
+use App\Support\LandlordTerms;
+use App\Support\LeaseTemplates;
+use App\Support\LeaseTerms;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 
 class ReservationController extends Controller
 {
-    /** Statuses the index tabs and the export both accept. */
-    private const VALID_STATUSES = [
-        'Inquiry', 'Under Negotiation', 'Pending Rental Agreement',
-        'Rental Agreement Signed', 'Reserved', 'Occupied', 'Completed', 'Cancelled', 'Rejected',
+    /**
+     * The page's stage tabs. Reservations is the request pipeline only (plans/reservations-page-pipeline.md): from
+     * the first inquiry to a signed agreement whose move-in money the landlord has not confirmed yet. Once it is
+     * confirmed the lease is on the Tenants page, so Reserved, Occupied and Completed never show here.
+     */
+    public const STAGES = ['open', 'new', 'discussing', 'agreement', 'payment', 'closed'];
+
+    /** The quick reasons the Reject dialog offers. The tenant sees the one picked, with the landlord's note after it. */
+    public const REJECT_REASONS = [
+        'The unit is no longer available',
+        'It is not a good fit for this unit',
+        'We could not agree on the terms',
     ];
+
+    /** Narrows a reservation query to one stage tab. */
+    public static function applyStage($query, string $stage)
+    {
+        // "Paid" covers both channels (Reservation::scopeMoveInSettled): confirmed direct, or paid online through PayMongo.
+        $awaitingPayment = fn ($q) => $q->where('rental_status', 'Rental Agreement Signed')->whereNot(fn ($s) => $s->moveInSettled());
+
+        return match ($stage) {
+            'new' => $query->where('rental_status', 'Inquiry'),
+            'discussing' => $query->where('rental_status', 'Under Negotiation'),
+            'agreement' => $query->where('rental_status', 'Pending Rental Agreement'),
+            'payment' => $query->where($awaitingPayment),
+            'closed' => $query->whereIn('rental_status', ['Rejected', 'Cancelled']),
+            // Past the pipeline (move-in confirmed): read-only record, the lease itself is on Contracts.
+            'history' => $query->where(fn ($q) => $q->whereIn('rental_status', ['Reserved', 'Occupied', 'Completed'])
+                ->orWhere(fn ($s) => $s->where('rental_status', 'Rental Agreement Signed')->moveInSettled())),
+            default => $query->where(fn ($q) => $q->whereIn('rental_status', ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement'])
+                ->orWhere($awaitingPayment)),
+        };
+    }
 
     /**
      * The landlord's reservations with the search/property/date-range filters
@@ -60,18 +94,34 @@ class ReservationController extends Controller
 
     public function index(Request $request)
     {
-        $base = $this->filteredQuery($request);
-
-        $counts = Reservation::statusCounts($base, ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Reserved', 'Occupied', 'Cancelled', 'Rejected']);
-
-        $status = $request->query('status', 'all');
-
-        if (in_array($status, self::VALID_STATUSES, true)) {
-            $base->where('rental_status', $status);
+        // The old "Moved in" tab listed people who already live there, which is the Tenants page.
+        if ($request->query('stage') === 'history') {
+            return redirect()->route('landlord.tenants.index', array_filter($request->only(['search', 'property'])));
         }
 
-        $reservations = $base
-            ->with(['property.media', 'property.landlord', 'unit', 'tenant', 'conversation', 'tenantRating', 'payments'])
+        $base = $this->filteredQuery($request);
+        $stage = in_array($request->query('stage'), self::STAGES, true) ? $request->query('stage') : 'open';
+
+        $counts = collect(self::STAGES)->mapWithKeys(fn ($s) => [$s => self::applyStage(clone $base, $s)->count()]);
+
+        // The strip: whose turn it is. "Payment to confirm" = signed, awaiting payment, with a move-in report pending.
+        $withReport = fn ($q) => $q->whereHas('paymentClaims', fn ($c) => $c->where('status', 'Pending')->where('claim_type', 'MoveIn'));
+        $toConfirm = self::applyStage(clone $base, 'payment')->where($withReport);
+        $strip = [
+            'reply' => $counts['new'],
+            'discussing' => $counts['discussing'],
+            'waiting' => $counts['agreement'] + self::applyStage(clone $base, 'payment')->whereNot($withReport)->count(),
+            'confirm' => (clone $toConfirm)->count(),
+            'confirmAmount' => (float) PaymentClaim::where('status', 'Pending')->where('claim_type', 'MoveIn')
+                ->whereIn('reservation_id', (clone $toConfirm)->select('reservation_id'))->sum('amount'),
+        ];
+
+        $reservations = self::applyStage($base, $stage)
+            ->with([
+                'property.media', 'property.landlord', 'tenant', 'conversation', 'payments', 'paymentClaims', 'unit',
+                // The Details popup shows the unit's own photo (first image), falling back to the property's.
+                'unit.media' => fn ($q) => $q->where('media_type', 'Image')->orderBy('media_id')->select('media_id', 'unit_id', 'media_type', 'media_url'),
+            ])
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -87,30 +137,26 @@ class ReservationController extends Controller
             ->where('proposed_by', '!=', Auth::id())
             ->count();
 
-        return view('landlord.reservations.index', compact('reservations', 'counts', 'status', 'properties', 'pendingViewings'));
+        return view('landlord.reservations.index', compact('reservations', 'counts', 'stage', 'strip', 'properties', 'pendingViewings'));
     }
 
     /**
      * CSV of the currently filtered reservations, including the active
-     * status tab. Streamed and chunked to keep memory flat.
+     * stage tab. Streamed and chunked to keep memory flat.
      */
     public function export(Request $request)
     {
         $filename = 'abangananhub-reservations-' . now()->format('Y-m-d') . '.csv';
 
-        $query = $this->filteredQuery($request);
-
-        $status = $request->query('status', 'all');
-        if (in_array($status, self::VALID_STATUSES, true)) {
-            $query->where('rental_status', $status);
-        }
+        $stage = in_array($request->query('stage'), self::STAGES, true) ? $request->query('stage') : 'open';
+        $query = self::applyStage($this->filteredQuery($request), $stage);
 
         $query->with(['tenant:user_id,first_name,last_name,email,contact_number',
             'property:property_id,title', 'unit:unit_id,unit_label']);
 
         return response()->streamDownload(function () use ($query) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, [
+            \App\Support\Csv::put($handle, [
                 'Tenant', 'Email', 'Contact', 'Property', 'Unit', 'Status',
                 'Target Move In', 'Target Move Out', 'Occupants', 'Requested On',
             ]);
@@ -119,7 +165,7 @@ class ReservationController extends Controller
                 foreach ($reservations as $reservation) {
                     $tenant = $reservation->tenant;
 
-                    fputcsv($handle, [
+                    \App\Support\Csv::put($handle, [
                         $tenant ? trim($tenant->first_name . ' ' . $tenant->last_name) : '',
                         $tenant->email ?? '',
                         $tenant->contact_number ?? '',
@@ -142,11 +188,17 @@ class ReservationController extends Controller
     {
         Gate::authorize('reject', $reservation);
 
-        $request->validate([
+        $data = $request->validate([
             'rejection_reason' => 'nullable|string|max:500',
+            // The page's Reject dialog sends a quick reason and an optional note instead (the mobile API sends rejection_reason).
+            'reason_preset' => ['nullable', Rule::in(self::REJECT_REASONS)],
+            'reason_note' => 'nullable|string|max:300',
         ]);
 
-        if (!$reservation->reject($request->rejection_reason)) {
+        $reason = $data['rejection_reason']
+            ?? (trim(implode('. ', array_filter([$data['reason_preset'] ?? null, trim((string) ($data['reason_note'] ?? ''))]))) ?: null);
+
+        if (!$reservation->reject($reason)) {
             return back()->withErrors(['reservation' => $reservation->cancellationBlockedReason() ?? 'This reservation can no longer be rejected.']);
         }
 
@@ -177,26 +229,108 @@ class ReservationController extends Controller
         return back()->with('success', 'Moved to Under Negotiation.');
     }
 
-    public function advanceToPendingAgreement(Request $request, Reservation $reservation)
+    /** Send the agreement with the final terms agreed in chat (SendAgreementRequest authorizes and validates). */
+    public function advanceToPendingAgreement(SendAgreementRequest $request, Reservation $reservation)
     {
-        Gate::authorize('advanceStatus', $reservation);
-
-        $request->validate([
-            'agreement_terms_notes' => 'nullable|string|max:2000',
-            'accept_tc' => 'accepted',
-        ], [
-            'accept_tc.accepted' => 'You must accept the terms and conditions to proceed.',
-        ]);
-
-        if (!$reservation->advanceToPendingAgreement($request->agreement_terms_notes)) {
-            return back()->withErrors(['reservation' => 'This reservation cannot move to Pending Rental Agreement right now.']);
+        // Terms edited in the form win; an untouched one keeps the property's default terms.
+        $terms = $request->validated();
+        if (! $request->exists('agreement_terms_notes')) {
+            $terms['agreement_terms_notes'] = $reservation->property?->default_lease_terms;
         }
 
-        $reservation->update(['landlord_tc_accepted_at' => now()]);
+        if (! $reservation->advanceToPendingAgreement($terms, $request->input('lease_body'))) {
+            return back()->withErrors(['reservation' => $reservation->agreementBlockedReason() ?? 'This reservation cannot move to Pending Rental Agreement right now.']);
+        }
+
+        $this->recordTermsAcceptance($request, $reservation);
 
         $reservation->postSystemMessage(Auth::user()->name . ' sent the rental agreement.');
 
         return back()->with('success', 'Agreement sent to tenant.');
+    }
+
+    /**
+     * Accept the inquiry and send the agreement in one step, using the property's default lease terms.
+     * The landlord who wants to talk first still uses advanceToNegotiation.
+     */
+    public function acceptAndSendAgreement(Request $request, Reservation $reservation)
+    {
+        Gate::authorize('advanceStatus', $reservation);
+
+        // The one-step shortcut sends the lease as it stands, and a lease needs a start date. The tenant may have asked
+        // without one: the landlord accepts and negotiates first, then sets the date when sending the agreement.
+        if (! $reservation->target_move_in_date) {
+            return back()->with('error', 'This inquiry has no move-in date yet. Accept and negotiate first, then set the date when you send the agreement.');
+        }
+
+        $request->validate([
+            'agreement_terms_notes' => 'nullable|string|max:2000',
+            'lease_body' => 'nullable|string|max:40000',
+            ...$this->termsRules($request),
+        ], $this->termsMessages());
+
+        // Terms edited in the panel win; an untouched panel posts the property's defaults back unchanged.
+        $terms = $request->exists('agreement_terms_notes')
+            ? $request->input('agreement_terms_notes')
+            : $reservation->property?->default_lease_terms;
+
+        $body = $request->input('lease_body');
+
+        $sent = DB::transaction(function () use ($reservation, $terms, $body) {
+            $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();
+
+            return $locked->advanceToNegotiation()
+                && $locked->advanceToPendingAgreement($terms, $body)
+                ? $locked
+                : null;
+        });
+
+        if (! $sent) {
+            return back()->withErrors(['reservation' => 'This inquiry cannot be accepted right now.']);
+        }
+
+        $this->recordTermsAcceptance($request, $sent);
+
+        $name = Auth::user()->name;
+        $sent->postSystemMessage($name . ' accepted the inquiry and started negotiation.');
+        $sent->postSystemMessage($name . ' sent the rental agreement.');
+
+        return back()->with('success', 'Inquiry accepted and agreement sent to tenant.');
+    }
+
+    /**
+     * What the tenant would see for a lease the landlord is editing: the locked key terms plus the body with
+     * merge fields filled in. Nothing is saved.
+     */
+    public function previewLease(Request $request, Reservation $reservation)
+    {
+        Gate::authorize('advanceStatus', $reservation);
+
+        $data = $request->validate(['lease_body' => 'required|string|max:40000']);
+
+        $terms = LeaseTerms::snapshot($reservation, body: $data['lease_body'], template: LeaseTemplates::forReservation($reservation));
+
+        return response()->json(['html' => view('leases._document', ['terms' => $terms])->render()]);
+    }
+
+    /** The checkbox is only required until the landlord has accepted the terms for the current payment route. */
+    private function termsRules(Request $request): array
+    {
+        return LandlordTerms::needed($request->user()) ? ['accept_tc' => 'accepted'] : [];
+    }
+
+    private function termsMessages(): array
+    {
+        return ['accept_tc.accepted' => 'You must accept the terms and conditions to proceed.'];
+    }
+
+    private function recordTermsAcceptance(Request $request, Reservation $reservation): void
+    {
+        if (LandlordTerms::needed($request->user())) {
+            LandlordTerms::record($request->user());
+        }
+
+        $reservation->update(['landlord_tc_accepted_at' => now()]);
     }
 
     /**
@@ -248,7 +382,7 @@ class ReservationController extends Controller
      * Landlord confirms a walk-in reserved for a future date has actually
      * moved in. No system message, no notification — unlike markTurnedOver(),
      * a walk-in has no conversation_id and its tenant account is an inactive
-     * placeholder login (see WalkInTenantController::resolveTenant()), so
+     * placeholder login (see Landlord\TenantController::store()), so
      * there is no thread or notifiable account to reach.
      */
     public function confirmWalkInMoveIn(Reservation $reservation)

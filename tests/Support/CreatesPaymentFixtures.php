@@ -6,6 +6,7 @@ use App\Models\Payment;
 use App\Models\Payout;
 use App\Models\Reservation;
 use App\Models\User;
+use App\Models\UserPayoutAccount;
 use Illuminate\Support\Arr;
 
 /**
@@ -36,6 +37,22 @@ trait CreatesPaymentFixtures
         ], $reservation));
 
         return compact('landlord', 'tenant', 'reservation');
+    }
+
+    /**
+     * makeTenancy() with a landlord who can be paid online (GCash on file, no opt-out), which online checkout
+     * requires. Plain makeTenancy() landlords have no payout details, so tenants there can only pay directly.
+     *
+     * @return array{landlord: User, tenant: User, reservation: Reservation}
+     */
+    protected function makeOnlineTenancy(array $reservation = [], ?User $landlord = null, ?User $tenant = null): array
+    {
+        $landlord ??= $this->makeLandlord();
+        $landlord->savePayoutAccount('09171234567', 'Test Landlord');
+        // An admin has approved the account, as payouts require; tests about approval build their own landlord.
+        UserPayoutAccount::whereKey($landlord->user_id)->update(['payout_approved_at' => now()]);
+
+        return $this->makeTenancy($reservation, $landlord, $tenant);
     }
 
     protected function makePayment(Reservation $reservation, array $attributes = []): Payment

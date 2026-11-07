@@ -4,9 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\LandlordVerification;
 use App\Models\Notification;
 use App\Models\User;
 use App\Models\UserRole;
+use App\Services\AccountFilePurger;
+use App\Support\Phone;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -17,6 +21,7 @@ class UserController extends Controller
     {
         $search = $request->input('search');
         $role   = $request->input('role', 'All');
+        $status = $request->input('status', 'all');
 
         $users = User::with('roles')
             ->when($search, function ($query, $search) {
@@ -27,9 +32,11 @@ class UserController extends Controller
                         ->orWhere('contact_number', 'like', "%{$search}%");
                 });
             })
-            ->when($role !== 'All', function ($query) use ($role) {
+            ->when($role === 'No role', fn ($query) => $query->doesntHave('roles'))
+            ->when(! in_array($role, ['All', 'No role'], true), function ($query) use ($role) {
                 $query->whereHas('roles', fn ($q) => $q->where('role', $role));
             })
+            ->when(in_array($status, ['active', 'suspended', 'inactive'], true), fn ($query) => $query->where('account_status', $status))
             ->orderBy('created_at', 'desc')
             ->paginate(15)
             ->withQueryString();
@@ -49,7 +56,25 @@ class UserController extends Controller
             'inactive'  => $statusTotals['inactive'] ?? 0,
         ];
 
-        return view('admin.users.index', compact('users', 'search', 'role', 'roleCounts', 'statusCounts'));
+        // What an administrator would otherwise have to hunt for.
+        $attention = [
+            'applications' => LandlordVerification::where('verification_status', 'Pending')->count(),
+            'suspended'    => $statusCounts['suspended'],
+            'unverified'   => User::whereNull('email_verified_at')->where('is_walk_in', false)->count(),
+            'walk_ins'     => User::where('is_walk_in', true)->count(),
+        ];
+
+        // Sign-ups per day for the last 30 days.
+        $days = collect(range(29, 0))->map(fn ($i) => now()->subDays($i)->format('Y-m-d'));
+        $byDay = User::selectRaw('DATE(created_at) as day, COUNT(*) as total')
+            ->where('created_at', '>=', now()->subDays(29)->startOfDay())
+            ->groupBy('day')->pluck('total', 'day');
+        $signupLabels = $days->map(fn ($d) => Carbon::parse($d)->format('M j'))->values();
+        $signupData = $days->map(fn ($d) => (int) ($byDay[$d] ?? 0))->values();
+
+        return view('admin.users.index', compact(
+            'users', 'search', 'role', 'status', 'roleCounts', 'statusCounts', 'attention', 'signupLabels', 'signupData'
+        ));
     }
 
     public function create()
@@ -64,7 +89,7 @@ class UserController extends Controller
             'last_name'      => 'required|string|max:100',
             'email'          => 'required|email|unique:users,email',
             'password'       => 'required|string|min:8|confirmed',
-            'contact_number' => 'nullable|string|max:20',
+            'contact_number' => ['nullable', 'string', 'max:20', Phone::RULE],
             'account_status' => 'required|in:active,suspended,inactive',
             'roles'          => 'required|array|min:1',
             'roles.*'        => 'in:Admin,Landlord,Tenant',
@@ -125,7 +150,7 @@ class UserController extends Controller
             'last_name'      => 'required|string|max:100',
             'email'          => ['required', 'email', Rule::unique('users', 'email')->ignore($user->user_id, 'user_id')],
             'password'       => 'nullable|string|min:8|confirmed',
-            'contact_number' => 'nullable|string|max:20',
+            'contact_number' => ['nullable', 'string', 'max:20', Phone::RULE],
             'account_status' => 'required|in:active,suspended,inactive',
             'roles'          => 'required|array|min:1',
             'roles.*'        => 'in:Admin,Landlord,Tenant',
@@ -254,6 +279,9 @@ class UserController extends Controller
         // afterwards, so a lost log entry leaves no other trace of the action.
         // auditable is null by design — the referenced row no longer exists, so
         // the identifying detail is snapshotted into metadata instead.
+        // The verification and business rows cascade away with the user, so list their files first.
+        $files = AccountFilePurger::snapshot($user);
+
         \DB::transaction(function () use ($user) {
             AuditLog::record(
                 'user.delete',
@@ -270,6 +298,8 @@ class UserController extends Controller
 
             $user->delete();
         });
+
+        AccountFilePurger::purge($files);
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User deleted successfully.');

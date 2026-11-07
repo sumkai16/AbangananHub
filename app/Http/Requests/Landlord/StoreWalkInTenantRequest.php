@@ -4,6 +4,7 @@ namespace App\Http\Requests\Landlord;
 
 use App\Models\PropertyUnit;
 use App\Models\TenantDetail;
+use App\Support\BusinessTime;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
@@ -38,7 +39,7 @@ class StoreWalkInTenantRequest extends FormRequest
             'email'          => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')],
             // Required when there is no email: a tenant the landlord cannot
             // reach by either channel is a record with no way to follow up.
-            'contact_number' => ['required_without_all:email,existing_tenant_id', 'nullable', 'string', 'max:20'],
+            'contact_number' => ['required_without_all:email,existing_tenant_id', 'nullable', 'string', 'max:20', \App\Support\Phone::RULE],
 
             'unit_id'              => ['required', 'integer', 'exists:property_units,unit_id'],
             'move_in_date'         => ['required', 'date', 'before_or_equal:' . now()->addYear()->toDateString()],
@@ -79,7 +80,7 @@ class StoreWalkInTenantRequest extends FormRequest
                 'nullable', 'numeric', 'min:1', 'max:1000000',
             ],
             'payment_method'       => ['required_with:initial_amount', 'nullable', Rule::in(['Cash', 'GCash', 'Bank Transfer', 'Maya', 'Check', 'Other'])],
-            'payment_date'         => ['nullable', 'date', 'before_or_equal:today'],
+            'payment_date'         => ['nullable', 'date', 'before_or_equal:' . BusinessTime::today()],
             // Cash has no reference to give; every other method produces one,
             // and it is the only evidence the payment happened, so it is
             // required there. prepareForValidation() nulls it for Cash so a
@@ -155,9 +156,9 @@ class StoreWalkInTenantRequest extends FormRequest
             'payment_method.required_with'    => 'Choose how the initial payment was made.',
             'payment_date.before_or_equal'    => 'A payment cannot be recorded for a future date.',
             'reference_no.required'           => 'Enter the reference number for this payment, or switch the method to Cash.',
-            'lease_file.required_if'          => 'Choose the signed lease file, or pick "Upload later".',
-            'lease_file.mimes'                => 'Upload the signed lease as a PDF, JPG or PNG.',
-            'lease_file.max'                  => 'The lease file must be 10 MB or smaller.',
+            'lease_file.required_if'          => 'Choose the signed agreement file, or pick "Upload later".',
+            'lease_file.mimes'                => 'Upload the signed agreement as a PDF, JPG or PNG.',
+            'lease_file.max'                  => 'The agreement file must be 10 MB or smaller.',
             ...TenantDetail::messages(),
         ];
     }

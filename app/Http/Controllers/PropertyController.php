@@ -12,10 +12,12 @@ use App\Models\Review;
 use App\Support\BrowseFilters;
 use App\Support\Images;
 use App\Support\PropertyPolicies;
+use App\Services\ImageUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -23,6 +25,8 @@ class PropertyController extends Controller
 {
     public function index(Request $request)
     {
+        BrowseFilters::sanitize($request);
+
         // A described search ("room near USC under 5k"): the page shell loads at once and
         // resources/js/ai-search.js fills it in. See plans/ai-search.md.
         if (filled($request->query('q'))) {
@@ -133,6 +137,8 @@ class PropertyController extends Controller
      */
     public function count(Request $request): JsonResponse
     {
+        BrowseFilters::sanitize($request);
+
         return response()->json(['count' => $this->browseQuery($request)->paginate(1)->total()]);
     }
 
@@ -177,6 +183,12 @@ class PropertyController extends Controller
      * replicated instead, and the aggregate columns this doesn't need skipped.
      */
     private function areaTiles(?int $limit = null): Collection
+    {
+        // 10 minutes, like the other home-page lookups: a new listing's area shows up within that.
+        return Cache::remember('home.area_tiles.'.($limit ?? 'all'), now()->addMinutes(10), fn () => $this->buildAreaTiles($limit));
+    }
+
+    private function buildAreaTiles(?int $limit): Collection
     {
         $bookable = fn ($q) => $q->where('availability_status', 'Available')
             ->where('verification_status', 'Approved');
@@ -342,6 +354,10 @@ class PropertyController extends Controller
             // Set after the dirty check on purpose: standard lease terms are private to the landlord and
             // never shown on the listing, so editing them must not send an approved listing back to review.
             $property->default_lease_terms = $validated['default_lease_terms'] ?? null;
+            // Rent rules are private defaults too: each lease freezes its own copy when it is issued.
+            $property->rent_grace_days = isset($validated['rent_grace_days']) ? (int) $validated['rent_grace_days'] : null;
+            $property->late_fee_type = $validated['late_fee_type'] ?? null;
+            $property->late_fee_value = $property->late_fee_type ? $validated['late_fee_value'] : null;
 
             $property->save();
 
@@ -349,10 +365,7 @@ class PropertyController extends Controller
 
             if ($photosAdded) {
                 foreach ($request->file('photos') as $photo) {
-                    $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
-                        'folder'        => 'abanganan/properties',
-                        'resource_type' => 'image',
-                    ]);
+                    $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), ImageUploader::listingPhoto('abanganan/properties'));
                     $property->media()->create([
                         'media_type'           => 'Image',
                         'media_url'            => $result['secure_url'],
@@ -409,15 +422,13 @@ class PropertyController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $wasDraft = $property->isDraft();
-
-        foreach ($property->media as $media) {
-            if ($media->cloudinary_public_id) {
-                cloudinary()->uploadApi()->destroy($media->cloudinary_public_id);
-            }
-            $media->delete();
+        if ($reason = $property->deletionBlockedReason()) {
+            return back()->with('error', $reason);
         }
 
+        $wasDraft = $property->isDraft();
+
+        $property->purgeFiles();
         $property->delete();
 
         return redirect()->route('landlord.properties.index')
