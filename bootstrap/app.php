@@ -10,8 +10,9 @@ use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Middleware\TrustProxies;
 
-return Application::configure(basePath: dirname(__DIR__))
+$app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
@@ -49,14 +50,6 @@ return Application::configure(basePath: dirname(__DIR__))
             // The browser posts CSP reports without a CSRF token.
             'csp-report',
         ]);
-
-        // Behind a tunnel or a reverse proxy the browser speaks https to the proxy and the proxy speaks http to
-        // us, so without this every generated link and asset URL comes out as http and the browser blocks them
-        // (an unstyled page). Off unless TRUSTED_PROXIES is set: '*' for a throwaway tunnel on a dev machine,
-        // or the proxy's address(es), comma separated, on a server. Never '*' on a server reachable directly.
-        if ($trusted = env('TRUSTED_PROXIES')) {
-            $middleware->trustProxies(at: $trusted === '*' ? '*' : array_map('trim', explode(',', $trusted)));
-        }
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Never flash these into the session when validation fails.
@@ -67,3 +60,16 @@ return Application::configure(basePath: dirname(__DIR__))
             'emergency_contact_number',
         ]);
     })->create();
+
+// Behind a tunnel or a reverse proxy the browser speaks https to the proxy and the proxy speaks http to us, so
+// without this every generated link and asset URL comes out as http and the browser blocks them (an unstyled
+// page). Off unless TRUSTED_PROXIES is set: '*' for a throwaway tunnel on a dev machine, or the proxy's
+// address(es), comma separated, on a server. Never '*' on a server reachable directly.
+// Read in booted(), not in withMiddleware(): that callback runs before .env is loaded, so env() was always null.
+$app->booted(function () {
+    if ($trusted = env('TRUSTED_PROXIES')) {
+        TrustProxies::at($trusted === '*' ? '*' : array_map('trim', explode(',', $trusted)));
+    }
+});
+
+return $app;
