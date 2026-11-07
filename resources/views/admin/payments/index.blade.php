@@ -10,18 +10,46 @@
     {{-- A tab already names the status, so the column only shows on All. --}}
     @php $showStatus = $status === 'All'; @endphp
 
+    @php
+        $statusLabels = ['All' => 'All statuses', 'Held' => 'Held', 'Released' => 'Released', 'Paid' => 'Recorded', 'Pending' => 'Processing', 'Voided' => 'Voided', 'Refunded' => 'Refunded'];
+        $statusOptions = collect($statusLabels)->map(fn ($l, $k) => $k === 'All' ? $l.' ('.$counts['All'].')' : $l.' ('.$counts[$k].')')->all();
+        $sortOptions = ['newest' => 'Newest first', 'oldest' => 'Oldest first', 'amount_desc' => 'Highest amount', 'amount_asc' => 'Lowest amount'];
+        $cellHref = fn (string $st) => route('admin.payments.index', array_filter(['search' => $search, 'sort' => $sort !== 'newest' ? $sort : null, 'status' => $st === $status ? null : $st]));
+    @endphp
+
     {{-- Pesos only: the tabs below carry the counts. --}}
     <x-stat-strip class="mb-3" :cells="[
-        ['label' => 'Held', 'value' => '₱'.number_format($sums['Held'], 2), 'note' => 'Waiting for move-in'],
-        ['label' => 'Released', 'value' => '₱'.number_format($sums['Released'], 2), 'note' => 'Sent on to landlords'],
-        ['label' => 'Recorded', 'value' => '₱'.number_format($sums['Paid'], 2), 'note' => 'Offline, reported by landlords'],
+        ['label' => 'Held', 'value' => '₱'.number_format($sums['Held'], 2), 'note' => 'Waiting for move-in', 'dot' => '#FBBF24', 'href' => $cellHref('Held'), 'active' => $status === 'Held'],
+        ['label' => 'Released', 'value' => '₱'.number_format($sums['Released'], 2), 'note' => 'Sent on to landlords', 'dot' => '#22C55E', 'href' => $cellHref('Released'), 'active' => $status === 'Released'],
+        ['label' => 'Recorded', 'value' => '₱'.number_format($sums['Paid'], 2), 'note' => 'Offline, reported by landlords', 'dot' => '#94A3B8', 'href' => $cellHref('Paid'), 'active' => $status === 'Paid'],
     ]" />
 
-    <x-admin.tabs class="mb-3" :tabs="collect(['All', 'Held', 'Released', 'Paid' => 'Recorded', 'Pending' => 'Processing', 'Voided', 'Refunded'])->map(function ($label, $key) use ($counts, $status) {
-        $tab = is_int($key) ? $label : $key;
-
-        return ['label' => $label, 'count' => $counts[$tab], 'href' => route('admin.payments.index', ['status' => $tab]), 'active' => $status === $tab];
-    })->values()->all()" />
+    {{-- Search + filters, same bar as Reservations --}}
+    <form method="GET" action="{{ route('admin.payments.index') }}" class="mb-3">
+        <div class="flex flex-col lg:flex-row lg:items-center gap-3">
+            <div class="relative flex-1 min-w-[200px]">
+                <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B6A8E]" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
+                </svg>
+                <input type="text" name="search" value="{{ $search }}" placeholder="Search tenant, email, property or landlord…" aria-label="Search"
+                    x-on:input.debounce.400ms="$el.form.requestSubmit()"
+                    class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-white focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all">
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5">
+                <x-styled-select autosubmit name="status" :options="$statusOptions" :selected="$status"
+                    class="h-10 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13.5px] text-[#060D26]" />
+                <x-styled-select autosubmit name="sort" :options="$sortOptions" :selected="$sort"
+                    class="h-10 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13.5px] text-[#060D26]" />
+                @if($search || $sort !== 'newest' || $status !== 'All')
+                    <a href="{{ route('admin.payments.index') }}"
+                        class="h-10 px-4 rounded-xl border border-[#5B6A8E]/25 text-[13.5px] text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 inline-flex items-center gap-1.5">
+                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                        Clear
+                    </a>
+                @endif
+            </div>
+        </div>
+    </form>
 
     @if ($payments->isEmpty())
         @php
@@ -38,7 +66,7 @@
         <x-card flush fill>
             <x-empty-state flat fill symbol="wallet" :title="$empty[0]" :note="$empty[1]">
                 @if ($status !== 'All')
-                    <a href="{{ route('admin.payments.index', ['status' => 'All']) }}" class="inline-flex h-9 items-center rounded-lg border border-[#E2E4EC] bg-white px-3.5 text-[13px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#F7F8FC]">See all payments</a>
+                    <a href="{{ route('admin.payments.index') }}" class="inline-flex h-9 items-center rounded-lg border border-[#E2E4EC] bg-white px-3.5 text-[13px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#F7F8FC]">See all payments</a>
                 @endif
             </x-empty-state>
         </x-card>

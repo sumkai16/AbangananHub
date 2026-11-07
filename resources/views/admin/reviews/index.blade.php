@@ -3,78 +3,89 @@
 @section('page-title', 'Reviews')
 
 @section('content')
-<div class="max-w-[1600px] mx-auto">
+@php
+    $ratingOptions = ['all' => 'All ratings'];
+    foreach ([5, 4, 3, 2, 1] as $s) {
+        $ratingOptions[(string) $s] = $s . ' star' . ($s > 1 ? 's' : '');
+    }
+    $visibilityOptions = [
+        'all' => 'All reviews ('.$counts['all'].')',
+        'visible' => 'Visible ('.$counts['visible'].')',
+        'hidden' => 'Hidden ('.$counts['hidden'].')',
+    ];
+    $sortOptions = ['newest' => 'Newest first', 'oldest' => 'Oldest first', 'highest' => 'Highest rated', 'lowest' => 'Lowest rated'];
+
+    $keep = ['search' => $search, 'rating' => $rating !== 'all' ? $rating : null, 'sort' => $sort !== 'newest' ? $sort : null];
+    $cellHref = fn (array $params) => route('admin.reviews.index', array_filter(array_merge($keep, $params)));
+    $summary = [
+        ['label' => 'Total reviews', 'value' => number_format($counts['all']), 'note' => $counts['average'] ? number_format($counts['average'], 1).' average rating' : 'No ratings yet', 'href' => $cellHref([]), 'active' => $visibility === 'all'],
+        ['label' => 'Visible', 'value' => number_format($counts['visible']), 'note' => 'Shown on listings', 'dot' => '#22C55E', 'href' => $visibility === 'visible' ? $cellHref([]) : $cellHref(['visibility' => 'visible']), 'active' => $visibility === 'visible'],
+        ['label' => 'Hidden', 'value' => number_format($counts['hidden']), 'note' => $counts['hidden'] > 0 ? 'Hidden by an admin' : 'Nothing hidden', 'dot' => '#FBBF24', 'href' => $visibility === 'hidden' ? $cellHref([]) : $cellHref(['visibility' => 'hidden']), 'active' => $visibility === 'hidden'],
+        ['label' => 'Low rated', 'value' => number_format($counts['low']), 'note' => '1 or 2 stars', 'dot' => '#EF4444'],
+    ];
+@endphp
+
+<div class="max-w-[1600px] mx-auto" x-data="{
+        view: (() => { try { return localStorage.getItem('adminReviewsView') || 'table'; } catch (e) { return 'table'; } })(),
+        setView(v) { this.view = v; try { localStorage.setItem('adminReviewsView', v); } catch (e) {} }
+    }">
 
     <x-page-header icon-path="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5z" title="Reviews" subtitle="Tenant reviews. Hide anything inappropriate or fake." />
 
-    {{-- Stat cards --}}
-    <div class="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-6">
-        @foreach([5, 4, 3, 2, 1] as $stars)
-            <div class="bg-white border border-[#E2E4EC] rounded-2xl p-4 shadow-[0_1px_3px_rgba(6,13,38,0.06)] text-center">
-                <div class="flex items-center justify-center gap-0.5 mb-1">
-                    @for($i = 1; $i <= 5; $i++)
-                        <svg class="w-3 h-3" fill="{{ $i <= $stars ? '#FBBF24' : '#E2E4EC' }}" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                    @endfor
-                </div>
-                <p class="text-[20px] font-extrabold text-[#060D26]">{{ $counts[$stars] }}</p>
-                <p class="text-[10px] text-[#5B6A8E]">{{ $stars }}-star</p>
-            </div>
-        @endforeach
-    </div>
+    <x-stat-strip :cells="$summary" class="mb-4" />
 
-    {{-- Filters --}}
-    <form method="GET" action="{{ route('admin.reviews.index') }}"
-        class="mb-4 flex flex-col sm:flex-row gap-3">
-        @if($visibility !== 'all')
-            <input type="hidden" name="visibility" value="{{ $visibility }}">
-        @endif
-        <div class="relative flex-1">
-            <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B6A8E]" width="15" height="15" fill="none"
-                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
-            </svg>
-            <input type="text" name="search" value="{{ $search }}"
-                placeholder="Search by tenant, property, or review text…" aria-label="Search by tenant, property, or review text"
-                x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-white focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all">
+    <form method="GET" action="{{ route('admin.reviews.index') }}" class="mb-4">
+        <div class="flex flex-col lg:flex-row lg:items-center gap-3">
+            <div class="relative flex-1 min-w-[200px]">
+                <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B6A8E]" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" /></svg>
+                <input type="text" name="search" value="{{ $search }}" placeholder="Search by tenant, property, or review text…" aria-label="Search reviews"
+                    x-on:input.debounce.400ms="$el.form.requestSubmit()"
+                    class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-white focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all">
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5">
+                <x-styled-select autosubmit name="visibility" :options="$visibilityOptions" :selected="$visibility"
+                    class="h-10 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13.5px] text-[#060D26]" />
+                <x-styled-select autosubmit name="rating" :options="$ratingOptions" :selected="(string) $rating"
+                    class="h-10 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13.5px] text-[#060D26]" />
+                <x-styled-select autosubmit name="sort" :options="$sortOptions" :selected="$sort"
+                    class="h-10 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13.5px] text-[#060D26]" />
+                @if($search || $rating !== 'all' || $visibility !== 'all' || $sort !== 'newest')
+                    <a href="{{ route('admin.reviews.index') }}"
+                        class="h-10 px-4 rounded-xl border border-[#5B6A8E]/25 text-[13.5px] text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 inline-flex items-center gap-1.5">
+                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                        Clear
+                    </a>
+                @endif
+
+                {{-- View toggle --}}
+                <div class="flex items-center gap-0.5 h-10 p-1 rounded-xl border border-[#5B6A8E]/25 bg-white">
+                    <button type="button" x-on:click="setView('grid')" aria-label="Grid view"
+                        :class="view === 'grid' ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:text-[#060D26]'"
+                        class="h-8 w-9 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm0 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0115.75 3.75H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zm0 9.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
+                    </button>
+                    <button type="button" x-on:click="setView('table')" aria-label="List view"
+                        :class="view === 'table' ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:text-[#060D26]'"
+                        class="h-8 w-9 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" /></svg>
+                    </button>
+                </div>
+            </div>
         </div>
-        @php
-            $ratingOptions = ['all' => 'All ratings'];
-            foreach ([1, 2, 3, 4, 5] as $s) {
-                $ratingOptions[(string) $s] = $s . ' star' . ($s > 1 ? 's' : '');
-            }
-        @endphp
-        <x-styled-select name="rating" :options="$ratingOptions" :selected="(string) $rating"
-            class="h-10 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-white px-3" />
-        <button type="submit" class="h-10 rounded-xl border border-[#E2E4EC] bg-white px-4 text-[13.5px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#F7F8FC]">Filter</button>
-        @if($search || $rating !== 'all')
-            <a href="{{ route('admin.reviews.index', $visibility !== 'all' ? ['visibility' => $visibility] : []) }}"
-                class="h-10 px-4 text-[13.5px] font-semibold border border-[#E2E4EC] text-[#5B6A8E] rounded-xl hover:text-[#060D26] transition-colors flex items-center">
-                Clear
-            </a>
-        @endif
     </form>
 
-    {{-- Visibility tabs --}}
-    <x-admin.tabs class="mb-4" :tabs="collect(['all' => 'All', 'visible' => 'Visible', 'hidden' => 'Hidden'])->map(fn ($label, $key) => [
-        'label' => $label,
-        'count' => $counts[$key],
-        'href' => route('admin.reviews.index', array_merge(request()->except(['visibility', 'page']), $key !== 'all' ? ['visibility' => $key] : [])),
-        'active' => $visibility === $key,
-    ])->values()->all()" />
     {{-- List --}}
     @if($reviews->isEmpty())
-        <x-card flush><x-admin.empty title="No reviews found" :note="$search ? 'Try a different search.' : null" /></x-card>
+        <x-card flush><x-admin.empty title="No reviews found" :note="($search || $rating !== 'all' || $visibility !== 'all') ? 'Try a different search or filter.' : null" /></x-card>
     @else
-        <div class="space-y-3">
+        <div :class="view === 'grid' ? 'grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3' : 'space-y-3'">
             @foreach($reviews as $review)
                 <x-card class="flex flex-col sm:flex-row gap-4 sm:gap-5 {{ $review->is_hidden ? 'opacity-60' : '' }}"
+                    x-bind:class="view === 'grid' ? 'sm:!flex-col' : ''"
                     x-data="{ confirmOpen: false }">
 
                     {{-- Rating block --}}
-                    <div class="shrink-0 text-center w-14">
+                    <div class="shrink-0 text-center w-14" :class="view === 'grid' ? 'flex items-center gap-2 w-auto text-left' : ''">
                         <p class="text-[28px] font-extrabold text-[#060D26] leading-none">{{ $review->rating }}</p>
                         <div class="flex justify-center gap-0.5 mt-1">
                             @for($i = 1; $i <= 5; $i++)

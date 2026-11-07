@@ -30,19 +30,18 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-2.5">
-                <x-styled-select name="action" :options="$actionOptions" :selected="$action"
+                <x-styled-select autosubmit name="action" :options="$actionOptions" :selected="$action"
                     class="h-10 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13.5px] text-[#060D26] max-w-[220px]" />
 
                 <div>
                     <label for="audit-from" class="sr-only">From date</label>
-                    <x-date-picker name="from" id="audit-from" value="{{ $from }}" placeholder="From" class="w-full lg:w-36" />
+                    <x-date-picker autosubmit name="from" id="audit-from" value="{{ $from }}" placeholder="From" class="w-full lg:w-36" />
                 </div>
                 <div>
                     <label for="audit-to" class="sr-only">To date</label>
-                    <x-date-picker name="to" id="audit-to" value="{{ $to }}" placeholder="To" class="w-full lg:w-36" />
+                    <x-date-picker autosubmit name="to" id="audit-to" value="{{ $to }}" placeholder="To" class="w-full lg:w-36" />
                 </div>
 
-                <button type="submit" class="h-10 rounded-xl border border-[#E2E4EC] bg-white px-4 text-[13.5px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#F7F8FC]">Filter</button>
 
                 @if($search || $action || $from || $to)
                     <a href="{{ route('admin.audit-logs.index') }}"

@@ -8,12 +8,45 @@
 
     <x-admin.header title="Deposit Charges" subtitle="Oversight of landlord claims against a tenant's held security deposit." />
 
-    <x-admin.tabs class="mb-3" :tabs="collect(['Active', 'Voided', 'All'])->map(fn ($tab) => [
-        'label' => $tab,
-        'count' => $counts[$tab] ?? null,
-        'href' => route('admin.deposit-charges.index', ['status' => $tab]),
-        'active' => $status === $tab,
-    ])->all()" />
+    @php
+        $statusOptions = ['Active' => 'Active ('.$counts['Active'].')', 'Voided' => 'Voided ('.$counts['Voided'].')', 'All' => 'All statuses ('.$counts['All'].')'];
+        $sortOptions = ['newest' => 'Newest first', 'oldest' => 'Oldest first', 'amount_desc' => 'Highest amount', 'amount_asc' => 'Lowest amount'];
+        $cellHref = fn (string $st) => route('admin.deposit-charges.index', array_filter(['search' => $search, 'sort' => $sort !== 'newest' ? $sort : null, 'status' => $st === $status ? null : $st]));
+    @endphp
+
+    <x-stat-strip class="mb-3" :cells="[
+        ['label' => 'All charges', 'value' => $counts['All'], 'note' => 'Claims on held deposits', 'href' => $cellHref('All'), 'active' => $status === 'All'],
+        ['label' => 'Active', 'value' => $counts['Active'], 'note' => 'Still standing', 'dot' => '#22C55E', 'href' => $cellHref('Active'), 'active' => $status === 'Active'],
+        ['label' => 'Voided', 'value' => $counts['Voided'], 'note' => 'Overturned, with a reason', 'dot' => '#94A3B8', 'href' => $cellHref('Voided'), 'active' => $status === 'Voided'],
+        ['label' => 'Active amount', 'value' => '₱'.number_format($activeAmount, 2), 'note' => 'Charged against deposits'],
+    ]" />
+
+    {{-- Search + filters, same bar as Reservations --}}
+    <form method="GET" action="{{ route('admin.deposit-charges.index') }}" class="mb-3">
+        <div class="flex flex-col lg:flex-row lg:items-center gap-3">
+            <div class="relative flex-1 min-w-[200px]">
+                <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B6A8E]" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
+                </svg>
+                <input type="text" name="search" value="{{ $search }}" placeholder="Search tenant, email, property or landlord…" aria-label="Search"
+                    x-on:input.debounce.400ms="$el.form.requestSubmit()"
+                    class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-white focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all">
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5">
+                <x-styled-select autosubmit name="status" :options="$statusOptions" :selected="$status"
+                    class="h-10 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13.5px] text-[#060D26]" />
+                <x-styled-select autosubmit name="sort" :options="$sortOptions" :selected="$sort"
+                    class="h-10 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13.5px] text-[#060D26]" />
+                @if($search || $sort !== 'newest' || $status !== 'Active')
+                    <a href="{{ route('admin.deposit-charges.index') }}"
+                        class="h-10 px-4 rounded-xl border border-[#5B6A8E]/25 text-[13.5px] text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 inline-flex items-center gap-1.5">
+                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                        Clear
+                    </a>
+                @endif
+            </div>
+        </div>
+    </form>
 
     @if ($charges->isEmpty())
         @php

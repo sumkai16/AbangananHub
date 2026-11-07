@@ -80,16 +80,15 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-2.5">
-                <x-styled-select name="property_type" :options="$typeOptions" :selected="$filters['property_type'] ?? ''"
+                <x-styled-select autosubmit name="property_type" :options="$typeOptions" :selected="$filters['property_type'] ?? ''"
                     class="h-10 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13.5px] text-[#060D26]" />
 
-                <x-styled-select name="health" :options="$healthOptions" :selected="$filters['health'] ?? ''"
+                <x-styled-select autosubmit name="health" :options="$healthOptions" :selected="$filters['health'] ?? ''"
                     class="h-10 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13.5px] text-[#060D26] max-w-[200px]" />
 
-                <x-styled-select name="sort" :options="$sortOptions" :selected="$filters['sort'] ?? 'newest'"
+                <x-styled-select autosubmit name="sort" :options="$sortOptions" :selected="$filters['sort'] ?? 'newest'"
                     class="h-10 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13.5px] text-[#060D26]" />
 
-                <button type="submit" class="h-10 rounded-xl border border-[#E2E4EC] bg-white px-4 text-[13.5px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#F7F8FC]">Filter</button>
 
                 @if($search || ($filters['property_type'] ?? '') || ($filters['health'] ?? '') || (($filters['sort'] ?? 'newest') !== 'newest'))
                     <a href="{{ route('admin.catalogue.properties.index', ['verification_status' => $status]) }}"

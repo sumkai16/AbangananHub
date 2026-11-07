@@ -62,6 +62,20 @@ class AdminDesignPagesTest extends TestCase
         $this->actingAs($this->makeUserWithRole('Admin'))->get(route($route, $query))->assertOk();
     }
 
+    public function test_the_reservations_list_filters_by_type_and_searches_the_landlord(): void
+    {
+        $t = $this->makeTenancy(['rental_status' => 'Occupied']);
+        $admin = $this->makeUserWithRole('Admin');
+        $type = $t['reservation']->property->property_type;
+        $other = $type === 'House' ? 'Apartment' : 'House';
+        $landlord = $t['reservation']->property->landlord;
+        $title = $t['reservation']->property->title;
+
+        $this->actingAs($admin)->get(route('admin.reservations.index', ['property_type' => $type]))->assertOk()->assertSee($title);
+        $this->actingAs($admin)->get(route('admin.reservations.index', ['property_type' => $other]))->assertOk()->assertDontSee($title);
+        $this->actingAs($admin)->get(route('admin.reservations.index', ['search' => $landlord->first_name, 'sort' => 'move_in_soon']))->assertOk()->assertSee($title);
+    }
+
     public function test_detail_pages_load(): void
     {
         $admin = $this->makeUserWithRole('Admin');
