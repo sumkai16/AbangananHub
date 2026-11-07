@@ -139,6 +139,30 @@
                 </div>
             </div>
 
+            {{-- Property filter: one choice for Dashboard, Units, Reservations, Tenants, Payments, Reviews and Analytics.
+                 A direct child of <aside>, not of <nav>, so the open list is not clipped by the nav's overflow. Hidden with one property. --}}
+            @php
+                $scopeProps = \App\Http\Middleware\LandlordPropertyScope::ENABLED
+                    ? \App\Models\Property::where('landlord_id', auth()->id())->where('verification_status', 'Approved')->orderBy('title')->pluck('title', 'property_id')->all()
+                    : [];
+                $scopeId = \App\Http\Middleware\LandlordPropertyScope::current(auth()->id());
+            @endphp
+            @if(\App\Http\Middleware\LandlordPropertyScope::ENABLED && count($scopeProps) > 1)
+                <form method="POST" action="{{ route('landlord.property-scope.update') }}" x-show="!sidebarCollapsed" class="shrink-0 px-3 pt-4">
+                    @csrf
+                    <label class="mb-1.5 block px-3 text-[11px] font-semibold uppercase tracking-widest text-white/50">Property</label>
+                    <x-styled-select name="property" :options="['' => 'All properties'] + $scopeProps" :selected="(string) ($scopeId ?? '')" autosubmit
+                        class="h-10 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 text-[13.5px] font-medium text-white hover:bg-white/10 {{ $scopeId ? 'border-[#FF8A66]/60' : '' }}" />
+                </form>
+                {{-- Collapsed: the filter still applies, so say so; a tap opens the sidebar to change it. --}}
+                <button type="button" x-show="sidebarCollapsed" x-cloak @click="sidebarCollapsed = false"
+                    title="{{ $scopeId ? 'Showing '.$scopeProps[$scopeId] : 'Showing all properties' }}. Open the sidebar to change it."
+                    class="relative mx-auto mt-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] text-white/70 hover:bg-white/10 cursor-pointer">
+                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" /></svg>
+                    @if($scopeId)<span class="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-[#FF8A66] ring-2 ring-[#060D26]"></span>@endif
+                </button>
+            @endif
+
             {{-- Nav --}}
             @php $current = request()->route()?->getName() ?? ''; @endphp
 

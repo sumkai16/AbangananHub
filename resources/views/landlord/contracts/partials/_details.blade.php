@@ -165,10 +165,13 @@
                 @if($reservation->lease_file_path)
                     <a href="{{ route('landlord.leases.file', $reservation) }}" target="_blank" rel="noopener" class="{{ $ghostBtn }} bg-white">Open signed copy</a>
                 @endif
-                <button type="button" @click="uploading = !uploading"
-                    class="{{ $leaseStatus === 'missing' ? $ctaBtn : $ghostBtn.' bg-white' }}">
-                    {{ $reservation->lease_file_path ? 'Replace signed copy' : 'Upload signed copy' }}
-                </button>
+                {{-- Signed online is the signed agreement: only a paper lease needs the signed copy uploaded. --}}
+                @if($leaseStatus !== 'signed_online')
+                    <button type="button" @click="uploading = !uploading"
+                        class="{{ $leaseStatus === 'missing' ? $ctaBtn : $ghostBtn.' bg-white' }}">
+                        {{ $reservation->lease_file_path ? 'Replace signed copy' : 'Upload signed copy' }}
+                    </button>
+                @endif
             </div>
 
           </div>

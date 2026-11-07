@@ -4,6 +4,7 @@ use App\Http\Middleware\DropArrayFilters;
 use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureLandlord;
+use App\Http\Middleware\LandlordPropertyScope;
 use App\Http\Middleware\EnsureTenant;
 use App\Http\Middleware\ForceJsonResponse;
 use App\Http\Middleware\SecurityHeaders;
@@ -32,6 +33,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'tenant'   => EnsureTenant::class,
             'landlord' => EnsureLandlord::class,
+            'property.scope' => LandlordPropertyScope::class,
             'admin'    => EnsureAdmin::class,
             // Aliased for the API, where it must run *after* auth:sanctum has
             // resolved the guard. Appending it to the api group instead would

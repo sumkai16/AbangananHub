@@ -44,6 +44,15 @@ class LeaseController extends Controller
         $fromContracts = $request->input('from') === 'contracts';
         $backToModal = fn () => redirect()->route('landlord.tenants.index', ['open' => $reservation->reservation_id]);
 
+        // Signed online already: that is the signed agreement, there is nothing to upload.
+        if ($reservation->leaseStatus() === 'signed_online') {
+            $message = 'The tenant already signed this agreement online, so there is no signed copy to upload.';
+
+            return $fromContracts
+                ? $backToModal()->with('error', $message)
+                : back()->with('error', $message);
+        }
+
         $validator = Validator::make($request->all(), [
             'lease_file' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
         ], [

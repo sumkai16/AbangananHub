@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\LandlordPropertyScope;
 use App\Models\DepositCharge;
 use App\Models\OccupancyActivity;
 use App\Models\Payment;
@@ -45,7 +46,10 @@ class AnalyticsController extends Controller
         [$from, $to] = $this->resolveRange($request);
 
         $landlordId = Auth::id();
+        // The sidebar's Property filter: one property, or null for all of them.
+        $only = LandlordPropertyScope::current($landlordId);
         $properties = Property::where('landlord_id', $landlordId)
+            ->when($only, fn ($q) => $q->whereKey($only))
             ->orderBy('title')
             ->get();
         $propertyIds = $properties->pluck('property_id');
@@ -191,6 +195,7 @@ class AnalyticsController extends Controller
             'tenant:user_id,first_name,last_name',
         ])
             ->where('landlord_id', $landlordId)
+            ->when($only, fn ($q) => $q->where('property_id', $only))
             ->latest('activity_id')
             ->limit(8)
             ->get();
@@ -216,7 +221,8 @@ class AnalyticsController extends Controller
         [$from, $to] = $this->resolveRange($request);
 
         $landlordId = Auth::id();
-        $properties = Property::where('landlord_id', $landlordId)->orderBy('title')->get();
+        $only = LandlordPropertyScope::current($landlordId);
+        $properties = Property::where('landlord_id', $landlordId)->when($only, fn ($q) => $q->whereKey($only))->orderBy('title')->get();
         $units = PropertyUnit::whereIn('property_id', $properties->pluck('property_id'))->get();
         $revenueByPropertyId = $this->revenueByProperty($properties->pluck('property_id'), $from, $to);
 

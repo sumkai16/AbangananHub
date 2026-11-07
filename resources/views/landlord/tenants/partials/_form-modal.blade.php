@@ -211,7 +211,7 @@
                                     </button>
                                     <div x-show="editing || moreOpen" x-cloak class="grid gap-3">
                                         <p x-show="editing" class="text-[12px] text-[#5B6A8E]">Leave a field blank to keep what is saved.</p>
-                                        <x-tenant-details-fields id-prefix="tenantform" />{{-- shows its own field errors --}}
+                                        <x-tenant-details-fields id-prefix="tenantform" tall inline />{{-- shows its own field errors --}}
                                     </div>
                                 </div>
 
@@ -298,12 +298,6 @@
                                     </div>
                                 </template>
                             </div>
-                        </div>
-
-                        {{-- Emergency contact and ID: the labels say what this group is --}}
-                        <div class="grid gap-4 border-t border-[#E2E4EC] pt-5">
-                            <p x-show="editing" class="text-[12px] text-[#5B6A8E]">Leave a field blank to keep what is saved.</p>
-                            <x-tenant-details-fields id-prefix="tenantform" tall inline />{{-- shows its own field errors --}}
                         </div>
 
                         {{-- Errors from a background save that have no field above (the emergency contact and ID fields,

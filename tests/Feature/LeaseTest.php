@@ -155,6 +155,27 @@ class LeaseTest extends TestCase
         $this->assertSame('signed-v2.pdf', $reservation->lease_file_name);
     }
 
+    public function test_a_lease_signed_online_takes_no_uploaded_copy(): void
+    {
+        $this->walkIn()->assertRedirect();
+        $reservation = $this->latestWalkIn();
+        $reservation->forceFill(['agreed_at' => now()])->save();
+        $this->assertSame('signed_online', $reservation->leaseStatus());
+
+        // The button is gone from the lease details modal...
+        $this->actingAs($this->landlord)->get(route('landlord.contracts.show', $reservation))
+            ->assertOk()->assertSee('Signed online by the tenant')->assertDontSee('Upload signed copy');
+
+        // ...and the server refuses the upload too, so hiding the button is not the only guard.
+        $this->actingAs($this->landlord)->post(route('landlord.leases.upload', $reservation), [
+            'lease_file' => UploadedFile::fake()->create('signed.pdf', 100, 'application/pdf'),
+        ])->assertSessionHas('error');
+
+        $reservation->refresh();
+        $this->assertNull($reservation->lease_file_path);
+        $this->assertSame('signed_online', $reservation->leaseStatus());
+    }
+
     public function test_upload_now_requires_a_file(): void
     {
         $this->walkIn(['lease_mode' => 'now'])->assertSessionHasErrors('lease_file');

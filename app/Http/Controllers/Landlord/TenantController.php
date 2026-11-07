@@ -41,8 +41,10 @@ class TenantController extends Controller
         'ending' => 'Ending soon',
         'no-agreement' => 'No agreement',
         'none' => 'No contract',
-        'former' => 'Former',
     ];
+
+    /** The Tenants dropdown. Former tenants are history, so the page starts on the current ones. */
+    public const SHOW = ['current' => 'Current tenants', 'former' => 'Former tenants', 'all' => 'Everyone'];
 
     private const PER_PAGE = 20;
 
@@ -54,6 +56,9 @@ class TenantController extends Controller
         $rows = $this->rows();
         $stage = $request->input('status');
         $stage = self::OLD_STATUS[$stage] ?? $stage;
+        // The old Former chip is now a choice in the Tenants dropdown; old links to it still work.
+        $show = $request->input('show', $stage === 'former' ? 'former' : 'current');
+        $show = array_key_exists($show, self::SHOW) ? $show : 'current';
         $stage = array_key_exists($stage, self::STAGES) ? $stage : '';
         $search = trim((string) $request->input('search'));
 
@@ -70,12 +75,28 @@ class TenantController extends Controller
             })
             ->values();
 
+        // Former tenants are counted for the dropdown, then kept out unless asked for.
+        $formerCount = $scoped->where('stage', 'former')->count();
+        $scoped = match ($show) {
+            'former' => $scoped->where('stage', 'former')->values(),
+            'all' => $scoped,
+            default => $scoped->where('stage', '!=', 'former')->values(),
+        };
+
         $counts = ['all' => $scoped->count()];
         foreach (array_keys(self::STAGES) as $key) {
             $counts[$key] = $scoped->filter(fn ($r) => $this->inStage($r, $key))->count();
         }
 
         $filtered = $stage === '' ? $scoped : $scoped->filter(fn ($r) => $this->inStage($r, $stage))->values();
+
+        // The page shows one table per property, so keep each property's tenants together (tenants with no
+        // unit yet last). sortBy is stable, so the order inside a property is unchanged.
+        $filtered = $filtered
+            ->sortBy(fn ($r) => $r['shown'] ? '0'.Str::lower($r['shown']->property->title).'|'.$r['shown']->property_id : '1')
+            ->values();
+        // Whole-list total per property: a property cut across two pages still shows its real size.
+        $groupTotals = $filtered->countBy(fn ($r) => $r['shown']?->property_id ?? 0);
 
         $properties = Auth::user()->properties()->where('verification_status', 'Approved')
             ->orderBy('title')->get(['property_id', 'title']);
@@ -86,8 +107,11 @@ class TenantController extends Controller
         return view('landlord.tenants.index', [
             // Counts and chips above were taken over every tenant; only the rows shown are cut to a page.
             'rows' => Paging::collection($filtered, self::PER_PAGE),
+            'groupTotals' => $groupTotals,
             'counts' => $counts,
             'stage' => $stage,
+            'show' => $show,
+            'formerCount' => $formerCount,
             'properties' => $properties,
             'waiting' => $waiting,
             // Sent but not yet signed: those are not contracts (or on this list) until signed, so they stay on Reservations.

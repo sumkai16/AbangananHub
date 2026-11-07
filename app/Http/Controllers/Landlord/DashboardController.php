@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\LandlordPropertyScope;
 use App\Models\Conversation;
 use App\Models\Notification;
 use App\Models\Payment;
@@ -33,7 +34,9 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $landlordId = Auth::id();
-        $propertyIds = Property::where('landlord_id', $landlordId)->pluck('property_id');
+        // The sidebar's Property filter: one property's numbers, or null for all of them.
+        $only = LandlordPropertyScope::current($landlordId);
+        $propertyIds = Property::where('landlord_id', $landlordId)->when($only, fn ($q) => $q->whereKey($only))->pluck('property_id');
 
         $units = PropertyUnit::whereIn('property_id', $propertyIds)->get();
         $totalUnits = $units->count();
@@ -50,6 +53,7 @@ class DashboardController extends Controller
         // Per-property occupancy breakdown (approved listings only)
         $properties = Property::where('landlord_id', $landlordId)
             ->where('verification_status', 'Approved')
+            ->when($only, fn ($q) => $q->whereKey($only))
             ->with(['units', 'media' => fn ($q) => $q->where('media_type', 'Image')->orderBy('media_id')->limit(1)])
             ->get()
             ->map(function ($property) {
@@ -71,11 +75,11 @@ class DashboardController extends Controller
             ->sortBy(fn ($p) => $p['total_units'] > 0 ? $p['occupied_units'] / $p['total_units'] : 0)
             ->values();
 
-        [$rent, $overdueItems] = $this->rentThisMonth($landlordId);
+        [$rent, $overdueItems] = $this->rentThisMonth($landlordId, $only);
 
         $pendingPayout = (float) Payment::whereHas(
             'reservation.property',
-            fn ($q) => $q->where('landlord_id', $landlordId)
+            fn ($q) => $q->where('landlord_id', $landlordId)->when($only, fn ($q) => $q->whereKey($only))
         )->pendingPayout()->sum('amount');
 
         $actionQueue = $this->actionQueue($landlordId, $propertyIds, $overdueItems);
@@ -88,7 +92,7 @@ class DashboardController extends Controller
         };
 
         $notifications = $this->latestNotifications($landlordId);
-        $setupAlerts = $this->setupAlerts($landlordId);
+        $setupAlerts = $this->setupAlerts($landlordId, $only);
 
         return view('landlord.dashboard.index', [
             'totalUnits' => $totalUnits,
@@ -106,7 +110,7 @@ class DashboardController extends Controller
             'actionQueueOverflow' => max(0, $actionQueue->count() - self::QUEUE_LIMIT),
             'greeting' => $greeting,
             'setupAlerts' => $setupAlerts,
-            'viewings' => $this->viewingSchedule($landlordId),
+            'viewings' => $this->viewingSchedule($landlordId, $only),
         ]);
     }
 
@@ -117,10 +121,11 @@ class DashboardController extends Controller
      * @return array{0: array<string, mixed>, 1: Collection} totals, then the
      *                                                       overdue tenancies (oldest first) for the action queue.
      */
-    private function rentThisMonth(int $landlordId): array
+    private function rentThisMonth(int $landlordId, ?int $only = null): array
     {
         $rows = Reservation::where('rental_status', 'Occupied')
             ->whereHas('property', fn ($q) => $q->where('landlord_id', $landlordId))
+            ->when($only, fn ($q) => $q->where('property_id', $only))
             ->with(['tenant', 'property:property_id,title', 'unit:unit_id,unit_label,rental_fee', 'payments', 'depositCharges', 'lateFeeWaivers', 'renewals'])
             ->get()
             ->map(fn (Reservation $r) => ['reservation' => $r, 'summary' => RentLedger::for($r)->summary()]);
@@ -241,12 +246,13 @@ class DashboardController extends Controller
      * rejected or unfinished, and a missing payout destination.
      * Each: level (danger|warn|info), text, cta, url.
      */
-    private function setupAlerts(int $landlordId): Collection
+    private function setupAlerts(int $landlordId, ?int $only = null): Collection
     {
         $alerts = collect();
         $counts = ['rejected' => 0, 'suspended' => 0, 'draft' => 0, 'pending' => 0];
 
         Property::where('landlord_id', $landlordId)
+            ->when($only, fn ($q) => $q->whereKey($only))
             ->selectRaw('verification_status, publication_status, count(*) as c')
             ->groupBy('verification_status', 'publication_status')
             ->get()
@@ -266,7 +272,7 @@ class DashboardController extends Controller
         $listings = fn (int $n) => $n . ' ' . ($n === 1 ? 'listing' : 'listings');
 
         $toConfirm = PaymentClaim::pending()
-            ->whereHas('reservation.property', fn ($q) => $q->where('landlord_id', $landlordId))
+            ->whereHas('reservation.property', fn ($q) => $q->where('landlord_id', $landlordId)->when($only, fn ($q) => $q->whereKey($only)))
             ->count();
 
         if ($toConfirm > 0) {
@@ -345,13 +351,14 @@ class DashboardController extends Controller
      *
      * @return array{months: Collection, byDay: Collection, next: ?ViewingRequest, soon: int, toAnswer: int, needsAnswerDays: array<int, string>}
      */
-    private function viewingSchedule(int $landlordId): array
+    private function viewingSchedule(int $landlordId, ?int $only = null): array
     {
         $today = now()->startOfDay();
         $firstMonth = $today->copy()->startOfMonth();
         $months = collect(range(0, self::VIEWING_MONTHS - 1))->map(fn ($i) => $firstMonth->copy()->addMonthsNoOverflow($i));
 
         $viewings = ViewingRequest::where('landlord_id', $landlordId)
+            ->when($only, fn ($q) => $q->where('property_id', $only))
             ->active()
             ->whereBetween('scheduled_at', [$firstMonth, $months->last()->copy()->endOfMonth()])
             ->with(['tenant:user_id,first_name,last_name', 'property:property_id,title', 'unit:unit_id,unit_label'])

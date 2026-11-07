@@ -314,6 +314,25 @@ class TenantsPageTest extends TestCase
         $this->actingAs($landlord)->get(route('landlord.tenants.index'))->assertDontSee($row->code());
     }
 
+    public function test_former_tenants_stay_off_the_list_until_the_dropdown_asks_for_them(): void
+    {
+        $landlord = $this->makeLandlord();
+        $this->addTenant($landlord, ['email' => '']);
+        $row = LandlordTenant::where('landlord_id', $landlord->user_id)->firstOrFail();
+        $this->contractFor($row, 'Completed');
+
+        // The code also sits in the Add lease picker, so look at the rows the list was given, not the whole page.
+        $listed = fn (array $query) => $this->actingAs($landlord)->get(route('landlord.tenants.index', $query))
+            ->assertOk()->viewData('rows')->pluck('row.landlord_tenant_id')->all();
+
+        $this->assertSame([], $listed([]));
+        $this->actingAs($landlord)->get(route('landlord.tenants.index'))->assertSee('Former tenants (1)');
+        $this->assertSame([$row->landlord_tenant_id], $listed(['show' => 'former']));
+        $this->assertSame([$row->landlord_tenant_id], $listed(['show' => 'all']));
+        // The old Former chip link still lands on the former tenants.
+        $this->assertSame([$row->landlord_tenant_id], $listed(['status' => 'former']));
+    }
+
     public function test_accepting_the_invite_turns_the_placeholder_into_a_real_account(): void
     {
         $landlord = $this->makeLandlord();

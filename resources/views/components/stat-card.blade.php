@@ -13,7 +13,7 @@
     $tag = $href ? 'a' : 'div';
 @endphp
 
-<{{ $tag }} @if($href) href="{{ $href }}" @endif
+<{{ $tag }} @if($href) href="{{ $href }}" @endif {{ $attributes->except('class') }}
     class="stat-card bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-4 {{ $href ? 'block transition-all duration-200 hover:shadow-lg' : '' }} {{ $attributes->get('class') }}">
     <div class="sc-head flex items-center justify-between gap-2 mb-3">
         {{-- min-w-0 + <wbr> after "/": a long unbroken label ("Cancelled/Rejected") pushed the icon out of the card on a 360-375px phone. --}}

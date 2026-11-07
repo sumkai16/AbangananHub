@@ -247,11 +247,13 @@
                                     Open signed copy
                                 </a>
                             @endif
-                            <button type="button" @click="uploading = !uploading"
-                                class="h-11 sm:h-9 px-4 sm:px-3.5 rounded-lg text-[12.5px] font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] inline-flex items-center justify-center cursor-pointer transition-colors duration-200
-                                    {{ $leaseStatus === 'missing' ? 'bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26]' : 'text-[#060D26] hover:bg-[#ECEEF6]' }}">
-                                {{ $reservation->lease_file_path ? 'Replace signed copy' : 'Upload signed copy' }}
-                            </button>
+                            @if ($leaseStatus !== 'signed_online')
+                                <button type="button" @click="uploading = !uploading"
+                                    class="h-11 sm:h-9 px-4 sm:px-3.5 rounded-lg text-[12.5px] font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] inline-flex items-center justify-center cursor-pointer transition-colors duration-200
+                                        {{ $leaseStatus === 'missing' ? 'bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26]' : 'text-[#060D26] hover:bg-[#ECEEF6]' }}">
+                                    {{ $reservation->lease_file_path ? 'Replace signed copy' : 'Upload signed copy' }}
+                                </button>
+                            @endif
                         </div>
 
                         <form x-show="uploading" x-cloak action="{{ route('landlord.leases.upload', $reservation) }}" method="POST" enctype="multipart/form-data"
