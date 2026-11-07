@@ -3,7 +3,11 @@
 @section('page-title', 'Payments')
 
 @section('content')
-<div class="admin-compact admin-fill">
+<div class="admin-compact admin-fill"
+    x-data="{
+        view: (() => { try { return localStorage.getItem('adminPaymentsView') || 'table'; } catch (e) { return 'table'; } })(),
+        setView(v) { this.view = v; try { localStorage.setItem('adminPaymentsView', v); } catch (e) {} }
+    }">
 
     <x-admin.header title="Payments" subtitle="Online money held until move-in, and payments landlords recorded." />
 
@@ -25,7 +29,7 @@
     ]" />
 
     {{-- Search + filters, same bar as Reservations --}}
-    <form method="GET" action="{{ route('admin.payments.index') }}" class="mb-3">
+    <form data-live method="GET" action="{{ route('admin.payments.index') }}" class="mb-3">
         <div class="flex flex-col lg:flex-row lg:items-center gap-3">
             <div class="relative flex-1 min-w-[200px]">
                 <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B6A8E]" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -47,6 +51,20 @@
                         Clear
                     </a>
                 @endif
+
+                {{-- View toggle: the choice is kept in the browser, like Reservations --}}
+                <div class="flex items-center gap-0.5 h-10 p-1 rounded-xl border border-[#5B6A8E]/25 bg-white">
+                    <button type="button" x-on:click="setView('grid')" aria-label="Grid view"
+                        :class="view === 'grid' ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:text-[#060D26]'"
+                        class="h-8 w-9 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm0 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0115.75 3.75H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zm0 9.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
+                    </button>
+                    <button type="button" x-on:click="setView('table')" aria-label="List view"
+                        :class="view === 'table' ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:text-[#060D26]'"
+                        class="h-8 w-9 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" /></svg>
+                    </button>
+                </div>
             </div>
         </div>
     </form>
@@ -72,7 +90,7 @@
         </x-card>
     @else
         <x-card flush fill>
-            <div class="overflow-x-auto scrollbar-thin-light">
+            <div x-show="view === 'table'" class="overflow-x-auto scrollbar-thin-light">
                 <table class="w-full min-w-[1040px]">
                     <thead>
                         <tr class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
@@ -129,76 +147,62 @@
                                     </td>
                                 @endif
                                 <td class="px-4 text-right">
-                                    @if ($payment->status === 'Held')
-                                        @php
-                                            $group = $heldGroups[$payment->payment_id] ?? collect([$payment]);
-                                            $quote = \App\Services\PaymentRefunds::quote($group);
-                                            $refundDetail = [
-                                                'id' => $payment->payment_id,
-                                                'action' => route('admin.payments.refund', $payment),
-                                                'label' => trim(($tenant->first_name ?? '').' '.($tenant->last_name ?? '')).' · '.($payment->reservation?->property?->title ?? 'Reservation'),
-                                                'rent' => $quote['rent'],
-                                                'fee' => $quote['fee'],
-                                                'rows' => $quote['rows'],
-                                            ];
-                                        @endphp
-                                        <div class="flex items-center justify-end gap-1">
-                                        @if ($payment->recorded_by === null && $quote['paymongo_payment_id'])
-                                            <button type="button" @click="$dispatch('open-refund-payment', {{ \Illuminate\Support\Js::from($refundDetail) }})"
-                                                class="inline-flex h-8 items-center rounded-lg px-2 text-[12.5px] font-semibold text-[#DC2626] hover:bg-[#EF4444]/[0.06] transition-colors duration-200 cursor-pointer">
-                                                Refund tenant
-                                            </button>
-                                        @endif
-                                        <form method="POST" action="{{ route('admin.payments.release', $payment) }}"
-                                            data-confirm="Release this payment to the landlord?"
-                                            data-confirm-type="warning"
-                                            data-confirm-message="This sends the funds to the landlord's payout and cannot be undone."
-                                            data-confirm-button="Release payment">
-                                            @csrf
-                                            <button type="submit"
-                                                class="inline-flex h-8 items-center rounded-lg border border-[#E2E4EC] bg-white px-3 text-[12.5px] font-semibold text-[#060D26] hover:border-[#FF8A66] hover:bg-[#FF8A66]/[0.08] transition-colors duration-200 cursor-pointer">
-                                                Release
-                                            </button>
-                                        </form>
-                                        </div>
-                                    @elseif ($payment->status === 'Refunded')
-                                        <div class="text-[12px] text-[#5B6A8E] leading-snug">
-                                            <p>Refunded {{ $payment->refunded_at?->format('M d, Y') }}</p>
-                                            @if ($payment->refund_status === 'failed')
-                                                <p class="mt-0.5 font-bold text-[#DC2626]">Refund failed. The tenant has not been repaid.</p>
-                                            @elseif ($payment->refund_status === 'processing' && $payment->refund_transfer_link)
-                                                <p class="mt-0.5 text-[#B45309]">Waiting for the tenant to claim it
-                                                    (<a href="{{ $payment->refund_transfer_link }}" target="_blank" rel="noopener noreferrer" class="underline font-semibold">link</a>)</p>
-                                            @elseif (in_array($payment->refund_status, ['pending', 'processing'], true))
-                                                <p class="mt-0.5 text-[#B45309]">PayMongo is still sending it</p>
-                                            @elseif ($payment->refund_status === 'succeeded')
-                                                <p class="mt-0.5 text-[#15803D]">Sent</p>
-                                            @endif
-                                            @if ($payment->refund_includes_fee)
-                                                <p class="mt-0.5">Fee refunded too</p>
-                                            @endif
-                                        </div>
-                                    @elseif ($payment->status === 'Released')
-                                        <span class="text-[12px] text-[#5B6A8E]">
-                                            Released {{ $payment->released_at?->format('M d, Y') }}
-                                        </span>
-                                    @elseif ($payment->status === 'Voided')
-                                        <span class="text-[12px] text-[#5B6A8E]">
-                                            {{ $payment->voidReasonLabel() }} · {{ $payment->voided_at?->format('M d, Y') }}
-                                        </span>
-                                    @elseif ($payment->isManuallyRecorded())
-                                        {{-- Landlord-asserted, never escrowed — deliberately no
-                                             Release button. This is the one row type an admin must
-                                             be able to tell apart from platform-settled money. --}}
-                                        <span class="text-[12px] text-[#5B6A8E]">Recorded by landlord</span>
-                                    @else
-                                        <span class="text-[12px] text-[#5B6A8E]">—</span>
-                                    @endif
+                                    @include('admin.payments.partials._actions', ['payment' => $payment, 'heldGroups' => $heldGroups])
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+
+            {{-- Grid view: one card per payment, the same figures and actions as the table row. --}}
+            <div x-show="view === 'grid'" x-cloak class="grid grid-cols-1 gap-3 bg-[#F7F8FC] p-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                @foreach ($payments as $payment)
+                    @php
+                        $tenant = $payment->reservation?->tenant;
+                        $payLandlord = $payment->reservation?->property?->landlord;
+                    @endphp
+                    <article data-payment-card class="flex min-w-0 flex-col rounded-xl border border-[#E2E4EC] bg-white p-3.5">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5">
+                                    @if ($payment->reservation)
+                                        <a href="{{ route('admin.reservations.show', $payment->reservation) }}" class="truncate text-[13px] font-semibold text-[#060D26] underline-offset-2 hover:underline">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</a>
+                                    @else
+                                        <p class="truncate text-[13px] font-semibold text-[#060D26]">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</p>
+                                    @endif
+                                    @if ($tenant?->is_walk_in)
+                                        <span class="inline-flex h-5 shrink-0 items-center rounded bg-[#FBBF24]/[0.16] px-1.5 text-[11px] font-semibold text-[#B45309]" title="Walk-in tenant — identity not verified by AbangananHub">Walk-in</span>
+                                    @endif
+                                </div>
+                                <p class="truncate text-[12px] text-[#5B6A8E]" title="{{ $tenant?->email }}">{{ $tenant?->email ?: '—' }}</p>
+                            </div>
+                            @if ($showStatus)
+                                <span data-payment-status class="shrink-0"><x-admin.status :status="$payment->status" :label="['Paid' => 'Recorded', 'Pending' => 'Processing'][$payment->status] ?? $payment->status" /></span>
+                            @endif
+                        </div>
+
+                        <p class="mt-3 text-[20px] font-semibold tabular-nums leading-6 text-[#060D26]">₱{{ number_format($payment->amount, 2) }}</p>
+                        <p class="text-[12px] text-[#5B6A8E]">{{ $payment->payment_type }}</p>
+
+                        <dl class="mt-3 space-y-1.5 text-[12.5px]">
+                            <div class="min-w-0">
+                                <dt class="sr-only">Property</dt>
+                                <dd class="truncate text-[#060D26]" title="{{ $payment->reservation?->property?->title }}">{{ $payment->reservation?->property?->title ?? '—' }}</dd>
+                                <dd class="truncate text-[12px] text-[#5B6A8E]">{{ $payment->reservation?->unit?->unit_label ?? '' }}</dd>
+                            </div>
+                            <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Landlord</dt><dd class="truncate text-right text-[#060D26]">{{ $payLandlord ? trim($payLandlord->first_name.' '.$payLandlord->last_name) : '—' }}</dd></div>
+                            <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Paid by</dt><dd class="min-w-0 truncate text-right text-[#060D26]" title="{{ $payment->reference_no }}">{{ $payment->payment_method ?: '—' }}@if ($payment->reference_no) <span class="text-[#5B6A8E]">· {{ $payment->reference_no }}</span>@endif</dd></div>
+                            <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Date</dt><dd class="text-right tabular-nums text-[#060D26]">{{ ($payment->paid_at ?? $payment->created_at)?->format('M j, Y') ?? '—' }}</dd></div>
+                        </dl>
+
+                        <div class="mt-auto pt-3">
+                            <div class="border-t border-[#E2E4EC] pt-3">
+                                @include('admin.payments.partials._actions', ['payment' => $payment, 'heldGroups' => $heldGroups, 'align' => 'start'])
+                            </div>
+                        </div>
+                    </article>
+                @endforeach
             </div>
             <div class="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-[#E2E4EC] bg-[#F7F8FC] px-4 py-2.5">
                 @if ($payments->hasPages())
