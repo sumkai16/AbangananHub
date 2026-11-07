@@ -2,6 +2,9 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 7 2026 — Lease strip shows every month of a 12-month lease on one row (branch `axci`)
+**Automated tests pass; not yet seen in a browser by me.** Run `npm run build` after pulling. No migration, no route change. A lease of 12 months or fewer (Jul 2026 to Jun 2027, say) used to show only the current year, with "See more · 6 more months" under a half-empty row. From `md` up the year groups now sit side by side on one row, each as wide as its months, so all 12 months show and "See more" is gone. A shorter lease keeps the same bar width as before (the row is only as wide as its months). Phones keep six bars a row with "See more". Leases longer than 12 months keep the stacked years. Files: `resources/views/payments/partials/_lease-strip.blade.php` (shared by the landlord ledger and the tenant's rental page), `tests/Feature/LeaseStripOneRowTest.php`.
+
 ## Nov 7 2026 — Payments and Payouts tabs switch in place, no page load (branch `axci`)
 **Automated tests pass and the swap was exercised on two admin pages in Chrome; the landlord Payments and Payouts tabs themselves are not yet clicked through by me** (the Chrome session is signed in as admin). Run `npm run build` after pulling. No migration. Plan and manual test list: `plans/payments-tabs-swap.md`.
 - **What changed:** Rent and Payouts are two tabs of one Payments page. Clicking the other tab now fetches it in the background and swaps only the work area (`<main id="main">`: header, tabs, content). The sidebar stays, the address bar and title follow, and Back and Forward walk between the tabs.
