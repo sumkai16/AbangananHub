@@ -349,6 +349,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const donutOpts = {
+        animation: false,
         responsive: false,
         cutout: '70%',
         plugins: {

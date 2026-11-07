@@ -610,7 +610,7 @@
                          native lazy-loading can't compute intersection until then — it would only start
                          fetching on open, popping the photo in after the panel is already visible. --}}
                     {{-- src is set a moment after the page has loaded (script below) or when the modal opens, whichever comes first, so this 170 KB photo no longer competes with the page's own images on every guest page. --}}
-                    <img id="auth-bg-img" data-src="{{ asset('images/auth-bg-1600.jpg') }}" alt="" decoding="async" class="absolute inset-0 w-full h-full object-cover">
+                    <img id="auth-bg-img" data-src="{{ asset('images/auth-bg-1600.webp') }}" alt="" decoding="async" class="absolute inset-0 w-full h-full object-cover">
                     <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/25 via-[#060D26]/45 to-[#060D26]/90"></div>
 
                     {{-- Floating trust chips — same recipe as the landlord CTA figure on
@@ -1164,19 +1164,6 @@
         </script>
     @endif
     @stack('scripts')
-
-    {{-- Navigation progress bar: appears the instant a navigation starts (link, form,
-         card click, redirect) and is reset when the next page shows. --}}
-    <div id="nav-progress" aria-hidden="true"></div>
-    <script>
-        (function () {
-            var bar = document.getElementById('nav-progress');
-            if (!bar) return;
-            window.addEventListener('beforeunload', function () { bar.classList.add('is-active'); });
-            // Back/forward cache restores a frozen page — clear the bar so it isn't stuck.
-            window.addEventListener('pageshow', function () { bar.classList.remove('is-active'); });
-        })();
-    </script>
 </body>
 
 </html>

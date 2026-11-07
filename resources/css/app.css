@@ -418,16 +418,6 @@ html.dark :where([type="checkbox"], [type="radio"]) { background-color: #1A2448;
     }
 }
 
-/* Thin coral progress bar shown from the moment a navigation starts until the next page paints. */
-#nav-progress {
-    position: fixed; top: 0; left: 0; height: 3px; width: 0; z-index: 10000;
-    background: linear-gradient(90deg, #FF8A66, #FFB59F);
-    box-shadow: 0 0 10px rgba(255, 138, 102, 0.6);
-    opacity: 0; pointer-events: none;
-    transition: width 8s cubic-bezier(0.1, 0.6, 0.2, 1), opacity 200ms ease;
-}
-#nav-progress.is-active { width: 85%; opacity: 1; }
-
 /* Inline validation (resources/js/field-validation.js): short tag on the field border; full text is screen-reader only (checkboxes keep a visible line). */
 .fv-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .fv-bad {
