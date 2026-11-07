@@ -7,10 +7,19 @@
         $wide = true;
         $cardClass = 'rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)]';
     @endphp
-    <div class="{{ $wide ? 'max-w-none' : auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-5 min-h-[calc(100vh-72px)]" x-data="inboxApp()" x-cloak>
+    {{-- Tenants get the same 1400px column as the site header and every other tenant page; the landlord's sidebar shell keeps the full width. --}}
+    <div class="{{ auth()->user()->usesLandlordShell() ? 'max-w-none' : auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-5 min-h-[calc(100vh-72px)]" x-data="inboxApp()" x-cloak>
 
         <div class="flex flex-col {{ $wide ? 'gap-4' : 'overflow-hidden '.$cardClass }}"
             style="height: calc(100vh - 110px); height: calc(100dvh - 110px); min-height: 560px;">
+
+        {{-- A refused action (e.g. "Send agreement" while another reservation holds the unit) redirects back here
+             with an error. Without this the page just reloads and looks like nothing happened. --}}
+        @if($errors->any())
+            <div role="alert" class="flex-shrink-0 rounded-xl border border-[#EF4444]/25 bg-[#EF4444]/[0.07] px-4 py-3 text-[13px] font-medium text-[#DC2626]">
+                {{ $errors->first() }}
+            </div>
+        @endif
 
         {{-- Header (the landlord shell shows the title in its mobile top bar instead) --}}
         @push('mobile-title')<x-page-icon class="!h-7 !w-7 !rounded-lg" path="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /><span class="truncate text-[15px] font-semibold tracking-tight text-[#060D26]">{{ $box === 'tenancy' ? ($isLandlord ? 'Tenants' : 'My home') : ($isLandlord ? 'Inquiries' : 'Messages') }}</span>@endpush
@@ -258,10 +267,18 @@
                 </div>
 
                 @if($conversations->isNotEmpty())
-                    <div class="px-4 py-2 border-t border-[#5B6A8E]/10 flex-shrink-0">
-                        <p class="text-[11px] text-[#5B6A8E] text-center">
-                            Showing 1 to {{ $conversations->count() }} of {{ $conversations->count() }} {{ $isLandlord ? Str::plural('inquiry', $conversations->count()) : Str::plural('conversation', $conversations->count()) }}
+                    <div class="px-4 py-2 border-t border-[#5B6A8E]/10 flex-shrink-0 flex items-center justify-between gap-2">
+                        @if($conversations->hasPages())
+                            <a @if($conversations->onFirstPage()) aria-disabled="true" @else href="{{ $conversations->previousPageUrl() }}" @endif
+                                class="h-8 px-2.5 inline-flex items-center rounded-lg border border-[#E2E4EC] text-[12px] font-semibold {{ $conversations->onFirstPage() ? 'text-[#CBD5E1] cursor-not-allowed' : 'text-[#060D26] hover:bg-[#ECEEF6]' }}">Prev</a>
+                        @endif
+                        <p class="text-[11px] text-[#5B6A8E] text-center flex-1">
+                            Showing {{ $conversations->firstItem() }} to {{ $conversations->lastItem() }} of {{ $conversations->total() }} {{ $isLandlord ? Str::plural('inquiry', $conversations->total()) : Str::plural('conversation', $conversations->total()) }}
                         </p>
+                        @if($conversations->hasPages())
+                            <a @if($conversations->hasMorePages()) href="{{ $conversations->nextPageUrl() }}" @else aria-disabled="true" @endif
+                                class="h-8 px-2.5 inline-flex items-center rounded-lg border border-[#E2E4EC] text-[12px] font-semibold {{ $conversations->hasMorePages() ? 'text-[#060D26] hover:bg-[#ECEEF6]' : 'text-[#CBD5E1] cursor-not-allowed' }}">Next</a>
+                        @endif
                     </div>
                 @endif
             </div>

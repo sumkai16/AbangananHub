@@ -28,7 +28,7 @@ class TenantRequest extends FormRequest
             // Unique across all users: an email that already has an account is someone else's login. They book
             // online instead, so a landlord can never attach a stranger's account to their list.
             'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($editing, 'user_id')],
-            'contact_number' => ['required_without:email', 'nullable', 'string', 'max:20'],
+            'contact_number' => ['required_without:email', 'nullable', 'string', 'max:20', \App\Support\Phone::RULE],
             // Add only: a free unit to put them in. The contract (dates, rent, terms) is filled in next, in Add contract.
             'unit_id' => $editing ? ['prohibited'] : ['nullable', Rule::in(ContractFormOptions::units()->flatMap(fn ($p) => collect($p['units'])->pluck('id'))->all())],
             ...TenantDetail::rules(false),

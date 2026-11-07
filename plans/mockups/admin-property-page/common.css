@@ -1,0 +1,5 @@
+body { font-family: Inter, system-ui, sans-serif; background: #F7F8FC; color: #060D26; }
+.leaflet-container { z-index: 0; font-family: inherit; }
+img { display: block; }
+::selection { background: #FF8A66; color: #060D26; }
+a:focus-visible, button:focus-visible { outline: 2px solid #FF8A66; outline-offset: 2px; }

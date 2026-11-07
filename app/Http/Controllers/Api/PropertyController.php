@@ -8,6 +8,7 @@ use App\Http\Resources\PublicReviewResource;
 use App\Models\Favorite;
 use App\Models\Property;
 use App\Models\Review;
+use App\Support\BrowseFilters;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -19,6 +20,8 @@ class PropertyController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        BrowseFilters::sanitize($request);
+
         // 'units' must be eager-loaded here: Property::getMinRentalFeeAttribute()
         // (and its two siblings) unconditionally read $this->units, so without
         // it every row lazy-loads and preventLazyLoading throws on a real

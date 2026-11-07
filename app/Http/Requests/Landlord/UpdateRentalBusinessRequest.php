@@ -16,7 +16,7 @@ class UpdateRentalBusinessRequest extends FormRequest
         return [
             'business_name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'contact_number' => ['required', 'string', 'max:20'],
+            'contact_number' => ['required', 'string', 'max:20', \App\Support\Phone::RULE],
             'business_address' => ['required', 'string', 'max:500'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ];

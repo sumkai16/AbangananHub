@@ -1,8 +1,8 @@
 @props(['reservation', 'type', 'period' => null])
 {{--
-    "How do you want to pay?" The options, picked each time: pay online through PayMongo (only when the landlord
-    can be paid online, Payments::onlineFor), pay the landlord's own QR and report it, or pay cash in person and
-    let the landlord record it. QR and cash always show, so a landlord without GCash still gets both.
+    "How do you want to pay?" The options, picked each time: pay online through PayMongo, pay the landlord's own QR
+    and report it, or pay cash in person and let the landlord record it. Only the ways the landlord turned on in
+    Settings > Payments show (App\Support\PaymentMethods, which never leaves the tenant with none).
     Needs $reservation (property.landlord, unit, paymentClaims loaded) and $type ('MoveIn' | 'Monthly').
     For Monthly also $period (a RentLedger period). The direct side is the existing payments.partials._direct-pay.
 --}}
@@ -13,8 +13,14 @@
     $deposit = $isMoveIn ? (float) $reservation->agreedDeposit() : 0.0;
     $fee = \App\Support\ServiceFee::for($onlineAmount);
     $onlineTotal = $onlineAmount + $deposit + $fee;
+    $methods = \App\Support\PaymentMethods::forReservation($reservation);
     // Online pays the earliest unsettled month only, so paying a month ahead is QR or cash.
-    $online = \App\Support\Payments::onlineFor($reservation) && ! ($period['is_future'] ?? false);
+    $online = $methods['online'] && ! ($period['is_future'] ?? false);
+    $qr = $methods['qr'];
+    $cash = $methods['cash'];
+    $direct = $qr || $cash;
+    // A landlord who takes online only, and a month paid ahead (online pays the due month): nothing to offer yet.
+    $noWayYet = ! $online && ! $direct;
     $cashAmount = $isMoveIn ? $onlineAmount + $deposit : $onlineAmount;
     $chatLink = $reservation->conversation_id
         ? route('conversations.index', ['active' => $reservation->conversation_id])
@@ -32,15 +38,54 @@
     $rejectedClaim = ! $pendingClaim && $latestClaim?->status === 'Rejected' ? $latestClaim : null;
     // Reopen the side the tenant was on: a cash report back on cash, any other report (or a report form that
     // came back with errors, or the chat's "I've paid" link) on the QR side.
-    $startCash = ($pendingClaim ?? $rejectedClaim)?->isCash() || old('payment_method') === 'Cash';
-    $startDirect = ! $startCash && ($claims->contains(fn ($claim) => in_array($claim->status, ['Pending', 'Rejected'], true))
+    $startCash = $cash && (($pendingClaim ?? $rejectedClaim)?->isCash() || old('payment_method') === 'Cash');
+    $startDirect = $qr && ! $startCash && ($claims->contains(fn ($claim) => in_array($claim->status, ['Pending', 'Rejected'], true))
         || old('claim_type') === $type
         || ($isMoveIn && request()->boolean('pay')));
+    // The chat's "I've paid" link (pay=1) lands on cash when the landlord takes cash but not QR.
+    $startCash = $startCash || (! $qr && $cash && $isMoveIn && request()->boolean('pay'));
     // A checkout that came back with an error ('payment', and no report form input) reopens the online side so the message is seen.
     $startOnline = ! $startDirect && ($errors->has('payment') || $errors->has('accept_terms'));
     $anchor = $isMoveIn ? 'choose-pay' : 'choose-pay-'.$periodKey->format('Y-m');
+
+    // Behind by two months or more: "Pay all" reports the whole balance in one go. The report stays on the oldest
+    // unpaid month (that is where the landlord's confirmation starts) and the same allocator that spreads any lump of
+    // rent (RentPaymentAllocator) lays it over the months, so the tenant is not made to file one report per month.
+    // Only for QR and cash: an online checkout still pays one month at a time.
+    $unsettled = $isMoveIn ? collect() : \App\Services\RentLedger::for($reservation)->unsettledPeriods();
+    $payAllMonths = $unsettled->count();
+    $payAllTotal = round((float) $unsettled->sum(fn ($p) => max(0, $p['balance'])), 2);
+    $canPayAll = ! $isMoveIn && $direct && $payAllMonths >= 2 && ! ($period['is_future'] ?? false);
+    $oneAmountStr = number_format($cashAmount, 2, '.', '');
+    $allAmountStr = number_format($payAllTotal, 2, '.', '');
+    // After a failed submit the form comes back with what was typed; keep whichever choice that matches.
+    $startPayAll = $canPayAll && (string) old('amount') === $allAmountStr;
+    $payAllRange = $canPayAll ? $unsettled->first()['label'].' – '.$unsettled->last()['label'] : '';
+    // Which card is picked when the page opens: the side the tenant was on, else the only way there is, else
+    // (no online) the first direct way, else nothing so the tenant chooses.
+    $startRoute = match (true) {
+        $startCash => 'cash',
+        $startDirect => 'direct',
+        $startOnline && $online => 'online',
+        $online && ! $direct => 'online',
+        ! $online && $qr => 'direct',
+        ! $online && $cash => 'cash',
+        default => null,
+    };
+    // How many cards sit side by side: online + "directly", or each direct way on its own.
+    $cardCount = $online ? ($direct ? 2 : 1) : (int) $qr + (int) $cash;
+    $directWays = $qr && $cash ? 'own QR or cash' : 'own QR';
 @endphp
-<div id="{{ $anchor }}" class="scroll-mt-24 space-y-3" x-data="{ route: @js($startCash ? 'cash' : ($startDirect ? 'direct' : ($startOnline && $online ? 'online' : ($online ? null : 'direct')))), cashForm: @js($startCash && $errors->any()) }">
+<div id="{{ $anchor }}" class="scroll-mt-24 space-y-3" x-data="{
+        route: @js($startRoute), cashForm: @js($startCash && $errors->any()),
+        payAll: @js($startPayAll),
+        // This month, or the whole balance: both amount fields (QR and cash) follow the choice.
+        setPayAll(flag) {
+            this.payAll = flag;
+            const value = flag ? @js($allAmountStr) : @js($oneAmountStr);
+            this.$root.querySelectorAll('input[name=amount]').forEach(i => { i.value = value; });
+        },
+    }">
     <div>
         <h3 class="text-[15px] font-normal text-[#060D26]">
             @if($pendingClaim)
@@ -56,10 +101,14 @@
          to pay twice). Withdrawing it brings the choices back. --}}
     @if($pendingClaim)
         @include('payments.partials._claim-status', ['pending' => $pendingClaim, 'rejected' => null, 'landlordName' => $landlordName])
+    @elseif($noWayYet)
+        <p class="rounded-2xl border border-[#E2E4EC] bg-white p-4 text-[13px] leading-relaxed text-[#060D26]">
+            {{ $landlordName }} takes online payments only, and paying online opens when this month is due.
+        </p>
     @else
     {{-- Online on: two cards, "online" (protected, held) or "directly" (no fee, no protection), and the QR / cash
          choice sits inside "directly" so the tenant never sees two QR options. Online off: QR and cash side by side. --}}
-    <div class="grid gap-3 sm:grid-cols-2" role="group" aria-label="Payment method">
+    <div class="grid gap-3 {{ $cardCount > 1 ? 'sm:grid-cols-2' : '' }}" role="group" aria-label="Payment method">
         @if($online)
             <button type="button" @click="route = 'online'" :aria-pressed="route === 'online'"
                 :class="route === 'online' ? 'border-[#FF8A66] bg-[#FF8A66]/[0.07] ring-2 ring-[#FF8A66]' : 'border-[#E2E4EC] bg-white hover:bg-[#F7F8FC]'"
@@ -69,15 +118,18 @@
                     GCash or QR Ph on PayMongo. {{ $isMoveIn ? 'AbangananHub holds it until you confirm move-in, so you are protected.' : 'Your ledger updates right away.' }}
                 </span>
             </button>
-            <button type="button" @click="route = (route === 'cash' ? 'cash' : 'direct')" :aria-pressed="route === 'direct' || route === 'cash'"
+            @if($direct)
+            <button type="button" @click="route = {{ $qr && $cash ? "(route === 'cash' ? 'cash' : 'direct')" : ($qr ? "'direct'" : "'cash'") }}" :aria-pressed="route === 'direct' || route === 'cash'"
                 :class="route === 'direct' || route === 'cash' ? 'border-[#FF8A66] bg-[#FF8A66]/[0.07] ring-2 ring-[#FF8A66]' : 'border-[#E2E4EC] bg-white hover:bg-[#F7F8FC]'"
                 class="min-h-[44px] rounded-2xl border p-4 text-left transition-colors">
                 <span class="block text-[14px] font-bold text-[#060D26]">Pay {{ $landlordName }} directly</span>
                 <span class="mt-0.5 block text-[12px] leading-relaxed text-[#5B6A8E]">
-                    {{ $landlordName }}&rsquo;s own QR or cash. No fee, but it goes straight to them; AbangananHub doesn&rsquo;t hold or refund it.
+                    @if($qr){{ $landlordName }}&rsquo;s {{ $directWays }}@else Cash, in person @endif. No fee, but it goes straight to them; AbangananHub doesn&rsquo;t hold or refund it.
                 </span>
             </button>
+            @endif
         @else
+            @if($qr)
             <button type="button" @click="route = 'direct'" :aria-pressed="route === 'direct'"
                 :class="route === 'direct' ? 'border-[#FF8A66] bg-[#FF8A66]/[0.07] ring-2 ring-[#FF8A66]' : 'border-[#E2E4EC] bg-white hover:bg-[#F7F8FC]'"
                 class="min-h-[44px] rounded-2xl border p-4 text-left transition-colors">
@@ -86,6 +138,8 @@
                     Their own QR, then tell us you paid. It goes straight to them; AbangananHub doesn&rsquo;t hold or refund it.
                 </span>
             </button>
+            @endif
+            @if($cash)
             <button type="button" @click="route = 'cash'" :aria-pressed="route === 'cash'"
                 :class="route === 'cash' ? 'border-[#FF8A66] bg-[#FF8A66]/[0.07] ring-2 ring-[#FF8A66]' : 'border-[#E2E4EC] bg-white hover:bg-[#F7F8FC]'"
                 class="min-h-[44px] rounded-2xl border p-4 text-left transition-colors">
@@ -94,10 +148,11 @@
                     Hand it to {{ $landlordName }} in person. They record it here, and you are told when they do.
                 </span>
             </button>
+            @endif
         @endif
     </div>
 
-    @if($online)
+    @if($online && $qr && $cash)
         <div x-show="route === 'direct' || route === 'cash'" x-cloak role="group" aria-label="How to pay {{ $landlordName }} directly"
             class="flex rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] p-1 text-[13px] font-bold">
             <button type="button" @click="route = 'direct'" :aria-pressed="route === 'direct'"
@@ -109,6 +164,23 @@
         </div>
     @endif
 
+    @if($canPayAll)
+        <div x-show="route === 'direct' || route === 'cash'" x-cloak class="rounded-2xl border border-[#E2E4EC] bg-white p-3 sm:p-4">
+            <p class="text-[13px] font-semibold text-[#060D26]">You owe {{ $payAllMonths }} months ({{ $payAllRange }})</p>
+            <div class="mt-2 grid grid-cols-2 rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] p-1 text-[13px] font-bold" role="group" aria-label="How much to pay">
+                <button type="button" @click="setPayAll(false)" :aria-pressed="!payAll"
+                    :class="!payAll ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E]'"
+                    class="min-h-[44px] rounded-lg px-2 transition-colors">This month<span class="block text-[12px] font-semibold tabular-nums">&#8369;{{ number_format($cashAmount, 2) }}</span></button>
+                <button type="button" @click="setPayAll(true)" :aria-pressed="payAll"
+                    :class="payAll ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E]'"
+                    class="min-h-[44px] rounded-lg px-2 transition-colors">Pay all {{ $payAllMonths }} months<span class="block text-[12px] font-semibold tabular-nums">&#8369;{{ number_format($payAllTotal, 2) }}</span></button>
+            </div>
+            <p x-show="payAll" x-cloak class="mt-2 text-[12px] leading-relaxed text-[#5B6A8E]">
+                One report for {{ $payAllRange }}. {{ $landlordName }} confirms it once and it is spread over those months, oldest first.
+            </p>
+        </div>
+    @endif
+
     <div x-show="route === 'direct' || route === 'cash'" x-cloak>
         <x-payment-safety-tips :landlord-name="$landlordName" />
     </div>
@@ -116,6 +188,11 @@
     {{-- Online: the PayMongo checkout. One payment covers the rent, the deposit (move-in only) and the online fee. --}}
     @if($online)
     <div x-show="route === 'online'" x-cloak>
+        @if($canPayAll)
+            <p x-show="payAll" x-cloak class="mb-2 rounded-xl bg-[#FBBF24]/15 px-3 py-2 text-[12px] leading-relaxed text-[#060D26]">
+                Online pays one month at a time, so this pays {{ $period['label'] }} only. To pay all {{ $payAllMonths }} months at once, pay {{ $landlordName }} directly.
+            </p>
+        @endif
         <form action="{{ $checkoutUrl }}" method="POST" class="rounded-2xl border border-[#E2E4EC] bg-white p-4 sm:p-5" x-data="{ agreed: {{ old('accept_terms') ? 'true' : 'false' }} }">
             @csrf
             @if($errors->has('payment'))
@@ -148,12 +225,15 @@
     @endif
 
     {{-- Direct: the QR and the "I've paid" report. --}}
+    @if($qr)
     <div x-show="route === 'direct'" x-cloak>
         @include('payments.partials._direct-pay', ['reservation' => $reservation, 'type' => $type, 'period' => $period])
     </div>
+    @endif
 
     {{-- Cash: no report to file. The landlord records it when they are handed the money (the same record-a-payment
          the landlord already has), and the tenant is notified. --}}
+    @if($cash)
     <div x-show="route === 'cash'" x-cloak>
         <div class="rounded-2xl border border-[#E2E4EC] bg-white p-4 sm:p-5">
             <h3 class="text-[15px] font-normal text-[#060D26]">Pay {{ $landlordName }} in cash</h3>
@@ -212,5 +292,6 @@
             @endunless
         </div>
     </div>
+    @endif
     @endif
 </div>

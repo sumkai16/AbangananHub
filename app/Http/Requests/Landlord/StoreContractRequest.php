@@ -6,7 +6,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 
 /**
- * "Add contract" on the Contracts page. The unit, dates, terms, lease file and move-in money follow exactly the
+ * "Add lease" on the Contracts page. The unit, dates, terms, lease file and move-in money follow exactly the
  * walk-in rules (same minimum stay, occupancy limit, payment-required-once-moved-in), so this extends that request
  * and only swaps the tenant fields for a tenant already on the landlord's list.
  */
@@ -35,9 +35,9 @@ class StoreContractRequest extends StoreWalkInTenantRequest
     {
         return [
             ...parent::messages(),
-            'landlord_tenant_id.required' => 'Choose the tenant this contract is for.',
+            'landlord_tenant_id.required' => 'Choose the tenant this lease is for.',
             'landlord_tenant_id.exists' => 'Choose a tenant from your list.',
-            'move_out_date.required' => 'Enter the date the contract ends.',
+            'move_out_date.required' => 'Enter the date the lease ends.',
         ];
     }
 }

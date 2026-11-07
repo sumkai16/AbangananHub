@@ -134,13 +134,13 @@
 
                 <div class="flex shrink-0 items-start justify-between gap-4 px-6 pt-5 pb-3">
                     <div>
-                        <h2 id="tenant-form-title" class="text-[17px] font-normal text-[#060D26]" x-text="editing ? 'Edit tenant' : 'Add tenant'"></h2>
-                        <p class="text-[12.5px] text-[#5B6A8E] mt-0.5" x-text="editing
+                        <h2 id="tenant-form-title" class="text-[20px] font-semibold text-[#060D26] leading-tight" x-text="editing ? 'Edit tenant' : 'Add tenant'"></h2>
+                        <p class="text-[13px] text-[#5B6A8E] mt-1" x-text="editing
                             ? 'Changing the email sends a new invite to that address.'
                             : 'Add the person and, if you pick a unit, their contract too. With an email, we invite them to set a password.'"></p>
                     </div>
                     <button type="button" @click="close()" aria-label="Close"
-                        class="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-[#5B6A8E] hover:bg-[#F7F8FC] hover:text-[#060D26] transition-colors duration-200 cursor-pointer">
+                        class="w-10 h-10 -mr-2 -mt-1.5 shrink-0 rounded-full flex items-center justify-center text-[#5B6A8E] hover:bg-[#ECEEF6] hover:text-[#060D26] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/50 transition-colors duration-200 cursor-pointer">
                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
@@ -298,6 +298,20 @@
                                     </div>
                                 </template>
                             </div>
+                        </div>
+
+                        {{-- Emergency contact and ID: the labels say what this group is --}}
+                        <div class="grid gap-4 border-t border-[#E2E4EC] pt-5">
+                            <p x-show="editing" class="text-[12px] text-[#5B6A8E]">Leave a field blank to keep what is saved.</p>
+                            <x-tenant-details-fields id-prefix="tenantform" tall inline />{{-- shows its own field errors --}}
+                        </div>
+
+                        {{-- Errors from a background save that have no field above (the emergency contact and ID fields,
+                             or a failed request). --}}
+                        <div x-show="otherErrors.length" x-cloak role="alert" class="rounded-xl border border-[#EF4444]/25 bg-[#EF4444]/[0.06] px-3.5 py-2.5">
+                            <template x-for="message in otherErrors" :key="message">
+                                <p class="text-[12.5px] font-semibold text-[#B91C1C]" x-text="message"></p>
+                            </template>
                         </div>
                     </div>
 

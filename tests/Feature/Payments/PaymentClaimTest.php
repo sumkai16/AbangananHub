@@ -103,7 +103,7 @@ class PaymentClaimTest extends TestCase
             $this->assertNotNull(Conversation::where('reservation_id', $reservation->reservation_id)->where('type', 'tenancy')->first(), 'The tenancy chat opens.');
             $this->assertSame('Resolved', Conversation::find($reservation->conversation_id)->status, 'The inquiry thread closes once the tenancy chat opens.');
 
-            $this->actingAs($tenant)->get(route('home'))->assertSee('My Unit', false)->assertSee(route('tenancy.show', $reservation), false);
+            $this->actingAs($tenant)->get(route('home'))->assertSee('My Rentals', false)->assertSee(route('tenancy.index'), false);
         }
     }
 

@@ -16,6 +16,19 @@ class Images
     /** Widths offered in a srcset — enough steps for phone, tablet, desktop. */
     public const SRCSET_WIDTHS = [320, 640, 960];
 
+    /**
+     * The sizes a listing photo is shown at. Use these names instead of a bare number so every page agrees:
+     * thumb = list rows and small tiles, card = cards and grids, gallery = a property or unit page, full = the
+     * full-screen lightbox. plans/image-and-demo-data-cleanup.md
+     */
+    public const SIZES = ['thumb' => 160, 'card' => 640, 'gallery' => 1200, 'full' => 1600];
+
+    /** The URL at one of the named sizes (thumb, card, gallery, full). */
+    public static function src(?string $url, string $size): ?string
+    {
+        return self::resize($url, self::SIZES[$size]);
+    }
+
     public static function resize(?string $url, int $width): ?string
     {
         if (! $url) {

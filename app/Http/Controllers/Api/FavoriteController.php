@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\PropertyResource;
 use App\Models\Favorite;
 use App\Models\Property;
+use App\Support\ApiPage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -17,14 +18,16 @@ class FavoriteController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $favorites = Favorite::where('tenant_id', $request->user()->user_id)
-            ->with(['property.media', 'property.units'])
-            ->latest('created_at')
-            ->get()
+        $page = Favorite::where('tenant_id', $request->user()->user_id)
             // Skip favorites whose property was deleted or de-approved,
             // matching the web favorites page behaviour.
-            ->filter(fn (Favorite $f) => $f->property && $f->property->verification_status === 'Approved')
-            ->values()
+            ->whereHas('property', fn ($q) => $q->where('verification_status', 'Approved'))
+            ->with(['property.media', 'property.units'])
+            ->latest('created_at')
+            ->orderByDesc('favorite_id')
+            ->paginate(ApiPage::perPage($request))->withQueryString();
+
+        $favorites = $page->getCollection()
             ->map(function (Favorite $favorite) {
                 $property = $favorite->property;
 
@@ -38,7 +41,7 @@ class FavoriteController extends Controller
                 ];
             });
 
-        return response()->json(['data' => $favorites]);
+        return response()->json(['data' => $favorites->values(), 'meta' => ApiPage::meta($page)]);
     }
 
     /**

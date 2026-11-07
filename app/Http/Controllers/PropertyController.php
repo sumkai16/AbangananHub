@@ -12,6 +12,7 @@ use App\Models\Review;
 use App\Support\BrowseFilters;
 use App\Support\Images;
 use App\Support\PropertyPolicies;
+use App\Services\ImageUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -24,6 +25,8 @@ class PropertyController extends Controller
 {
     public function index(Request $request)
     {
+        BrowseFilters::sanitize($request);
+
         // A described search ("room near USC under 5k"): the page shell loads at once and
         // resources/js/ai-search.js fills it in. See plans/ai-search.md.
         if (filled($request->query('q'))) {
@@ -134,6 +137,8 @@ class PropertyController extends Controller
      */
     public function count(Request $request): JsonResponse
     {
+        BrowseFilters::sanitize($request);
+
         return response()->json(['count' => $this->browseQuery($request)->paginate(1)->total()]);
     }
 
@@ -360,10 +365,7 @@ class PropertyController extends Controller
 
             if ($photosAdded) {
                 foreach ($request->file('photos') as $photo) {
-                    $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
-                        'folder'        => 'abanganan/properties',
-                        'resource_type' => 'image',
-                    ]);
+                    $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), ImageUploader::listingPhoto('abanganan/properties'));
                     $property->media()->create([
                         'media_type'           => 'Image',
                         'media_url'            => $result['secure_url'],

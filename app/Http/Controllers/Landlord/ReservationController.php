@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 
 class ReservationController extends Controller
 {
@@ -25,6 +26,13 @@ class ReservationController extends Controller
      * confirmed the lease is on the Tenants page, so Reserved, Occupied and Completed never show here.
      */
     public const STAGES = ['open', 'new', 'discussing', 'agreement', 'payment', 'closed'];
+
+    /** The quick reasons the Reject dialog offers. The tenant sees the one picked, with the landlord's note after it. */
+    public const REJECT_REASONS = [
+        'The unit is no longer available',
+        'It is not a good fit for this unit',
+        'We could not agree on the terms',
+    ];
 
     /** Narrows a reservation query to one stage tab. */
     public static function applyStage($query, string $stage)
@@ -148,7 +156,7 @@ class ReservationController extends Controller
 
         return response()->streamDownload(function () use ($query) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, [
+            \App\Support\Csv::put($handle, [
                 'Tenant', 'Email', 'Contact', 'Property', 'Unit', 'Status',
                 'Target Move In', 'Target Move Out', 'Occupants', 'Requested On',
             ]);
@@ -157,7 +165,7 @@ class ReservationController extends Controller
                 foreach ($reservations as $reservation) {
                     $tenant = $reservation->tenant;
 
-                    fputcsv($handle, [
+                    \App\Support\Csv::put($handle, [
                         $tenant ? trim($tenant->first_name . ' ' . $tenant->last_name) : '',
                         $tenant->email ?? '',
                         $tenant->contact_number ?? '',
@@ -180,11 +188,17 @@ class ReservationController extends Controller
     {
         Gate::authorize('reject', $reservation);
 
-        $request->validate([
+        $data = $request->validate([
             'rejection_reason' => 'nullable|string|max:500',
+            // The page's Reject dialog sends a quick reason and an optional note instead (the mobile API sends rejection_reason).
+            'reason_preset' => ['nullable', Rule::in(self::REJECT_REASONS)],
+            'reason_note' => 'nullable|string|max:300',
         ]);
 
-        if (!$reservation->reject($request->rejection_reason)) {
+        $reason = $data['rejection_reason']
+            ?? (trim(implode('. ', array_filter([$data['reason_preset'] ?? null, trim((string) ($data['reason_note'] ?? ''))]))) ?: null);
+
+        if (!$reservation->reject($reason)) {
             return back()->withErrors(['reservation' => $reservation->cancellationBlockedReason() ?? 'This reservation can no longer be rejected.']);
         }
 
@@ -242,6 +256,12 @@ class ReservationController extends Controller
     public function acceptAndSendAgreement(Request $request, Reservation $reservation)
     {
         Gate::authorize('advanceStatus', $reservation);
+
+        // The one-step shortcut sends the lease as it stands, and a lease needs a start date. The tenant may have asked
+        // without one: the landlord accepts and negotiates first, then sets the date when sending the agreement.
+        if (! $reservation->target_move_in_date) {
+            return back()->with('error', 'This inquiry has no move-in date yet. Accept and negotiate first, then set the date when you send the agreement.');
+        }
 
         $request->validate([
             'agreement_terms_notes' => 'nullable|string|max:2000',

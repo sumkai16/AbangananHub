@@ -53,7 +53,7 @@
     @if($favorites->count() > 0)
 
         <p class="text-[13px] text-[#5B6A8E] font-medium mb-6">
-            {{ $favorites->count() }} {{ Str::plural('property', $favorites->count()) }} saved
+            {{ $favorites->total() }} {{ Str::plural('property', $favorites->total()) }} saved
         </p>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -72,7 +72,7 @@
                     <div class="relative w-full aspect-square rounded-2xl overflow-hidden bg-[#ECEEF6]">
                         @if($property->media->first())
                             <img
-                                src="{{ $property->media->first()->media_url }}"
+                                src="{{ \App\Support\Images::src($property->media->first()->media_url, 'card') }}"
                                 alt="{{ $property->title }}"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                         @else
@@ -142,6 +142,8 @@
                 </div>
             @endforeach
         </div>
+
+        <div class="mt-6">{{ $favorites->links() }}</div>
 
     @else
         <x-card flush class="py-16 px-8 text-center">

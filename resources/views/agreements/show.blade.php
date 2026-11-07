@@ -39,13 +39,7 @@
 
         {{-- Page chrome — never printed --}}
         <div class="flex items-center justify-between gap-3 mb-6 print:hidden">
-            <a href="{{ $reservation->conversation_id ? route('conversations.index', ['active' => $reservation->conversation_id]) : route('reservations.index') }}"
-                class="inline-flex items-center text-sm font-semibold text-[#5B6A8E] hover:text-[#060D26] transition-colors group">
-                <svg class="w-4 h-4 mr-2 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                </svg>
-                {{ $reservation->conversation_id ? 'Back to chat' : 'Back to Reservations' }}
-            </a>
+            <x-back-link href="{{ $reservation->conversation_id ? route('conversations.index', ['active' => $reservation->conversation_id]) : route('reservations.index') }}" :to="$reservation->conversation_id ? 'chat' : 'reservations'" />
 
             <button type="button" onclick="window.print()"
                 class="inline-flex items-center gap-1.5 px-3 py-2.5 min-h-[40px] rounded-xl border border-[#E2E4EC] bg-white text-[12px] font-bold text-[#060D26] hover:bg-[#F7F8FC] cursor-pointer transition-all duration-200">

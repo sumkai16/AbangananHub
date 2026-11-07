@@ -64,7 +64,7 @@ class ContractRenewalTest extends TestCase
         $this->assertSame('2026-12-01', $renewal->rent_effective_from->toDateString());
         $this->assertSame($this->landlord->user_id, $renewal->renewed_by);
 
-        $this->assertTrue(Notification::where('user_id', $this->tenant->user_id)->where('title', 'Your contract was renewed')->exists());
+        $this->assertTrue(Notification::where('user_id', $this->tenant->user_id)->where('title', 'Your lease was renewed')->exists());
     }
 
     public function test_the_new_rent_applies_from_its_month_and_earlier_months_keep_the_old_rent(): void

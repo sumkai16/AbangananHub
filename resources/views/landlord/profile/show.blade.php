@@ -1,7 +1,6 @@
 @extends($isOwner ? 'layouts.landlord' : 'layouts.app', $isOwner ? [] : ['searchBar' => false])
 @section('content')
     @php
-        $hasPayout = $isOwner && $user->hasPayoutDestination();
         $isVerified = $verification && $verification->verification_status === 'Approved';
         // Public identity: the business, never the person (User::publicName()). The owner sees their own
         // name in the subtitle so they know whose page this is; visitors never get it.
@@ -13,6 +12,8 @@
             'private' => ['Private', 'Only you can see this page'],
         ];
         [$visibilityTitle, $visibilitySub] = $visibilityLabels[$user->profile_visibility ?? 'private'] ?? $visibilityLabels['private'];
+        // A live listing makes the page public whatever the setting says (ProfileController::ensureVisible).
+        $liveListing = $isOwner && $user->hasPublicBusinessPage();
         $tabs = ['details' => 'Details', 'properties' => 'Properties', 'reviews' => 'Reviews'];
         $starPath = 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z';
     @endphp
@@ -21,7 +22,7 @@
                 go(t) { this.tab = t; history.replaceState(null, '', '#' + t); }
             }">
 
-        <x-profile-banner :user="$user" :name="$publicName" :photo="$business?->logo_url" :initials="$user->publicInitials()" avatar-shape="square"
+        <x-profile-banner :user="$user" :name="$publicName" :photo="$business?->logo_url ?? ''" :initials="$user->publicInitials()" avatar-shape="square"
             :subtitle="$subtitle" :container="auth()->user()->shellContainerClass($isOwner)">
             <x-slot:badges>
                 <span class="rounded-full bg-[#ECEEF6] px-2.5 py-1 text-[11.5px] font-semibold text-[#060D26]">Landlord</span>
@@ -36,12 +37,12 @@
             </x-slot:badges>
             <x-slot:actions>
                 @if($isOwner)
-                    <a href="{{ route('profile.edit') }}" class="inline-flex h-10 items-center gap-2 px-4 rounded-xl bg-white text-[13px] font-semibold text-[#060D26] hover:brightness-95 transition duration-200">
+                    <button type="button" x-data x-on:click="$dispatch('open-business-sheet')" class="inline-flex h-10 items-center gap-2 px-4 rounded-xl bg-white text-[13px] font-semibold text-[#060D26] hover:brightness-95 transition duration-200 cursor-pointer">
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                         </svg>
-                        Edit profile
-                    </a>
+                        Edit business page
+                    </button>
                 @else
                     @auth
                         <a href="{{ route('conversations.store') }}?landlord_id={{ $user->user_id }}" class="inline-flex h-10 items-center gap-2 px-4 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] transition-colors duration-200">
@@ -61,6 +62,24 @@
                     @endauth
                 @endif
             </x-slot:actions>
+
+            @if($isOwner)
+                {{-- The owner is looking at their own public page; say so, and who can open it. Private account details live on Settings. --}}
+                <div class="mt-4 flex flex-col gap-1 rounded-xl bg-[#ECEEF6] px-3.5 py-2.5 text-[12.5px] text-[#060D26] sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                    <p class="flex items-start gap-2">
+                        <svg class="mt-px h-4 w-4 shrink-0 text-[#5B6A8E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+                        <span>
+                            <span class="font-semibold">This is what tenants see.</span>
+                            @if($liveListing)
+                                Public while you have a live listing.
+                            @else
+                                {{ $visibilityTitle }}: {{ lcfirst($visibilitySub) }}.
+                            @endif
+                        </span>
+                    </p>
+                    <a href="{{ route('profile.edit') }}#visibility" class="shrink-0 pl-6 font-semibold text-[#B35A3D] hover:underline sm:pl-0">Who can see it</a>
+                </div>
+            @endif
 
             {{-- Tabs --}}
             <div class="mt-5 border-b border-[#E2E4EC]">
@@ -126,7 +145,7 @@
                             @if($business?->description)
                                 <p class="text-[14px] leading-relaxed text-[#060D26] whitespace-pre-line">{{ $business->description }}</p>
                             @elseif($isOwner)
-                                <p class="text-[14px] text-[#5B6A8E]">No description yet. <a href="{{ route('profile.edit') }}#business" class="font-semibold text-[#B35A3D] hover:underline">Tell tenants about your rentals.</a></p>
+                                <p class="text-[14px] text-[#5B6A8E]">No description yet. <button type="button" x-on:click="$dispatch('open-business-sheet')" class="font-semibold text-[#B35A3D] hover:underline cursor-pointer">Tell tenants about your rentals.</button></p>
                             @else
                                 <p class="text-[14px] text-[#5B6A8E]">This landlord has not added a description.</p>
                             @endif
@@ -143,55 +162,25 @@
                                         @if($business->business_address)
                                             <p class="mt-0.5 text-[13.5px] text-[#5B6A8E]">{{ $business->business_address }}</p>
                                         @endif
-                                        @if($business->contact_number)
-                                            {{-- The page itself needs a login, and the number needs one more tap, so it is not
-                                                 sitting in the open on a page someone left on screen. --}}
-                                            @if($isOwner)
-                                                <p class="mt-0.5 text-[13.5px] text-[#5B6A8E]">
-                                                    <a href="tel:{{ preg_replace('/[^\d+]/', '', $business->contact_number) }}" class="hover:text-[#B35A3D] hover:underline">{{ $business->contact_number }}</a>
-                                                </p>
-                                            @else
-                                                <div class="mt-1.5" x-data="{ shown: false }">
-                                                    <button type="button" x-show="!shown" x-on:click="shown = true"
-                                                        class="inline-flex h-9 items-center gap-2 rounded-xl border border-[#E2E4EC] bg-white px-3.5 text-[13px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] cursor-pointer transition-colors duration-200">
-                                                        Show phone number
-                                                    </button>
-                                                    <a x-show="shown" x-cloak href="tel:{{ preg_replace('/[^\d+]/', '', $business->contact_number) }}"
-                                                        class="text-[13.5px] font-semibold text-[#060D26] hover:text-[#B35A3D] hover:underline">{{ $business->contact_number }}</a>
-                                                </div>
-                                            @endif
+                                        {{-- Only the owner sees the business number, on their own page. Everyone else gets it in the
+                                             chat or agreement once there is a deal (Nov 4 2026), so contact stays on the platform. --}}
+                                        @if($isOwner && $business->contact_number)
+                                            <p class="mt-0.5 text-[13.5px] text-[#5B6A8E]">
+                                                <a href="tel:{{ preg_replace('/[^\d+]/', '', $business->contact_number) }}" class="hover:text-[#B35A3D] hover:underline">{{ $business->contact_number }}</a>
+                                            </p>
                                         @endif
                                     </div>
                                 </div>
                             @elseif($isOwner)
-                                <p class="text-[14px] text-[#5B6A8E]">No business details yet. <a href="{{ route('profile.edit') }}#business" class="font-semibold text-[#B35A3D] hover:underline">Add them</a> to show tenants who you rent as.</p>
+                                <p class="text-[14px] text-[#5B6A8E]">No business details yet. <button type="button" x-on:click="$dispatch('open-business-sheet')" class="font-semibold text-[#B35A3D] hover:underline cursor-pointer">Add them</button> to show tenants who you rent as.</p>
                             @else
                                 <p class="text-[14px] text-[#5B6A8E]">No business details yet.</p>
                             @endif
                         </div>
                     </div>
 
-                    {{-- Contact + account facts. Name, role, member-since and the counts already sit in the header and tiles above. --}}
+                    {{-- Identity. Private details (email, personal number, GCash) are on Settings and Payments, not on this page. --}}
                     <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 border-t border-[#E2E4EC] pt-6">
-                        @if($isOwner)
-                            {{-- Personal details: tenants never see these (see the business page rule in RULES.md). --}}
-                            <div class="min-w-0">
-                                <dt class="text-[12px] font-semibold text-[#5B6A8E]">Email</dt>
-                                <dd class="mt-1 text-[14px] font-semibold text-[#060D26] truncate" title="{{ $user->email }}">{{ $user->email }}</dd>
-                                <p class="text-[12px] text-[#5B6A8E]">Only you can see this</p>
-                            </div>
-                            <div class="min-w-0">
-                                <dt class="text-[12px] font-semibold text-[#5B6A8E]">Personal contact number</dt>
-                                <dd class="mt-1 text-[14px] font-semibold text-[#060D26]">
-                                    @if($user->contact_number)
-                                        {{ $user->contact_number }}
-                                    @else
-                                        <span class="font-normal text-[#5B6A8E]">Not provided</span>
-                                    @endif
-                                </dd>
-                                <p class="text-[12px] text-[#5B6A8E]">Only you can see this</p>
-                            </div>
-                        @endif
                         <div class="min-w-0">
                             <dt class="text-[12px] font-semibold text-[#5B6A8E]">Identity</dt>
                             <dd class="mt-1 text-[14px] font-semibold {{ $isVerified ? 'text-[#15803D]' : 'text-[#060D26]' }}">
@@ -201,25 +190,6 @@
                                 <p class="text-[12px] text-[#5B6A8E]">Checked {{ $verification->reviewed_at->format('M d, Y') }}</p>
                             @endif
                         </div>
-                        @if($isOwner)
-                            <div class="min-w-0">
-                                <dt class="text-[12px] font-semibold text-[#5B6A8E]">Profile visibility</dt>
-                                <dd class="mt-1 text-[14px] font-semibold text-[#060D26]">{{ $visibilityTitle }}</dd>
-                                <p class="text-[12px] text-[#5B6A8E]">{{ $visibilitySub }}</p>
-                            </div>
-                            @if($user->showsPayoutTools())
-                            <div class="min-w-0">
-                                <dt class="text-[12px] font-semibold text-[#5B6A8E]">Payout (GCash)</dt>
-                                @if($hasPayout)
-                                    <dd class="mt-1 text-[14px] font-semibold text-[#060D26] tabular-nums">&bull;&bull;&bull;&bull;{{ substr(preg_replace('/\D/', '', $user->payoutAccount->gcash_number), -4) }}</dd>
-                                    <p class="text-[12px] text-[#5B6A8E] truncate">{{ $user->payoutAccount->gcash_account_name }}</p>
-                                @else
-                                    <dd class="mt-1 text-[14px] font-semibold text-[#B45309]">Not set</dd>
-                                    <p class="text-[12px] text-[#5B6A8E]"><a href="{{ route('profile.edit') }}#payout" class="font-semibold text-[#B35A3D] hover:underline">Add GCash details</a> to get paid</p>
-                                @endif
-                            </div>
-                            @endif
-                        @endif
                     </dl>
                     </x-card>
                   </div>
@@ -430,4 +400,8 @@
             </div>
         </x-profile-banner>
     </div>
+
+    @if($isOwner)
+        @include('landlord.profile.partials._business-sheet')
+    @endif
 @endsection

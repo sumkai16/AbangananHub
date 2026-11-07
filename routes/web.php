@@ -27,6 +27,7 @@ use App\Http\Controllers\Landlord\DepositChargeController;
 use App\Http\Controllers\Landlord\LeaseTemplateController;
 use App\Http\Controllers\Landlord\LedgerController;
 use App\Http\Controllers\Landlord\PaymentClaimController;
+use App\Http\Controllers\Landlord\PaymentMethodController;
 use App\Http\Controllers\Landlord\PayoutController;
 use App\Http\Controllers\Landlord\PropertyController as LandlordPropertyController;
 use App\Http\Controllers\Landlord\PropertyDocumentController as LandlordPropertyDocumentController;
@@ -176,6 +177,7 @@ Route::middleware('auth')->group(function () {
 
         // A tenant's own tenancy and rent ledger — read-only except for the
         // one earliest unsettled period, which can be paid online via GCash.
+        Route::get('/tenancy', [TenancyController::class, 'index'])->name('tenancy.index');
         Route::get('/tenancy/{reservation}', [TenancyController::class, 'show'])->name('tenancy.show');
         // Read-only lease view — ReservationPolicy::viewLease already authorizes
         // the tenant, same as the landlord; this was the missing route.
@@ -230,6 +232,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/reservations/{reservation}/accept-and-send', [App\Http\Controllers\Landlord\ReservationController::class, 'acceptAndSendAgreement'])->name('reservations.acceptAndSend');
         // Leases page: lease template library and where each template is used (plans/lease-templates-page.md)
         Route::get('/leases', [LeaseTemplateController::class, 'index'])->name('leases.index');
+        Route::get('/leases/panel', [LeaseTemplateController::class, 'panel'])->name('leases.panel');
         Route::patch('/leases/assign', [LeaseTemplateController::class, 'assign'])->name('lease-templates.assign');
         Route::post('/leases/templates/preview', [LeaseTemplateController::class, 'preview'])->name('lease-templates.preview');
         Route::resource('leases/templates', LeaseTemplateController::class)
@@ -266,6 +269,8 @@ Route::middleware('auth')->group(function () {
         // details are its own sections). The old URL stays as a redirect for bookmarks.
         Route::get('/profile/edit', fn () => redirect()->route('profile.edit'))->name('profile.edit');
         Route::patch('/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'update'])->name('profile.update');
+        // Settings > Payments: which ways tenants may pay (online, QR, cash).
+        Route::patch('/payment-methods', [PaymentMethodController::class, 'update'])->name('paymentMethods.update');
 
         // Tenant Ratings
         Route::get('/reservations/{reservation}/rate-tenant', [TenantRatingController::class, 'create'])->name('reservations.rateTenant');
@@ -291,8 +296,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/tenants/{landlordTenant}', [TenantController::class, 'destroy'])->name('tenants.destroy');
         Route::post('/tenants/{landlordTenant}/invite', [TenantController::class, 'invite'])->middleware('throttle:6,1')->name('tenants.invite');
 
-        // A single tenancy and its rent ledger. Serves walk-in and platform
-        // tenancies alike — the escrow only ever covered the initial payment.
+        // A single tenancy's actions. Serves walk-in and platform tenancies alike — the escrow only ever covered the
+        // initial payment. The GET is the removed tenancy page's address: it now opens the lease modal.
         Route::get('/tenancies/{reservation}', [App\Http\Controllers\Landlord\TenancyController::class, 'show'])->name('tenancies.show');
         Route::post('/tenancies/{reservation}/end', [App\Http\Controllers\Landlord\TenancyController::class, 'endTenancy'])->name('tenancies.end');
         Route::patch('/tenancies/{reservation}/tenant-details', [App\Http\Controllers\Landlord\TenancyController::class, 'updateTenantDetails'])->name('tenancies.tenantDetails.update');
@@ -448,6 +453,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Conversations and messages
+    Route::get('/conversations/unread-count', [ConversationController::class, 'unreadCount'])->middleware('throttle:60,1')->name('conversations.unreadCount');
     Route::get('/conversations/recent-messages', [ConversationController::class, 'recentMessages'])->name('conversations.recentMessages');
     Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
     Route::post('/conversations', [ConversationController::class, 'store'])->name('conversations.store');
@@ -463,6 +469,7 @@ Route::middleware('auth')->group(function () {
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/recent', [NotificationController::class, 'recent'])->name('notifications.recent');
+    Route::get('/notifications/{notification}/open', [NotificationController::class, 'open'])->name('notifications.open');
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
 
@@ -474,6 +481,7 @@ Route::get('/properties/count', [PropertyController::class, 'count'])->middlewar
 Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
 // PayMongo webhook — no auth, CSRF excluded in bootstrap/app.php
 Route::post('/webhooks/paymongo', [PayMongoWebhookController::class, 'handle'])->name('webhooks.paymongo');
+Route::post('/csp-report', \App\Http\Controllers\CspReportController::class)->middleware('throttle:30,1')->name('csp.report');
 
 // Bridges a mobile WebView (Bearer token, no session) into a logged-in web
 // session — see Api\AuthController::webviewTicket. Outside the auth

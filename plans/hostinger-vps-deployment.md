@@ -127,6 +127,7 @@ apply the deltas below. Full template:
 APP_NAME=AbangananHub
 APP_ENV=production
 APP_DEBUG=false
+DEBUGBAR_ENABLED=false                   # adds ~100 KB to every page and slows it; never true in production
 APP_KEY=base64:...                       # keep the existing key, or php artisan key:generate
 APP_URL=https://abangananhub.com
 
@@ -301,6 +302,9 @@ server {
 
     add_header X-Frame-Options "SAMEORIGIN";
     add_header X-Content-Type-Options "nosniff";
+    # CSP, Permissions-Policy, Referrer-Policy and HSTS come from the app (SecurityHeaders middleware), not nginx.
+    # Start with CSP_MODE=report-only in .env, check the "CSP violation" lines in laravel.log, then CSP_MODE=enforce.
+    # HSTS only reaches the browser if TRUSTED_PROXIES is set, so the app can see the request was https.
 
     # --- Compression ---
     # Text (HTML, JS, CSS, JSON) shrinks 70-80%; the browse page HTML alone is ~350 KB.
@@ -420,11 +424,12 @@ sudo supervisorctl start abangananhub-reverb
 sudo supervisorctl status
 ```
 
-**No queue worker is configured, deliberately.** Broadcast events are `ShouldBroadcastNow`
-(synchronous) and no Mailable implements `ShouldQueue` — see ARCHITECTURE.md § Known Tradeoffs.
-`QUEUE_CONNECTION=database` is set but nothing dispatches to it. If a future change queues anything,
-a second Supervisor program running `queue:work` becomes mandatory, and its absence will fail
-silently.
+**A queue worker is now mandatory (Nov 2026).** Tenant invite emails are queued
+(`TenantInvites::send`) and automatic payouts run as a queued job (`SendLandlordPayout`), on
+`QUEUE_CONNECTION=database`. Add a second Supervisor program running
+`php artisan queue:work --tries=3 --max-time=3600` (same user and directory as Reverb). Without it,
+invites and payouts sit in the `jobs` table and nothing tells you: it fails silently.
+Broadcast events are still `ShouldBroadcastNow` (synchronous).
 
 ---
 

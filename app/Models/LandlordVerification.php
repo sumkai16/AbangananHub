@@ -22,6 +22,8 @@ class LandlordVerification extends Model
         'ocr_name',
         'ocr_confidence',
         'ocr_status',
+        'face_match_status',
+        'face_match_score',
         'business_name',
         'description',
         'logo_url',

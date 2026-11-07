@@ -14,10 +14,21 @@
             agreementAction: '',
             // The final terms for the Send-agreement modal (_agreement-fields), from Reservation::agreementDefaults().
             agreement: {},
-            openAgreement(action, defaults) {
+            // The tenant's chat, where the lease editor lives (the modal has no room for it).
+            agreementChatUrl: '',
+            openAgreement(action, defaults, chatUrl) {
                 this.agreementAction = action;
                 this.agreement = { ...defaults };
                 this.agreementOpen = true;
+            },
+            // Reject dialog: the tenant is told the reason picked here.
+            rejectOpen: false,
+            rejectAction: '',
+            rejectName: '',
+            openReject(action, name) {
+                this.rejectAction = action;
+                this.rejectName = name;
+                this.rejectOpen = true;
             },
         }">
 
@@ -32,11 +43,12 @@
             <x-slot:actions>
                 {{-- Export carries the active filters and stage tab --}}
                 <a href="{{ route('landlord.reservations.export', request()->only('search', 'property', 'from', 'to', 'stage')) }}"
+                    title="Download the reservations shown here as a spreadsheet (CSV)"
                     class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-sm font-semibold transition-all duration-200 shrink-0 cursor-pointer">
                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                     </svg>
-                    Export
+                    Export CSV
                 </a>
             </x-slot:actions>
         </x-page-header>
@@ -58,13 +70,13 @@
             ['label' => 'Payment to confirm', 'value' => $strip['confirm'], 'note' => $strip['confirm'] > 0 ? '₱'.number_format($strip['confirmAmount'], 2).' reported' : 'Nothing reported', 'dot' => $strip['confirm'] > 0 ? '#FF8A66' : null, 'href' => $stageUrl('payment'), 'active' => $stage === 'payment'],
         ]" />
 
-        {{-- Search + filters --}}
+        {{-- Search + filters: bare, the same as the other landlord lists --}}
         <form method="GET" action="{{ route('landlord.reservations.index') }}"
-            class="bg-white rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-3 mb-4 flex flex-col lg:flex-row gap-2.5">
+            class="mb-5 flex flex-col lg:flex-row lg:items-center gap-3">
             @if($stage !== 'open')
                 <input type="hidden" name="stage" value="{{ $stage }}">
             @endif
-            <div class="relative flex-1 min-w-0">
+            <div class="relative flex-1 min-w-[200px]">
                 <label for="reservation-search" class="sr-only">Search by tenant, unit or property</label>
                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#94A3B8" stroke-width="2"
                     class="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -74,9 +86,9 @@
                 <input type="text" id="reservation-search" name="search" value="{{ request('search') }}"
                     placeholder="Search by tenant, unit or property..."
                     x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                    class="w-full h-10 pl-10 pr-4 text-[16px] sm:text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
+                    class="w-full h-11 pl-10 pr-4 text-[16px] sm:text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
             </div>
-            <div class="grid grid-cols-2 lg:flex gap-2.5">
+            <div class="filter-row flex flex-wrap items-center gap-2.5">
                 <div>
                     <label for="filter-property" class="sr-only">Property</label>
                     @php
@@ -86,7 +98,7 @@
                         class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26] max-w-[200px]" />
                 </div>
                 {{-- Requested-date range: one control instead of two always-visible boxes --}}
-                <div class="relative"
+                <div class="relative max-w-[42%] sm:max-w-none"
                     x-data="{
                         rangeOpen: false,
                         from: @js(request('from')),
@@ -103,7 +115,7 @@
                     }"
                     @click.outside="rangeOpen = false" @keydown.escape.window="rangeOpen = false">
                     <button type="button" @click="rangeOpen = !rangeOpen" :aria-expanded="rangeOpen" aria-haspopup="dialog"
-                        class="h-11 lg:h-10 w-full lg:w-auto lg:min-w-[190px] px-3.5 inline-flex items-center gap-2 rounded-xl border bg-[#F7F8FC] text-[13.5px] transition-colors duration-200 cursor-pointer hover:border-[#060D26]/40"
+                        class="h-11 w-full sm:w-auto sm:min-w-[170px] px-3.5 inline-flex items-center gap-2 rounded-xl border bg-[#F7F8FC] text-[13.5px] transition-colors duration-200 cursor-pointer hover:border-[#060D26]/40"
                         :class="(from || to) ? 'border-[#060D26]/40 text-[#060D26] font-semibold' : 'border-[#5B6A8E]/25 text-[#060D26]'">
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#5B6A8E" stroke-width="2" aria-hidden="true" class="shrink-0">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
@@ -124,27 +136,28 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex items-center gap-2.5">
-                    <button type="submit"
+                <button type="submit"
                         class="h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 inline-flex items-center gap-1.5">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                         </svg>
                         Filter
                     </button>
-                    @if(request()->hasAny(['search', 'property', 'from', 'to']))
-                        <a href="{{ route('landlord.reservations.index', $stage === 'open' ? [] : ['stage' => $stage]) }}"
-                            class="h-10 px-3 inline-flex items-center rounded-xl text-[13px] font-semibold text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#F7F8FC] transition-all duration-200">
-                            Clear
-                        </a>
-                    @endif
-                </div>
+                @if(request()->hasAny(['search', 'property', 'from', 'to']))
+                    <a href="{{ route('landlord.reservations.index', $stage === 'open' ? [] : ['stage' => $stage]) }}"
+                        class="h-11 px-4 rounded-xl border border-[#5B6A8E]/25 text-[13.5px] text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 inline-flex items-center gap-1.5">
+                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg>
+                        Clear
+                    </a>
+                @endif
 
                 {{-- View toggle --}}
-                <div class="flex items-center gap-0.5 h-10 p-1 rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] ml-auto">
+                <div class="flex items-center gap-0.5 h-11 p-1 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] ml-auto">
                     <button type="button" x-on:click="setView('table')" aria-label="Table view"
                         :class="view === 'table' ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E] hover:text-[#060D26]'"
-                        class="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
+                        class="hidden lg:flex h-9 w-9 items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
@@ -152,7 +165,7 @@
                     </button>
                     <button type="button" x-on:click="setView('grid')" aria-label="Card view"
                         :class="view === 'grid' ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E] hover:text-[#060D26]'"
-                        class="h-8 w-8 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
+                        class="h-9 w-9 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />
@@ -242,7 +255,7 @@
                         'chat_url' => $reservation->conversation ? route('conversations.show', $reservation->conversation) : null,
                     ];
                     $initials = mb_strtoupper(mb_substr($reservation->tenant->first_name ?? '?', 0, 1) . mb_substr($reservation->tenant->last_name ?? '', 0, 1));
-                    $moveIn = $reservation->target_move_in_date ?? $reservation->reservation_date;
+                    $moveIn = $reservation->target_move_in_date;
                     $photo = $reservation->property->media->firstWhere('media_type', 'Image');
                     $derived[$reservation->reservation_id] = compact('modalData', 'initials', 'moveIn', 'photo', 'requestStage');
                 }
@@ -294,7 +307,7 @@
                                         <div class="flex items-center gap-2.5">
                                             <div class="w-9 h-9 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0">
                                                 @if($photo)
-                                                    <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
+                                                    <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($photo->media_url, 'card') }}" alt="" class="w-full h-full object-cover">
                                                 @endif
                                             </div>
                                             <div class="min-w-0">
@@ -307,8 +320,12 @@
                                     {{-- What the tenant asked for: move-in → move-out (or open), and how many people --}}
                                     <td class="px-4 py-4">
                                         <p class="text-[13px] text-[#060D26] font-medium whitespace-nowrap">
-                                            {{ $moveIn?->format('M d, Y') ?? '—' }} <span class="text-[#5B6A8E]">&rarr;</span>
-                                            {{ $reservation->target_move_out_date?->format('M d, Y') ?? 'open' }}
+                                            @if($moveIn)
+                                                {{ $moveIn->format('M d, Y') }} <span class="text-[#5B6A8E]">&rarr;</span>
+                                                {{ $reservation->target_move_out_date?->format('M d, Y') ?? 'open' }}
+                                            @else
+                                                <span class="text-[#5B6A8E]">Not decided yet</span>
+                                            @endif
                                         </p>
                                         <p class="text-[11.5px] text-[#5B6A8E]">{{ $reservation->occupants_count ? $reservation->occupants_count.' '.\Illuminate\Support\Str::plural('person', $reservation->occupants_count) : 'Occupants not given' }}</p>
                                     </td>
@@ -387,7 +404,7 @@
                             <div class="flex items-center gap-2.5 rounded-xl bg-[#ECEEF6]/60 px-3 py-2.5">
                                 <div class="w-9 h-9 rounded-lg bg-white overflow-hidden shrink-0">
                                     @if($photo)
-                                        <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
+                                        <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($photo->media_url, 'card') }}" alt="" class="w-full h-full object-cover">
                                     @endif
                                 </div>
                                 <div class="min-w-0">
@@ -400,7 +417,7 @@
                             <div class="grid grid-cols-3 gap-2 text-[11.5px]">
                                 <div class="rounded-lg border border-[#E2E4EC] px-2.5 py-1.5">
                                     <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E]">Move in</p>
-                                    <p class="font-semibold text-[#060D26] mt-0.5">{{ $moveIn?->format('M d, Y') ?? '—' }}</p>
+                                    <p class="font-semibold text-[#060D26] mt-0.5">{{ $moveIn?->format('M d, Y') ?? 'Not decided yet' }}</p>
                                 </div>
                                 <div class="rounded-lg border border-[#E2E4EC] px-2.5 py-1.5">
                                     <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E]">Move out</p>
@@ -479,7 +496,7 @@
                                 </div>
                                 <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] px-3.5 py-2.5">
                                     <dt class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">Move-in</dt>
-                                    <dd class="mt-0.5 text-[14.5px] font-extrabold text-[#060D26]" x-text="selected.move_in || selected.reservation_date || '—'"></dd>
+                                    <dd class="mt-0.5 text-[14.5px] font-extrabold text-[#060D26]" x-text="selected.move_in || 'Not decided yet'"></dd>
                                 </div>
                                 <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] px-3.5 py-2.5">
                                     <dt class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">Move-out</dt>
@@ -532,6 +549,48 @@
             </div>
         </template>
 
+        {{-- Reject modal: a quick reason and an optional note, so the tenant is not left guessing --}}
+        <template x-teleport="body">
+            <div x-show="rejectOpen" x-cloak class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4"
+                @keydown.escape.window="rejectOpen = false">
+                <div @click="rejectOpen = false" class="absolute inset-0 bg-black/40"></div>
+                <div class="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full max-w-md max-h-[92vh] overflow-y-auto p-6" x-show="rejectOpen" x-transition>
+                    <div class="flex items-start justify-between mb-1">
+                        <h2 class="text-lg font-normal text-[#060D26]">Reject this request?</h2>
+                        <button type="button" @click="rejectOpen = false" aria-label="Close" class="text-[#5B6A8E] hover:text-[#060D26] cursor-pointer">
+                            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <p class="mb-4 text-[13px] text-[#5B6A8E]"><span x-text="rejectName"></span> is told the request was declined, with the reason you pick.</p>
+
+                    <form :action="rejectAction" method="POST">
+                        @csrf @method('PATCH')
+                        <fieldset class="space-y-2 mb-4">
+                            <legend class="sr-only">Reason</legend>
+                            @foreach(\App\Http\Controllers\Landlord\ReservationController::REJECT_REASONS as $i => $reason)
+                                <label for="reject_reason_{{ $i }}" class="flex items-center gap-2.5 min-h-[44px] px-3 rounded-xl ring-1 ring-[#E2E4EC] cursor-pointer has-[:checked]:ring-[#FF8A66] has-[:checked]:bg-[#FF8A66]/[0.08]">
+                                    <input type="radio" name="reason_preset" id="reject_reason_{{ $i }}" value="{{ $reason }}"
+                                        class="w-4 h-4 border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66]">
+                                    <span class="text-[13px] text-[#060D26]">{{ $reason }}</span>
+                                </label>
+                            @endforeach
+                        </fieldset>
+                        <label for="reject_reason_note" class="block text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-1">Note <span class="normal-case tracking-normal font-semibold">· optional</span></label>
+                        <textarea name="reason_note" id="reject_reason_note" rows="2" maxlength="300"
+                            class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-[16px] sm:text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none mb-4"></textarea>
+                        <div class="flex gap-2">
+                            <button type="button" @click="rejectOpen = false"
+                                class="flex-1 h-11 rounded-lg border border-[#E2E4EC] text-[13px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] cursor-pointer transition-colors duration-200">Keep it</button>
+                            <button type="submit"
+                                class="flex-1 h-11 rounded-lg bg-[#DC2626] text-white text-[13px] font-semibold hover:bg-[#B91C1C] cursor-pointer transition-colors duration-200">Reject request</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </template>
+
         {{-- Send agreement modal --}}
         <template x-teleport="body">
             <div x-show="agreementOpen" x-cloak class="fixed inset-0 z-[200] flex items-center justify-center p-4">
@@ -554,6 +613,7 @@
                                 Sends your lease template, or the standard rental agreement if you have not written one.
                                 <a x-show="agreement.chat_url" :href="agreement.chat_url" class="font-bold text-[#060D26] underline underline-offset-2">Edit the agreement for this tenant in the chat</a>
                             </p>
+                            {{-- Asked once per payment route (LandlordTerms), the same as the chat's Send agreement. --}}
                             @if(\App\Support\LandlordTerms::needed(auth()->user()))
                                 <label class="flex items-start gap-2.5 cursor-pointer group mb-3">
                                     <input type="checkbox" name="accept_tc" required
@@ -563,7 +623,7 @@
                                     </span>
                                 </label>
                             @else
-                                <p class="mb-3 text-xs text-[#5B6A8E]">You accepted the payment terms on {{ auth()->user()->landlord_terms_accepted_at->format('M j, Y') }}.</p>
+                                <p class="mb-3 text-[11px] text-[#5B6A8E]">You accepted the payment terms on {{ auth()->user()->landlord_terms_accepted_at->format('M j, Y') }}.</p>
                             @endif
                             <button type="submit"
                                 class="w-full h-9 rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200">

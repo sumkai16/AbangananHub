@@ -3,383 +3,154 @@
 @section('page-title', 'Verification Review')
 
 @section('content')
-    <div class="max-w-5xl mx-auto" x-data="{ previewImage: null }">
+@php
+    // Face on the ID against the live selfie (App\Services\FaceMatch). A signal, never a decision: bad light or an old
+    // ID photo can fail a real person, and a match does not prove the ID is genuine.
+    $fm = $verification->face_match_status;
+    $score = rtrim(rtrim(number_format((float) $verification->face_match_score, 2), '0'), '.');
+    $fmTone = match ($fm) {
+        'match' => 'bg-[#22C55E]/[0.07]',
+        'review', 'no_face' => 'bg-[#FBBF24]/[0.10]',
+        'mismatch' => 'bg-[#EF4444]/[0.07]',
+        default => 'bg-[#F7F8FC]',
+    };
+    $fmText = match ($fm) {
+        'match' => 'Face match: <strong>'.$score.'%</strong> similar to the selfie',
+        'review' => 'Faces look <strong>somewhat similar</strong> ('.$score.'%). Compare the photos by eye',
+        'mismatch' => 'Faces <strong>do not match</strong> ('.$score.'%). Compare the photos by eye',
+        'no_face' => 'No clear face found in the ID or the selfie. Compare the photos by eye',
+        default => 'Face match not checked. Compare the photos by eye',
+    };
 
-        {{-- Back --}}
-        <a href="{{ route('admin.verifications.index') }}"
-            class="inline-flex items-center gap-2 text-[13px] font-bold text-[#94A3B8] hover:text-[#060D26] transition-colors mb-5">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to verifications
-        </a>
+    $ocr = $verification->ocr_status;
+    $ocrChip = match ($ocr) {
+        'pass' => ['Name read from ID', 'green'],
+        'partial' => ['Name partly read', 'amber'],
+        'unreadable' => ['ID text unreadable', 'amber'],
+        null => ['ID text not checked', 'neutral'],
+        default => ['Name not found on ID', 'red'],
+    };
+@endphp
+    <div class="admin-compact max-w-[1600px] mx-auto" x-data="{ previewImage: null }">
 
-        {{-- Applicant header --}}
-        <x-card flush
-            class="px-5 py-4 mb-4 flex flex-wrap items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-[#FF8A66]/10 flex items-center justify-center shrink-0">
-                    <span class="text-[#060D26] text-[14px] font-extrabold">
-                        {{ strtoupper(substr($verification->user->first_name ?? '?', 0, 1)) }}{{ strtoupper(substr($verification->user->last_name ?? '', 0, 1)) }}
-                    </span>
-                </div>
-                <div>
-                    <h1 class="text-[16px] font-normal text-[#060D26] leading-tight">
-                        {{ $verification->user->first_name }} {{ $verification->user->last_name }}
-                    </h1>
-                    <p class="text-[12px] text-[#94A3B8] mt-0.5">{{ $verification->user->email }}</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-4">
-                <div class="text-right">
-                    <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Submitted</p>
-                    <p class="text-[13px] font-semibold text-[#060D26]">{{ $verification->submitted_at->format('M d, Y') }}
-                    </p>
-                </div>
-                <x-verification-status-badge :status="$verification->verification_status" />
-            </div>
-        </x-card>
+        <x-back-link href="{{ route('admin.verifications.index') }}" to="verifications" class="mb-2" />
 
-        {{-- Status banners --}}
-        @if ($verification->verification_status === 'Rejected' && $verification->admin_notes)
-            <div class="bg-[#EF4444]/[0.07] border border-[#EF4444]/20 rounded-xl p-4 mb-4 flex gap-3">
-                <svg class="w-5 h-5 text-[#DC2626] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                    stroke-width="1.5">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.008v.008H12v-.008z" />
-                </svg>
-                <div>
-                    <p class="text-[12px] font-bold uppercase tracking-wider text-[#DC2626] mb-1">Rejection reason</p>
-                    <p class="text-[13px] text-[#060D26]">{{ $verification->admin_notes }}</p>
-                </div>
-            </div>
-        @elseif ($verification->verification_status === 'Approved')
-            <div class="bg-[#22C55E]/[0.07] border border-[#22C55E]/20 rounded-xl p-4 mb-4 flex gap-3">
-                <svg class="w-5 h-5 text-[#22C55E] shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none"
-                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                </svg>
-                <div>
-                    <p class="text-[12px] font-bold uppercase tracking-wider text-[#15803D] mb-1">Approved</p>
-                    <p class="text-[13px] text-[#060D26]">
-                        Approved on {{ $verification->reviewed_at->format('M d, Y \a\t g:i A') }}
-                        @if ($verification->reviewer)
-                            by {{ $verification->reviewer->first_name }} {{ $verification->reviewer->last_name }}
-                        @endif
-                    </p>
-                </div>
-            </div>
-        @endif
+        <x-admin.header :title="$verification->user->first_name.' '.$verification->user->last_name"
+            :subtitle="$verification->user->email.' · submitted '.$verification->submitted_at->format('M j, Y')">
+            <x-slot:badge><x-admin.status :status="$verification->verification_status" /></x-slot:badge>
+        </x-admin.header>
 
-        {{-- Two-column layout --}}
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <div class="grid grid-cols-1 items-start gap-3 lg:grid-cols-[minmax(0,1fr)_300px]">
 
-            {{-- Left column (3/5) — Photos --}}
-            <div class="lg:col-span-3 space-y-4">
+            <div class="min-w-0 space-y-3">
 
-                {{-- Government ID --}}
+                {{-- The point of this page: is the person on the ID the person in the selfie? Whole images, side by side, same height. --}}
                 <x-card>
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-[#94A3B8]" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Zm6-10.125a1.875 1.875 0 1 1-3.75 0 1.875 1.875 0 0 1 3.75 0Zm1.294 6.336a6.721 6.721 0 0 1-3.17.789 6.721 6.721 0 0 1-3.168-.789 3.376 3.376 0 0 1 6.338 0Z" />
-                            </svg>
-                            <h2 class="text-[14px] font-normal text-[#060D26]">Government ID</h2>
+                    <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+                        <h2 class="text-[14px] font-semibold text-[#060D26]">ID and selfie</h2>
+                        <div class="flex flex-wrap items-center gap-1">
+                            <x-admin.status :status="$verification->liveness_passed ? 'Liveness passed' : 'No liveness check'" :tone="$verification->liveness_passed ? 'green' : 'amber'" />
+                            <x-admin.status :status="$ocrChip[0]" :tone="$ocrChip[1]" />
                         </div>
-                        <span class="text-[12px] font-semibold text-[#94A3B8]">{{ $verification->id_type }}</span>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <div class="rounded-lg border border-[#E2E4EC] overflow-hidden aspect-[4/3] cursor-pointer hover:border-[#FF8A66] transition-colors"
-                                @click="previewImage = '{{ route('verifications.preview', [$verification, 'front']) }}'">
-                                <img src="{{ route('verifications.preview', [$verification, 'front']) }}" alt="ID front"
-                                    class="w-full h-full object-cover">
-                            </div>
-                            <p class="text-[11px] text-[#94A3B8] mt-1.5 text-center font-semibold">Front</p>
-                        </div>
-
-                        @if ($verification->id_back)
-                            <div>
-                                <div class="rounded-lg border border-[#E2E4EC] overflow-hidden aspect-[4/3] cursor-pointer hover:border-[#FF8A66] transition-colors"
-                                    @click="previewImage = '{{ route('verifications.preview', [$verification, 'back']) }}'">
-                                    <img src="{{ route('verifications.preview', [$verification, 'back']) }}" alt="ID back"
-                                        class="w-full h-full object-cover">
-                                </div>
-                                <p class="text-[11px] text-[#94A3B8] mt-1.5 text-center font-semibold">Back</p>
-                            </div>
-                        @else
-                            <div>
-                                <div
-                                    class="rounded-lg border border-dashed border-[#E2E4EC] bg-[#F7F8FC] aspect-[4/3] flex items-center justify-center">
-                                    <span class="text-[12px] text-[#94A3B8]">Not required</span>
-                                </div>
-                                <p class="text-[11px] text-[#94A3B8] mt-1.5 text-center font-semibold">Back</p>
-                            </div>
-                        @endif
-                    </div>
-                </x-card>
-
-                {{-- Selfie --}}
-                <x-card>
-                    <div class="flex items-center gap-2 mb-4">
-                        <svg class="w-4 h-4 text-[#94A3B8]" xmlns="http://www.w3.org/2000/svg" fill="none"
-                            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                        </svg>
-                        <h2 class="text-[14px] font-normal text-[#060D26]">Selfie</h2>
-
-                        @if ($verification->liveness_passed)
-                            <span
-                                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#22C55E]/[0.10] text-[11px] font-semibold text-[#15803D]">
-                                <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="2.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                                </svg>
-                                Liveness passed
-                            </span>
-                        @else
-                            <span
-                                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FBBF24]/[0.16] text-[11px] font-semibold text-[#92400E]">
-                                <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="2" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.814-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                                </svg>
-                                No liveness check
-                            </span>
-                        @endif
-                    </div>
+                    @if ($fm)
+                        <p class="mb-2 rounded-lg px-3 py-2 text-[13px] text-[#060D26] {{ $fmTone }}">{!! $fmText !!}</p>
+                    @endif
 
                     @unless ($verification->liveness_passed)
-                        <div class="mb-4 p-3 rounded-xl bg-[#FBBF24]/[0.10]">
-                            <p class="text-xs text-[#060D26] leading-relaxed">This selfie was captured without the automatic
-                                liveness check — the applicant's device couldn't run it. Confirm the face matches the ID
-                                photo yourself before approving.</p>
-                        </div>
+                        <p class="mb-2 rounded-lg bg-[#FBBF24]/[0.10] px-3 py-2 text-[13px] leading-5 text-[#060D26]">This selfie skipped the automatic liveness check because the applicant's device couldn't run it. Compare the face with the ID photo yourself.</p>
                     @endunless
 
-                    <div class="max-w-[180px]">
-                        <div class="rounded-lg border border-[#E2E4EC] overflow-hidden aspect-[3/4] cursor-pointer hover:border-[#FF8A66] transition-colors"
-                            @click="previewImage = '{{ route('verifications.preview', [$verification, 'selfie']) }}'">
-                            <img src="{{ route('verifications.preview', [$verification, 'selfie']) }}" alt="Selfie"
-                                class="w-full h-full object-cover">
-                        </div>
+                    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 {{ $verification->id_back ? 'xl:grid-cols-3' : '' }}">
+                        @foreach(array_filter([
+                            ['front', 'ID front'],
+                            ['selfie', 'Selfie'],
+                            $verification->id_back ? ['back', 'ID back'] : null,
+                        ]) as [$side, $label])
+                            <figure class="min-w-0">
+                                <button type="button" aria-label="Enlarge {{ $label }}"
+                                    @click="previewImage = '{{ route('verifications.preview', [$verification, $side]) }}'"
+                                    class="block w-full cursor-zoom-in overflow-hidden rounded-lg border border-[#E2E4EC] bg-[#F7F8FC] transition-colors duration-200 hover:border-[#FF8A66] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/50">
+                                    <img src="{{ route('verifications.preview', [$verification, $side]) }}" alt="{{ $label }}" class="h-[17rem] w-full object-contain">
+                                </button>
+                                <figcaption class="mt-1 text-center text-[12px] text-[#5B6A8E]">{{ $label }}</figcaption>
+                            </figure>
+                        @endforeach
                     </div>
+
+                    <div class="mt-3 border-t border-[#E2E4EC] pt-3">
+                        <x-admin.facts compact :cols="4" :items="[
+                            'Name on ID' => $verification->ocr_name ? $verification->ocr_name.($verification->ocr_confidence ? ' ('.$verification->ocr_confidence.'%)' : '') : null,
+                            'Name on account' => trim($verification->user->first_name.' '.$verification->user->last_name),
+                            'ID type' => $verification->id_type,
+                            'ID number' => $verification->id_number,
+                        ]" />
+                        @if ($ocr === 'unreadable')
+                            <p class="mt-2 text-[12.5px] text-[#5B6A8E]">Text could not be read automatically. Check the ID by eye.</p>
+                        @elseif (! $ocr)
+                            <p class="mt-2 text-[12.5px] text-[#5B6A8E]">OCR data not available, so review the ID photos yourself.</p>
+                        @endif
+                    </div>
+                </x-card>
+
+                <x-card>
+                    <h2 class="mb-2 text-[14px] font-semibold text-[#060D26]">Business</h2>
+                    <x-admin.facts compact :cols="3" :items="[
+                        'Business name' => $verification->business_name,
+                        'Contact' => ['value' => $verification->contact_number, 'num' => true],
+                        'Address' => $verification->business_address,
+                    ]" />
+                    @if ($verification->description)
+                        <p class="mt-2.5 max-w-[75ch] text-[13px] leading-5 text-[#5B6A8E]">{{ $verification->description }}</p>
+                    @endif
                 </x-card>
             </div>
 
-            {{-- Right column (2/5) --}}
-            <div class="lg:col-span-2 space-y-4">
-
-                {{-- Admin action (TOP — most important) --}}
+            {{-- Rail --}}
+            <div class="space-y-3 lg:sticky lg:top-6">
                 @if ($verification->verification_status === 'Pending')
-                    <x-card x-data="{ showReject: false }">
-                        <div class="flex items-center gap-2 mb-4">
-                            <svg class="w-4 h-4 text-[#94A3B8]" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M12 9v3.75m0-10.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286Z" />
-                            </svg>
-                            <h2 class="text-[14px] font-normal text-[#060D26]">Admin action</h2>
-                        </div>
-
-                        <div class="flex gap-2 mb-3">
-                            <form method="POST" action="{{ route('admin.verifications.approve', $verification) }}"
-                                data-confirm="Approve this landlord application?"
-                                data-confirm-type="confirm"
-                                data-confirm-message="This will grant the applicant the Landlord role."
-                                data-confirm-button="Approve" class="flex-1">
-                                @csrf
-                                <button type="submit"
-                                    class="w-full inline-flex items-center justify-center gap-2 h-10 rounded-lg bg-[#22C55E] hover:brightness-95 text-white text-[13px] font-bold transition-all">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="2.5">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    Approve
-                                </button>
-                            </form>
-
-                            <button type="button" @click="showReject = !showReject"
-                                class="flex-1 inline-flex items-center justify-center gap-2 h-10 rounded-lg bg-[#EF4444] hover:bg-[#EF4444] text-white text-[13px] font-bold transition-colors">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                Reject
-                            </button>
-                        </div>
-
-                        <div x-show="showReject" x-cloak x-transition:enter="transition ease-out duration-150"
-                            x-transition:enter-start="opacity-0 -translate-y-1"
-                            x-transition:enter-end="opacity-100 translate-y-0" class="border-t border-[#E2E4EC] pt-3">
-                            <form method="POST" action="{{ route('admin.verifications.reject', $verification) }}"
-                                data-confirm="Reject this application?"
-                                data-confirm-type="warning"
-                                data-confirm-message="The applicant will see your reason. This cannot be undone."
-                                data-confirm-button="Reject">
-                                @csrf
-                                <label for="admin_notes"
-                                    class="block text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1.5">
-                                    Reason for rejection
-                                </label>
-                                <textarea name="admin_notes" id="admin_notes" rows="3" required
-                                    class="w-full rounded-lg border border-[#E2E4EC] px-3 py-2.5 text-[13px] text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all resize-none"
-                                    placeholder="Explain why — the applicant will see this."></textarea>
-                                @error('admin_notes')
-                                    <p class="mt-1 text-xs text-[#DC2626]">{{ $message }}</p>
-                                @enderror
-                                <div class="mt-2.5 flex gap-2">
-                                    <button type="submit"
-                                        class="h-9 px-4 rounded-lg bg-[#EF4444] hover:bg-[#EF4444] text-white text-[12px] font-bold transition-colors">
-                                        Confirm rejection
-                                    </button>
-                                    <button type="button" @click="showReject = false"
-                                        class="h-9 px-4 rounded-lg border border-[#E2E4EC] text-[12px] font-semibold text-[#5B6A8E] hover:text-[#060D26] transition-colors">
-                                        Cancel
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </x-card>
-                @endif
-
-                {{-- OCR results --}}
-                <x-card>
-                    <div class="flex items-center gap-2 mb-3">
-                        <svg class="w-4 h-4 text-[#94A3B8]" xmlns="http://www.w3.org/2000/svg" fill="none"
-                            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M7.5 3.75H6A2.25 2.25 0 0 0 3.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0 1 20.25 6v1.5m0 9V18A2.25 2.25 0 0 1 18 20.25h-1.5m-9 0H6A2.25 2.25 0 0 1 3.75 18v-1.5" />
-                        </svg>
-                        <h2 class="text-[14px] font-normal text-[#060D26]">OCR results</h2>
-                    </div>
-
-                    @if ($verification->ocr_status)
-                        <div class="space-y-1.5">
-                            <div
-                                class="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px]
-                                    {{ $verification->ocr_status === 'pass' ? 'bg-[#22C55E]/[0.07]' : ($verification->ocr_status === 'partial' ? 'bg-[#FBBF24]/[0.10]' : 'bg-[#EF4444]/[0.07]') }}">
-                                @if ($verification->ocr_status === 'pass')
-                                    <svg class="w-3.5 h-3.5 text-[#22C55E] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                    </svg>
-                                @elseif ($verification->ocr_status === 'partial')
-                                    <svg class="w-3.5 h-3.5 text-[#FBBF24] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.814-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                                    </svg>
-                                @else
-                                    <svg class="w-3.5 h-3.5 text-[#EF4444] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                    </svg>
-                                @endif
-                                <span class="text-[#060D26]">
-                                    @if ($verification->ocr_status === 'pass')
-                                        Name: <strong>{{ $verification->ocr_name }}</strong> ({{ $verification->ocr_confidence }}%)
-                                    @elseif ($verification->ocr_status === 'partial')
-                                        Partial: <strong>{{ $verification->ocr_name }}</strong>
-                                        ({{ $verification->ocr_confidence }}%)
-                                    @else
-                                        Name not found on ID
-                                    @endif
-                                </span>
-                            </div>
-
-                            @if ($verification->id_number)
-                                <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#F7F8FC] text-[12px]">
-                                    <svg class="w-3.5 h-3.5 text-[#94A3B8] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5" />
-                                    </svg>
-                                    <span class="text-[#060D26]">ID: <strong>{{ $verification->id_number }}</strong></span>
-                                </div>
-                            @endif
-                        </div>
-                    @else
-                        <p class="text-[12px] text-[#94A3B8]">OCR data not available — review ID photos manually.</p>
-                    @endif
-                </x-card>
-
-                {{-- ID details --}}
-                <x-card>
-                    <div class="flex items-center gap-2 mb-3">
-                        <svg class="w-4 h-4 text-[#94A3B8]" xmlns="http://www.w3.org/2000/svg" fill="none"
-                            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                        </svg>
-                        <h2 class="text-[14px] font-normal text-[#060D26]">ID details</h2>
-                    </div>
-
-                    <div class="space-y-2.5 text-[13px]">
-                        <div>
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">ID type</p>
-                            <p class="font-semibold text-[#060D26] mt-0.5">{{ $verification->id_type }}</p>
-                        </div>
-                        @if ($verification->ocr_name)
-                            <div>
-                                <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Name on ID</p>
-                                <p class="font-semibold text-[#060D26] mt-0.5">{{ $verification->ocr_name }}</p>
-                            </div>
-                        @endif
-                        @if ($verification->id_number)
-                            <div>
-                                <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">ID number</p>
-                                <p class="font-semibold text-[#060D26] mt-0.5">{{ $verification->id_number }}</p>
-                            </div>
-                        @endif
-                    </div>
-                </x-card>
-
-                {{-- Business details --}}
-                @if ($verification->business_name)
+                    <x-admin.decision
+                        :since="$verification->submitted_at->format('M j, Y')"
+                        :approve-action="route('admin.verifications.approve', $verification)"
+                        approve-confirm="Approve this landlord application?"
+                        approve-message="This will grant the applicant the Landlord role."
+                        :reject-action="route('admin.verifications.reject', $verification)"
+                        reject-confirm="Reject this application?"
+                        reject-message="The applicant will see your reason. This cannot be undone."
+                        field="admin_notes"
+                        placeholder="The applicant will see this">
+                        <p class="text-[12.5px] font-semibold text-[#060D26]">Before you approve</p>
+                        <ol class="mt-1.5 space-y-1 text-[12.5px] leading-[18px] text-[#060D26]">
+                            <li class="flex gap-2"><span class="font-semibold tabular-nums text-[#5B6A8E]">1</span><span>The face on the ID is the face in the selfie.</span></li>
+                            <li class="flex gap-2"><span class="font-semibold tabular-nums text-[#5B6A8E]">2</span><span>The name on the ID matches the account.</span></li>
+                            <li class="flex gap-2"><span class="font-semibold tabular-nums text-[#5B6A8E]">3</span><span>It is a real card, not a screen or a photocopy.</span></li>
+                        </ol>
+                    </x-admin.decision>
+                @elseif ($verification->verification_status === 'Rejected')
                     <x-card>
-                        <div class="flex items-center gap-2 mb-3">
-                            <svg class="w-4 h-4 text-[#94A3B8]" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z" />
-                            </svg>
-                            <h2 class="text-[14px] font-normal text-[#060D26]">Business details</h2>
-                        </div>
-
-                        <div class="space-y-2.5 text-[13px]">
-                            <div>
-                                <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Business name</p>
-                                <p class="font-semibold text-[#060D26] mt-0.5">{{ $verification->business_name }}</p>
-                            </div>
-                            @if ($verification->contact_number)
-                                <div>
-                                    <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Contact</p>
-                                    <p class="font-semibold text-[#060D26] mt-0.5">{{ $verification->contact_number }}</p>
-                                </div>
-                            @endif
-                            @if ($verification->business_address)
-                                <div>
-                                    <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Address</p>
-                                    <p class="font-semibold text-[#060D26] mt-0.5">{{ $verification->business_address }}</p>
-                                </div>
-                            @endif
-                            @if ($verification->description)
-                                <div>
-                                    <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Description</p>
-                                    <p class="text-[#5B6A8E] leading-relaxed mt-0.5">{{ $verification->description }}</p>
-                                </div>
-                            @endif
-                        </div>
+                        <h2 class="text-[14px] font-semibold text-[#DC2626]">Rejected</h2>
+                        @if ($verification->reviewed_at)
+                            <p class="mt-0.5 text-[12.5px] text-[#5B6A8E]">On {{ $verification->reviewed_at->format('M j, Y, g:i A') }}@if ($verification->reviewer) by {{ $verification->reviewer->first_name }} {{ $verification->reviewer->last_name }}@endif</p>
+                        @endif
+                        @if ($verification->admin_notes)
+                            <p class="mt-1.5 text-[13px] leading-5 text-[#060D26]">{{ $verification->admin_notes }}</p>
+                        @endif
+                    </x-card>
+                @elseif ($verification->verification_status === 'Approved')
+                    <x-card>
+                        <h2 class="text-[14px] font-semibold text-[#15803D]">Approved</h2>
+                        @if ($verification->reviewed_at)
+                            <p class="mt-0.5 text-[12.5px] text-[#5B6A8E]">On {{ $verification->reviewed_at->format('M j, Y, g:i A') }}@if ($verification->reviewer) by {{ $verification->reviewer->first_name }} {{ $verification->reviewer->last_name }}@endif</p>
+                        @endif
                     </x-card>
                 @endif
+
+                <x-card>
+                    <p class="text-[12px] text-[#5B6A8E]">Applicant</p>
+                    <a href="{{ route('admin.users.show', $verification->user) }}" class="block text-[13px] font-semibold text-[#060D26] underline-offset-2 hover:underline">{{ $verification->user->first_name }} {{ $verification->user->last_name }}</a>
+                    <p class="break-words text-[12px] text-[#5B6A8E]">{{ $verification->user->email }}</p>
+                </x-card>
             </div>
         </div>
 
@@ -390,15 +161,13 @@
             x-transition:leave-end="opacity-0" @click="previewImage = null" @keydown.escape.window="previewImage = null"
             class="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 p-4 cursor-pointer"
             style="display: none;">
-            <button type="button" @click="previewImage = null"
-                class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
-                <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                    stroke-width="1.5" stroke="currentColor">
+            <button type="button" @click="previewImage = null" aria-label="Close preview"
+                class="absolute top-4 right-4 flex h-9 w-10 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/20">
+                <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
             </button>
-            <img :src="previewImage" alt="Document preview" @click.stop
-                class="max-w-full max-h-[85vh] rounded-lg cursor-default">
+            <img :src="previewImage" alt="Document preview" @click.stop class="max-h-[85vh] max-w-full cursor-default rounded-lg">
         </div>
 
     </div>

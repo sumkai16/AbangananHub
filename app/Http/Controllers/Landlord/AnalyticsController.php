@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Models\DepositCharge;
 use App\Models\OccupancyActivity;
 use App\Models\Payment;
 use App\Models\Property;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use App\Services\OccupancyRateCalculator;
+use App\Services\RentLedger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Carbon;
@@ -27,8 +29,16 @@ class AnalyticsController extends Controller
      * 'Paid' was added when the rent ledger shipped — without it every
      * landlord-recorded payment was invisible here, so a landlord collecting
      * rent by hand would see their revenue chart flatline.
+     *
+     * A security deposit is excluded even when paid: it is still the
+     * tenant's money, owed back at move-out. It shows on its own "Deposits
+     * held" card instead. Only the part a landlord keeps through a
+     * deposit_charges row (damage, cleaning, ...) becomes revenue, dated by
+     * charged_at — the day the landlord actually kept it.
      */
     private const EARNED_STATUSES = ['Paid', 'Held', 'Released'];
+
+    private const NON_REVENUE_TYPES = ['Deposit'];
 
     public function index(Request $request)
     {
@@ -65,6 +75,7 @@ class AnalyticsController extends Controller
             'occupied'    => $occupiedUnits,
             'revenue'     => $revenue,
             'reservations' => $activeReservations,
+            'depositsHeld' => $this->depositsHeld($propertyIds),
             'occupancyRate' => OccupancyRateCalculator::forLandlord($landlordId),
             'revenueDelta' => $this->percentChange(
                 $this->revenueBetween($propertyIds, $prevFrom, $prevTo),
@@ -214,14 +225,14 @@ class AnalyticsController extends Controller
         // Streamed, matching the existing export pattern (OccupancyController).
         return response()->streamDownload(function () use ($properties, $units, $revenueByPropertyId) {
             $out = fopen('php://output', 'w');
-            fputcsv($out, ['Property', 'Total Units', 'Occupied', 'Reserved', 'Available', 'Occupancy Rate (%)', 'Revenue (PHP)']);
+            \App\Support\Csv::put($out, ['Property', 'Total Units', 'Occupied', 'Reserved', 'Available', 'Occupancy Rate (%)', 'Revenue (PHP)']);
 
             foreach ($properties as $property) {
                 $propertyUnits = $units->where('property_id', $property->property_id);
                 $total = $propertyUnits->count();
                 $occupied = $propertyUnits->where('availability_status', 'Occupied')->count();
 
-                fputcsv($out, [
+                \App\Support\Csv::put($out, [
                     $property->title,
                     $total,
                     $occupied,
@@ -253,31 +264,82 @@ class AnalyticsController extends Controller
      */
     private function revenueByProperty($propertyIds, Carbon $from, Carbon $to): Collection
     {
-        return Payment::query()
-            ->join('reservations', 'reservations.reservation_id', '=', 'payments.reservation_id')
-            ->whereIn('payments.status', self::EARNED_STATUSES)
-            ->whereBetween('payments.paid_at', [$from, $to])
-            ->whereIn('reservations.property_id', $propertyIds)
+        $payments = $this->earnedPayments($propertyIds, $from, $to)
             ->groupBy('reservations.property_id')
-            ->selectRaw('reservations.property_id, SUM(payments.amount) as total')
-            ->pluck('total', 'property_id')
-            ->map(fn ($total) => (float) $total);
+            ->selectRaw('reservations.property_id as k, SUM(payments.amount) as total')
+            ->pluck('total', 'k');
+
+        $kept = $this->keptDepositCharges($propertyIds, $from, $to)
+            ->groupBy('reservations.property_id')
+            ->selectRaw('reservations.property_id as k, SUM(deposit_charges.amount) as total')
+            ->pluck('total', 'k');
+
+        return $this->addTotals($payments, $kept);
     }
 
     /** Earned revenue per calendar month for the trailing N months — 'Y-m' => total. */
     private function monthlyRevenue($propertyIds, int $months): Collection
     {
         $from = now()->startOfMonth()->subMonths($months - 1);
+        $to = now()->endOfMonth();
 
+        $payments = $this->earnedPayments($propertyIds, $from, $to)
+            ->groupByRaw("DATE_FORMAT(payments.paid_at, '%Y-%m')")
+            ->selectRaw("DATE_FORMAT(payments.paid_at, '%Y-%m') as k, SUM(payments.amount) as total")
+            ->pluck('total', 'k');
+
+        $kept = $this->keptDepositCharges($propertyIds, $from, $to)
+            ->groupByRaw("DATE_FORMAT(deposit_charges.charged_at, '%Y-%m')")
+            ->selectRaw("DATE_FORMAT(deposit_charges.charged_at, '%Y-%m') as k, SUM(deposit_charges.amount) as total")
+            ->pluck('total', 'k');
+
+        return $this->addTotals($payments, $kept);
+    }
+
+    /** Settled payments in the window, security deposits left out (see EARNED_STATUSES). */
+    private function earnedPayments($propertyIds, Carbon $from, Carbon $to)
+    {
         return Payment::query()
             ->join('reservations', 'reservations.reservation_id', '=', 'payments.reservation_id')
             ->whereIn('payments.status', self::EARNED_STATUSES)
-            ->whereBetween('payments.paid_at', [$from, now()->endOfMonth()])
-            ->whereIn('reservations.property_id', $propertyIds)
-            ->groupByRaw("DATE_FORMAT(payments.paid_at, '%Y-%m')")
-            ->selectRaw("DATE_FORMAT(payments.paid_at, '%Y-%m') as ym, SUM(payments.amount) as total")
-            ->pluck('total', 'ym')
-            ->map(fn ($total) => (float) $total);
+            ->whereNotIn('payments.payment_type', self::NON_REVENUE_TYPES)
+            ->whereBetween('payments.paid_at', [$from, $to])
+            ->whereIn('reservations.property_id', $propertyIds);
+    }
+
+    /** Deposit the landlord kept (non-voided charges), dated by charged_at. */
+    private function keptDepositCharges($propertyIds, Carbon $from, Carbon $to)
+    {
+        return DepositCharge::query()
+            ->join('reservations', 'reservations.reservation_id', '=', 'deposit_charges.reservation_id')
+            ->whereNull('deposit_charges.voided_at')
+            ->whereBetween('deposit_charges.charged_at', [$from->toDateString(), $to->toDateString()])
+            ->whereIn('reservations.property_id', $propertyIds);
+    }
+
+    /** Key-wise sum of two key => total maps, as floats. */
+    private function addTotals(Collection $a, Collection $b): Collection
+    {
+        return $a->keys()->merge($b->keys())->unique()
+            ->mapWithKeys(fn ($k) => [$k => (float) ($a[$k] ?? 0) + (float) ($b[$k] ?? 0)]);
+    }
+
+    /**
+     * Security deposits the landlord is holding right now (point-in-time, not
+     * range-filtered): collected minus what was kept, on every tenancy that
+     * still holds its unit. A Completed tenancy is treated as settled — its
+     * deposit was returned or charged at move-out.
+     *
+     * Read through RentLedger so a deposit folded into an older single online
+     * Initial payment is counted the same way the tenancy page counts it.
+     */
+    private function depositsHeld($propertyIds): float
+    {
+        return (float) Reservation::whereIn('property_id', $propertyIds)
+            ->whereIn('rental_status', Reservation::UNIT_HOLDING_STATUSES)
+            ->with(['payments', 'depositCharges', 'lateFeeWaivers', 'unit'])
+            ->get()
+            ->sum(fn (Reservation $r) => RentLedger::for($r)->deposit()['remaining']);
     }
 
     private function activeReservationCount($propertyIds): int

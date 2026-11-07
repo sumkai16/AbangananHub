@@ -21,24 +21,24 @@ class FavoriteController extends Controller
             ->latest('created_at');
 
         if ($search) {
-            $favoritesQuery->whereHas('property', fn($q) => $q->where('title', 'like', "%{$search}%")
+            $favoritesQuery->whereHas('property', fn ($q) => $q->where('title', 'like', "%{$search}%")
                 ->orWhere('address', 'like', "%{$search}%"));
         }
 
         if ($type) {
-            $favoritesQuery->whereHas('property', fn($q) => $q->where('property_type', $type));
+            $favoritesQuery->whereHas('property', fn ($q) => $q->where('property_type', $type));
         }
 
         // availability_status lives on property_units, not properties — "available"
         // means the property has at least one available unit, same definition
         // PropertyController::index uses for the public browse filter.
         if ($availability === 'Available') {
-            $favoritesQuery->whereHas('property.units', fn($q) => $q->where('availability_status', 'Available'));
+            $favoritesQuery->whereHas('property.units', fn ($q) => $q->where('availability_status', 'Available'));
         } elseif ($availability === 'Unavailable') {
-            $favoritesQuery->whereDoesntHave('property.units', fn($q) => $q->where('availability_status', 'Available'));
+            $favoritesQuery->whereDoesntHave('property.units', fn ($q) => $q->where('availability_status', 'Available'));
         }
 
-        $favorites = $favoritesQuery->get();
+        $favorites = $favoritesQuery->orderByDesc('favorite_id')->paginate(12)->withQueryString();
         $favoritedIds = $favorites->pluck('property_id')->toArray();
 
         return view('favorites.index', compact('favorites', 'favoritedIds'));

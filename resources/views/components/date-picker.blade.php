@@ -38,6 +38,7 @@
     'maxExpr' => null,
     'disabledExpr' => null,
     'placeholder' => 'mm / dd / yyyy',
+    'autosubmit' => false,
 ])
 
 @php
@@ -47,6 +48,7 @@
 <div
     x-data="datePicker({ date: @js($value), min: @js($min), max: @js($max) })"
     x-modelable="date"
+    @if ($autosubmit) x-init="$watch('date', () => $nextTick(() => $el.closest('form')?.requestSubmit()))" @endif
     @if ($minExpr) x-effect="min = ({{ $minExpr }}) || null" @endif
     @if ($maxExpr) x-effect="max = ({{ $maxExpr }}) || null" @endif
     @if ($disabledExpr) x-effect="fieldDisabled = !!({{ $disabledExpr }})" @endif

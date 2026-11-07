@@ -34,6 +34,12 @@ class UnitCatalogueController extends Controller
             $query->where('verification_status', $verification);
         }
 
+        // Units that need their own decision: Pending, on a property that is already approved. (A Pending unit on a
+        // Pending property is decided together with the property.) The same rule the dashboard counts.
+        if ($request->input('needs') === 'approval') {
+            $query->awaitingOwnReview();
+        }
+
         if ($availability = $request->input('availability_status')) {
             $query->where('availability_status', $availability);
         }
@@ -78,7 +84,12 @@ class UnitCatalogueController extends Controller
                 $query->orderBy('vacated_at', 'asc');
                 break;
             default:
-                $query->latest();
+                if ($request->input('needs') === 'approval') {
+                    $query->oldest('property_units.created_at'); // the longest wait on top
+                    break;
+                }
+                // The admin's work queue first: units waiting for a decision, then everything else, newest in each.
+                $query->orderByRaw("CASE WHEN verification_status = 'Pending' THEN 0 ELSE 1 END")->latest();
         }
 
         return $query;
@@ -88,10 +99,12 @@ class UnitCatalogueController extends Controller
     {
         $units = $this->filteredQuery($request)
             ->with([
-                'property:property_id,title,landlord_id',
+                'property:property_id,title,landlord_id,verification_status',
                 'property.landlord:user_id,first_name,last_name',
-                'media' => fn ($q) => $q->where('media_type', 'Image')->orderBy('media_id')->limit(1),
-                'activeReservation.tenant:user_id,first_name,last_name',
+                'property.media' => fn ($q) => $q->where('media_type', 'Image')->orderBy('media_id'),
+                'media' => fn ($q) => $q->where('media_type', 'Image')->orderBy('media_id'),
+                'amenities',
+                'activeReservation.tenant:user_id,first_name,last_name,profile_picture,contact_number',
             ])
             ->paginate(15)
             ->withQueryString();
@@ -104,13 +117,14 @@ class UnitCatalogueController extends Controller
             'available'   => PropertyUnit::where('availability_status', 'Available')->count(),
             'maintenance' => PropertyUnit::where('availability_status', 'Maintenance')->count(),
         ];
+        $counts['needs_approval'] = PropertyUnit::awaitingOwnReview()->count();
         $counts['occupancy_rate'] = $total > 0 ? round($counts['occupied'] / $total * 100) : 0;
 
         return view('admin.catalogue.units.index', [
             'units'   => $units,
             'counts'  => $counts,
             'search'  => $request->input('search', ''),
-            'filters' => $request->only(['verification_status', 'availability_status', 'property_id', 'min_fee', 'max_fee', 'health', 'sort']),
+            'filters' => $request->only(['verification_status', 'availability_status', 'property_id', 'min_fee', 'max_fee', 'health', 'sort', 'needs']),
         ]);
     }
 
@@ -123,7 +137,7 @@ class UnitCatalogueController extends Controller
 
         return response()->streamDownload(function () use ($query) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, [
+            \App\Support\Csv::put($handle, [
                 'Property', 'Unit', 'Monthly Rent', 'Capacity',
                 'Availability Status', 'Verification Status', 'Tenant',
                 'Vacated At', 'Rejection Reason', 'Last Updated',
@@ -131,7 +145,7 @@ class UnitCatalogueController extends Controller
 
             $query->chunk(200, function ($units) use ($handle) {
                 foreach ($units as $unit) {
-                    fputcsv($handle, [
+                    \App\Support\Csv::put($handle, [
                         $unit->property->title ?? '',
                         $unit->unit_label,
                         $unit->rental_fee,

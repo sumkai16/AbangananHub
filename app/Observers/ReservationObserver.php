@@ -8,6 +8,7 @@ use App\Models\Conversation;
 use App\Models\LandlordTenant;
 use App\Models\Notification;
 use App\Models\Reservation;
+use App\Services\LandlordRentDueCount;
 use App\Services\TenancyDocuments;
 use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Support\Facades\Log;
@@ -27,6 +28,8 @@ class ReservationObserver
 {
     public function created(Reservation $reservation): void
     {
+        LandlordRentDueCount::forgetForReservation($reservation->reservation_id);
+
         // A tenancy recorded straight as Occupied (rather than reaching it through the pipeline).
         $this->syncTenancyThread($reservation);
         $this->syncRoster($reservation);
@@ -51,6 +54,11 @@ class ReservationObserver
 
     public function updated(Reservation $reservation): void
     {
+        // The sidebar's Payments number depends on who is in a running tenancy and what rent they owe.
+        if ($reservation->wasChanged(['rental_status', 'target_move_in_date', 'target_move_out_date', 'agreed_monthly_rent', 'rent_due_day'])) {
+            LandlordRentDueCount::forgetForReservation($reservation->reservation_id);
+        }
+
         // Before the early return below: a tenancy thread does not depend on the
         // inquiry thread, and walk-ins (which have none) are skipped inside.
         if ($reservation->wasChanged('rental_status')) {
@@ -94,9 +102,17 @@ class ReservationObserver
      */
     private function syncRoster(Reservation $reservation): void
     {
-        $landlordId = $reservation->property?->landlord_id;
+        if (! in_array($reservation->rental_status, LandlordTenant::ACTIVE_STATUSES, true)) {
+            return;
+        }
 
-        if ($landlordId && in_array($reservation->rental_status, LandlordTenant::ACTIVE_STATUSES, true)) {
+        // Queried, not read through the relation: caching the property on the model here would leave the caller
+        // holding a stale copy (e.g. a lease template assigned after the reservation was created).
+        $landlordId = $reservation->relationLoaded('property')
+            ? $reservation->property?->landlord_id
+            : $reservation->property()->value('landlord_id');
+
+        if ($landlordId) {
             LandlordTenant::ensureFor($landlordId, $reservation->tenant_id);
         }
     }
@@ -230,6 +246,12 @@ class ReservationObserver
                 break;
 
             case 'Cancelled':
+                // Closed by the daily stale check (no actor). It sends its own "Reservation closed" notices, so
+                // say nothing here rather than "the tenant cancelled".
+                if ($reservation->systemCancelReason !== null) {
+                    break;
+                }
+
                 // Notify whoever did not press the button. Falls back to
                 // telling both when there is no authenticated actor (CLI,
                 // scheduled job), which is better than telling neither.

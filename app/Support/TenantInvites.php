@@ -30,7 +30,9 @@ class TenantInvites
 
         $token = Password::broker(self::BROKER)->createToken($tenant);
 
-        Mail::to($tenant->email)->send(new TenantInviteMail($tenant, $landlord, $token));
+        // Queued, not sent inline: talking to the mail server takes 4–5 s and made Add tenant hang. The queue
+        // worker sends it (`composer run dev` runs one locally; the VPS needs a Supervisor `queue:work`).
+        Mail::to($tenant->email)->queue(new TenantInviteMail($tenant, $landlord, $token));
 
         return true;
     }

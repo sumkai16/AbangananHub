@@ -95,7 +95,7 @@ class UnitIndexController extends Controller
 
         return response()->streamDownload(function () use ($query) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, [
+            \App\Support\Csv::put($handle, [
                 'Property', 'Unit', 'Floor', 'Floor Area (sqm)', 'Monthly Rent',
                 'Security Deposit', 'Capacity', 'Status', 'Tenant', 'Last Updated',
             ]);
@@ -105,7 +105,7 @@ class UnitIndexController extends Controller
                     $tenant = $unit->reservations
                         ->firstWhere('rental_status', 'Occupied')?->tenant;
 
-                    fputcsv($handle, [
+                    \App\Support\Csv::put($handle, [
                         $unit->property->title ?? '',
                         $unit->unit_label,
                         $unit->floor ?? '',

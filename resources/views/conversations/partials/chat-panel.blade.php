@@ -42,8 +42,8 @@
 
     // The landlord's page shows the chat and the property as two separate cards.
     $sheet = (bool) $conversation->property;
-    $sheetPhoto = $conversation->unit?->media->firstWhere('media_type', 'Image')?->media_url
-        ?? $conversation->property?->media->firstWhere('media_type', 'Image')?->media_url;
+    $sheetPhoto = \App\Support\Images::src($conversation->unit?->media->firstWhere('media_type', 'Image')?->media_url, 'card')
+        ?? \App\Support\Images::src($conversation->property?->media->firstWhere('media_type', 'Image')?->media_url, 'card');
 @endphp
 
 <div class="flex h-full {{ $sheet ? 'gap-4' : 'flex-col' }}" id="chat-panel-root" data-conversation-id="{{ $conversation->conversation_id }}"
@@ -135,7 +135,7 @@
             <div class="px-5 py-3 border-b border-[#E2E4EC] bg-[#F7F8FC] flex-shrink-0 flex items-center gap-4 flex-wrap {{ $sheet ? 'xl:hidden' : '' }}">
                 <div class="flex items-center gap-3 min-w-0">
                     @if($stripThumb)
-                        <img loading="lazy" decoding="async" src="{{ $stripThumb->media_url }}" alt="" class="w-11 h-9 rounded-lg object-cover flex-shrink-0">
+                        <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($stripThumb->media_url, 'thumb') }}" alt="" class="w-11 h-9 rounded-lg object-cover flex-shrink-0">
                     @else
                         <div class="w-11 h-9 rounded-lg bg-white border border-[#E2E4EC] flex items-center justify-center flex-shrink-0">
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#5B6A8E" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-10.5l8.5-6.75 8.5 6.75M4.5 9v12m15-12v12M9 21v-6a2.25 2.25 0 012.25-2.25h1.5A2.25 2.25 0 0115 15v6"/></svg>
@@ -182,7 +182,17 @@
             {{-- LANDLORD --}}
             @if($isLandlord)
                 @if($rentalStatus === 'Inquiry')
-                    {{-- Accept and send the agreement in one step; the property's default lease terms are used. --}}
+                    {{-- Accept and send the agreement in one step; the property's default lease terms are used. A lease needs a
+                         start, so with no move-in date (the tenant only asked a question) only the negotiate route is offered. --}}
+                    @if(! $reservation->target_move_in_date)
+                        <div class="flex items-center gap-2">
+                            <p class="flex-1 text-[12px] leading-snug text-[#5B6A8E]"><span class="font-semibold text-[#060D26]">No move-in date yet.</span> Accept to talk it through, then set the date when you send the agreement.</p>
+                            <button type="button" @click="showReject = !showReject"
+                                class="px-4 py-2 border border-[#EF4444] text-[#EF4444] text-[12px] font-semibold rounded-xl hover:bg-[#EF4444]/5 cursor-pointer transition-all duration-200">
+                                Reject
+                            </button>
+                        </div>
+                    @else
                     <form action="{{ route('landlord.reservations.acceptAndSend', $reservation) }}" method="POST">
                         @csrf @method('PATCH')
                         @include('landlord.partials._lease-editor', ['reservation' => $reservation])
@@ -204,6 +214,7 @@
                             </button>
                         </div>
                     </form>
+                    @endif
                     <form action="{{ route('landlord.reservations.advanceNegotiation', $reservation) }}" method="POST" class="mt-2">
                         @csrf @method('PATCH')
                         <button type="submit" class="w-full border border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-[12px] font-semibold py-2 rounded-xl cursor-pointer transition-colors duration-200">
@@ -587,7 +598,7 @@
                     <div class="min-w-0 w-full max-w-[300px] bg-white border border-[#E2E4EC] rounded-2xl shadow-sm overflow-hidden">
                         <div class="flex items-center gap-3 p-3 border-b border-[#E2E4EC]">
                             @if($summaryThumb)
-                                <img loading="lazy" decoding="async" src="{{ $summaryThumb->media_url }}" alt="" class="w-12 h-9 rounded-lg object-cover flex-shrink-0">
+                                <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($summaryThumb->media_url, 'thumb') }}" alt="" class="w-12 h-9 rounded-lg object-cover flex-shrink-0">
                             @else
                                 <div class="w-12 h-9 rounded-lg bg-[#ECEEF6] flex items-center justify-center flex-shrink-0">
                                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#5B6A8E" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-10.5l8.5-6.75 8.5 6.75M4.5 9v12m15-12v12M9 21v-6a2.25 2.25 0 012.25-2.25h1.5A2.25 2.25 0 0115 15v6"/></svg>

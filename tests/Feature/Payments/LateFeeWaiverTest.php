@@ -93,10 +93,13 @@ class LateFeeWaiverTest extends TestCase
         // The row payload is Js::from() JSON in an attribute; the key only appears there when the landlord may waive.
         $waiveKey = 'waive_action\\u0022';
 
+        // The landlord's ledger no longer has a Months table spelling out "incl. late fee" on each row: the fee is in the
+        // month's popup (its figures, "Rent + late fee", and the waive button), whose payload carries the key checked here.
         $this->actingAs($t['landlord'])->get(route('landlord.payments.ledger', $t['reservation']))
-            ->assertOk()->assertSee('incl. ₱100.00 late fee')->assertSee($waiveKey, false);
-        $this->actingAs($t['tenant'])->get(route('tenancy.show', $t['reservation']))
-            ->assertOk()->assertSee('incl. ₱100.00 late fee')->assertDontSee($waiveKey, false);
+            ->assertOk()->assertSee($waiveKey, false)->assertSee('late_fee', false);
+        // The tenant's page totals the fees in the Balance tile ("incl. ₱X late fees") and has no waive action.
+        $html = $this->actingAs($t['tenant'])->get(route('tenancy.show', $t['reservation']))->assertOk()->assertDontSee($waiveKey, false)->getContent();
+        $this->assertMatchesRegularExpression('/incl\. ₱[\d,]+\.\d{2} late fees/u', $html);
     }
 
     public function test_a_reminder_mentions_the_late_fee(): void

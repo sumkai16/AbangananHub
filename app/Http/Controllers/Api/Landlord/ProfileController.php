@@ -41,7 +41,7 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'first_name'            => ['required', 'string', 'max:255'],
             'last_name'             => ['required', 'string', 'max:255'],
-            'contact_number'        => ['nullable', 'string', 'max:20'],
+            'contact_number'        => ['nullable', 'string', 'max:20', \App\Support\Phone::RULE],
             'gcash_number'          => ['nullable', 'string', 'max:20', function ($attribute, $value, $fail) {
                 if (filled($value) && GcashNumber::normalize($value) === null) {
                     $fail(GcashNumber::MESSAGE);
@@ -53,7 +53,7 @@ class ProfileController extends Controller
             'profile_picture'       => ['nullable', 'image', 'max:2048'],
             'business_name'         => ['nullable', 'string', 'max:255'],
             'business_description'  => ['nullable', 'string', 'max:1000'],
-            'business_contact'      => ['nullable', 'string', 'max:20'],
+            'business_contact'      => ['nullable', 'string', 'max:20', \App\Support\Phone::RULE],
             'business_address'      => ['nullable', 'string', 'max:500'],
             'logo'                  => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
@@ -83,7 +83,7 @@ class ProfileController extends Controller
 
         // Changing where the money goes needs the password, so a stolen token cannot redirect payouts.
         if (LandlordPayouts::changesDestination($user, $number, $name)) {
-            $request->validate(['current_password' => ['required', 'current_password:sanctum']]);
+            $request->validate(['current_password' => ['bail', 'required', 'string', 'current_password:sanctum']]);
         }
 
         $user->savePayoutAccount($number, $name);
@@ -174,13 +174,12 @@ class ProfileController extends Controller
 
         return response()->json([
             'data' => [
-                // The owner sees their own record; everyone else gets the business only, with the phone
-                // number behind a token (the web page puts it behind a login).
+                // The owner sees their own record; everyone else gets the business only, never its phone number.
                 'user' => $isOwner
                     ? $user->only(['user_id', 'first_name', 'last_name', 'profile_picture', 'bio', 'created_at'])
                     : ['user_id' => $user->user_id, 'business_name' => $user->publicName(), 'created_at' => $user->created_at],
                 'is_owner'        => $isOwner,
-                'business'        => $isOwner || $viewer
+                'business'        => $isOwner
                     ? $user->rentalBusiness
                     : $user->rentalBusiness?->only(['business_id', 'business_name', 'description', 'logo_url', 'business_address']),
                 'is_verified'     => (bool) $user->rentalBusiness,

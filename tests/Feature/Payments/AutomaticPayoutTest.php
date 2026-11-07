@@ -443,7 +443,7 @@ class AutomaticPayoutTest extends TestCase
 
         $t['landlord']->savePayoutAccount('09171234567', 'Test Landlord');
 
-        Mail::assertNothingSent();
+        Mail::assertNothingOutgoing();
         $this->assertNull(LandlordPayouts::blockedReason($t['landlord']));
     }
 

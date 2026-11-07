@@ -54,7 +54,7 @@
         </div>
     </div>
 
-    <p class="rounded-lg bg-white px-3 py-2 text-[12px] text-[#060D26]">
+    <p class="rounded-lg border border-[#E2E4EC] bg-[#F7F8FC] px-3 py-2 text-[12px] text-[#060D26]">
         Due at move-in, paid to you:
         <span class="font-semibold tabular-nums" x-text="'₱' + moveInDue.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })"></span>
         <span class="text-[#5B6A8E]" x-text="'(' + (Number(agreement.advance) || 0) + ' month' + (Number(agreement.advance) == 1 ? '' : 's') + ' advance + deposit)'"></span>

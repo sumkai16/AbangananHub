@@ -45,6 +45,50 @@ class BrowseFilters
     public const AMENITIES_REPLACED_BY_RULES = ['Curfew', 'Pet Friendly', 'Visitors Allowed'];
 
     /**
+     * Rewrite the query string in place so every filter has the shape the page expects, before
+     * anything reads it. A hand-edited URL (`?amenities=abc`, `?price_max=1 OR 1`, `?type[]=x`)
+     * is cleaned or dropped instead of reaching a view or the query builder as the wrong type.
+     * These were 500 errors, not injection: values are always bound.
+     */
+    public static function sanitize(Request $request): void
+    {
+        $clean = [];
+
+        foreach (['location', 'type', 'sort'] as $key) {
+            $value = $request->query($key);
+            if (is_string($value)) {
+                $clean[$key] = $value;
+            }
+        }
+
+        foreach (['price_min', 'price_max'] as $key) {
+            $value = $request->query($key);
+            if (is_string($value) && is_numeric($value) && (float) $value >= 0) {
+                $clean[$key] = $value;
+            }
+        }
+
+        $ids = array_values(array_unique(array_map('intval', array_filter(
+            (array) $request->query('amenities', []),
+            fn ($id) => (is_string($id) || is_int($id)) && ctype_digit((string) $id)
+        ))));
+        if ($ids !== []) {
+            $clean['amenities'] = $ids;
+        }
+
+        // Both bags: request('x') reads the merged input, $request->query('x') reads the query string.
+        foreach (['location', 'type', 'sort', 'price_min', 'price_max', 'amenities'] as $key) {
+            if (array_key_exists($key, $clean)) {
+                $request->query->set($key, $clean[$key]);
+                $request->request->set($key, $clean[$key]);
+            } else {
+                $request->query->remove($key);
+                $request->request->remove($key);
+            }
+        }
+    }
+
+    /**
      * @return array{living: ?string, for: ?string, furnishing: ?string, rules: array<int, string>}
      */
     public static function fromRequest(Request $request): array

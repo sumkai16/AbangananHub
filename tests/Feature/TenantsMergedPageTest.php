@@ -176,7 +176,7 @@ class TenantsMergedPageTest extends TestCase
         $row = $this->tenantWith($landlord, null);
 
         $this->actingAs($landlord)->get(route('landlord.tenants.show', $row))
-            ->assertOk()->assertSee('No contracts yet')->assertSee('Add contract')
+            ->assertOk()->assertSee('No leases yet')->assertSee('Add lease')
             ->assertSee(route('landlord.tenants.index', ['new' => 1, 'tenant' => $row->landlord_tenant_id]));
     }
 
@@ -233,6 +233,10 @@ class TenantsMergedPageTest extends TestCase
         foreach (range(1, 6) as $i) {
             $this->tenantWith($landlord, $i % 2 ? 'Occupied' : 'Rental Agreement Signed');
         }
+
+        // Adding tenants cleared the sidebar's cached Payments number (it must follow a new tenancy), so the next
+        // request recomputes it once. That is a fixed handful of queries however many tenants there are: warm it again.
+        $count();
 
         $this->assertSame($small, $count(), 'Query count must not grow with the number of tenants.');
     }

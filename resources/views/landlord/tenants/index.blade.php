@@ -10,7 +10,7 @@
         'bad' => 'bg-[#EF4444]/[0.08] text-[#B91C1C] border-[#EF4444]/25',
         'muted' => 'bg-[#ECEEF6] text-[#5B6A8E] border-[#E2E4EC]',
     ];
-    $propertyOptions = ['' => 'All properties'] + $properties->pluck('title', 'property_id')->all();
+    $propertyOptions = ['' => 'All Properties'] + $properties->pluck('title', 'property_id')->all();
     $iconBtn = 'h-9 w-9 inline-flex items-center justify-center rounded-full border border-[#5B6A8E]/30 text-[#060D26] hover:bg-white transition-colors duration-200 cursor-pointer';
     $iconOff = 'h-9 w-9 inline-flex items-center justify-center rounded-full border border-[#E2E4EC] text-[#CBD5E1] cursor-not-allowed';
     $smallBtn = 'inline-flex items-center justify-center h-9 px-3.5 rounded-full border border-[#5B6A8E]/30 bg-white text-[12px] font-bold text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer whitespace-nowrap';
@@ -69,14 +69,16 @@
             </x-slot:icon>
             <x-slot:actions>
                 <a href="{{ route('landlord.leases.index') }}"
+                    @click.prevent="$dispatch('open-lease-policies', { url: @js(route('landlord.leases.panel')) })"
                     class="inline-flex items-center justify-center gap-2 h-11 px-4 sm:px-5 rounded-full border border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-sm font-semibold transition-all duration-200 cursor-pointer">
                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg>
                     Lease policies
                 </a>
                 <a href="{{ route('landlord.tenants.export') }}"
+                    title="Download your tenants as a spreadsheet (CSV)"
                     class="hidden sm:inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-sm font-semibold transition-all duration-200 cursor-pointer">
                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                    Export
+                    Export CSV
                 </a>
                 <button type="button" @click="$dispatch('open-tenant-form', {})"
                     class="inline-flex flex-1 sm:flex-none items-center justify-center gap-2 h-11 px-5 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
@@ -107,7 +109,7 @@
         @endif
 
         {{-- Search, property and the stage chips. The chips are links, so they work without script and can be shared. --}}
-        <form method="GET" action="{{ route('landlord.tenants.index') }}" class="bg-white rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-4 mb-5">
+        <form method="GET" action="{{ route('landlord.tenants.index') }}" class="mb-5">
             @if($stage !== '')<input type="hidden" name="status" value="{{ $stage }}">@endif
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
                 <div class="relative flex-1 min-w-[200px]">
@@ -119,10 +121,28 @@
                 <div class="filter-row flex flex-wrap items-center gap-2.5">
                     <x-styled-select name="property" :options="$propertyOptions" :selected="(string) request('property', '')" autosubmit
                         class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26] max-w-[220px]" />
+
+                    <button type="submit"
+                        class="h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 inline-flex items-center gap-1.5">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                        </svg>
+                        Filter
+                    </button>
+
+                    @if($keep !== [])
+                        <a href="{{ route('landlord.tenants.index', $stage !== '' ? ['status' => $stage] : []) }}"
+                            class="h-11 px-4 rounded-xl border border-[#5B6A8E]/25 text-[13.5px] text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 inline-flex items-center gap-1.5">
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                            </svg>
+                            Clear
+                        </a>
+                    @endif
                 </div>
             </div>
 
-            <nav class="mt-3 -mx-1 flex gap-2 overflow-x-auto px-1 pb-1" aria-label="Filter tenants by stage">
+            <nav class="mt-4 -mx-1 flex gap-2 overflow-x-auto px-1 pb-1" aria-label="Filter tenants by stage">
                 @foreach($chips as $key => $label)
                     @php $count = $key === '' ? $counts['all'] : $counts[$key]; @endphp
                     <a href="{{ $chipUrl($key) }}" @if($stage === $key) aria-current="true" @endif
@@ -248,11 +268,17 @@
                     </table>
                 </div>
             </x-card>
+
+            @if($rows->hasPages())
+                <div class="mt-4">{{ $rows->links() }}</div>
+            @endif
         @endif
+        </div>
 
         @include('landlord.contracts.partials._view-modal', ['event' => 'open-contract', 'label' => 'Tenant and contract details'])
         @include('landlord.contracts.partials._add-modal')
         @include('landlord.tenants.partials._form-modal')
+        @include('landlord.leases.partials._modal')
     </div>
 
     <script src="{{ asset('js/date-picker.js') }}"></script>

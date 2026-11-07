@@ -9,6 +9,7 @@ use App\Models\PaymentQrShare;
 use App\Models\Reservation;
 use App\Models\TenantDetail;
 use App\Services\TenancyDocuments;
+use App\Support\PaymentMethods;
 use App\Support\Payments;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -52,7 +53,9 @@ class AgreementController extends Controller
             'online_payments_enabled' => Payments::online(),
             // This landlord can actually be paid online (GCash on file, no opt-out). When true the tenant chooses online or direct.
             'online_available' => Payments::onlineFor($reservation),
-            'payment_qr' => PaymentQrShare::latestFor($reservation)?->toApi(),
+            // The ways this landlord takes (Settings > Payments): {online, qr, cash}. No QR is sent when they do not take QR.
+            'payment_methods' => PaymentMethods::forReservation($reservation),
+            'payment_qr' => PaymentMethods::forReservation($reservation)['qr'] ? PaymentQrShare::latestFor($reservation)?->toApi() : null,
         ]);
     }
 

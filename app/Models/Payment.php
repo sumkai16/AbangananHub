@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Observers\PaymentActivityObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,6 +11,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
+#[ObservedBy(PaymentActivityObserver::class)]
 class Payment extends Model
 {
     /**

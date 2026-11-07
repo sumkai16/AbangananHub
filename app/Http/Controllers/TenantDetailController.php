@@ -7,9 +7,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 /**
- * A tenant's own emergency contact and ID, edited from Account Settings. The landlord's view of the same
- * row is on their tenancy page (Landlord\TenancyController::updateTenantDetails covers walk-ins, who
- * cannot log in); signing an agreement also fills it in (Tenant\AgreementController::sign).
+ * A tenant's own emergency contact and ID, edited from Account Settings. The landlord sees the same row in
+ * the lease modal, and fills it in for tenants on their own list from the Tenants page (Landlord\TenantController);
+ * signing an agreement also fills it in (Tenant\AgreementController::sign).
  */
 class TenantDetailController extends Controller
 {

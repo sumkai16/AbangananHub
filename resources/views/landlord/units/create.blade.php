@@ -17,7 +17,7 @@
             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
             </svg>
-            <a href="{{ route('landlord.properties.units.index', $property) }}"
+            <a href="{{ $backUrl ?? route('landlord.properties.units.index', $property) }}"
                 class="hover:text-[#060D26] transition-colors duration-200">Units</a>
             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
@@ -90,6 +90,9 @@
             @csrf
             @if($fromWizard ?? false)
                 <input type="hidden" name="from" value="wizard">
+            @endif
+            @if(($returnTo ?? 'units') === 'property')
+                <input type="hidden" name="return_to" value="property">
             @endif
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -436,7 +439,7 @@
 
             {{-- Sticky on phones so Save stays reachable past the long form and the amenities rail below it. --}}
             <div class="sticky bottom-0 z-20 -mx-4 sm:mx-0 mt-8 px-4 sm:px-0 py-3 bg-[#F7F8FC] border-t border-[#E2E4EC] sm:border-0 flex items-center gap-3">
-                <a href="{{ ($fromWizard ?? false) ? route('properties.wizard.units', $property) : route('landlord.properties.units.index', $property) }}"
+                <a href="{{ $backUrl ?? route('landlord.properties.units.index', $property) }}"
                     class="flex-1 sm:flex-none h-11 px-6 inline-flex items-center justify-center rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-sm font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
                     Cancel
                 </a>

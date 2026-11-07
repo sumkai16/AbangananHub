@@ -223,7 +223,7 @@
                         </div>
                     </x-form-section>
 
-                    <x-form-section title="Rent rules" description="Private to you. Each contract keeps the rules that were in force when it was sent.">
+                    <x-form-section title="Rent rules" description="Private to you. Each lease keeps the rules that were in force when it was sent.">
                         <x-slot:icon>{!! $ico('M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z') !!}</x-slot:icon>
 
                         <div x-data="{
@@ -304,7 +304,7 @@
 
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 @forelse($property->media as $img)
-                                    @php $url = $img->media_url; @endphp
+                                    @php $url = \App\Support\Images::src($img->media_url, 'card'); @endphp
                                     <div class="relative aspect-square rounded-xl overflow-hidden bg-[#ECEEF6] border border-[#E2E4EC] group/img">
                                         <img src="{{ str_starts_with($url, 'http') ? $url : Storage::url($url) }}" loading="lazy" decoding="async"
                                             class="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300" alt="Property photo">

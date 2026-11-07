@@ -114,7 +114,7 @@
         @endif
         <p class="mt-3 text-[11.5px] italic leading-relaxed text-[#5B6A8E]">If the text below conflicts with the summary of key terms above, the summary applies.</p>
         <div class="lease-prose mt-2 {{ $body }}">{!! \App\Support\LeaseBody::clean($terms['body']) !!}</div>
-        {{-- The listing's rules plus the policy's sections, always listed by the system, never typed into the body. --}}
+        {{-- The policy's house-rule sections, always listed by the system, never typed into the body. --}}
         @include('leases._house-rules', ['terms' => $terms, 'heading' => $heading, 'body' => $body, 'title' => 'House rules'])
     @else
     @php

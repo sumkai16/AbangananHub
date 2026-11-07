@@ -39,7 +39,7 @@ class StoreWalkInTenantRequest extends FormRequest
             'email'          => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')],
             // Required when there is no email: a tenant the landlord cannot
             // reach by either channel is a record with no way to follow up.
-            'contact_number' => ['required_without_all:email,existing_tenant_id', 'nullable', 'string', 'max:20'],
+            'contact_number' => ['required_without_all:email,existing_tenant_id', 'nullable', 'string', 'max:20', \App\Support\Phone::RULE],
 
             'unit_id'              => ['required', 'integer', 'exists:property_units,unit_id'],
             'move_in_date'         => ['required', 'date', 'before_or_equal:' . now()->addYear()->toDateString()],

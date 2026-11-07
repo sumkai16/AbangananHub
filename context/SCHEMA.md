@@ -68,6 +68,8 @@ erDiagram
     users ||--o{ occupancy_snapshots : "landlord_id"
     property_units ||--o{ occupancy_activities : "unit_id"
     users |o--o{ audit_logs : "actor_id (set null)"
+    properties ||--o{ property_activities : "property_id"
+    users |o--o{ property_activities : "actor_id (set null)"
 ```
 
 ## 2. Tables — Identity
@@ -87,6 +89,8 @@ A person. Tenants, landlords and admins are all rows here; the role lives in `us
 | profile_picture | varchar(255) | null | | Cloudinary URL |
 | bio | text | null | | |
 | profile_visibility | enum('public','landlords_only','private') | NN, = 'private' | | |
+| accepts_qr_payments | boolean | NN, = 1 | | Landlord takes payment to their own QR (Settings > Payments; `App\Support\PaymentMethods`) |
+| accepts_cash_payments | boolean | NN, = 1 | | Landlord takes cash in person (same) |
 | account_status | enum('active','suspended','inactive') | NN, = 'active' | index | |
 | is_walk_in | boolean | NN, = 0 | | Landlord-entered tenant; drives the **Walk-in** pill everywhere |
 | created_by_landlord_id | bigint unsigned | null | FK → users, set null | Scopes `User::walkInTenants()` |
@@ -182,6 +186,8 @@ One application per landlord. Government ID, selfie and ID back live on the **pr
 | ocr_name | varchar(255) | null | | |
 | ocr_confidence | tinyint unsigned | null | | |
 | ocr_status | varchar(255) | null | | |
+| face_match_status | varchar(20) | null | | `match` (at or above 80%), `review` (60 to 80%, similar: compare by eye), `mismatch` (below 60%), `no_face` or `unavailable` (no keys or an AWS error). Set by `App\Services\FaceMatch` when the application is submitted; an admin signal, never an automatic decision. Null on older applications |
+| face_match_score | decimal(5,2) | null | | Similarity percent of the best match, 0 on a mismatch, null when not checked |
 | business_name | varchar(255) | null | | Copied to `rental_businesses` on approval |
 | description | text | null | | |
 | logo_url | varchar(255) | null | | |
@@ -458,6 +464,7 @@ One tenant's inquiry-to-tenancy record on one unit. `rental_status` walks Inquir
 | handover_proposed_by | bigint unsigned | null | FK → users, set null | The *other* party confirms |
 | handover_proposed_at | timestamp | null | | |
 | handover_confirmed_at | timestamp | null | | Only a confirmed slot moves `move_in_deadline_at` |
+| stale_reminder_sent_at | timestamp | null | | When `reservations:process-stale` last sent its "going quiet" reminder; sent once per quiet spell (compared with the clock the spell is measured from) |
 | remarks | text | null | | |
 | created_at | timestamp | null | | |
 | updated_at | timestamp | null | | |
@@ -584,6 +591,7 @@ A tenant's "I paid the landlord directly". Not money: nothing reads a claim as a
 | rejection_reason | varchar(255) | null | | Required on reject |
 | disputed_at | timestamp | null | | When the tenant sent a rejected report to an admin (once per claim) |
 | dispute_report_id | bigint unsigned | null | FK → reports, set null | The `reports` row created by the dispute |
+| reminders_sent | tinyint unsigned | NN, = 0 | | How many "still waiting for you" nudges `payment-claims:remind` has sent the landlord (config `rentals.claim_reminder_days`) |
 | created_at | timestamp | null | | |
 | updated_at | timestamp | null | | |
 
@@ -678,7 +686,7 @@ One money movement on a tenancy: online escrow, landlord-recorded, or a correcti
 | updated_at | timestamp | null | | |
 
 Rules:
-- `Held` is escrow. `Paid` is a landlord-recorded offline payment: counts as revenue (`AnalyticsController::EARNED_STATUSES`), can never be released (`Admin\PaymentController::release` refuses anything not `Held`). Nothing writes `Refunded`.
+- `Held` is escrow. `Paid` is a landlord-recorded offline payment: counts as revenue (`AnalyticsController::EARNED_STATUSES`) unless it is a `Deposit` row (`NON_REVENUE_TYPES`; kept deposit is revenue via `deposit_charges` instead), can never be released (`Admin\PaymentController::release` refuses anything not `Held`). Nothing writes `Refunded`.
 - `Voided` rows stay on record. Absence from `RentLedger::SETTLED_STATUSES` and `EARNED_STATUSES` is deliberate (both are whitelists); do not add a guard.
 - Advance rent is ordinary `Monthly` rows with a future `billing_period` (`is_future` in `RentLedger`). Never add an `Advance` member to `payment_type`.
 - A walk-in move-in is written as several rows (deposit, then rent per month) by `MoveInPaymentBreakdown`, all sharing method, `paid_at`, `reference_no` and `recorded_by`. They are one collection event; never render them as separate payments. Older single `Initial` rows are not backfilled.
@@ -851,6 +859,26 @@ Append-only record of consequential admin and landlord actions. Written by `Audi
 | created_at | timestamp | null | index | No `updated_at` (`UPDATED_AT = null`) |
 
 New consequential action: add its key to `ACTION_LABELS` (the filter dropdown reads it) and call `AuditLog::record()` inside that action's transaction.
+
+### property_activities
+A property's Activity Log (Landlord > property > Activity Log tab, and Overview's recent activity). One line per thing that happened on the listing: who did it (as a role), what, when. Written by observers (`PropertyObserver`, `PropertyUnitObserver`, `PropertyMediaObserver`, `UnitMediaObserver`, `PropertyDocumentObserver`, `ReviewObserver`, `ReservationActivityObserver`, `PaymentActivityObserver`) through `PropertyActivity::record()` / `recordMerged()`, inside the acting transaction, so a rollback leaves no line. A failed write is logged and never blocks the action. Separate from `audit_logs` (admin's consequential-actions record) and `occupancy_activities` (Analytics reads it).
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| activity_id | bigint unsigned | NN | PK | |
+| property_id | bigint unsigned | NN | FK → properties, cascade; index `(property_id, created_at)` | The history goes with the property |
+| unit_id | bigint unsigned | null | | No FK on purpose: removing a unit keeps the line that says it was removed (the label is in `summary`) |
+| actor_id | bigint unsigned | null | FK → users, set null | Null for the system and after the account is deleted |
+| actor_role | enum('landlord','tenant','admin','system') | NN | index | Drives the You / Tenants / Admin chips. Landlord = the property's owner; admin wins over tenant for non-owners |
+| actor_name | varchar(255) | NN | | Snapshot. 'System' when nobody acted |
+| action | varchar(60) | NN | | `property.updated`, `unit.removed`, `payment.recorded`, `reservation.moved_in`, `review.posted`, ... |
+| summary | varchar(255) | NN | | Rendered verbatim. Names a tenant by name only, never a phone or e-mail |
+| metadata | json | null | | Changed field names, amounts, `reservation_id` / `conversation_id` for links, `batch` key and counts for roll-ups, `backfilled: true` on rows written by the backfill migration |
+| created_at | timestamp | null | | No `updated_at`. Rows are written once; the only edit is the roll-up of one request's photos, or one payment's months, into the line written seconds before (`recordMerged`, 120 s, same actor) |
+
+- Quiet while a property is a Draft (only its creation, and the submit, are recorded).
+- `unit.status_changed` rows exist only from the backfill (from `occupancy_activities`); live availability changes are told by the reservation lines.
+- `2026_11_05_000300_backfill_property_activities` fills it from properties, units, `audit_logs` listing/unit decisions, `occupancy_activities` and visible reviews. Idempotent; `down()` removes only `backfilled` rows.
 
 ### settings
 Overrides only. A key with no row falls through to `config/rentals.php`; clearing a field in the admin form deletes the row.

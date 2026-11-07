@@ -1,9 +1,7 @@
 <x-guest-layout>
     {{-- Right panel top action --}}
     <x-slot name="rightTopAction">
-        <a href="{{ route('login') }}" class="text-xs text-white/90 font-semibold hover:text-white transition-colors">
-            Back to login
-        </a>
+        <x-back-link href="{{ route('login') }}" to="login" tone="light" />
     </x-slot>
 
     {{-- Right panel headline & feature area --}}
@@ -14,7 +12,7 @@
                 <span class="italic text-[#FF8A66]">invited you.</span>
             </h1>
             <p class="text-white/90 font-medium text-xs leading-relaxed mb-6 drop-shadow">
-                Set a password to see your contract and rent, message your landlord and report payments.
+                Set a password to see your lease and rent, message your landlord and report payments.
             </p>
         </div>
     </x-slot>

@@ -32,7 +32,7 @@
 @elseif($report)
     <form method="POST" action="{{ route('landlord.paymentClaims.confirm', $report) }}"
         data-confirm="Confirm ₱{{ number_format((float) $report->amount, 2) }} from {{ $tenantName }}?"
-        data-confirm-message="{{ $report->payment_method }}, reference {{ $report->reference_no }}, paid {{ $report->paid_on->format('M j') }}. Only confirm after you see it in your account. The unit is then held for {{ $tenantName }} and the contract moves to Contracts."
+        data-confirm-message="{{ $report->payment_method }}, reference {{ $report->reference_no }}, paid {{ $report->paid_on->format('M j') }}. Only confirm after you see it in your account. The unit is then held for {{ $tenantName }} and the lease moves to Leases."
         data-confirm-button="Confirm payment">
         @csrf
         <button type="submit" class="{{ $primary }}">Confirm payment</button>
@@ -49,12 +49,9 @@
 
 {{-- Reject (before an agreement) or Cancel (after), as a quiet text button so the next step stays the obvious one. --}}
 @if(in_array($status, ['Inquiry', 'Under Negotiation'], true))
-    <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST"
-        data-confirm="Reject this request?" data-confirm-type="warning"
-        data-confirm-message="{{ $tenantName }} is told the request was declined." data-confirm-button="Reject" data-confirm-cancel="Keep it">
-        @csrf @method('PATCH')
-        <button type="submit" class="{{ $quiet }}">Reject</button>
-    </form>
+    {{-- Opens the Reject dialog on the page (index.blade.php) so the tenant is told why. --}}
+    <button type="button" class="{{ $quiet }}"
+        @click="openReject('{{ route('landlord.reservations.reject', $reservation) }}', @js($tenantName))">Reject</button>
 @elseif(in_array($status, ['Pending Rental Agreement', 'Rental Agreement Signed'], true) && ($blocked = $reservation->cancellationBlockedReason()))
     {{-- Money held through the online checkout (PayMongo): say why there is no Cancel instead of a button that only fails. --}}
     <p class="basis-full max-w-[280px] text-[11.5px] leading-snug text-[#5B6A8E]">{{ $blocked }}</p>

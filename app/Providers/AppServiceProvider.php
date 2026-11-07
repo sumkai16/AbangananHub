@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Models\Message;
+use App\Models\Conversation;
 use App\Models\Payment;
 use App\Models\Property;
 use App\Models\PropertyUnit;
@@ -79,17 +79,12 @@ class AppServiceProvider extends ServiceProvider
                 $user = auth()->user();
                 $counts = $user ? [
                     'unreadNotificationCount' => $user->notifications()->where('is_read', false)->count(),
-                    'unreadMessageCount' => Message::whereHas('conversation', fn ($q) => $q
-                        ->where('tenant_id', $user->user_id)->orWhere('landlord_id', $user->user_id))
-                        ->where('sender_id', '!=', $user->user_id)
-                        ->where('is_read', false)
-                        ->count(),
-                    // The place this person lives in now, for the "My Unit" link. Null for everyone else.
-                    'myUnitReservationId' => Reservation::where('tenant_id', $user->user_id)
-                        ->where('rental_status', 'Occupied')
-                        ->latest('reservation_id')
-                        ->value('reservation_id'),
-                ] : ['unreadNotificationCount' => 0, 'unreadMessageCount' => 0, 'myUnitReservationId' => null];
+                    'unreadMessageCount' => Conversation::unreadCountFor($user->user_id),
+                    // Whether this person has rented (or is renting) anywhere, for the "My Rentals" link.
+                    'hasRentals' => Reservation::where('tenant_id', $user->user_id)
+                        ->whereIn('rental_status', ['Occupied', 'Completed'])
+                        ->exists(),
+                ] : ['unreadNotificationCount' => 0, 'unreadMessageCount' => 0, 'hasRentals' => false];
                 $attributes->set('nav_counts', $counts);
             }
 

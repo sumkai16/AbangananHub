@@ -114,20 +114,30 @@ class LeaseTemplatesTest extends TestCase
         $this->assertSame($template->name, $r->fresh()->lease_snapshot['template']['name']);
     }
 
-    public function test_house_rules_are_the_listing_rules_plus_the_policys_sections(): void
+    public function test_house_rules_come_from_the_policy_only(): void
     {
+        // The listing has "No smoking" ticked (setupLandlord); it stays on the listing and is not printed.
         ['landlord' => $l, 'reservation' => $r] = $this->setupLandlord();
 
         $snap = LeaseTerms::snapshot($r, template: $this->template($l, ['house_rule_sections' => [
-            ['title' => 'Curfew', 'rules' => ['Quiet after 10 PM', 'No smoking']],
+            ['title' => 'Curfew', 'rules' => ['Quiet after 10 PM']],
             ['title' => 'Visitors', 'rules' => ['Visitors leave by 9 PM']],
         ]]));
 
-        // Flat list (older leases and the API): the listing's first, duplicates removed.
-        $this->assertSame(['No smoking', 'Quiet after 10 PM', 'Visitors leave by 9 PM'], $snap['house_rules']);
-        // Titled sections: the listing's rules come first as "Property rules".
-        $this->assertSame(['Property rules', 'Curfew', 'Visitors'], array_column($snap['house_rule_sections'], 'title'));
-        $this->assertSame(['No smoking'], $snap['house_rule_sections'][0]['rules']);
+        // Flat list (older leases and the API): the policy's rules only.
+        $this->assertSame(['Quiet after 10 PM', 'Visitors leave by 9 PM'], $snap['house_rules']);
+        // Titled sections: the policy's own, no "Property rules" block.
+        $this->assertSame(['Curfew', 'Visitors'], array_column($snap['house_rule_sections'], 'title'));
+    }
+
+    public function test_without_a_policy_the_lease_has_no_house_rules(): void
+    {
+        ['reservation' => $r] = $this->setupLandlord();
+
+        $snap = LeaseTerms::snapshot($r);
+
+        $this->assertSame([], $snap['house_rules']);
+        $this->assertSame([], $snap['house_rule_sections']);
     }
 
     public function test_the_lease_prints_house_rules_under_their_section_titles(): void
@@ -138,26 +148,29 @@ class LeaseTemplatesTest extends TestCase
         $r->fresh()->advanceToPendingAgreement();
 
         $this->actingAs($r->tenant)->get(route('agreements.show', $r))->assertOk()
-            ->assertSeeInOrder(['House rules', 'Property rules', 'No smoking', 'Visitors', 'Visitors leave by 9 PM']);
+            ->assertSeeInOrder(['House rules', 'Visitors', 'Visitors leave by 9 PM'])
+            ->assertDontSee('Property rules');
     }
 
     public function test_a_lease_sent_before_sections_still_prints_its_flat_rules(): void
     {
         ['reservation' => $r] = $this->setupLandlord();
         $r->advanceToPendingAgreement();
+        // An older lease, frozen with the listing's rule in its flat list and no sections.
         $snap = $r->fresh()->lease_snapshot;
         unset($snap['house_rule_sections']);
+        $snap['house_rules'] = ['No smoking'];
         $r->forceFill(['lease_snapshot' => $snap])->save();
 
         $this->actingAs($r->tenant)->get(route('agreements.show', $r))->assertOk()->assertSee('No smoking')->assertDontSee('Property rules');
     }
 
-    public function test_the_editor_shows_the_listed_rules_and_suggested_sections(): void
+    public function test_the_editor_explains_only_its_rules_print_and_shows_the_listing_rules(): void
     {
         ['landlord' => $l, 'prop' => $prop] = $this->setupLandlord();
 
         $this->actingAs($l)->get(route('landlord.lease-templates.create'))->assertOk()
-            ->assertSee("Each property's own listed rules always print first", false)->assertSee('No smoking')->assertSee('Suggested:')->assertSee('Curfew and quiet hours');
+            ->assertSee('The lease prints only the rules you write here')->assertSee('No smoking')->assertSee('Suggested:')->assertSee('Curfew and quiet hours');
     }
 
     public function test_a_hidden_section_is_kept_in_the_policy_but_left_off_the_lease(): void
@@ -177,9 +190,9 @@ class LeaseTemplatesTest extends TestCase
         $this->assertEquals([['title' => 'Visitors', 'rules' => ['Visitors leave by 9 PM']], ['title' => 'Parking', 'rules' => ['Park only in assigned areas'], 'hidden' => true]], $t->house_rule_sections);
 
         $snap = LeaseTerms::snapshot($r, template: $t);
-        $this->assertSame(['Property rules', 'Visitors'], array_column($snap['house_rule_sections'], 'title'));
+        $this->assertSame(['Visitors'], array_column($snap['house_rule_sections'], 'title'));
         $this->assertNotContains('Park only in assigned areas', $snap['house_rules']);
-        $this->assertArrayNotHasKey('hidden', $snap['house_rule_sections'][1]);
+        $this->assertArrayNotHasKey('hidden', $snap['house_rule_sections'][0]);
 
         $this->actingAs($l)->get(route('landlord.lease-templates.edit', $t))->assertOk()->assertSee('Park only in assigned areas');
     }
@@ -205,7 +218,7 @@ class LeaseTemplatesTest extends TestCase
 
         $this->actingAs($r->tenant)->get(route('agreements.show', $r))
             ->assertOk()
-            ->assertSeeInOrder(['Our own wording.', 'House rules', 'No smoking', 'Quiet after 10 PM']);
+            ->assertSeeInOrder(['Our own wording.', 'House rules', 'Quiet after 10 PM']);
     }
 
     public function test_deleting_a_template_sends_the_standard_lease_and_keeps_sent_leases(): void
@@ -462,5 +475,108 @@ class LeaseTemplatesTest extends TestCase
 
         $r->fresh()->forceFill(['rental_status' => 'Rental Agreement Signed', 'agreed_at' => now(), 'move_in_paid_at' => now()])->save();
         $this->actingAs($l)->get(route('conversations.show', $conversation), $ajax)->assertOk()->assertSee('3 of 6');
+    }
+
+    public function test_the_tenants_page_offers_the_lease_policies_modal_and_keeps_the_plain_link(): void
+    {
+        $l = $this->makeLandlord();
+
+        $this->actingAs($l)->get(route('landlord.tenants.index'))
+            ->assertOk()
+            ->assertSee('open-lease-policies', false)
+            ->assertSee('landlord\\/leases\\/panel', false)
+            ->assertSee(route('landlord.leases.index'), false);
+    }
+
+    public function test_the_policies_panel_lists_only_my_properties_units_and_policies(): void
+    {
+        ['landlord' => $l, 'prop' => $prop, 'unit' => $unit] = $this->setupLandlord(['title' => 'My Mambaling Rooms']);
+        $mine = $this->template($l, ['name' => 'My student policy']);
+        $unit->forceFill(['lease_template_id' => $mine->lease_template_id])->save();
+
+        $other = $this->makeLandlord();
+        $this->makeProperty($other, ['title' => 'Someone Elses Place']);
+        $this->template($other, ['name' => 'Their secret policy']);
+
+        $this->actingAs($l)->get(route('landlord.leases.panel'))
+            ->assertOk()
+            ->assertSee('My Mambaling Rooms')
+            ->assertSee('My student policy')
+            ->assertSee('1 uses its own policy')
+            ->assertDontSee('Someone Elses Place')
+            ->assertDontSee('Their secret policy');
+    }
+
+    public function test_the_policies_panel_opens_the_first_property_unless_told_which_to_open(): void
+    {
+        ['landlord' => $l, 'prop' => $first] = $this->setupLandlord(['title' => 'Aaa First']);
+        $second = $this->makeProperty($l, ['title' => 'Zzz Second']);
+
+        $default = $this->actingAs($l)->get(route('landlord.leases.panel'))->getContent();
+        $this->assertSame(2, substr_count($default, '<details data-id'));
+        $this->assertSame(1, preg_match_all('/<details data-id="\d+"\s+open/', $default));
+        $this->assertMatchesRegularExpression('/data-id="'.$first->property_id.'"\s+open/', $default);
+        $this->assertDoesNotMatchRegularExpression('/data-id="'.$second->property_id.'"\s+open/', $default);
+
+        $chosen = $this->actingAs($l)->get(route('landlord.leases.panel', ['open' => [$second->property_id]]))->getContent();
+        $this->assertMatchesRegularExpression('/data-id="'.$second->property_id.'"\s+open/', $chosen);
+        $this->assertDoesNotMatchRegularExpression('/data-id="'.$first->property_id.'"\s+open/', $chosen);
+
+        $none = $this->actingAs($l)->get(route('landlord.leases.panel', ['open' => '']))->getContent();
+        $this->assertDoesNotMatchRegularExpression('/data-id="\d+"\s+open/', $none);
+    }
+
+    public function test_the_policies_panel_shrugs_off_hostile_open_values(): void
+    {
+        ['landlord' => $l] = $this->setupLandlord();
+
+        foreach ([['open' => ["x' OR 1=1 -- "]], ['open' => [['a' => 1]]], ['open' => 'abc'], ['open' => ['99999999999999999999']]] as $query) {
+            $this->actingAs($l)->get(route('landlord.leases.panel', $query))->assertOk();
+        }
+    }
+
+    public function test_the_policies_panel_is_for_landlords_only(): void
+    {
+        $this->actingAs($this->makeTenant())->get(route('landlord.leases.panel'))->assertForbidden();
+    }
+
+    public function test_assigning_from_the_modal_answers_json_and_a_normal_form_still_redirects(): void
+    {
+        ['landlord' => $l, 'prop' => $prop] = $this->setupLandlord();
+        $template = $this->template($l);
+        $payload = ['target' => 'property', 'id' => $prop->property_id, 'lease_template_id' => $template->lease_template_id];
+
+        $this->actingAs($l)->patchJson(route('landlord.lease-templates.assign'), $payload)
+            ->assertOk()
+            ->assertJsonPath('message', 'Policy updated. It applies to agreements you send from now on.');
+        $this->assertSame($template->lease_template_id, $prop->fresh()->lease_template_id);
+
+        $this->actingAs($l)->patch(route('landlord.lease-templates.assign'), ['lease_template_id' => ''] + $payload)->assertRedirect();
+        $this->assertNull($prop->fresh()->lease_template_id);
+    }
+
+    public function test_the_modal_cannot_assign_someone_elses_policy_or_property(): void
+    {
+        ['landlord' => $l, 'prop' => $prop] = $this->setupLandlord();
+        $theirs = $this->template($this->makeLandlord());
+
+        $this->actingAs($l)->patchJson(route('landlord.lease-templates.assign'), ['target' => 'property', 'id' => $prop->property_id, 'lease_template_id' => $theirs->lease_template_id])
+            ->assertStatus(422);
+
+        $stranger = $this->makeLandlord();
+        $this->actingAs($stranger)->patchJson(route('landlord.lease-templates.assign'), ['target' => 'property', 'id' => $prop->property_id, 'lease_template_id' => null])
+            ->assertNotFound();
+    }
+
+    public function test_summary_chips_describe_a_policy_in_a_few_labels(): void
+    {
+        $l = $this->makeLandlord();
+
+        $fixed = $this->template($l, ['late_fee_type' => 'fixed', 'late_fee_value' => 200, 'notice_days' => 7]);
+        $this->assertContains('₱200.00 late fee', $fixed->summaryChips());
+        $this->assertContains('7 days notice', $fixed->summaryChips());
+
+        $none = $this->template($l, ['name' => 'No fee', 'late_fee_type' => 'none']);
+        $this->assertContains('No late fee', $none->summaryChips());
     }
 }

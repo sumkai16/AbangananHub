@@ -21,12 +21,25 @@ class ReportController extends Controller
             $status = 'Pending';
         }
 
-        $query = Report::with(['reporter', 'property', 'reportedUser'])
-            ->when($status !== 'All', fn ($q) => $q->where('report_status', $status));
+        $search = $request->query('search');
 
-        $reports = $query->latest('report_id')->paginate(15)->withQueryString();
+        $searched = Report::query()->when($search, function ($q) use ($search) {
+            $q->where(function ($inner) use ($search) {
+                $inner->where('report_reason', 'like', "%{$search}%")
+                    ->orWhereHas('reporter', fn ($u) => $u->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%"))
+                    ->orWhereHas('property', fn ($p) => $p->where('title', 'like', "%{$search}%"))
+                    ->orWhereHas('reportedUser', fn ($u) => $u->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%"));
+            });
+        });
 
-        $statusTotals = Report::selectRaw('report_status, COUNT(*) as total')->groupBy('report_status')->pluck('total', 'report_status');
+        $reports = (clone $searched)->with(['reporter', 'property', 'reportedUser'])
+            ->when($status !== 'All', fn ($q) => $q->where('report_status', $status))
+            ->latest('report_id')->paginate(15)->withQueryString();
+
+        $statusTotals = (clone $searched)->selectRaw('report_status, COUNT(*) as total')->groupBy('report_status')->pluck('total', 'report_status');
         $counts = [
             'Pending' => $statusTotals['Pending'] ?? 0,
             'Resolved' => $statusTotals['Resolved'] ?? 0,
@@ -37,6 +50,7 @@ class ReportController extends Controller
             'reports' => $reports,
             'status' => $status,
             'counts' => $counts,
+            'search' => $search,
         ]);
     }
 

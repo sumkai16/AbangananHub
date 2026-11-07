@@ -70,7 +70,19 @@
         unsettledPeriods: @js($periods->reject(fn ($p) => $p['is_future'] || $p['status'] === 'paid')
             ->map(fn ($p) => ['period' => $p['period']->toDateString(), 'balance' => round($p['balance'], 2)])
             ->values()),
+        // What every month in the ledger still owes (settled and prepaid ones are 0). A month the ledger has no row for
+        // yet owes the full rent. This is exactly what the server's allocator reads, so the preview cannot drift from it.
+        balances: @js($periods->mapWithKeys(fn ($p) => [$p['period']->toDateString() => round(max(0, $p['balance']), 2)])->all()),
         monthlyRent: @js($summary['monthlyRent']),
+        // Behind by two months or more: one tap fills in the whole balance, oldest month first. The preview below
+        // shows how it spreads and the server spreads it the same way (RentPaymentAllocator).
+        get fullBalance() { return this.round2(this.unsettledPeriods.reduce((sum, p) => sum + Math.max(0, p.balance), 0)); },
+        fillFullBalance() {
+            if (!this.unsettledPeriods.length) return;
+            this.type = 'Monthly';
+            this.period = this.unsettledPeriods[0].period;
+            this.amount = this.fullBalance.toFixed(2);
+        },
         // A bare open (header button) keeps the defaults; a row's Record button passes its period + balance.
         open(detail) {
             if (detail && detail.period) { this.type = 'Monthly'; this.period = detail.period; this.amount = detail.balance; }
@@ -90,15 +102,13 @@
             const amt = parseFloat(this.amount);
             if (isNaN(amt) || amt <= 0) return [];
 
-            const found = this.unsettledPeriods.find(p => p.period === this.period);
-            const startBalance = this.round2(Math.max(0, found ? found.balance : this.monthlyRent));
-
             let remaining = this.round2(amt);
             const rows = [];
             let [y, m] = this.period.split('-').map(Number);
 
             for (let i = 0; i < 60 && remaining > 0; i++) {
-                const due = i === 0 ? startBalance : this.monthlyRent;
+                const key = y + '-' + String(m).padStart(2, '0') + '-01';
+                const due = this.round2(Math.max(0, key in this.balances ? this.balances[key] : this.monthlyRent));
                 const slice = this.round2(Math.min(remaining, due));
                 if (slice > 0) {
                     rows.push({ label: this.monthLabelFor(y, m), amount: slice });
@@ -142,7 +152,7 @@
                 x-transition:leave="transition ease-in duration-200"
                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                 x-transition:leave-end="opacity-0 scale-95 translate-y-4 motion-reduce:scale-100 motion-reduce:translate-y-0"
-                class="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_20px_60px_rgba(6,13,38,0.18)]">
+                class="relative w-full max-w-lg lg:max-w-3xl max-h-[90vh] overflow-y-auto bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_20px_60px_rgba(6,13,38,0.18)]">
 
                 <div class="flex items-start justify-between gap-4 px-6 pt-6 pb-4">
                     <div>
@@ -180,7 +190,9 @@
                         </div>
                     @endif
 
-                    <div class="grid sm:grid-cols-2 gap-4 mb-4">
+                    <div class="lg:grid lg:grid-cols-2 lg:gap-x-8">
+                    <div>
+                    <div class="grid sm:grid-cols-2 lg:grid-cols-1 gap-4 mb-4">
                         <div>
                             <label for="payment_type" class="{{ $modalLabel }}">
                                 What for <span class="text-[#EF4444]">*</span>
@@ -204,6 +216,18 @@
                             @enderror
                         </div>
                     </div>
+
+                    @php $owedMonths = $periods->reject(fn ($p) => $p['is_future'] || $p['status'] === 'paid')->count(); @endphp
+                    @if($owedMonths >= 2)
+                        <div x-show="type === 'Monthly'" x-cloak class="-mt-1 mb-4">
+                            <button type="button" @click="fillFullBalance()"
+                                class="inline-flex min-h-[44px] sm:min-h-[36px] items-center gap-2 rounded-full border border-[#FF8A66]/50 bg-[#FF8A66]/10 px-3.5 text-[12.5px] font-semibold text-[#060D26] hover:bg-[#FF8A66]/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] transition-colors duration-200 cursor-pointer">
+                                Fill full balance
+                                <span class="tabular-nums" x-text="peso(fullBalance)"></span>
+                                <span class="font-normal text-[#5B6A8E]">· {{ $owedMonths }} months</span>
+                            </button>
+                        </div>
+                    @endif
 
                     {{-- Only rent settles a billing month; anything else would
                          inflate a period it doesn't belong to. --}}
@@ -236,7 +260,10 @@
                         </ul>
                     </div>
 
-                    <div class="grid sm:grid-cols-2 gap-4 mb-4">
+                    </div>
+
+                    <div>
+                    <div class="grid sm:grid-cols-2 lg:grid-cols-1 gap-4 mb-4">
                         <div>
                             <label for="modal_payment_method" class="{{ $modalLabel }}">
                                 Method <span class="text-[#EF4444]">*</span>
@@ -281,6 +308,9 @@
                         @error('payment_notes')
                             <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                         @enderror
+                    </div>
+
+                    </div>
                     </div>
 
                     <div class="flex items-start gap-2.5 rounded-xl bg-[#F7F8FC] border border-[#E2E4EC] px-3.5 py-3 mb-5">

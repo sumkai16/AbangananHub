@@ -1,177 +1,134 @@
 @extends('layouts.admin')
 
-@section('page-title', 'Payment Management')
+@section('page-title', 'Payments')
 
 @section('content')
-<div class="max-w-[1600px] mx-auto">
+<div class="admin-compact admin-fill">
 
-    {{-- Page header --}}
-    <x-page-header title="Payment Management" subtitle="Manage escrow payments and releases." />
+    <x-admin.header title="Payments" subtitle="Online money held until move-in, and payments landlords recorded." />
 
-    {{-- Stat summary --}}
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        @php
-            $stats = [
-                'Held' => ['label' => 'Held', 'value' => $counts['Held'], 'sub' => '₱'.number_format($sums['Held'], 2), 'valueColor' => '#B45309', 'iconBg' => 'rgba(251,191,36,0.10)', 'iconColor' => '#B45309'],
-                'Released' => ['label' => 'Released', 'value' => $counts['Released'], 'sub' => '₱'.number_format($sums['Released'], 2), 'valueColor' => '#15803D', 'iconBg' => 'rgba(34,197,94,0.07)', 'iconColor' => '#059669'],
-                'Paid' => ['label' => 'Recorded', 'value' => $counts['Paid'], 'sub' => '₱'.number_format($sums['Paid'], 2).' offline', 'valueColor' => '#060D26', 'iconBg' => '#ECEEF6', 'iconColor' => '#060D26'],
-                'Pending' => ['label' => 'Pending', 'value' => $counts['Pending'], 'sub' => 'processing', 'valueColor' => '#5B6A8E', 'iconBg' => 'rgba(148,163,184,0.12)', 'iconColor' => '#5B6A8E'],
-                'All' => ['label' => 'Total', 'value' => $counts['All'], 'sub' => 'all payments', 'valueColor' => '#060D26', 'iconBg' => '#ECEEF6', 'iconColor' => '#060D26'],
-            ];
-        @endphp
-        @foreach ($stats as $key => $stat)
-            <x-stat-card :label="$stat['label']" :value="$stat['value']" :sub="$stat['sub']" :value-color="$stat['valueColor']" :icon-bg="$stat['iconBg']"
-                :href="route('admin.payments.index', ['status' => $key])"
-                :class="$status === $key ? 'ring-2 ring-[#FF8A66]' : ''">
-                <x-slot:icon>
-                    @switch($key)
-                        @case('Held')
-                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $stat['iconColor'] }}" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                            </svg>
-                            @break
-                        @case('Released')
-                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $stat['iconColor'] }}" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                            </svg>
-                            @break
-                        @case('Paid')
-                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $stat['iconColor'] }}" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 3.75h6M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                            </svg>
-                            @break
-                        @case('Pending')
-                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $stat['iconColor'] }}" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m5-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            @break
-                        @default
-                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $stat['iconColor'] }}" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M9 17V9m4 8V5m4 12v-6" />
-                            </svg>
-                    @endswitch
-                </x-slot:icon>
-            </x-stat-card>
-        @endforeach
-    </div>
+    {{-- A tab already names the status, so the column only shows on All. --}}
+    @php $showStatus = $status === 'All'; @endphp
 
-    {{-- Tabs --}}
-    <div class="flex items-center gap-0.5 border-b border-[#E2E4EC] mb-6 overflow-x-auto">
-        @foreach (['All', 'Held', 'Released', 'Paid', 'Voided', 'Pending', 'Refunded'] as $tab)
-            <a href="{{ route('admin.payments.index', ['status' => $tab]) }}"
-                class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                    {{ $status === $tab ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
-                {{ $tab }}
-                <span class="ml-1 text-[11px] {{ $status === $tab ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $counts[$tab] }}</span>
-            </a>
-        @endforeach
-    </div>
+    @php
+        $statusLabels = ['All' => 'All statuses', 'Held' => 'Held', 'Released' => 'Released', 'Paid' => 'Recorded', 'Pending' => 'Processing', 'Voided' => 'Voided', 'Refunded' => 'Refunded'];
+        $statusOptions = collect($statusLabels)->map(fn ($l, $k) => $k === 'All' ? $l.' ('.$counts['All'].')' : $l.' ('.$counts[$k].')')->all();
+        $sortOptions = ['newest' => 'Newest first', 'oldest' => 'Oldest first', 'amount_desc' => 'Highest amount', 'amount_asc' => 'Lowest amount'];
+        $cellHref = fn (string $st) => route('admin.payments.index', array_filter(['search' => $search, 'sort' => $sort !== 'newest' ? $sort : null, 'status' => $st === $status ? null : $st]));
+    @endphp
+
+    {{-- Pesos only: the tabs below carry the counts. --}}
+    <x-stat-strip class="mb-3" :cells="[
+        ['label' => 'Held', 'value' => '₱'.number_format($sums['Held'], 2), 'note' => 'Waiting for move-in', 'dot' => '#FBBF24', 'href' => $cellHref('Held'), 'active' => $status === 'Held'],
+        ['label' => 'Released', 'value' => '₱'.number_format($sums['Released'], 2), 'note' => 'Sent on to landlords', 'dot' => '#22C55E', 'href' => $cellHref('Released'), 'active' => $status === 'Released'],
+        ['label' => 'Recorded', 'value' => '₱'.number_format($sums['Paid'], 2), 'note' => 'Offline, reported by landlords', 'dot' => '#94A3B8', 'href' => $cellHref('Paid'), 'active' => $status === 'Paid'],
+    ]" />
+
+    {{-- Search + filters, same bar as Reservations --}}
+    <form method="GET" action="{{ route('admin.payments.index') }}" class="mb-3">
+        <div class="flex flex-col lg:flex-row lg:items-center gap-3">
+            <div class="relative flex-1 min-w-[200px]">
+                <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B6A8E]" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
+                </svg>
+                <input type="text" name="search" value="{{ $search }}" placeholder="Search tenant, email, property or landlord…" aria-label="Search"
+                    x-on:input.debounce.400ms="$el.form.requestSubmit()"
+                    class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-white focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all">
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5">
+                <x-styled-select autosubmit name="status" :options="$statusOptions" :selected="$status"
+                    class="h-10 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13.5px] text-[#060D26]" />
+                <x-styled-select autosubmit name="sort" :options="$sortOptions" :selected="$sort"
+                    class="h-10 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13.5px] text-[#060D26]" />
+                @if($search || $sort !== 'newest' || $status !== 'All')
+                    <a href="{{ route('admin.payments.index') }}"
+                        class="h-10 px-4 rounded-xl border border-[#5B6A8E]/25 text-[13.5px] text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 inline-flex items-center gap-1.5">
+                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                        Clear
+                    </a>
+                @endif
+            </div>
+        </div>
+    </form>
 
     @if ($payments->isEmpty())
-        <div class="bg-white border border-[#E2E4EC] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
-            <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] border border-[#E2E4EC] flex items-center justify-center mx-auto mb-4">
-                <svg class="w-7 h-7 text-[#B35A3D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
-                </svg>
-            </div>
-            <p class="text-[15px] font-bold text-[#060D26]">No payments here</p>
-            <p class="text-[13px] text-[#5B6A8E] mt-1">No payments match this tab right now.</p>
-        </div>
+        @php
+            $empty = [
+                'Held' => ['Nothing is being held', 'Online payments wait here until the tenant moves in.'],
+                'Released' => ['No payments released yet', 'A held payment shows here once it is sent on to the landlord.'],
+                'Paid' => ['No recorded payments', 'Payments a landlord records as paid offline show here.'],
+                'Pending' => ['Nothing is processing', 'Payments that are still going through show here.'],
+                'Voided' => ['No voided payments', 'Payments that were cancelled before settling show here.'],
+                'Refunded' => ['No refunds', 'Payments you refund to a tenant show here.'],
+                'All' => ['No payments yet', 'Online and recorded payments show here once tenants start paying.'],
+            ][$status] ?? ['No payments here', null];
+        @endphp
+        <x-card flush fill>
+            <x-empty-state flat fill symbol="wallet" :title="$empty[0]" :note="$empty[1]">
+                @if ($status !== 'All')
+                    <a href="{{ route('admin.payments.index') }}" class="inline-flex h-9 items-center rounded-lg border border-[#E2E4EC] bg-white px-3.5 text-[13px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#F7F8FC]">See all payments</a>
+                @endif
+            </x-empty-state>
+        </x-card>
     @else
-        <x-card flush>
-            <div class="px-6 py-4 border-b border-[#E2E4EC] flex items-center justify-between">
-                <p class="text-[13px] font-semibold text-[#060D26]">
-                    {{ $payments->total() }} {{ Str::plural('payment', $payments->total()) }}
-                </p>
-            </div>
+        <x-card flush fill>
             <div class="overflow-x-auto scrollbar-thin-light">
-                <table class="min-w-full">
+                <table class="w-full min-w-[1040px]">
                     <thead>
                         <tr class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
-                            <th class="px-6 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Tenant</th>
-                            <th class="px-6 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Property / Unit</th>
-                            <th class="px-6 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Amount</th>
-                            <th class="px-6 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Payment Date</th>
-                            <th class="px-6 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Status</th>
-                            <th class="px-6 py-3 text-right text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Action</th>
+                            <x-admin.th>Tenant</x-admin.th>
+                            <x-admin.th class="w-[28%]">Property / Unit</x-admin.th>
+                            <x-admin.th>Landlord</x-admin.th>
+                            <x-admin.th align="right">Amount</x-admin.th>
+                            <x-admin.th>Paid by</x-admin.th>
+                            <x-admin.th>Date</x-admin.th>
+                            @if($showStatus)<x-admin.th>Status</x-admin.th>@endif
+                            <x-admin.th align="right">Action</x-admin.th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#E2E4EC]">
                         @foreach ($payments as $payment)
-                            @php $tenant = $payment->reservation?->tenant; @endphp
-                            <tr class="hover:bg-[#ECEEF6] transition-all duration-200">
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-9 h-9 rounded-full bg-[#060D26] flex items-center justify-center shrink-0">
-                                            <span class="text-white text-[12px] font-bold">
-                                                {{ strtoupper(substr($tenant->first_name ?? '?', 0, 1)) }}{{ strtoupper(substr($tenant->last_name ?? '', 0, 1)) }}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <div class="flex items-center gap-1.5">
-                                                <p class="text-[13.5px] font-semibold text-[#060D26]">
-                                                    {{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}
-                                                </p>
-                                                @if ($tenant?->is_walk_in)
-                                                    <span class="inline-flex items-center h-5 px-2 rounded-full border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] text-[#B45309] text-[10px] font-bold"
-                                                        title="Walk-in tenant — identity not verified by AbangananHub">Walk-in</span>
-                                                @endif
-                                            </div>
-                                            <p class="text-[12px] text-[#5B6A8E]">{{ $tenant?->email ?: '—' }}</p>
-                                        </div>
+                            @php
+                                $tenant = $payment->reservation?->tenant;
+                                $payLandlord = $payment->reservation?->property?->landlord;
+                            @endphp
+                            <tr class="hover:bg-[#F7F8FC] transition-colors duration-200">
+                                <td class="px-4 whitespace-nowrap">
+                                    <div class="flex items-center gap-1.5">
+                                        @if ($payment->reservation)
+                                            <a href="{{ route('admin.reservations.show', $payment->reservation) }}" class="text-[13px] font-semibold text-[#060D26] underline-offset-2 hover:underline">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</a>
+                                        @else
+                                            <p class="text-[13px] font-semibold text-[#060D26]">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</p>
+                                        @endif
+                                        @if ($tenant?->is_walk_in)
+                                            <span class="inline-flex items-center h-5 px-1.5 rounded bg-[#FBBF24]/[0.16] text-[#B45309] text-[11px] font-semibold"
+                                                title="Walk-in tenant — identity not verified by AbangananHub">Walk-in</span>
+                                        @endif
                                     </div>
+                                    <p class="max-w-[240px] truncate text-[12px] leading-4 text-[#5B6A8E]" title="{{ $tenant?->email }}">{{ $tenant?->email ?: '—' }}</p>
                                 </td>
-                                <td class="px-6 py-4">
-                                    <p class="text-[13.5px] text-[#060D26] font-medium">{{ $payment->reservation?->property?->title ?? '—' }}</p>
-                                    <p class="text-[12px] text-[#5B6A8E]">{{ $payment->reservation?->unit?->unit_label ?? '' }}</p>
+                                <td class="max-w-0 px-4">
+                                    <p class="truncate text-[13px] leading-5 text-[#060D26]" title="{{ $payment->reservation?->property?->title }}">{{ $payment->reservation?->property?->title ?? '—' }}</p>
+                                    <p class="truncate text-[12px] leading-4 text-[#5B6A8E]">{{ $payment->reservation?->unit?->unit_label ?? '' }}</p>
                                 </td>
-                                <td class="px-6 py-4">
-                                    <p class="text-[13.5px] font-bold text-[#060D26]">₱{{ number_format($payment->amount, 2) }}</p>
-                                    <p class="text-[12px] text-[#5B6A8E]">{{ $payment->payment_type }}</p>
+                                <td class="px-4 text-[13px] whitespace-nowrap text-[#060D26]">{{ $payLandlord ? trim($payLandlord->first_name.' '.$payLandlord->last_name) : '—' }}</td>
+                                <td class="px-4 text-right">
+                                    <p class="text-[13px] font-semibold tabular-nums whitespace-nowrap text-[#060D26]">₱{{ number_format($payment->amount, 2) }}</p>
+                                    <p class="text-[12px] leading-4 text-[#5B6A8E]">{{ $payment->payment_type }}</p>
                                 </td>
-                                <td class="px-6 py-4 text-[13px] text-[#5B6A8E]">
-                                    {{ ($payment->paid_at ?? $payment->created_at)?->format('M d, Y') ?? '—' }}
+                                <td class="px-4 whitespace-nowrap">
+                                    <p class="text-[13px] text-[#060D26]">{{ $payment->payment_method ?: '—' }}</p>
+                                    @if ($payment->reference_no)<p class="max-w-[10rem] truncate text-[12px] leading-4 text-[#5B6A8E]" title="{{ $payment->reference_no }}">{{ $payment->reference_no }}</p>@endif
                                 </td>
-                                <td class="px-6 py-4">
-                                    @if ($payment->status === 'Held')
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FBBF24]/15 text-[11.5px] font-bold text-[#B45309]">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-[#FBBF24]"></span>
-                                            Held
-                                        </span>
-                                    @elseif ($payment->status === 'Released')
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#22C55E]/15 text-[11.5px] font-bold text-[#15803D]">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-[#22C55E]"></span>
-                                            Released
-                                        </span>
-                                    @elseif ($payment->status === 'Paid')
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#ECEEF6] text-[11.5px] font-bold text-[#060D26]">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66]"></span>
-                                            Recorded
-                                        </span>
-                                    @elseif ($payment->status === 'Voided')
-                                        {{-- Neutral, not red — this is a resolved correction, not an alert. --}}
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E2E4EC] text-[11.5px] font-bold text-[#5B6A8E]">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-[#94A3B8]"></span>
-                                            Voided
-                                        </span>
-                                    @elseif ($payment->status === 'Pending')
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E2E4EC] text-[11.5px] font-bold text-[#5B6A8E]">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-[#94A3B8]"></span>
-                                            Processing
-                                        </span>
-                                    @elseif ($payment->status === 'Refunded')
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EF4444]/10 text-[11.5px] font-bold text-[#DC2626]">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-[#EF4444]"></span>
-                                            Refunded
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E2E4EC] text-[11.5px] font-bold text-[#5B6A8E]">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-[#94A3B8]"></span>
-                                            {{ $payment->status }}
-                                        </span>
-                                    @endif
+                                <td class="px-4 text-[13px] whitespace-nowrap text-[#5B6A8E]">
+                                    {{ ($payment->paid_at ?? $payment->created_at)?->format('M j, Y') ?? '—' }}
                                 </td>
-                                <td class="px-6 py-4 text-right">
+                                @if($showStatus)
+                                    <td class="px-4">
+                                        <x-admin.status :status="$payment->status" :label="['Paid' => 'Recorded', 'Pending' => 'Processing'][$payment->status] ?? $payment->status" />
+                                    </td>
+                                @endif
+                                <td class="px-4 text-right">
                                     @if ($payment->status === 'Held')
                                         @php
                                             $group = $heldGroups[$payment->payment_id] ?? collect([$payment]);
@@ -185,10 +142,10 @@
                                                 'rows' => $quote['rows'],
                                             ];
                                         @endphp
-                                        <div class="flex flex-wrap items-center justify-end gap-2">
+                                        <div class="flex items-center justify-end gap-1">
                                         @if ($payment->recorded_by === null && $quote['paymongo_payment_id'])
                                             <button type="button" @click="$dispatch('open-refund-payment', {{ \Illuminate\Support\Js::from($refundDetail) }})"
-                                                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-[#EF4444]/30 text-[12px] font-semibold text-[#DC2626] hover:bg-[#EF4444]/[0.06] transition-all duration-200 cursor-pointer">
+                                                class="inline-flex h-8 items-center rounded-lg px-2 text-[12.5px] font-semibold text-[#DC2626] hover:bg-[#EF4444]/[0.06] transition-colors duration-200 cursor-pointer">
                                                 Refund tenant
                                             </button>
                                         @endif
@@ -199,10 +156,7 @@
                                             data-confirm-button="Release payment">
                                             @csrf
                                             <button type="submit"
-                                                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#FF8A66] text-[12px] font-semibold text-[#060D26] hover:bg-[#E96F4F] shadow-sm transition-all duration-200 cursor-pointer">
-                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                                                </svg>
+                                                class="inline-flex h-8 items-center rounded-lg border border-[#E2E4EC] bg-white px-3 text-[12.5px] font-semibold text-[#060D26] hover:border-[#FF8A66] hover:bg-[#FF8A66]/[0.08] transition-colors duration-200 cursor-pointer">
                                                 Release
                                             </button>
                                         </form>
@@ -238,7 +192,7 @@
                                              be able to tell apart from platform-settled money. --}}
                                         <span class="text-[12px] text-[#5B6A8E]">Recorded by landlord</span>
                                     @else
-                                        <span class="text-[12px] text-[#94A3B8]">—</span>
+                                        <span class="text-[12px] text-[#5B6A8E]">—</span>
                                     @endif
                                 </td>
                             </tr>
@@ -246,11 +200,13 @@
                     </tbody>
                 </table>
             </div>
-            @if ($payments->hasPages())
-                <div class="px-6 py-4 border-t border-[#E2E4EC]">
-                    {{ $payments->links() }}
-                </div>
-            @endif
+            <div class="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-[#E2E4EC] bg-[#F7F8FC] px-4 py-2.5">
+                @if ($payments->hasPages())
+                    <div class="w-full">{{ $payments->links() }}</div>
+                @else
+                    <p class="text-[13px] text-[#5B6A8E]">Showing <span class="font-semibold tabular-nums text-[#060D26]">{{ $payments->firstItem() }}–{{ $payments->lastItem() }}</span> of <span class="font-semibold tabular-nums text-[#060D26]">{{ number_format($payments->total()) }}</span></p>
+                @endif
+            </div>
         </x-card>
     @endif
 
