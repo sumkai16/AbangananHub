@@ -512,6 +512,9 @@ A link marked `data-page-panel` (plus `data-page-panel-back="Payments"`, the lab
 - **To use it elsewhere**, add the two attributes to the link. Any landlord page works, because the layout already knows how to draw without its chrome. Tenant and admin layouts are not wired.
 - Mockups: Claude artifact "Ledger panel mockups". Plan and manual test list: `plans/ledger-panel.md`.
 
+## 6v. Tabs of one page switch in place (Nov 7 2026)
+When two URLs are one page to the user (Payments: Rent | Payouts, the sidebar item lit on both), the tab links carry `data-page-swap` and switching swaps only `<main id="main">`: sidebar, address bar, title and Back all behave. The clicked content fades to 60% while it loads (`aria-busy`), focus lands on the new current tab, and a modified click or no JavaScript still opens the full page. Use it only for tabs whose pages share the landlord shell and carry no inline script (the swap falls back to a normal load if they do). See `resources/js/page-swap.js`. A detail that belongs to a list opens as a panel (§6u); a sibling view of the same page swaps (this section).
+
 ## 7. Components
 - Border radius default: `rounded-2xl` (standard), `rounded-3xl` (hero sections only)
 - Shadow style: `shadow-[0_1px_3px_rgba(6,13,38,0.06)]` on cards — a hairline lift, not a drop shadow. `shadow-lg` is reserved for floating UI (dropdowns, modals, tooltips) that must read as detached from the page. Property cards use the image-is-the-card pattern (no shadow wrapper).

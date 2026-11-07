@@ -2,6 +2,15 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 7 2026 — Payments and Payouts tabs switch in place, no page load (branch `axci`)
+**Automated tests pass and the swap was exercised on two admin pages in Chrome; the landlord Payments and Payouts tabs themselves are not yet clicked through by me** (the Chrome session is signed in as admin). Run `npm run build` after pulling. No migration. Plan and manual test list: `plans/payments-tabs-swap.md`.
+- **What changed:** Rent and Payouts are two tabs of one Payments page. Clicking the other tab now fetches it in the background and swaps only the work area (`<main id="main">`: header, tabs, content). The sidebar stays, the address bar and title follow, and Back and Forward walk between the tabs.
+- **How:** `resources/js/page-swap.js` handles any link marked `data-page-swap` (set in `landlord/payments/partials/_tabs`). It falls back to a normal load if the request fails, the server redirects, or the new content has inline JavaScript. A `<script src>` the page has not loaded yet is loaded first; `<script type="application/json">` data blocks are kept. It fires `live:swapped` like `live-filter.js`.
+- **One supporting fix:** `public/js/payments-calendar.js` registered itself on Alpine's start-up event only, so loading it late (Payouts, then Rent) would have left the calendar dead. It now registers at once if Alpine is already running.
+- **Not changed:** Reservations and Viewings also have tabs, but Viewings carries inline scripts, so it needs its own pass first. The Payouts page has no detail links, so it gets no panel.
+- **Tests:** `tests/Feature/PaymentsTabsSwapTest.php` (3).
+- **Found, not changed:** `live-filter.js` falls back to a full page load whenever the new content has any `<script>` that is not an already-loaded `src`. That includes the calendar's JSON data block, so on Payments in calendar view the search and filters still reload the page. Allowing `type="application/json"` blocks (as `page-swap.js` does) would fix it.
+
 ## Nov 7 2026 — Open ledger opens over the list: bottom sheet on phones, full work area beside the sidebar on desktop (branch `axci`)
 **Automated tests pass; not yet run in a browser by me** (the Chrome session was signed in as admin, and I did not swap accounts). Run `npm run build` after pulling. No migration. Plan and manual test list: `plans/ledger-panel.md`. Design: DESIGN.md §6u.
 - **What changed for the landlord:** Open ledger (Payments card and table, the rent calendar, the dashboard action list, the lease modal on Tenants) no longer loads a new page. The ledger opens over the list, which keeps its scroll and filters. The address bar still shows `/landlord/payments/ledger/{id}`, so refresh and copy-link open the full page as before.
