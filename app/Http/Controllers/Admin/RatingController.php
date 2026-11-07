@@ -105,16 +105,20 @@ class RatingController extends Controller
      */
     private function landlordBoard(string $direction)
     {
-        return Review::where('is_hidden', false)
+        $rows = Review::where('is_hidden', false)
             ->selectRaw('landlord_id, AVG(rating) as avg, COUNT(*) as c')
             ->groupBy('landlord_id')
             ->havingRaw('COUNT(*) >= ?', [self::MIN_RATINGS_FOR_RANK])
             ->orderBy('avg', $direction)
             ->orderBy('c', 'desc')
             ->limit(5)
-            ->get()
+            ->get();
+
+        $users = User::whereIn('user_id', $rows->pluck('landlord_id'))->get()->keyBy('user_id');
+
+        return $rows
             ->map(fn ($row) => [
-                'user'  => User::find($row->landlord_id),
+                'user'  => $users->get($row->landlord_id),
                 'avg'   => round((float) $row->avg, 1),
                 'count' => (int) $row->c,
             ])
@@ -124,15 +128,19 @@ class RatingController extends Controller
 
     private function tenantBoard(string $direction)
     {
-        return TenantRating::selectRaw('tenant_id, AVG(rating) as avg, COUNT(*) as c')
+        $rows = TenantRating::selectRaw('tenant_id, AVG(rating) as avg, COUNT(*) as c')
             ->groupBy('tenant_id')
             ->havingRaw('COUNT(*) >= ?', [1])
             ->orderBy('avg', $direction)
             ->orderBy('c', 'desc')
             ->limit(5)
-            ->get()
+            ->get();
+
+        $users = User::whereIn('user_id', $rows->pluck('tenant_id'))->get()->keyBy('user_id');
+
+        return $rows
             ->map(fn ($row) => [
-                'user'  => User::find($row->tenant_id),
+                'user'  => $users->get($row->tenant_id),
                 'avg'   => round((float) $row->avg, 1),
                 'count' => (int) $row->c,
             ])
@@ -142,16 +150,20 @@ class RatingController extends Controller
 
     private function propertyBoard(string $direction)
     {
-        return Review::where('is_hidden', false)
+        $rows = Review::where('is_hidden', false)
             ->selectRaw('property_id, AVG(rating) as avg, COUNT(*) as c')
             ->groupBy('property_id')
             ->havingRaw('COUNT(*) >= ?', [self::MIN_RATINGS_FOR_RANK])
             ->orderBy('avg', $direction)
             ->orderBy('c', 'desc')
             ->limit(5)
-            ->get()
+            ->get();
+
+        $properties = Property::whereIn('property_id', $rows->pluck('property_id'))->get()->keyBy('property_id');
+
+        return $rows
             ->map(fn ($row) => [
-                'property' => Property::find($row->property_id),
+                'property' => $properties->get($row->property_id),
                 'avg'      => round((float) $row->avg, 1),
                 'count'    => (int) $row->c,
             ])
@@ -166,19 +178,28 @@ class RatingController extends Controller
      */
     private function trend(): array
     {
-        return collect(range(5, 0))->map(function ($monthsAgo) {
+        $from = now()->startOfMonth()->subMonths(5);
+
+        // One grouped query per table for all six months, instead of several queries per month.
+        $monthly = fn ($query) => $query->where('created_at', '>=', $from)
+            ->groupByRaw("DATE_FORMAT(created_at, '%Y-%m')")
+            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as k, COUNT(*) as c, AVG(rating) as a")
+            ->get()
+            ->keyBy('k');
+
+        $reviews = $monthly(Review::where('is_hidden', false));
+        $ratings = $monthly(TenantRating::query());
+
+        return collect(range(5, 0))->map(function ($monthsAgo) use ($reviews, $ratings) {
             $start = now()->startOfMonth()->subMonths($monthsAgo);
-            $end = (clone $start)->endOfMonth();
+            $key = $start->format('Y-m');
 
-            $r = Review::where('is_hidden', false)->whereBetween('created_at', [$start, $end]);
-            $t = TenantRating::whereBetween('created_at', [$start, $end]);
-
-            $rc = (clone $r)->count();
-            $tc = (clone $t)->count();
+            $rc = (int) ($reviews[$key]->c ?? 0);
+            $tc = (int) ($ratings[$key]->c ?? 0);
             $total = $rc + $tc;
 
             $avg = $total > 0
-                ? round((((float) (clone $r)->avg('rating') * $rc) + ((float) (clone $t)->avg('rating') * $tc)) / $total, 2)
+                ? round(((((float) ($reviews[$key]->a ?? 0)) * $rc) + (((float) ($ratings[$key]->a ?? 0)) * $tc)) / $total, 2)
                 : null;
 
             return ['label' => $start->format('M'), 'value' => $avg];

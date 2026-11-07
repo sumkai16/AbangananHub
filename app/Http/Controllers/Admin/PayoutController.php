@@ -29,12 +29,27 @@ class PayoutController extends Controller
         // Money only goes out by itself when the switch is on and PayMongo is set up. Otherwise an admin pays by hand.
         $byHand = ! $automatic || ! empty($configMissing);
 
-        $pending = Payment::with(['reservation.tenant', 'reservation.property.landlord.payoutAccount'])
+        $pendingPayments = Payment::with(['reservation.tenant', 'reservation.property.landlord.payoutAccount'])
             ->pendingPayout()
+            ->get();
+        $toApproveAccounts = UserPayoutAccount::with('user')
+            ->whereNull('payout_approved_at')
+            ->whereNotNull('gcash_number')
+            ->whereNotNull('gcash_account_name')
+            ->latest('updated_at')
             ->get()
+            ->filter(fn (UserPayoutAccount $account) => $account->user !== null);
+
+        // One query for every approved-ID name the page needs, instead of one per landlord.
+        $idNames = LandlordPayouts::approvedIdNames(
+            $pendingPayments->toBase()->map(fn (Payment $p) => $p->reservation?->property?->landlord_id)->filter()
+                ->merge($toApproveAccounts->toBase()->pluck('user_id'))
+        );
+
+        $pending = $pendingPayments
             ->groupBy(fn (Payment $payment) => $payment->reservation?->property?->landlord_id)
             ->filter(fn ($rows, $landlordId) => $landlordId !== null)
-            ->map(function ($rows, $landlordId) {
+            ->map(function ($rows, $landlordId) use ($idNames) {
                 $landlord = $rows->first()->reservation->property->landlord;
                 $kind = LandlordPayouts::blockedKind($landlord);
 
@@ -47,8 +62,8 @@ class PayoutController extends Controller
                     // The same thing as a key (null = nothing in the way), for grouping and styling.
                     'kind' => $kind,
                     // Only a GCash account waiting for approval needs the name check.
-                    'matches' => $kind === 'not_approved' ? LandlordPayouts::nameMatchesIdentity($landlord) : null,
-                    'idNames' => $kind === 'not_approved' ? LandlordPayouts::identityNames($landlord) : [],
+                    'matches' => $kind === 'not_approved' ? LandlordPayouts::nameMatchesIdentity($landlord, null, $idNames) : null,
+                    'idNames' => $kind === 'not_approved' ? LandlordPayouts::identityNames($landlord, $idNames) : [],
                 ];
             })
             ->sortByDesc('total')
@@ -61,18 +76,12 @@ class PayoutController extends Controller
             ->get();
 
         // GCash accounts nobody has approved yet, newest first, each with a check of the name against the landlord's ID.
-        $toApprove = UserPayoutAccount::with('user')
-            ->whereNull('payout_approved_at')
-            ->whereNotNull('gcash_number')
-            ->whereNotNull('gcash_account_name')
-            ->latest('updated_at')
-            ->get()
-            ->filter(fn (UserPayoutAccount $account) => $account->user !== null)
+        $toApprove = $toApproveAccounts
             ->map(fn (UserPayoutAccount $account) => [
                 'account' => $account,
                 'landlord' => $account->user,
-                'matches' => LandlordPayouts::nameMatchesIdentity($account->user),
-                'idNames' => LandlordPayouts::identityNames($account->user),
+                'matches' => LandlordPayouts::nameMatchesIdentity($account->user, $account->gcash_account_name, $idNames),
+                'idNames' => LandlordPayouts::identityNames($account->user, $idNames),
             ]);
 
         // Failed payouts nobody has dealt with: the money is owed again and the landlord is held until an admin retries.

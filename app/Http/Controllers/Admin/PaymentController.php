@@ -56,14 +56,20 @@ class PaymentController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        $counts = ['All' => $base()->count()];
+        // Every count and sum on the page from one grouped query (it follows the search, like the list).
+        $byStatus = $base()->groupBy('status')
+            ->selectRaw('status, COUNT(*) as c, SUM(amount) as total')
+            ->get()
+            ->keyBy('status');
+
+        $counts = ['All' => (int) $byStatus->sum('c')];
         foreach (['Held', 'Released', 'Paid', 'Voided', 'Pending', 'Refunded'] as $st) {
-            $counts[$st] = $base()->where('status', $st)->count();
+            $counts[$st] = (int) ($byStatus[$st]->c ?? 0);
         }
 
         $sums = [];
         foreach (['Held', 'Released', 'Paid'] as $st) {
-            $sums[$st] = $base()->where('status', $st)->sum('amount');
+            $sums[$st] = $byStatus[$st]->total ?? 0;
         }
 
         return view('admin.payments.index', [
