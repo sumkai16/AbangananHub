@@ -359,6 +359,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/listings/approval', [ListingController::class, 'approval'])->name('listings.approval');
         Route::post('/listings/{property_id}/approve', [ListingController::class, 'approve'])->name('listings.approve');
         Route::post('/listings/{property_id}/reject', [ListingController::class, 'reject'])->name('listings.reject');
+        Route::post('/listings/{property_id}/suspend', [ListingController::class, 'suspend'])->name('listings.suspend');
         Route::post('/listings/{property_id}/unsuspend', [ListingController::class, 'unsuspend'])->name('listings.unsuspend');
 
         Route::get('/verifications', [AdminVerificationController::class, 'index'])->name('verifications.index');

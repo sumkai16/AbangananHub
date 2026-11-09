@@ -171,6 +171,42 @@ class ListingController extends Controller
     }
 
     /**
+     * Suspend a listing straight from the admin page (no report needed).
+     * Same state as a report's "delist property" action: publication_status
+     * becomes Suspended, verification_status is left alone.
+     */
+    public function suspend(Request $request, $property_id)
+    {
+        $reason = $request->validate(['reason' => 'required|string|min:5|max:500'])['reason'];
+
+        $property = DB::transaction(function () use ($property_id, $reason) {
+            $property = Property::where('property_id', $property_id)->lockForUpdate()->firstOrFail();
+            abort_if($property->publication_status === 'Suspended', 409, 'This listing is already suspended.');
+            $property->update(['publication_status' => 'Suspended']);
+
+            AuditLog::record(
+                'listing.suspend',
+                "Suspended listing '{$property->title}'.",
+                $property,
+                null,
+                ['landlord_id' => $property->landlord_id, 'reason' => $reason],
+            );
+
+            return $property;
+        });
+
+        Notification::notify(
+            $property->landlord_id,
+            'listing',
+            'Listing suspended',
+            "Your listing '{$property->title}' was suspended and is hidden from tenants: {$reason}",
+            route('landlord.properties.index'),
+        );
+
+        return redirect()->back()->with('error', "The listing '{$property->title}' has been suspended.");
+    }
+
+    /**
      * Lift a moderation suspension (set via a report's "delist property"
      * action). The only path back to Published from Suspended — a landlord
      * cannot self-clear this via publish/unpublish.
