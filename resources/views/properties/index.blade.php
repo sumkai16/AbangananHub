@@ -748,7 +748,9 @@
                             </li>
                         @endforeach
                     </ul>
+                    {{-- Guests get the sign-up modal (the href stays as the no-JS fallback). --}}
                     <a href="{{ auth()->check() ? route('landlord.verification.create') : route('register') }}"
+                        @guest onclick="openAuthModal('register'); return false;" @endguest
                         class="group relative isolate mt-9 w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-9 py-4 rounded-2xl bg-[#FF8A66] text-[#060D26] text-[17px] font-extrabold font-jakarta shadow-[0_14px_32px_rgba(255,138,102,0.55)] transition-all duration-300 hover:bg-[#E96F4F] hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(255,138,102,0.65)] motion-reduce:hover:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#060D26] focus-visible:ring-offset-2 focus-visible:ring-offset-[#ECEEF6]">
                         {{-- Slow pulsing halo so the button reads as the primary action of the section. --}}
                         <span class="absolute inset-0 -z-10 rounded-2xl bg-[#FF8A66] motion-safe:animate-[owner-cta-pulse_2.4s_ease-out_infinite]" aria-hidden="true"></span>
