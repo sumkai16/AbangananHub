@@ -815,6 +815,8 @@
         </section>
     @endif
 
+    <x-platform-rating />
+
     @push('scripts')
         @vite(['resources/js/maps/browse-map.js', 'resources/js/browse-live.js'])
         @include('properties.partials.favorite-toggle-script')

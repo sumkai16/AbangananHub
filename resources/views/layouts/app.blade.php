@@ -566,6 +566,7 @@
                         <li><a href="{{ route('privacy') }}" class="block py-2 text-white/75 hover:text-white transition-colors">Privacy Policy</a></li>
                         <li><a href="{{ route('terms') }}" class="block py-2 text-white/75 hover:text-white transition-colors">Terms of Service</a></li>
                         <li><a href="#" class="block py-2 text-white/75 hover:text-white transition-colors">Help Center</a></li>
+                        <li><a href="{{ route('home') }}#rate-us" class="block py-2 text-white/75 hover:text-white transition-colors">Rate AbangananHub</a></li>
                     </ul>
                 </div>
 

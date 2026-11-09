@@ -66,6 +66,7 @@ Route::get('/areas', [PropertyController::class, 'areas'])->name('properties.are
 Route::post('/search/interpret', [AiSearchController::class, 'interpret'])->middleware('throttle:60,1')->name('search.interpret');
 Route::post('/search/results', [AiSearchController::class, 'results'])->middleware('throttle:60,1')->name('search.results');
 Route::get('/about', fn () => view('about'))->name('about');
+Route::post('/platform-rating', [App\Http\Controllers\PlatformRatingController::class, 'store'])->middleware('auth')->name('platform-rating.store');
 Route::view('/privacy', 'legal.privacy')->name('privacy');
 Route::view('/terms', 'legal.terms')->name('terms');
 

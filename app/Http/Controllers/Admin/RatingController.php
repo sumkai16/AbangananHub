@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\PlatformRating;
 use App\Models\Property;
 use App\Models\Review;
 use App\Models\TenantRating;
@@ -35,14 +36,15 @@ class RatingController extends Controller
         $tenantAvg = (float) TenantRating::avg('rating');
         $tenantCount = TenantRating::count();
 
-        $totalCount = $reviewCount + $tenantCount;
-        $platformAvg = $totalCount > 0
-            ? round((($reviewAvg * $reviewCount) + ($tenantAvg * $tenantCount)) / $totalCount, 2)
-            : null;
+        // "Platform average" is how users rate AbangananHub itself (landing-page form), not a blend of the
+        // property and tenant ratings, which already have their own cards below.
+        $feedbackCount = PlatformRating::count();
 
         return view('admin.ratings.index', [
-            'platformAvg'   => $platformAvg,
-            'totalCount'    => $totalCount,
+            'platformFeedback' => PlatformRating::with('user')->latest()->limit(8)->get(),
+            'platformAvg'   => $feedbackCount > 0 ? round((float) PlatformRating::avg('rating'), 2) : null,
+            'totalCount'    => $feedbackCount,
+            'feedbackDist'  => $this->distribution(PlatformRating::query()),
             'relationships' => [
                 [
                     'key'   => 'tenant_property',
