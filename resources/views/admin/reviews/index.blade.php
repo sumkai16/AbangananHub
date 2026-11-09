@@ -34,7 +34,7 @@
 
     <x-stat-strip :cells="$summary" class="mb-4" />
 
-    <form method="GET" action="{{ route('admin.reviews.index') }}" class="mb-4">
+    <form data-live method="GET" action="{{ route('admin.reviews.index') }}" class="mb-4">
         <div class="flex flex-col lg:flex-row lg:items-center gap-3">
             <div class="relative flex-1 min-w-[200px]">
                 <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B6A8E]" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" /></svg>

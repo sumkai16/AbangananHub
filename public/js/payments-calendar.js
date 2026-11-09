@@ -16,7 +16,10 @@
 // empty (zero due, no dots) from plain date arithmetic, so nothing is invented and the arrows have no edge to hit
 // (apart from the server's own span, data.minYear to data.maxYear).
 // Class names the script hands back (status dots, chips) come in through the config, because Tailwind only scans views.
-document.addEventListener('alpine:init', () => {
+// Registers at once when Alpine is already running (a Payments tab swap loaded this file late), otherwise when it starts.
+(function (register) {
+    if (window.Alpine) register(); else document.addEventListener('alpine:init', register);
+})(() => {
     Alpine.data('paymentsCalendar', (cfg = {}) => {
         // Kept in the closure, not on the component: Alpine would wrap every entry in a reactive proxy.
         let data = { today: '', level: 'month', year: new Date().getFullYear(), month: '', years: [], months: {}, days: {}, people: {} };

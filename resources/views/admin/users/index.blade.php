@@ -34,7 +34,7 @@
 
     {{-- Search, plus the account state as tabs --}}
     <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <form method="GET" action="{{ route('admin.users.index') }}" class="flex flex-1 flex-col gap-3 sm:flex-row lg:max-w-xl">
+        <form data-live method="GET" action="{{ route('admin.users.index') }}" class="flex flex-1 flex-col gap-3 sm:flex-row lg:max-w-xl">
             @if($role !== 'All')<input type="hidden" name="role" value="{{ $role }}">@endif
             @if($status !== 'all')<input type="hidden" name="status" value="{{ $status }}">@endif
             <div class="relative flex-1">
@@ -169,7 +169,8 @@
 @push('scripts')
     @vite('resources/js/charts.js')
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        // Draws on load and again after live search swaps the page content (resources/js/live-filter.js).
+        function drawSignupChart() {
             const el = document.getElementById('signupChart');
             if (! el || typeof Chart === 'undefined') return;
             const dark = document.documentElement.classList.contains('dark');
@@ -180,6 +181,7 @@
                     datasets: [{ data: @json($signupData), backgroundColor: '#FF8A66', borderRadius: 3, maxBarThickness: 14 }],
                 },
                 options: {
+                    animation: false,
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false }, tooltip: { backgroundColor: '#060D26', padding: 10, cornerRadius: 8 } },
@@ -189,6 +191,8 @@
                     },
                 },
             });
-        });
+        }
+        document.addEventListener('DOMContentLoaded', drawSignupChart);
+        document.addEventListener('live:swapped', drawSignupChart);
     </script>
 @endpush

@@ -73,7 +73,7 @@
     @endif
 
     {{-- Search + filters + view toggle --}}
-    <form method="GET" action="{{ route('admin.catalogue.units.index') }}" class="mb-6">
+    <form data-live method="GET" action="{{ route('admin.catalogue.units.index') }}" class="mb-6">
         <input type="hidden" name="availability_status" value="{{ $availability }}">
         @if($needs)<input type="hidden" name="needs" value="approval">@endif
         <div class="flex flex-col gap-3 lg:flex-row lg:items-center">

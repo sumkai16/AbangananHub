@@ -20,7 +20,7 @@
 
     {{-- Search & Filter Bar --}}
     <x-card class="mb-8">
-    <form method="GET" action="{{ route('favorites.index') }}" class="flex flex-col sm:flex-row gap-3">
+    <form data-live method="GET" action="{{ route('favorites.index') }}" class="flex flex-col sm:flex-row gap-3">
         <div class="relative flex-1">
             <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8] pointer-events-none"
                 fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

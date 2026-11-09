@@ -208,7 +208,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/landlord/{user}/profile/properties', [App\Http\Controllers\Landlord\ProfileController::class, 'properties'])->name('landlord.profile.properties');
 
     // Landlord-specific prefix routes
-    Route::middleware(['landlord', 'property.scope'])->prefix('landlord')->name('landlord.')->group(function () {
+    Route::middleware(['landlord', 'property.scope', 'embeddable'])->prefix('landlord')->name('landlord.')->group(function () {
         // The sidebar's Property dropdown (see LandlordPropertyScope).
         Route::post('/property-scope', [\App\Http\Controllers\Landlord\PropertyScopeController::class, 'update'])->name('property-scope.update');
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

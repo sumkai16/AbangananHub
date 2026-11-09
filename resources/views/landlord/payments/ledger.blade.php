@@ -86,6 +86,8 @@
 
         {{-- Header, bare on the page (DESIGN §6b). The tenant is the title; rent terms live in the statement below. --}}
         <header class="space-y-4 pb-2 sm:pb-3">
+            {{-- The page panel has its own Back bar, so the trail is only for the full page. --}}
+            @unless(\App\Http\Middleware\EmbeddedPage::active())
             <nav aria-label="Breadcrumb" class="flex items-center gap-1.5 text-[13px] text-[#5B6A8E]">
                 <a href="{{ route('landlord.payments.index') }}" class="hover:text-[#060D26] transition-colors duration-200">Payments</a>
                 <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -93,6 +95,7 @@
                 </svg>
                 <span class="text-[#060D26] font-medium" aria-current="page">Rent ledger</span>
             </nav>
+            @endunless
 
             {{-- Identity only: the actions live in the Balance tile, next to the number they act on. Kept to two quiet
                  lines: the name, then where they live. "Occupied" is the normal state here, so the status pill only

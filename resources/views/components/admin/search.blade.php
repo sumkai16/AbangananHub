@@ -1,6 +1,6 @@
 @props(['action', 'value' => null, 'placeholder' => 'Search', 'clear' => null])
 {{-- The search box on admin lists. It sits in the title row's actions, so a list does not spend a whole band on it. Hidden inputs go in the slot. --}}
-<form method="GET" action="{{ $action }}" role="search" {{ $attributes->class('flex items-center gap-2') }}>
+<form data-live method="GET" action="{{ $action }}" role="search" {{ $attributes->class('flex items-center gap-2') }}>
     {{ $slot }}
     <div class="relative w-full sm:w-80">
         <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-[#5B6A8E]" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" /></svg>

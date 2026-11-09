@@ -62,6 +62,10 @@
                         $shownYears = collect([$yearGroups->keys()->last()]);
                     }
                     $hiddenMonthCount = $yearGroups->reject(fn ($cells, $year) => $shownYears->contains($year))->sum(fn ($cells) => count($cells));
+                    // A lease of 12 months or fewer fits on one row from md up, so its year groups sit side by side
+                    // (each as wide as its months, one bar the same width as in a full year) and nothing is hidden.
+                    // Longer leases keep the stacked years and "See more". On a phone every lease keeps 6 bars a row.
+                    $fitsOneRow = count($stripCells) <= 12;
                 @endphp
                 <section aria-labelledby="lease-title" x-data="{ moreYears: false }" class="col-span-2 lg:col-span-4 {{ $tile }} p-4 sm:p-5 flex flex-col">
                     <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
@@ -72,12 +76,13 @@
                         {{ $leaseStart->format('M Y') }} – {{ $leaseStart->copy()->addMonthsNoOverflow($leaseMonths - 1)->format('M Y') }}@unless($reservation->target_move_out_date) · open-ended @endunless
                     </p>
 
-                    <div class="mt-3.5 space-y-4">
+                    {{-- --n = months in the lease, --m = months in the year group: the one-row layout sizes from them. --}}
+                    <div class="mt-3.5 space-y-4 {{ $fitsOneRow ? 'md:flex md:gap-x-6 md:space-y-0 md:[width:calc(var(--n)/12*100%)]' : '' }}" @if($fitsOneRow) style="--n: {{ count($stripCells) }}" @endif>
                         @foreach($yearGroups as $year => $cells)
                             @php $yearShown = $shownYears->contains($year); @endphp
-                            <div @unless($yearShown) x-show="moreYears" x-cloak @endunless>
+                            <div @unless($yearShown) x-show="moreYears" x-cloak @endunless @if($fitsOneRow) class="min-w-0 md:!block md:[flex:var(--m)_1_0%]" style="--m: {{ count($cells) }}" @endif>
                                 <h3 class="text-[12px] font-bold tabular-nums text-[#5B6A8E]">{{ $year }}</h3>
-                                <ol class="mt-1 grid grid-cols-6 sm:grid-cols-12 gap-x-1.5 gap-y-1" aria-label="Rent by month, {{ $year }}">
+                                <ol class="mt-1 grid grid-cols-6 gap-x-1.5 gap-y-1 {{ $fitsOneRow ? 'md:[grid-template-columns:repeat(var(--m),minmax(0,1fr))]' : 'sm:grid-cols-12' }}" aria-label="Rent by month, {{ $year }}">
                                     @foreach($cells as $cell)
                                         @php
                                             $tone = $stripTones[$cell['key']];
@@ -115,7 +120,7 @@
 
                     @if($hiddenMonthCount > 0)
                         <button type="button" @click="moreYears = !moreYears" :aria-expanded="moreYears"
-                            class="mt-3 self-start inline-flex h-11 items-center text-[12.5px] font-semibold text-[#060D26] hover:text-[#B35A3D] focus:outline-none focus-visible:underline transition-colors duration-200 cursor-pointer">
+                            class="{{ $fitsOneRow ? 'md:hidden' : '' }} mt-3 self-start inline-flex h-11 items-center text-[12.5px] font-semibold text-[#060D26] hover:text-[#B35A3D] focus:outline-none focus-visible:underline transition-colors duration-200 cursor-pointer">
                             <span x-text="moreYears ? 'See less' : 'See more · {{ $hiddenMonthCount }} more {{ \Illuminate\Support\Str::plural('month', $hiddenMonthCount) }}'"></span>
                         </button>
                     @endif

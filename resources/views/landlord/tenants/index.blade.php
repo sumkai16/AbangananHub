@@ -111,7 +111,7 @@
         @endif
 
         {{-- Search, property and the stage chips. The chips are links, so they work without script and can be shared. --}}
-        <form method="GET" action="{{ route('landlord.tenants.index') }}" class="mb-5">
+        <form data-live method="GET" action="{{ route('landlord.tenants.index') }}" class="mb-5">
             @if($stage !== '')<input type="hidden" name="status" value="{{ $stage }}">@endif
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
                 <div class="relative flex-1 min-w-[200px]">

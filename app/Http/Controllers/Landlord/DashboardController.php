@@ -170,6 +170,7 @@ class DashboardController extends Controller
                     . ($days ? " · {$days} " . ($days === 1 ? 'day' : 'days') . ' overdue' : ' · overdue')),
                 'cta' => 'View ledger',
                 'url' => route('landlord.payments.ledger', $r),
+                'panel' => 'Dashboard', // opens over the dashboard instead of leaving it (page panel)
             ]);
         }
 

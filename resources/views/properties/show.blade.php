@@ -1,4 +1,4 @@
-@extends('layouts.app', ['searchBar' => false, 'backNav' => ['route' => 'properties.index', 'label' => 'Back']])
+@extends('layouts.app', ['searchBar' => false])
 
 
 @section('content')
@@ -223,22 +223,11 @@
              editorial content, then Nearby Rentals. --}}
         <div class="flex flex-col gap-8">
 
-            {{-- ===== HEADER — mobile/tablet-only back link (Sept 2026).
-                 Desktop gets its back link in the sticky header itself now
-                 (`backNav` on the @extends call above — see
-                 layouts/app.blade.php's nav row), with the logo moved to
-                 centre there, so this copy would duplicate it above `xl`.
-                 That header switch is pinned to `xl`, not the usual `lg`,
-                 because at `lg` the logged-in right-actions cluster (theme
-                 toggle + dashboard pill + messages + notifications +
-                 avatar) is wide enough to collide with a dead-centred logo —
-                 see the `$mobileBp` comment in the layout. Below `xl` the
-                 header stays in its normal logo+hamburger form, so this is
-                 the only back link a phone/tablet visitor gets — same
-                 previous-URL-if-it's-the-index logic as the header's version.
-                 -mb-4 pulls the gallery up to a 16px gap (vs the column's
-                 gap-8) so the row reads as attached to the listing below it,
-                 not floating evenly between the navbar and the photos. ===== --}}
+            {{-- ===== BACK LINK — first row under the site header, at every width (Nov 7 2026).
+                 The page uses the same header as /properties now (logo, Home, Browse Rentals), so the back
+                 link lives here instead of in the header. Goes to the previous URL when that was the
+                 listings index (keeps the filters), else to the index. -mb-4 pulls the gallery up to a 16px
+                 gap so the row reads as attached to the listing below it. ===== --}}
             @php
                 $indexUrl = route('properties.index');
                 $previousUrl = url()->previous();
@@ -246,7 +235,7 @@
                     ? $previousUrl
                     : $indexUrl;
             @endphp
-            <nav class="xl:hidden -mb-4 flex items-center text-[13px] font-semibold" aria-label="Listing navigation">
+            <nav class="-mb-4 flex items-center text-[13px] font-semibold" aria-label="Listing navigation">
                 <x-back-link href="{{ $backUrl }}" to="listing" class="min-h-[44px] -my-3" />
             </nav>
 

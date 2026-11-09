@@ -54,7 +54,7 @@
         </div>
 
         {{-- Filter toolbar --}}
-        <form method="GET" action="{{ route('landlord.properties.index') }}" class="mb-6">
+        <form data-live method="GET" action="{{ route('landlord.properties.index') }}" class="mb-6">
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
 
                 <div class="relative flex-1 min-w-[200px]">

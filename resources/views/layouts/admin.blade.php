@@ -18,7 +18,10 @@
         })();
     </script>
     <style>
+        /* Paint the sidebar and the content offset on first byte at desktop width, before Alpine boots, so nothing
+           moves when a page loads (same as the landlord layout). The collapse toggle still animates. */
         @media (min-width: 1024px) {
+            #admin-sidebar[x-cloak] { display: flex !important; }
             .admin-sidebar-pre-collapsed #admin-sidebar { width: 5rem; }
             .admin-sidebar-pre-collapsed #admin-main { margin-left: 5rem; }
             .admin-sidebar-pre-collapsed #admin-sidebar [data-sidebar-label] { display: none; }
@@ -48,8 +51,8 @@
 
         {{-- ===================== SIDEBAR ===================== --}}
         <aside id="admin-sidebar" x-cloak
-            :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full', sidebarCollapsed ? 'lg:w-20' : 'lg:w-64']"
-            class="print:hidden fixed inset-y-0 left-0 z-50 w-64 bg-[#060D26] border-r border-white/[0.06] flex flex-col transition-all duration-300 lg:translate-x-0">
+            :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+            class="print:hidden fixed inset-y-0 left-0 z-50 w-64 lg:w-64 bg-[#060D26] border-r border-white/[0.06] flex flex-col transition-all duration-300 lg:translate-x-0">
 
             {{-- Collapse toggle --}}
             <button @click="sidebarCollapsed = !sidebarCollapsed"
@@ -226,8 +229,8 @@
         </aside>
 
         {{-- ===================== MAIN ===================== --}}
-        <div id="admin-main" :class="sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'"
-            class="print:!ml-0 flex-1 flex flex-col min-w-0 transition-all duration-300">
+        <div id="admin-main"
+            class="lg:ml-64 print:!ml-0 flex-1 flex flex-col min-w-0 transition-all duration-300">
 
             {{-- Mobile-only slim bar (hamburger + notif) --}}
             <div class="lg:hidden print:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-[#E2E4EC] sticky top-0 z-30">

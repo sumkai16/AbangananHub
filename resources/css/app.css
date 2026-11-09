@@ -418,16 +418,6 @@ html.dark :where([type="checkbox"], [type="radio"]) { background-color: #1A2448;
     }
 }
 
-/* Thin coral progress bar shown from the moment a navigation starts until the next page paints. */
-#nav-progress {
-    position: fixed; top: 0; left: 0; height: 3px; width: 0; z-index: 10000;
-    background: linear-gradient(90deg, #FF8A66, #FFB59F);
-    box-shadow: 0 0 10px rgba(255, 138, 102, 0.6);
-    opacity: 0; pointer-events: none;
-    transition: width 8s cubic-bezier(0.1, 0.6, 0.2, 1), opacity 200ms ease;
-}
-#nav-progress.is-active { width: 85%; opacity: 1; }
-
 /* Inline validation (resources/js/field-validation.js): short tag on the field border; full text is screen-reader only (checkboxes keep a visible line). */
 .fv-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .fv-bad {
@@ -504,3 +494,34 @@ html.dark :where([type="checkbox"], [type="radio"]) { background-color: #1A2448;
 .admin-compact .stat-strip-cell .ss-label { font-size: 12px; font-weight: 500; }
 .admin-compact .stat-strip-cell .ss-value { margin-top: 0.125rem; font-size: 20px; line-height: 1.5rem; }
 .admin-compact .stat-strip-cell .ss-note { margin-top: 0.125rem; font-size: 12px; }
+
+
+/* Property page route animation (resources/js/maps/property-map.js): the coral trail glows, and the marker riding
+   the route pulses. Both are removed when the marker arrives. */
+.route-trail {
+    filter: drop-shadow(0 0 5px rgba(255, 138, 102, 0.95));
+    transition: opacity 0.6s ease;
+}
+.route-rider span {
+    display: block;
+    width: 22px;
+    height: 22px;
+    border-radius: 9999px;
+    background: #FF8A66;
+    border: 3px solid #fff;
+    box-shadow: 0 0 12px 3px rgba(255, 138, 102, 0.85);
+    animation: route-rider-pulse 1.2s ease-out infinite;
+}
+@keyframes route-rider-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 138, 102, 0.7), 0 0 12px 3px rgba(255, 138, 102, 0.85); }
+    100% { box-shadow: 0 0 0 16px rgba(255, 138, 102, 0), 0 0 12px 3px rgba(255, 138, 102, 0.85); }
+}
+
+/* The route line is navy on the light map. The dark map is the same tiles filtered to navy-grey, so navy would
+   vanish there: switch to the light ink the dark theme uses for text, with a thin dark edge so it also holds over
+   the lighter roads. (The stroke set by Leaflet is a presentation attribute, so this rule wins.) */
+html.dark .route-line {
+    stroke: #EAEEF9;
+    stroke-opacity: 0.95;
+    filter: drop-shadow(0 0 1.5px rgba(6, 13, 38, 0.95));
+}

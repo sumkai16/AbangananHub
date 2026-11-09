@@ -137,6 +137,7 @@
                     }],
                 },
                 options: {
+                    animation: false,
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
