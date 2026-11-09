@@ -10,7 +10,8 @@
     {{-- Tenants get the same 1400px column as the site header and every other tenant page; the landlord's sidebar shell keeps the full width. --}}
     <div class="{{ auth()->user()->usesLandlordShell() ? 'max-w-none' : auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-5 min-h-[calc(100vh-72px)]" x-data="inboxApp()" x-cloak>
 
-        <div class="flex flex-col {{ $wide ? 'gap-4' : 'overflow-hidden '.$cardClass }}"
+        {{-- The landlord shell has no top bar on desktop (sidebar only), so only the 40px page padding is reserved there. --}}
+        <div class="flex flex-col {{ $wide ? 'gap-4' : 'overflow-hidden '.$cardClass }} {{ auth()->user()->usesLandlordShell() ? 'lg:!h-[calc(100dvh-40px)]' : '' }}"
             style="height: calc(100vh - 110px); height: calc(100dvh - 110px); min-height: 560px;">
 
         {{-- A refused action (e.g. "Send agreement" while another reservation holds the unit) redirects back here
