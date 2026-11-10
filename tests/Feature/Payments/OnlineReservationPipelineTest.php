@@ -4,7 +4,9 @@ namespace Tests\Feature\Payments;
 
 use App\Http\Controllers\Landlord\ReservationController;
 use App\Models\Reservation;
+use App\Services\ImageUploader;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Tests\Support\CreatesMarketplaceFixtures;
@@ -162,8 +164,17 @@ class OnlineReservationPipelineTest extends TestCase
             ->assertDontSee("Waiting for {$name}'s move-in payment", false)
             ->assertDontSee(route('landlord.reservations.confirmDirectMoveIn', $this->signed()), false);
 
-        $this->actingAs($this->t['landlord'])->post(route('landlord.reservations.markTurnedOver', $this->signed()))
-            ->assertSessionHas('success');
+        $this->app->instance(ImageUploader::class, new class extends ImageUploader
+        {
+            public function upload(UploadedFile $file, string $folder, array $options = []): array
+            {
+                return ['url' => 'https://img.test/handover.png', 'public_id' => $folder.'/x'];
+            }
+        });
+
+        $this->actingAs($this->t['landlord'])->post(route('landlord.reservations.markTurnedOver', $this->signed()), [
+            'handover_photo' => UploadedFile::fake()->image('keys.png'),
+        ])->assertSessionHas('success');
 
         $this->actingAs($this->t['landlord'])->get(route('landlord.contracts.show', $this->signed()))
             ->assertOk()->assertSee('Keys handed over')->assertDontSee('Mark keys turned over');

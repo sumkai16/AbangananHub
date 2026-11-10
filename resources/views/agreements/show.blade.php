@@ -358,6 +358,13 @@
                                                 {{ $reservation->move_in_deadline_at->format('M j, Y') }}, it is released automatically.
                                             @endif
                                         </p>
+                                        @if ($reservation->keys_handover_photo_url)
+                                            <p class="mt-2 text-sm">
+                                                <a href="{{ $reservation->keys_handover_photo_url }}" target="_blank" rel="noopener noreferrer"
+                                                    class="font-semibold underline">See the photo your landlord sent</a>
+                                                ({{ $reservation->keys_turned_over_at?->format('M j, Y') }}). Don't confirm if it doesn't match what you received.
+                                            </p>
+                                        @endif
                                     </div>
                                 @endif
                             @endif

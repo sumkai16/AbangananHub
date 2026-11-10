@@ -420,7 +420,7 @@
                     <h2 class="text-[15px] font-semibold text-[#060D26]">Security deposit</h2>
                     <p class="mt-0.5 text-[13px] text-[#5B6A8E] tabular-nums">
                         <span class="font-semibold text-[#060D26]">{{ $peso($summary['depositRemaining']) }}</span> of {{ $peso($summary['depositCollected']) }} still held{{ $activeDepositCharges->isEmpty() ? ', no deductions.' : ', '.$peso($summary['depositCharged']).' deducted.' }}
-                        Refundable at move-out.
+                        Your landlord returns what is left at move-out.
                     </p>
                     @if($summary['depositCollected'] > 0)
                         <div class="mt-3 h-1.5 max-w-sm rounded-full bg-[#EF4444]/20 overflow-hidden" role="img" aria-label="{{ $heldShare }}% of the deposit still held">

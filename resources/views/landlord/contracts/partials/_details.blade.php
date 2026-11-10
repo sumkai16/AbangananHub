@@ -245,11 +245,20 @@
             <a href="{{ route('conversations.index', ['active' => $reservation->conversation_id]) }}" class="{{ $ghostBtn }}">Open chat</a>
         @endif
         @if(! $reservation->keys_turned_over_at && ! $reservation->move_in_disputed_at)
-            <form method="POST" action="{{ route('landlord.reservations.markTurnedOver', $reservation) }}"
+            <form method="POST" action="{{ route('landlord.reservations.markTurnedOver', $reservation) }}" enctype="multipart/form-data"
+                class="flex flex-wrap items-center gap-2"
                 data-confirm="Mark the keys as turned over?"
-                data-confirm-message="{{ $tenant->first_name }} gets {{ config('rentals.move_in_confirmation_days') }} days to confirm move-in. After that the payment is released to you automatically."
+                data-confirm-message="{{ $tenant->first_name }} gets {{ config('rentals.move_in_confirmation_days') }} days to confirm move-in. After that the payment is released to you automatically. {{ $tenant->first_name }} and the admin can see your photo."
                 data-confirm-button="Keys turned over">
                 @csrf
+                <label class="text-[12.5px] text-[#5B6A8E]">
+                    Photo of the keys or handover
+                    <input type="file" name="handover_photo" accept="image/jpeg,image/png,image/webp" required
+                        class="mt-1 block w-full max-w-[16rem] text-[12.5px] text-[#060D26] file:mr-2 file:rounded-lg file:border-0 file:bg-[#ECEEF6] file:px-3 file:py-1.5 file:text-[12.5px] file:font-semibold">
+                </label>
+                @error('handover_photo')
+                    <p class="w-full text-[12.5px] text-[#DC2626]">{{ $message }}</p>
+                @enderror
                 <button type="submit" class="{{ $ctaBtn }}">Mark keys turned over</button>
             </form>
         @endif

@@ -68,6 +68,8 @@ class Reservation extends Model
         'tenant_confirmed_move_in_at',
         'move_in_paid_at',
         'keys_turned_over_at',
+        'keys_handover_photo_url',
+        'keys_handover_photo_public_id',
         'move_in_deadline_at',
         'move_in_disputed_at',
         'move_in_dispute_reason',
@@ -378,9 +380,16 @@ class Reservation extends Model
      * Deliberately moves no money: this is a self-interested claim by the party
      * who gets paid, so it is the weaker of the two turnover assertions. The
      * tenant's confirmation is what releases the deposit.
+     *
+     * A handover photo is required (Nov 10 2026): it gives the tenant and an admin something to look at when the
+     * claim is disputed. It is evidence, not proof. The rule lives here so the web and API paths cannot disagree.
      */
-    public function markKeysTurnedOver(): bool
+    public function markKeysTurnedOver(string $photoUrl, string $photoPublicId): bool
     {
+        if ($photoUrl === '' || $photoPublicId === '') {
+            return false;
+        }
+
         if ($this->rental_status !== 'Rental Agreement Signed') {
             return false;
         }
@@ -400,6 +409,8 @@ class Reservation extends Model
         }
 
         $this->keys_turned_over_at = now();
+        $this->keys_handover_photo_url = $photoUrl;
+        $this->keys_handover_photo_public_id = $photoPublicId;
         $this->move_in_deadline_at = now()->addDays(config('rentals.move_in_confirmation_days'));
         $this->move_in_last_reminder_on = null;
 

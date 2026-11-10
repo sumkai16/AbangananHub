@@ -6,7 +6,7 @@
     <x-legal-page
         eyebrow="Terms of Service"
         title="The ground rules for renting on AbangananHub."
-        updated="September 19, 2026"
+        updated="November 10, 2026"
         intro="These terms govern your use of AbangananHub, a rental marketplace for the Cebu area. By creating an account or using the platform, you agree to them. If you do not agree, please do not use the platform."
         :sections="[
             [
@@ -64,7 +64,10 @@
                 'title' => 'Reservations, agreements and payments',
                 'icon' => 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5',
                 'body' => [
-                    'A reservation request is not a confirmed tenancy until the landlord approves it and the parties complete the steps shown on the platform. Where payments are made through the platform, they are processed by a third-party payment provider and subject to its terms. Fees, deposits and refunds are governed by the agreement between the tenant and landlord and by any policy stated on the listing. We are not responsible for payments made outside the platform.',
+                    'A reservation request is not a confirmed tenancy until the landlord approves it and the parties complete the steps shown on the platform. Where payments are made through the platform, they are processed by a third-party payment provider and subject to its terms. We are not responsible for payments made outside the platform.',
+                    'Paying your landlord directly (by their own QR code or in cash) is an arrangement between you and the landlord. AbangananHub only records it, does not hold or check the money, and does not refund it. Any refund of a direct payment is for you and the landlord to settle under your lease and any policy stated on the listing.',
+                    'If you pay online, AbangananHub holds your payment until you confirm move-in and then releases it to the landlord. To start your confirmation window the landlord must attach a photo of the keys or the handover, which you can see. If you do not confirm within the window, the payment is released to the landlord automatically, so use “Keys never arrived” if something is wrong. If the move-in does not go ahead, an administrator reviews the case and may refund the held payment to you or release it to the landlord. The online payment fee is not refunded unless an administrator decides otherwise. A refund is no longer possible once you have moved in, and the payment provider’s own refund window also applies.',
+                    'Your security deposit and its return at move-out, including any deductions the landlord records, are governed by your lease and the landlord’s listed policy. The landlord is responsible for returning what is left of it.',
                 ],
             ],
             [

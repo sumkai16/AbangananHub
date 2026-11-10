@@ -192,7 +192,13 @@
                             <div class="flex justify-between gap-3">
                                 <dt class="text-[#5B6A8E] shrink-0">Keys marked</dt>
                                 <dd class="font-semibold text-[#060D26] text-right">
-                                    {{ $reservation->keys_turned_over_at->format('M d, Y') }}</dd>
+                                    {{ $reservation->keys_turned_over_at->format('M d, Y') }}
+                                    @if ($reservation->keys_handover_photo_url)
+                                        <a href="{{ $reservation->keys_handover_photo_url }}" target="_blank" rel="noopener noreferrer" class="block text-[12.5px] font-medium underline">View photo</a>
+                                    @else
+                                        <span class="block text-[12.5px] font-normal text-[#5B6A8E]">No photo</span>
+                                    @endif
+                                </dd>
                             </div>
                         @endif
                     </dl>

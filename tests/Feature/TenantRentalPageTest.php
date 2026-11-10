@@ -94,7 +94,7 @@ class TenantRentalPageTest extends TestCase
 
         $this->actingAs($t['tenant'])->get(route('tenancy.show', $t['reservation']))->assertOk()
             ->assertSee('Security deposit')
-            ->assertSee('Refundable at move-out')
+            ->assertSee('Your landlord returns what is left at move-out')
             ->assertDontSee('Deduct from deposit');
     }
 

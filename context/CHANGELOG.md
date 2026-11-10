@@ -2,6 +2,21 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 10 2026 — Handover photo required to mark the keys turned over
+**Run `php artisan migrate`** (two nullable columns on `reservations`). **Needs a manual check in the browser** (checklist in `plans/move-in-evidence-and-reminder-emails.md`). Automated: `HandoverPhotoTest` (5) plus the related payment suites pass.
+- **What changed:** on an online (held) payment the landlord must attach a photo of the keys or the handover before "Mark keys turned over" starts the tenant's 7-day countdown. The tenant sees it on their agreement page; the admin sees "View photo" (or "No photo") under "Keys marked" on the conversation page. A photo is evidence, not proof.
+- **Unchanged:** auto-release after 7 days of tenant silence, the 4/1/0-day reminders, "Keys never arrived", and every countdown already running (no photo, still releases).
+- **Dropped:** reminder emails. The app runs only through ngrok at the defense, so there is no real mail service.
+- **Rule lives in the model:** `Reservation::markKeysTurnedOver($url, $publicId)` refuses an empty photo, so the web and API controllers cannot disagree.
+- **Files:** migration `2026_11_10_000100_add_handover_photo_to_reservations`, `Reservation`, `Landlord\ReservationController`, `Api\Landlord\ReservationController`, `landlord/contracts/partials/_details.blade.php`, `agreements/show.blade.php`, `admin/conversations/show.blade.php`, `EscrowVerify`, `tests/Feature/Payments/HandoverPhotoTest.php`, `OnlineReservationPipelineTest`, SCHEMA.md, ARCHITECTURE.md, `plans/move-in-evidence-and-reminder-emails.md`.
+
+## Nov 10 2026 — Refund rules written into the terms; refund docs corrected
+**Docs and wording only, no migration or logic change.** Run the new `Reservations, agreements and payments` page at `/terms` to read it. One small real PayMongo refund is still owed before the admin refund is presented as working.
+- **What changed:** the terms now say three things plainly: direct payments (QR, cash) are not held or refunded by the platform; online payments are held until move-in, and an admin may refund or release them if it falls through (the online fee is not refunded unless the admin decides, and nothing is refundable after move-in); the move-out deposit is returned by the landlord under the lease. "Last updated" is November 10, 2026.
+- **Tenant rental page:** "Refundable at move-out" became "Your landlord returns what is left at move-out", because the platform does not return it.
+- **Docs fixed:** ARCHITECTURE.md said "no refund path" in two places although the admin refund shipped Oct 31; both now match the code. New Key Decisions row records why refunds stop there; PRD out-of-scope line widened.
+- **Files:** `resources/views/legal/terms.blade.php`, `resources/views/tenant/tenancy/show.blade.php`, `tests/Feature/TenantRentalPageTest.php`, `context/ARCHITECTURE.md`, `context/PRD.md`.
+
 ## Nov 7 2026 — Admin Payments: grid and list view (branch `axci`)
 **Checked in Chrome as admin:** the toggle switches views, the choice survives a reload, and the in-place search keeps the grid. A card for a *Held* payment (Release and Refund buttons) is covered by the automated test only, because the dev data has no held payments. Run `npm run build` after pulling. No migration, no controller change.
 - **What changed:** two icon buttons at the end of the filter bar (the same pair as admin Reservations) switch between the list (default) and a grid of cards. The choice is kept in the browser (`localStorage` key `adminPaymentsView`), so switching is instant and the page does not reload.

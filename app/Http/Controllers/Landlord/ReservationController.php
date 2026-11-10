@@ -9,6 +9,7 @@ use App\Models\PaymentClaim;
 use App\Models\Property;
 use App\Models\Reservation;
 use App\Models\ViewingRequest;
+use App\Services\ImageUploader;
 use App\Support\LandlordTerms;
 use App\Support\LeaseTemplates;
 use App\Support\LeaseTerms;
@@ -340,16 +341,25 @@ class ReservationController extends Controller
      * payout, and a double-click would otherwise post the system message twice.
      * See RULES.md → Concurrency & State Transitions.
      */
-    public function markTurnedOver(Reservation $reservation)
+    public function markTurnedOver(Request $request, Reservation $reservation, ImageUploader $uploader)
     {
         Gate::authorize('markTurnedOver', $reservation);
 
-        $marked = DB::transaction(function () use ($reservation) {
+        $request->validate([
+            'handover_photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+        ], [
+            'handover_photo.required' => 'Attach a photo of the keys or the handover.',
+        ]);
+
+        // Uploaded before the lock so a slow upload never holds it. A photo orphaned by a lost race is harmless.
+        $photo = $uploader->upload($request->file('handover_photo'), 'abanganan/handover');
+
+        $marked = DB::transaction(function () use ($reservation, $photo) {
             $locked = Reservation::whereKey($reservation->getKey())
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if (! $locked->markKeysTurnedOver()) {
+            if (! $locked->markKeysTurnedOver($photo['url'], $photo['public_id'])) {
                 return false;
             }
 
