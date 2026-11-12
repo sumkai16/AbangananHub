@@ -8,6 +8,7 @@ use App\Services\LandlordPayouts;
 use App\Services\PaymentClaims;
 use App\Services\PaymongoCheckout;
 use App\Support\ServiceFee;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -214,7 +215,22 @@ trait ReconcilesPaymongoCheckout
             $lines[] = ['name' => 'Online payment fee', 'amount' => $fee];
         }
 
-        $response = PaymongoCheckout::create($reservation, $lines, $description, $successUrl, $cancelUrl);
+        try {
+            $response = PaymongoCheckout::create($reservation, $lines, $description, $successUrl, $cancelUrl);
+        } catch (ConnectionException $e) {
+            // PayMongo was never reached (no network, a bad SSL setup). Nothing was charged, so free the placeholder
+            // rows: left behind, they block every retry with "a payment session is already in progress".
+            Log::error('Could not reach PayMongo to create a checkout session', [
+                'reservation_id' => $reservation->reservation_id,
+                'error' => $e->getMessage(),
+            ]);
+
+            foreach ($rows as $row) {
+                $row->delete();
+            }
+
+            throw ValidationException::withMessages(['payment' => ['We could not reach the online payment service. Nothing was charged. Please try again in a moment, or pay your landlord directly.']]);
+        }
 
         if ($response->failed()) {
             // Say why in the log: the tenant only sees a generic message, and a live account can refuse for reasons
@@ -259,8 +275,10 @@ trait ReconcilesPaymongoCheckout
      */
     protected function clearStaleCheckouts(Reservation $reservation, string $type, ?Carbon $billingPeriod = null): ?string
     {
+        // A move-in checkout is an Initial row plus a Deposit row. Look at both: a Deposit row left alone when its
+        // Initial row was cleared would block every new session ("already in progress") while the page shows nothing.
         $stale = Payment::where('reservation_id', $reservation->getKey())
-            ->where('payment_type', $type)
+            ->whereIn('payment_type', $type === 'Initial' ? ['Initial', 'Deposit'] : [$type])
             ->where('status', 'Pending')
             ->when($billingPeriod, fn ($q) => $q->whereDate('billing_period', $billingPeriod->toDateString()))
             ->get()
