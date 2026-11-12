@@ -49,8 +49,8 @@
             <x-stat-card label="Awaiting move-in" :value="$stats['awaiting']" value-color="#B45309" :href="route('landlord.contracts.index', ['status' => 'awaiting'])" sub="Signed, not moved in" />
             <x-stat-card label="Ending soon" :value="$stats['ending']" value-color="{{ $stats['ending'] > 0 ? '#B45309' : '#060D26' }}"
                 sub="Within {{ config('rentals.renewal_window_days') }} days" :href="route('landlord.contracts.index', ['status' => 'active'])" />
-            <x-stat-card label="Agreement missing" :value="$stats['lease_missing']" value-color="{{ $stats['lease_missing'] > 0 ? '#B45309' : '#060D26' }}"
-                sub="No signed agreement on file" :href="route('landlord.contracts.index', ['lease_missing' => 1])" />
+            <x-stat-card label="Lease agreement missing" :value="$stats['lease_missing']" value-color="{{ $stats['lease_missing'] > 0 ? '#B45309' : '#060D26' }}"
+                sub="No lease agreement on file" :href="route('landlord.contracts.index', ['lease_missing' => 1])" />
         </div>
 
         {{-- Filters --}}
@@ -145,7 +145,7 @@
                                             <p class="text-[13px] font-bold text-[#060D26] truncate">{{ $contract->tenant->first_name }} {{ $contract->tenant->last_name }}</p>
                                             <p class="text-[11.5px] text-[#5B6A8E] truncate">
                                                 {{ $codes[$contract->tenant_id] ?? '' }}
-                                                @if($contract->leaseStatus() === 'missing') · <span class="text-[#B45309]">No agreement on file</span> @endif
+                                                @if($contract->leaseStatus() === 'missing') · <span class="text-[#B45309]">No lease agreement on file</span> @endif
                                             </p>
                                         </td>
                                         <td class="px-4 py-3 text-[13px] text-[#060D26] truncate">{{ $contract->unit->unit_label ?? 'No unit' }}</td>

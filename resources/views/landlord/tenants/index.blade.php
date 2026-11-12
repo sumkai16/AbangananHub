@@ -40,7 +40,7 @@
     // One row's status pill, the line under the name, and the one action it needs.
     $statusOf = fn ($r) => $r['contractStatus']
         ? ['label' => $r['contractStatus']['label'], 'tone' => $r['contractStatus']['tone']]
-        : ['label' => 'No contract', 'tone' => 'muted'];
+        : ['label' => 'No lease', 'tone' => 'muted'];
     $whenOf = function ($r) use ($fmt) {
         $c = $r['shown'];
 
@@ -59,6 +59,7 @@
         x-init="
             @if($openUrl) $nextTick(() => $dispatch('open-contract', { url: @js($openUrl) })); @endif
             @if(request()->boolean('new') || ($errors->any() && old('_form') === 'contract')) $nextTick(() => $dispatch('open-add-contract')); @endif
+            @if($editTarget) $nextTick(() => $dispatch('open-tenant-form', @js($editValues($editTarget)))); @endif
             @if($errors->any() && old('_form') === 'tenant') $nextTick(() => $dispatch('open-tenant-form', @js(old('_action') ? ['action' => old('_action')] : []))); @endif
         ">
 
@@ -162,7 +163,7 @@
 
         @if($rows->isEmpty())
             <x-empty-state title="{{ $filtered ? 'No tenants match' : 'No tenants yet' }}"
-                message="{{ $filtered ? 'Try another chip, or clear the search.' : 'Add a tenant with their contact and emergency details, then give them a contract.' }}">
+                message="{{ $filtered ? 'Try another chip, or clear the search.' : 'Add a tenant with their contact and emergency details, then give them a lease.' }}">
                 <x-slot:icon>
                     <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
                 </x-slot:icon>
@@ -207,7 +208,7 @@
                                     <div class="mt-3 flex flex-wrap items-center gap-2">
                                         @include('landlord.tenants.partials._row-actions', ['r' => $r])
                                         @if($r['stage'] === 'none')
-                                            <button type="button" class="{{ $coralBtn }} ml-auto" @click="$dispatch('open-add-contract', { tenant: {{ $r['row']->landlord_tenant_id }} })">Give contract</button>
+                                            <button type="button" class="{{ $coralBtn }} ml-auto" @click="$dispatch('open-add-contract', { tenant: {{ $r['row']->landlord_tenant_id }} })">Add lease</button>
                                         @elseif($r['ending'])
                                             <button type="button" class="{{ $coralBtn }} ml-auto" @click="$dispatch('open-contract', { url: @js(route('landlord.contracts.show', ['reservation' => $r['shown'], 'renew' => 1])) })">Renew</button>
                                         @endif
@@ -229,7 +230,7 @@
                                         <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Unit</th>
                                         <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Lease</th>
                                         <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide text-right">Rent</th>
-                                        <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Agreement</th>
+                                        <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Lease agreement</th>
                                         <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Status</th>
                                         <th class="px-5 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide text-right"><span class="sr-only">Actions</span></th>
                                     </tr>
@@ -276,7 +277,7 @@
                                             <td class="px-5 py-3.5">
                                                 <div class="flex items-center justify-end gap-2">
                                                     @if($r['stage'] === 'none')
-                                                        <button type="button" class="{{ $coralBtn }}" @click="$dispatch('open-add-contract', { tenant: {{ $r['row']->landlord_tenant_id }} })">Give contract</button>
+                                                        <button type="button" class="{{ $coralBtn }}" @click="$dispatch('open-add-contract', { tenant: {{ $r['row']->landlord_tenant_id }} })">Add lease</button>
                                                     @elseif($r['ending'])
                                                         <button type="button" class="{{ $coralBtn }}" @click="$dispatch('open-contract', { url: @js(route('landlord.contracts.show', ['reservation' => $r['shown'], 'renew' => 1])) })">Renew</button>
                                                     @endif

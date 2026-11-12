@@ -233,12 +233,12 @@ Route::middleware('auth')->group(function () {
         Route::patch('/reservations/{reservation}/cancel', [App\Http\Controllers\Landlord\ReservationController::class, 'cancel'])->name('reservations.cancel');
         Route::patch('/reservations/{reservation}/advance-negotiation', [App\Http\Controllers\Landlord\ReservationController::class, 'advanceToNegotiation'])->name('reservations.advanceNegotiation');
         Route::patch('/reservations/{reservation}/accept-and-send', [App\Http\Controllers\Landlord\ReservationController::class, 'acceptAndSendAgreement'])->name('reservations.acceptAndSend');
-        // Leases page: lease template library and where each template is used (plans/lease-templates-page.md)
-        Route::get('/leases', [LeaseTemplateController::class, 'index'])->name('leases.index');
-        Route::get('/leases/panel', [LeaseTemplateController::class, 'panel'])->name('leases.panel');
-        Route::patch('/leases/assign', [LeaseTemplateController::class, 'assign'])->name('lease-templates.assign');
-        Route::post('/leases/templates/preview', [LeaseTemplateController::class, 'preview'])->name('lease-templates.preview');
-        Route::resource('leases/templates', LeaseTemplateController::class)
+        // Lease policies (URL /landlord/lease-policies): lease template library and where each template is used (plans/lease-templates-page.md)
+        Route::get('/lease-policies', [LeaseTemplateController::class, 'index'])->name('leases.index');
+        Route::get('/lease-policies/panel', [LeaseTemplateController::class, 'panel'])->name('leases.panel');
+        Route::patch('/lease-policies/assign', [LeaseTemplateController::class, 'assign'])->name('lease-templates.assign');
+        Route::post('/lease-policies/templates/preview', [LeaseTemplateController::class, 'preview'])->name('lease-templates.preview');
+        Route::resource('lease-policies/templates', LeaseTemplateController::class)
             ->only(['create', 'store', 'edit', 'update', 'destroy'])
             ->parameters(['templates' => 'leaseTemplate'])
             ->names('lease-templates');
@@ -281,11 +281,13 @@ Route::middleware('auth')->group(function () {
 
         // Tenants
         Route::get('/tenants', [TenantController::class, 'index'])->name('tenants.index');
-        // Contracts: the old list URL redirects to Tenants; add, view and renew stay here.
-        Route::get('/contracts', [ContractController::class, 'index'])->name('contracts.index');
-        Route::post('/contracts', [ContractController::class, 'store'])->name('contracts.store');
-        Route::get('/contracts/{reservation}', [ContractController::class, 'show'])->name('contracts.show');
-        Route::post('/contracts/{reservation}/renew', [ContractController::class, 'renew'])->name('contracts.renew');
+        // Leases: the list, add, view and renew. The URL used to be /contracts; the old addresses still redirect (query kept).
+        Route::get('/leases', [ContractController::class, 'index'])->name('contracts.index');
+        Route::get('/contracts', fn (\Illuminate\Http\Request $request) => redirect()->route('landlord.contracts.index', $request->query()));
+        Route::get('/contracts/{reservation}', fn (Reservation $reservation) => redirect()->route('landlord.contracts.show', $reservation));
+        Route::post('/leases', [ContractController::class, 'store'])->name('contracts.store');
+        Route::get('/leases/{reservation}', [ContractController::class, 'show'])->name('contracts.show');
+        Route::post('/leases/{reservation}/renew', [ContractController::class, 'renew'])->name('contracts.renew');
         Route::get('/tenants/export', [TenantController::class, 'export'])->name('tenants.export');
 
         // The old walk-in wizard was replaced by Add Tenant + Add contract (Oct 2026). Old links land on Add contract.

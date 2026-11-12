@@ -484,7 +484,7 @@ class LeaseTemplatesTest extends TestCase
         $this->actingAs($l)->get(route('landlord.contracts.index'))
             ->assertOk()
             ->assertSee('open-lease-policies', false)
-            ->assertSee('landlord\\/leases\\/panel', false)
+            ->assertSee('landlord\\/lease-policies\\/panel', false)
             ->assertSee(route('landlord.leases.index'), false);
     }
 

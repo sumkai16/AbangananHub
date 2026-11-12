@@ -180,7 +180,7 @@
                 {{-- Lease timeline --}}
                 <div class="p-5 sm:p-6">
                     <div class="flex items-baseline justify-between gap-3">
-                        <h2 class="text-[12px] font-bold uppercase tracking-wide text-[#5B6A8E]">Contract</h2>
+                        <h2 class="text-[12px] font-bold uppercase tracking-wide text-[#5B6A8E]">Lease</h2>
                         <p class="text-[12px] text-[#5B6A8E]">
                             {{ $reservation->duration_of_stay ?? 'Term not recorded' }} &middot; rent due day {{ $summary['dueDay'] }}
                         </p>

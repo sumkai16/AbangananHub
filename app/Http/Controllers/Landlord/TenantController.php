@@ -41,7 +41,7 @@ class TenantController extends Controller
         'moving' => 'Moving in',
         'ending' => 'Ending soon',
         'no-agreement' => 'No agreement',
-        'none' => 'No contract',
+        'none' => 'No lease',
     ];
 
     /** The Tenants dropdown. Former tenants are history, so the page starts on the current ones. */
@@ -115,6 +115,8 @@ class TenantController extends Controller
             'formerCount' => $formerCount,
             'properties' => $properties,
             'waiting' => $waiting,
+            // ?edit=<landlord_tenant_id> (the lease modal's Add contact button) opens that tenant's edit form on load.
+            'editTarget' => $request->filled('edit') ? $rows->first(fn ($r) => $r['row']->landlord_tenant_id === $request->integer('edit')) : null,
             // Sent but not yet signed: those are not contracts (or on this list) until signed, so they stay on Reservations.
             'unsignedAgreements' => Reservation::whereHas('property', fn ($q) => $q->where('landlord_id', Auth::id()))
                 ->where('rental_status', 'Pending Rental Agreement')->count(),

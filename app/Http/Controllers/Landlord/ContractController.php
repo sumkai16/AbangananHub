@@ -138,6 +138,7 @@ class ContractController extends Controller
         return [
             'reservation' => $reservation,
             'code' => $row?->code(),
+            'landlordTenantId' => $row?->landlord_tenant_id,
             'showTenantDetails' => Gate::allows('viewTenantDetails', $reservation),
             'canInvite' => $row && Gate::allows('invite', $row),
             'inviteUrl' => $row ? route('landlord.tenants.invite', $row) : null,

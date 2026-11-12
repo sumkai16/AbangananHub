@@ -40,6 +40,8 @@
                 'isOverdue'    => $row['paymentStatus'] === 'overdue',
                 'isEnded'      => $reservation->rental_status === 'Completed',
                 'writtenOff'   => $row['paymentStatus'] === 'written_off',
+                // Shown in the Balance column. A balance the landlord stopped collecting still shows (in grey), it just is not counted as owed.
+                'balance'      => $row['paymentStatus'] === 'written_off' ? (float) $summary['writtenOffAmount'] : (float) $summary['outstanding'],
             ];
         });
 
@@ -281,7 +283,7 @@
                 </p>
                 <a href="{{ route('landlord.tenants.index', ['new' => 1]) }}"
                     class="mt-5 inline-flex items-center justify-center h-11 px-5 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
-                    Add a contract
+                    Add a lease
                 </a>
             </x-card>
         @elseif($view === 'calendar')
@@ -326,14 +328,14 @@
                             </div>
                             <div>
                                 <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wide">Balance</p>
-                                <p class="text-[13px] font-semibold {{ $summary['outstanding'] > 0 ? 'text-[#DC2626]' : 'text-[#060D26]' }} mt-0.5">
-                                    ₱{{ number_format($summary['outstanding'], 2) }}
+                                <p class="text-[13px] font-semibold {{ $item['writtenOff'] ? 'text-[#5B6A8E]' : ($summary['outstanding'] > 0 ? 'text-[#DC2626]' : 'text-[#060D26]') }} mt-0.5">
+                                    ₱{{ number_format($item['balance'], 2) }}@if($item['writtenOff']) <span class="block text-[11px] font-normal text-[#94A3B8]">Not collecting</span>@endif
                                 </p>
                             </div>
                         </div>
 
                         <div class="mt-3 flex gap-2">
-                            <a href="{{ route('landlord.payments.ledger', $reservation) }}" data-page-panel data-page-panel-back="Payments"
+                            <a href="{{ route('landlord.payments.ledger', $reservation) }}"
                                 class="flex-1 flex items-center justify-center h-10 rounded-xl border border-[#FF8A66] text-[#B35A3D] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">
                                 Open Ledger
                             </a>
@@ -441,7 +443,8 @@
                                     </td>
                                     <td
                                         class="px-4 py-4 text-[13px] text-right tabular-nums whitespace-nowrap {{ $summary['outstanding'] > 0 ? 'font-semibold text-[#DC2626]' : 'text-[#5B6A8E]' }}">
-                                        ₱{{ number_format($summary['outstanding'], 2) }}
+                                        ₱{{ number_format($item['balance'], 2) }}
+                                        @if($item['writtenOff'])<p class="text-[11px] font-normal text-[#94A3B8]">Not collecting</p>@endif
                                         @if($item['monthsLabel'])
                                             <p class="text-[11px] font-normal text-[#94A3B8]">{{ $item['monthsLabel'] }}</p>
                                         @endif
@@ -467,7 +470,7 @@
                                                 </form>
                                             @endif
                                             @include('landlord.payments.partials._ended-actions', ['item' => $item, 'reservation' => $reservation])
-                                            <a href="{{ route('landlord.payments.ledger', $reservation) }}" data-page-panel data-page-panel-back="Payments"
+                                            <a href="{{ route('landlord.payments.ledger', $reservation) }}"
                                                 class="inline-flex items-center gap-1 text-[#060D26] text-[12.5px] font-semibold hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer whitespace-nowrap">
                                                 Open ledger
                                                 <span aria-hidden="true">→</span>

@@ -55,7 +55,7 @@
                         <h2 id="tenant-form-title" class="text-[17px] font-normal text-[#060D26]" x-text="editing ? 'Edit tenant' : 'Add tenant'"></h2>
                         <p class="text-[12.5px] text-[#5B6A8E] mt-0.5" x-text="editing
                             ? 'Changing the email sends a new invite to that address.'
-                            : 'They show as Pending until you give them a contract. With an email, we invite them to set a password.'"></p>
+                            : 'They show as Pending until you give them a lease. With an email, we invite them to set a password.'"></p>
                     </div>
                     <button type="button" @click="close()" aria-label="Close"
                         class="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-[#5B6A8E] hover:bg-[#F7F8FC] hover:text-[#060D26] transition-colors duration-200 cursor-pointer">
