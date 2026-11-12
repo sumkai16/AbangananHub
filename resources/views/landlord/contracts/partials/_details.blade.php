@@ -1,4 +1,4 @@
-{{-- The contract modal body (fetched by _view-modal from ContractController::show or TenantController::show). --}}
+{{-- The lease modal body (fetched by _view-modal from ContractController::show or TenantController::show). --}}
 @php
     $tenant = $reservation->tenant;
     $detail = $tenant->tenantDetail;
@@ -12,11 +12,12 @@
     $fmt = fn ($d) => $d ? \Illuminate\Support\Carbon::parse($d)->format('M j, Y') : '—';
     $deposit = $reservation->agreedDeposit();
     $reference = $reservation->lease_snapshot['reference'] ?? null;
-    $row = 'flex items-start justify-between gap-4 py-2 border-b border-[#E2E4EC] last:border-0';
-    $dt = 'text-[12.5px] text-[#5B6A8E] shrink-0';
-    $dd = 'text-[13px] font-semibold text-[#060D26] text-right';
-    $ghostBtn = 'inline-flex items-center justify-center h-10 px-4 rounded-full border border-[#5B6A8E]/30 text-[13px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200';
-    $ctaBtn = 'inline-flex items-center justify-center h-10 px-5 rounded-full bg-[#FF8A66] text-[13px] font-semibold text-[#060D26] hover:bg-[#E96F4F] transition-colors duration-200 cursor-pointer';
+    $label = 'text-[12.5px] text-[#5B6A8E]';
+    $value = 'mt-0.5 text-[15px] text-[#060D26] break-words';
+    $link = 'underline-offset-2 hover:underline focus-visible:underline';
+    $h3 = 'text-[15px] font-semibold text-[#060D26]';
+    $ghostBtn = 'inline-flex items-center justify-center h-11 px-5 rounded-full border border-[#5B6A8E]/30 text-[14px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200';
+    $ctaBtn = 'inline-flex items-center justify-center h-11 px-5 rounded-full bg-[#FF8A66] text-[14px] font-semibold text-[#060D26] hover:bg-[#E96F4F] transition-colors duration-200 cursor-pointer';
 
     // Renew is offered on a running contract near or past its end (the same window as the "Ends in N days" pill).
     $canRenew = $reservation->rental_status === 'Occupied' && in_array($status['tone'], ['warn', 'bad'], true);
@@ -29,13 +30,14 @@
     $canRate = in_array($reservation->rental_status, ['Occupied', 'Completed'], true) && ! $reservation->tenantRating;
 @endphp
 
-<div x-data="{ renewing: @js($canRenew && ($startRenewing ?? false)), uploading: false, rating: @js($canRate && ($startRating ?? false)), stars: 0, hovered: 0, count: 0,
+<div x-data="{ ending: false, renewing: @js($canRenew && ($startRenewing ?? false)), uploading: false, rating: @js($canRate && ($startRating ?? false)), stars: 0, hovered: 0, count: 0,
         rate(on) { this.renewing = false; this.rating = on; this.$nextTick(() => this.$root.closest('.overflow-y-auto')?.scrollTo(0, 0)); } }">
 
 <div x-show="!rating">
 
-<div class="flex items-start gap-4 px-6 pt-6 pb-5 border-b border-[#E2E4EC] pr-14">
-    <div class="h-[68px] w-[88px] shrink-0 overflow-hidden rounded-xl bg-[#ECEEF6]">
+{{-- Who and where: the tenant's name leads, then the unit, the status and the lease reference in plain words. --}}
+<div class="flex items-start gap-4 px-6 pt-6 pb-5 pr-16">
+    <div class="h-[64px] w-[80px] shrink-0 overflow-hidden rounded-xl bg-[#ECEEF6]">
         @if($photo ?? null)
             <img src="{{ $photo }}" alt="" loading="lazy" decoding="async" class="h-full w-full object-cover">
         @else
@@ -45,47 +47,46 @@
         @endif
     </div>
     <div class="min-w-0">
-        <p class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">{{ $reference ?? 'Contract' }}</p>
-        <h2 class="mt-0.5 text-[19px] font-semibold leading-tight text-[#060D26]">{{ $tenant->first_name }} {{ $tenant->last_name }}</h2>
-        <p class="mt-0.5 truncate text-[13px] text-[#5B6A8E]">{{ $reservation->unit->unit_label ?? 'No unit' }} · {{ $reservation->property->title }}</p>
-        <div class="mt-2 flex flex-wrap items-center gap-2">
-            <span class="inline-flex items-center h-6 px-2.5 rounded-full border text-[11px] font-bold {{ $pill }}">{{ $status['label'] }}</span>
-            @if($code)<span class="text-[12px] font-semibold text-[#5B6A8E]">{{ $code }}</span>@endif
-            @if($tenant->is_walk_in)<span class="text-[12px] text-[#5B6A8E]">· Added by you</span>@endif
+        <h2 class="text-[21px] font-semibold leading-tight text-[#060D26]">{{ $tenant->first_name }} {{ $tenant->last_name }}</h2>
+        <p class="mt-1 text-[14px] text-[#060D26]">{{ $reservation->unit->unit_label ?? 'No unit' }}<span class="text-[#5B6A8E]"> · {{ $reservation->property->title }}</span></p>
+        <div class="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+            <span class="inline-flex items-center h-6 px-2.5 rounded-full border text-[12px] font-semibold {{ $pill }}">{{ $status['label'] }}</span>
+            @if($code)<span class="text-[13px] text-[#5B6A8E] tabular-nums">{{ $code }}</span>@endif
+            @if($reference)<span class="text-[13px] text-[#5B6A8E] tabular-nums">Lease {{ $reference }}</span>@endif
         </div>
     </div>
 </div>
 
-{{-- The four figures a landlord looks for first. --}}
-<dl class="grid grid-cols-2 gap-2.5 px-6 pt-5 sm:grid-cols-4">
+{{-- The four figures a landlord looks for first, as one quiet band rather than four boxes. --}}
+<dl class="mx-6 grid grid-cols-2 gap-x-5 gap-y-4 rounded-xl bg-[#F7F8FC] px-4 py-4 sm:grid-cols-4">
     @foreach([
         ['Monthly rent', '₱'.number_format($reservation->currentRent(), 2), true],
         ['Security deposit', $deposit > 0 ? '₱'.number_format($deposit, 2) : 'None', true],
-        ['Rent due', 'Day '.$reservation->rentDueDay().' monthly', false],
-        ['Occupants', (string) ($reservation->occupants_count ?: 1), false],
-    ] as [$term, $value, $money])
-        <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] px-3.5 py-2.5">
-            <dt class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">{{ $term }}</dt>
-            <dd class="mt-0.5 text-[14.5px] font-extrabold text-[#060D26] {{ $money ? 'tabular-nums' : '' }}">{{ $value }}</dd>
+        ['Rent due', 'Day '.$reservation->rentDueDay().' of the month', false],
+        ['People living there', (string) ($reservation->occupants_count ?: 1), false],
+    ] as [$term, $figure, $money])
+        <div>
+            <dt class="text-[12.5px] text-[#5B6A8E]">{{ $term }}</dt>
+            <dd class="mt-0.5 text-[16px] font-semibold text-[#060D26] {{ $money ? 'tabular-nums' : '' }}">{{ $figure }}</dd>
         </div>
     @endforeach
 </dl>
 
-<div class="grid gap-6 px-6 py-5 md:grid-cols-2 md:gap-x-8">
+<div class="grid gap-6 px-6 py-6 md:grid-cols-2 md:gap-x-10">
     <div class="grid content-start gap-6">
         <section aria-labelledby="contract-lease">
-            <h3 id="contract-lease" class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E] mb-1">Stay</h3>
-            <dl>
-                <div class="{{ $row }}"><dt class="{{ $dt }}">Move-in</dt><dd class="{{ $dd }}">{{ $fmt($reservation->target_move_in_date) }}</dd></div>
-                <div class="{{ $row }}"><dt class="{{ $dt }}">Move-out</dt><dd class="{{ $dd }}">{{ $fmt($reservation->target_move_out_date) }}</dd></div>
+            <h3 id="contract-lease" class="{{ $h3 }}">The stay</h3>
+            <dl class="mt-2 divide-y divide-[#E2E4EC]">
+                <div class="py-2.5"><dt class="{{ $label }}">Move-in</dt><dd class="{{ $value }}">{{ $fmt($reservation->target_move_in_date) }}</dd></div>
+                <div class="py-2.5"><dt class="{{ $label }}">Move-out</dt><dd class="{{ $value }}">{{ $fmt($reservation->target_move_out_date) }}</dd></div>
                 @if($reservation->target_move_in_date && $reservation->target_move_out_date)
-                    <div class="{{ $row }}"><dt class="{{ $dt }}">Length</dt><dd class="{{ $dd }}">{{ $reservation->target_move_in_date->diffForHumans($reservation->target_move_out_date, ['syntax' => \Carbon\CarbonInterface::DIFF_ABSOLUTE, 'parts' => 2, 'join' => ', ']) }}</dd></div>
+                    <div class="py-2.5"><dt class="{{ $label }}">Length</dt><dd class="{{ $value }}">{{ $reservation->target_move_in_date->diffForHumans($reservation->target_move_out_date, ['syntax' => \Carbon\CarbonInterface::DIFF_ABSOLUTE, 'parts' => 2, 'join' => ', ']) }}</dd></div>
                 @endif
             </dl>
             @if($reservation->renewals->isNotEmpty())
-                <ul class="mt-3 space-y-1">
+                <ul class="mt-2 space-y-1">
                     @foreach($reservation->renewals as $renewal)
-                        <li class="text-[12px] text-[#5B6A8E]">Renewed to {{ $fmt($renewal->new_move_out_date) }} · ₱{{ number_format($renewal->new_monthly_rent, 2) }}/mo from {{ $renewal->rent_effective_from->format('M Y') }}</li>
+                        <li class="text-[13px] text-[#5B6A8E]">Renewed to {{ $fmt($renewal->new_move_out_date) }} · ₱{{ number_format($renewal->new_monthly_rent, 2) }}/mo from {{ $renewal->rent_effective_from->format('M Y') }}</li>
                     @endforeach
                 </ul>
             @endif
@@ -94,39 +95,72 @@
 
     <div class="grid content-start gap-6">
     <section aria-labelledby="contract-tenant">
-        <h3 id="contract-tenant" class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E] mb-1">Tenant</h3>
-        <dl>
-            <div class="{{ $row }}"><dt class="{{ $dt }}">Mobile</dt><dd class="{{ $dd }}">{{ $tenant->contact_number ?: '—' }}</dd></div>
-            <div class="{{ $row }}"><dt class="{{ $dt }}">Email</dt><dd class="{{ $dd }} break-all">{{ $tenant->email ?: '—' }}</dd></div>
+        <h3 id="contract-tenant" class="{{ $h3 }}">Tenant</h3>
+        @if($showTenantDetails && ! $detail?->emergency_contact_name)
+            <p class="mt-2 rounded-xl bg-[#FBBF24]/[0.14] px-3.5 py-2.5 text-[13.5px] leading-snug text-[#7A3E00]" role="note">
+                <span class="font-semibold">Emergency contact needed.</span> Please add one for {{ $tenant->first_name }} on the Tenants list.
+            </p>
+        @endif
+        <dl class="mt-2 divide-y divide-[#E2E4EC]">
+            <div class="py-2.5">
+                <dt class="{{ $label }}">Mobile</dt>
+                <dd class="{{ $value }}">
+                    @if($tenant->contact_number)
+                        <a href="tel:{{ preg_replace('/[^\d+]/', '', $tenant->contact_number) }}" class="{{ $link }}">{{ $tenant->contact_number }}</a>
+                    @else
+                        <span class="text-[#5B6A8E]">Not added</span>
+                    @endif
+                </dd>
+            </div>
+            <div class="py-2.5">
+                <dt class="{{ $label }}">Email</dt>
+                <dd class="{{ $value }}">
+                    @if($tenant->email)
+                        <a href="mailto:{{ $tenant->email }}" class="{{ $link }}">{{ $tenant->email }}</a>
+                    @else
+                        <span class="text-[#5B6A8E]">Not added</span>
+                    @endif
+                </dd>
+            </div>
             @if($showTenantDetails)
-                <div class="{{ $row }}"><dt class="{{ $dt }}">Emergency contact</dt>
-                    <dd class="{{ $dd }}">
-                        @if($detail?->emergency_contact_name)
-                            {{ $detail->emergency_contact_name }}@if($detail->emergency_contact_relationship) ({{ $detail->emergency_contact_relationship }})@endif
-                            <span class="block font-normal text-[#5B6A8E]">{{ $detail->emergency_contact_number }}</span>
+                @if($detail?->emergency_contact_name)
+                    <div class="py-2.5">
+                        <dt class="{{ $label }}">Emergency contact</dt>
+                        <dd class="{{ $value }}">
+                            {{ $detail->emergency_contact_name }}@if($detail->emergency_contact_relationship) <span class="text-[#5B6A8E]">({{ $detail->emergency_contact_relationship }})</span>@endif
+                            @if($detail->emergency_contact_number)
+                                <a href="tel:{{ preg_replace('/[^\d+]/', '', $detail->emergency_contact_number) }}" class="block {{ $link }}">{{ $detail->emergency_contact_number }}</a>
+                            @endif
+                        </dd>
+                    </div>
+                @endif
+                <div class="py-2.5">
+                    <dt class="{{ $label }}">ID</dt>
+                    <dd class="{{ $value }}">
+                        @if($detail?->id_type)
+                            {{ $detail->id_type }} <span class="tabular-nums text-[#5B6A8E]">{{ $detail->maskedIdNumber() }}</span>
                         @else
-                            Not on file
+                            <span class="text-[#5B6A8E]">Not added</span>
                         @endif
                     </dd>
                 </div>
-                <div class="{{ $row }}"><dt class="{{ $dt }}">ID</dt><dd class="{{ $dd }}">{{ $detail?->id_type ? $detail->id_type.' '.$detail->maskedIdNumber() : 'Not on file' }}</dd></div>
             @endif
         </dl>
     </section>
 
     @if(($others ?? collect())->isNotEmpty())
         <section aria-labelledby="contract-others">
-            <h3 id="contract-others" class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E] mb-1">Other contracts with you</h3>
-            <ul class="divide-y divide-[#E2E4EC]">
+            <h3 id="contract-others" class="{{ $h3 }}">Other leases with you</h3>
+            <ul class="mt-1 divide-y divide-[#E2E4EC]">
                 @foreach($others as $other)
                     <li>
                         <button type="button" @click="$dispatch('open-contract', { url: @js(route('landlord.contracts.show', $other)) })"
-                            class="w-full py-2.5 flex items-start justify-between gap-3 text-left hover:bg-[#F7F8FC] cursor-pointer">
+                            class="w-full min-h-[44px] py-2.5 flex items-start justify-between gap-3 text-left hover:bg-[#F7F8FC] cursor-pointer">
                             <span class="min-w-0">
-                                <span class="block text-[13px] font-semibold text-[#060D26] truncate">{{ $other->property->title }} · {{ $other->unit->unit_label ?? 'No unit' }}</span>
-                                <span class="block text-[12px] text-[#5B6A8E] tabular-nums">{{ $fmt($other->target_move_in_date) }} → {{ $fmt($other->target_move_out_date) }}</span>
+                                <span class="block text-[15px] text-[#060D26] truncate">{{ $other->property->title }}<span class="text-[#5B6A8E]"> · {{ $other->unit->unit_label ?? 'No unit' }}</span></span>
+                                <span class="block text-[13px] text-[#5B6A8E] tabular-nums">{{ $fmt($other->target_move_in_date) }} to {{ $fmt($other->target_move_out_date) }}</span>
                             </span>
-                            <span class="shrink-0 text-[12px] text-[#5B6A8E]">{{ $other->contractStatus()['label'] }}</span>
+                            <span class="shrink-0 text-[13px] text-[#5B6A8E]">{{ $other->contractStatus()['label'] }}</span>
                         </button>
                     </li>
                 @endforeach
@@ -135,32 +169,25 @@
     @endif
     </div>
 
-    {{-- The contract's documents: the lease to view or print, and the signed copy to open or upload. --}}
+    {{-- The lease's documents: the agreement to view or print, and the signed copy to open or upload. --}}
     @php($leaseStatus = $reservation->leaseStatus())
     <section aria-labelledby="contract-documents" class="md:col-span-2">
-        <h3 id="contract-documents" class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E] mb-2">Documents</h3>
-        <div class="rounded-2xl border border-[#E2E4EC] bg-[#F7F8FC] p-4 grid gap-3">
+        <h3 id="contract-documents" class="{{ $h3 }}">Agreement</h3>
+        <div class="mt-2 grid gap-3 rounded-xl bg-[#F7F8FC] p-4">
           <div class="grid gap-3 md:flex md:items-center md:justify-between md:gap-6">
-            <div class="flex flex-wrap items-center gap-2 md:flex-1">
-                @if($leaseStatus === 'missing')
-                    <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#FBBF24]/15 text-[#B45309]">Agreement missing</span>
+            <p class="min-w-0 text-[14px] leading-snug text-[#060D26] md:flex-1">
+                @if($leaseStatus === 'uploaded')
+                    <span class="font-semibold text-[#15803D]">Signed.</span> Signed copy uploaded {{ $reservation->lease_uploaded_at->format('M j, Y') }}.
+                @elseif($leaseStatus === 'signed_online')
+                    <span class="font-semibold text-[#15803D]">Signed.</span> {{ $tenant->first_name }} signed online on {{ $reservation->agreed_at->format('M j, Y') }}.
                 @else
-                    <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#22C55E]/10 text-[#15803D]">Signed</span>
+                    <span class="font-semibold text-[#92400E]">No signed copy yet.</span> Print the agreement, have both of you sign it, then upload the signed copy.
                 @endif
-                <p class="text-[13px] text-[#060D26] min-w-0 flex-1">
-                    @if($leaseStatus === 'uploaded')
-                        Signed copy uploaded {{ $reservation->lease_uploaded_at->format('M j, Y') }}.
-                    @elseif($leaseStatus === 'signed_online')
-                        Signed online by the tenant {{ $reservation->agreed_at->format('M j, Y') }}.
-                    @else
-                        Print the agreement, have both of you sign it, then upload the signed copy.
-                    @endif
-                </p>
-            </div>
+            </p>
 
             <div class="flex flex-wrap items-center gap-2">
                 <a href="{{ route('landlord.leases.show', $reservation) }}" target="_blank" rel="noopener" class="{{ $ghostBtn }} bg-white">
-                    {{ $leaseStatus === 'missing' ? 'View & print agreement' : 'View agreement' }}
+                    {{ $leaseStatus === 'missing' ? 'View & print' : 'View agreement' }}
                 </a>
                 @if($reservation->lease_file_path)
                     <a href="{{ route('landlord.leases.file', $reservation) }}" target="_blank" rel="noopener" class="{{ $ghostBtn }} bg-white">Open signed copy</a>
@@ -181,10 +208,10 @@
                 @csrf
                 {{-- Tells LeaseController::upload to come back to this modal, not the page underneath. --}}
                 <input type="hidden" name="from" value="contracts">
-                <label for="contract_lease_file_{{ $reservation->reservation_id }}" class="text-[12px] font-semibold text-[#5B6A8E]">PDF, JPG or PNG · up to 10 MB</label>
+                <label for="contract_lease_file_{{ $reservation->reservation_id }}" class="text-[13px] text-[#5B6A8E]">PDF, JPG or PNG, up to 10 MB</label>
                 <input type="file" id="contract_lease_file_{{ $reservation->reservation_id }}" name="lease_file" required
                     accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*"
-                    class="block w-full text-[13px] text-[#060D26] file:mr-3 file:h-9 file:px-3 file:rounded-lg file:border-0 file:bg-[#ECEEF6] file:text-[#060D26] file:font-semibold file:cursor-pointer">
+                    class="block w-full text-[14px] text-[#060D26] file:mr-3 file:h-11 file:px-4 file:rounded-full file:border-0 file:bg-white file:text-[#060D26] file:font-semibold file:cursor-pointer">
                 <div class="flex justify-end">
                     <button type="submit" class="{{ $ctaBtn }}">Upload</button>
                 </div>
@@ -218,13 +245,13 @@
     @endif
     @if(in_array($reservation->rental_status, ['Occupied', 'Completed', 'Reserved'], true)
         || ($reservation->rental_status === 'Rental Agreement Signed' && $reservation->moveInSettled()))
-        <a href="{{ route('landlord.payments.ledger', $reservation) }}" data-page-panel data-page-panel-back="Tenants" class="{{ $ghostBtn }}">Open ledger</a>
+        <a href="{{ route('landlord.payments.ledger', $reservation) }}" data-page-panel data-page-panel-back="Leases" @click="$dispatch('close-view-modals')" class="{{ $ghostBtn }}">Open ledger</a>
     @endif
 
     {{-- Rating the tenant lives with the contract now (it used to be a Reservations row action). --}}
     @if(in_array($reservation->rental_status, ['Occupied', 'Completed'], true))
         @if($reservation->tenantRating)
-            <span class="inline-flex items-center gap-1 h-10 px-3 rounded-full bg-[#22C55E]/[0.07] text-[#15803D] text-[13px] font-semibold">Rated {{ $reservation->tenantRating->rating }}/5</span>
+            <span class="inline-flex items-center gap-1 h-11 px-3 rounded-full bg-[#22C55E]/[0.07] text-[#15803D] text-[13px] font-semibold">Rated {{ $reservation->tenantRating->rating }}/5</span>
         @else
             <button type="button" @click="rate(true)" class="{{ $ghostBtn }} cursor-pointer">Rate tenant</button>
         @endif
@@ -232,10 +259,10 @@
 
     @if($reservation->rental_status === 'Reserved')
         <form method="POST" action="{{ route('landlord.reservations.cancel', $reservation) }}"
-            data-confirm="Cancel this contract?" data-confirm-type="warning"
-            data-confirm-message="{{ $tenant->first_name }} has not moved in yet. The unit goes back to Available." data-confirm-button="Cancel contract" data-confirm-cancel="Keep it">
+            data-confirm="Cancel this lease?" data-confirm-type="warning"
+            data-confirm-message="{{ $tenant->first_name }} has not moved in yet. The unit goes back to Available." data-confirm-button="Cancel lease" data-confirm-cancel="Keep it">
             @csrf @method('PATCH')
-            <button type="submit" class="{{ $ghostBtn }} text-[#B91C1C] cursor-pointer">Cancel contract</button>
+            <button type="submit" class="{{ $ghostBtn }} text-[#B91C1C] cursor-pointer">Cancel lease</button>
         </form>
         <form method="POST" action="{{ route('landlord.reservations.confirmWalkInMoveIn', $reservation) }}"
             data-confirm="Confirm move-in?" data-confirm-message="The unit will be marked Occupied and rent starts." data-confirm-button="Confirm move-in">
@@ -268,19 +295,106 @@
             <a href="{{ route('conversations.index', ['active' => $reservation->conversation_id]) }}" class="{{ $ctaBtn }}">Open chat</a>
         @endif
     @elseif($reservation->rental_status === 'Occupied')
-        <a href="{{ route('landlord.tenancies.show', $reservation) }}#end-tenancy" class="{{ $ghostBtn }} text-[#B91C1C]">End contract</a>
+        <button type="button" x-show="!ending"
+            @click="ending = true; renewing = false; $nextTick(() => $refs.endForm?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }))"
+            class="{{ $ghostBtn }} text-[#B91C1C] cursor-pointer">End lease</button>
         @if($canRenew)
-            <button type="button" @click="renewing = true; $nextTick(() => $refs.renewForm?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }))" x-show="!renewing" class="{{ $ctaBtn }}">Renew</button>
+            <button type="button" @click="renewing = true; ending = false; $nextTick(() => $refs.renewForm?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }))" x-show="!renewing" class="{{ $ctaBtn }}">Renew</button>
         @endif
     @endif
 </div>
+
+@if($reservation->rental_status === 'Occupied')
+    @php($unpaid = (float) ($ledger['outstanding'] ?? 0))
+    @php($depositLeft = (float) ($ledger['depositRemaining'] ?? 0))
+    @php($unitName = $reservation->unit?->unit_label ?? 'The unit')
+    {{-- End lease, in place (TenancyController::endTenancy). Unpaid rent is shown, never a reason to refuse. --}}
+    <form method="POST" action="{{ route('landlord.tenancies.end', $reservation) }}" x-ref="endForm" x-show="ending" x-cloak
+        class="mx-6 mb-6 grid gap-4 rounded-xl bg-[#FEF2F2] p-4"
+        data-confirm="End this lease?"
+        data-confirm-message="{{ $unitName }} becomes available again and rent stops being billed for new months. This cannot be undone."
+        data-confirm-button="End lease" data-confirm-type="warning">
+        @csrf
+        <input type="hidden" name="from" value="contracts">
+        <div>
+            <p class="text-[15px] font-semibold text-[#060D26]">End this lease</p>
+            <p class="mt-1 text-[14px] leading-snug text-[#5B6A8E]">{{ $unitName }} goes back to your available units and no new months are billed. If rent is still owed you can keep collecting it, or stop collecting it, from Payments.</p>
+        </div>
+
+        <div class="sm:max-w-[260px]">
+            <label class="block text-[13px] font-semibold text-[#060D26] mb-1.5" for="end_date_{{ $reservation->reservation_id }}">Move-out date</label>
+            <x-date-picker name="move_out_date" id="end_date_{{ $reservation->reservation_id }}"
+                value="{{ now()->toDateString() }}" max="{{ now()->toDateString() }}" />
+        </div>
+
+        @if($unpaid > 0)
+            <p class="rounded-lg bg-[#FBBF24]/[0.16] px-3.5 py-2.5 text-[14px] leading-snug text-[#7A3E00]" role="note">
+                <span class="font-semibold">₱{{ number_format($unpaid, 2) }} in rent is still unpaid.</span> You can still end the lease. The ledger keeps the balance so you can follow it up.
+            </p>
+        @endif
+
+        @if($depositLeft > 0)
+            <div x-data="{ returning: false }" class="grid gap-2 border-t border-[#EF4444]/15 pt-4">
+                <p class="text-[14px] text-[#060D26]">
+                    <span class="font-semibold">Security deposit:</span> ₱{{ number_format($depositLeft, 2) }} to return to {{ $tenant->first_name }}
+                    @if(($ledger['depositCharged'] ?? 0) > 0)<span class="text-[#5B6A8E]">(after ₱{{ number_format($ledger['depositCharged'], 2) }} in charges)</span>@endif.
+                </p>
+                <label class="flex items-start gap-2.5 min-h-[44px] cursor-pointer">
+                    <input type="checkbox" x-model="returning" class="mt-1 h-5 w-5 rounded border-[#5B6A8E]/40 text-[#FF8A66] focus:ring-[#FF8A66]/40">
+                    <span class="text-[14px] text-[#060D26]">I have already returned the deposit<span class="block text-[13px] text-[#5B6A8E]">Leave this off to record it later from this lease.</span></span>
+                </label>
+                <div x-show="returning" x-cloak class="sm:max-w-[260px]">
+                    <label class="block text-[13px] font-semibold text-[#060D26] mb-1.5" for="dep_amt_{{ $reservation->reservation_id }}">Amount returned (₱)</label>
+                    <input id="dep_amt_{{ $reservation->reservation_id }}" type="number" step="0.01" min="0" max="{{ $depositLeft }}" value="{{ $depositLeft }}"
+                        x-bind:name="returning ? 'deposit_returned_amount' : null" x-bind:disabled="!returning"
+                        class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 bg-white px-3.5 text-[15px] text-[#060D26] tabular-nums focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30">
+                </div>
+            </div>
+        @endif
+
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+            <button type="button" @click="ending = false" class="{{ $ghostBtn }} bg-white cursor-pointer">Keep lease</button>
+            <button type="submit" class="inline-flex items-center justify-center h-11 px-5 rounded-full bg-[#DC2626] text-[14px] font-semibold text-white hover:bg-[#B91C1C] transition-colors duration-200 cursor-pointer">End lease</button>
+        </div>
+    </form>
+@endif
+
+{{-- After the lease has ended: where the security deposit stands. The landlord's own record; no money moves here. --}}
+@if($reservation->rental_status === 'Completed' && $deposit > 0)
+    @php($depLeft = (float) ($ledger['depositRemaining'] ?? 0))
+    <section class="mx-6 mb-6" aria-labelledby="deposit-return-title">
+        <h3 id="deposit-return-title" class="text-[15px] font-semibold text-[#060D26]">Security deposit</h3>
+        @if($reservation->deposit_returned_at)
+            <p class="mt-1.5 rounded-xl bg-[#22C55E]/[0.08] px-4 py-3 text-[14px] text-[#14532D]">
+                <span class="font-semibold">Returned.</span> ₱{{ number_format((float) $reservation->deposit_returned_amount, 2) }} went back to {{ $tenant->first_name }} on {{ $reservation->deposit_returned_at->format('M j, Y') }}.
+            </p>
+        @elseif($depLeft > 0)
+            <form method="POST" action="{{ route('landlord.tenancies.depositReturn', $reservation) }}" class="mt-1.5 grid gap-3 rounded-xl bg-[#F7F8FC] p-4"
+                data-confirm="Mark the deposit as returned?" data-confirm-message="This records that you gave ₱{{ number_format($depLeft, 2) }} back to {{ $tenant->first_name }}. It does not move any money."
+                data-confirm-button="Mark as returned">
+                @csrf
+                <p class="text-[14px] text-[#060D26]">₱{{ number_format($depLeft, 2) }} still to return to {{ $tenant->first_name }}@if(($ledger['depositCharged'] ?? 0) > 0) <span class="text-[#5B6A8E]">(after ₱{{ number_format($ledger['depositCharged'], 2) }} in charges)</span>@endif.</p>
+                <div class="grid gap-3 sm:grid-cols-[minmax(0,260px)_auto] sm:items-end">
+                    <div>
+                        <label class="block text-[13px] font-semibold text-[#060D26] mb-1.5" for="dep_done_{{ $reservation->reservation_id }}">Amount returned (₱)</label>
+                        <input id="dep_done_{{ $reservation->reservation_id }}" type="number" name="deposit_returned_amount" step="0.01" min="0" max="{{ $depLeft }}" value="{{ $depLeft }}" required
+                            class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 bg-white px-3.5 text-[15px] text-[#060D26] tabular-nums focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30">
+                    </div>
+                    <button type="submit" class="{{ $ctaBtn }}">Mark as returned</button>
+                </div>
+            </form>
+        @else
+            <p class="mt-1.5 text-[14px] text-[#5B6A8E]">Nothing left to return. Charges used the whole deposit.</p>
+        @endif
+    </section>
+@endif
 
 @if($canRenew)
     {{-- Renew: offered within rentals.renewal_window_days of the end date, or once it has passed. --}}
     <form method="POST" action="{{ route('landlord.contracts.renew', $reservation) }}" x-ref="renewForm" x-show="renewing" x-cloak
         class="mx-6 mb-6 grid gap-3 rounded-2xl border border-[#E2E4EC] bg-[#F7F8FC] p-4">
         @csrf
-        <p class="text-[13px] font-semibold text-[#060D26]">Renew this contract</p>
+        <p class="text-[13px] font-semibold text-[#060D26]">Renew this lease</p>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
                 <label class="block text-[12px] font-semibold text-[#060D26] mb-1.5" for="renew_end_{{ $reservation->reservation_id }}">New end date</label>

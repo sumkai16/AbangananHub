@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Rent collection across the landlord's whole portfolio, and the endpoint that
@@ -47,6 +48,7 @@ class PaymentController extends Controller
         'upcoming'   => ['dot' => 'bg-[#94A3B8]', 'text' => 'text-[#5B6A8E]', 'label' => 'Upcoming'],
         'paid'       => ['dot' => 'bg-[#15803D]', 'text' => 'text-[#15803D]', 'label' => 'Paid'],
         'paid_ahead' => ['dot' => 'bg-[#060D26]', 'text' => 'text-[#060D26]', 'label' => 'Paid Ahead'],
+        'written_off' => ['dot' => 'bg-[#94A3B8]', 'text' => 'text-[#5B6A8E]', 'label' => 'Not collecting'],
     ];
 
     private const METHODS = ['Cash', 'GCash', 'Bank Transfer', 'Maya', 'Check', 'Other'];
@@ -63,6 +65,7 @@ class PaymentController extends Controller
         'upcoming'   => 2,
         'paid'       => 3,
         'paid_ahead' => 4,
+        'written_off' => 5,
     ];
 
     /**
@@ -466,11 +469,25 @@ class PaymentController extends Controller
             // ended by another tab between the authorize() and here.
             $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();
 
+            $ended = $locked->rental_status === 'Completed';
             abort_unless(
-                $locked->rental_status === 'Occupied',
+                $locked->rental_status === 'Occupied' || ($ended && $locked->rent_written_off_at === null),
                 409,
                 'This tenancy is no longer active, so payments cannot be added to it.'
             );
+
+            // An ended tenancy only takes rent that is still owed: nothing else, and never more than the balance,
+            // or the excess would land in a month after move-out and read as "paid ahead".
+            if ($ended) {
+                $owed = RentLedger::for($locked)->summary()['outstanding'];
+
+                if ($data['payment_type'] !== 'Monthly' || $owed <= 0) {
+                    throw ValidationException::withMessages(['amount' => 'This lease has ended. Only unpaid rent can still be recorded.']);
+                }
+                if ((float) $data['amount'] > $owed + 0.001) {
+                    throw ValidationException::withMessages(['amount' => 'This tenant owes ₱'.number_format($owed, 2).'. You cannot record more than that on an ended lease.']);
+                }
+            }
 
             return RentPaymentRecorder::record($locked, $data, Auth::id());
         });

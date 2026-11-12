@@ -303,6 +303,9 @@ Route::middleware('auth')->group(function () {
         // initial payment. The GET is the removed tenancy page's address: it now opens the lease modal.
         Route::get('/tenancies/{reservation}', [App\Http\Controllers\Landlord\TenancyController::class, 'show'])->name('tenancies.show');
         Route::post('/tenancies/{reservation}/end', [App\Http\Controllers\Landlord\TenancyController::class, 'endTenancy'])->name('tenancies.end');
+        Route::post('/tenancies/{reservation}/deposit-return', [App\Http\Controllers\Landlord\TenancyController::class, 'returnDeposit'])->name('tenancies.depositReturn');
+        Route::post('/tenancies/{reservation}/stop-collecting', [App\Http\Controllers\Landlord\TenancyController::class, 'stopCollecting'])->name('tenancies.stopCollecting');
+        Route::post('/tenancies/{reservation}/resume-collecting', [App\Http\Controllers\Landlord\TenancyController::class, 'resumeCollecting'])->name('tenancies.resumeCollecting');
         Route::patch('/tenancies/{reservation}/tenant-details', [App\Http\Controllers\Landlord\TenancyController::class, 'updateTenantDetails'])->name('tenancies.tenantDetails.update');
         Route::get('/tenancies/{reservation}/tenant-details/id', [App\Http\Controllers\Landlord\TenancyController::class, 'revealTenantId'])
             ->middleware('throttle:20,1')->name('tenancies.tenantDetails.id');

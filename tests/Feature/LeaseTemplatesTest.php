@@ -477,11 +477,11 @@ class LeaseTemplatesTest extends TestCase
         $this->actingAs($l)->get(route('conversations.show', $conversation), $ajax)->assertOk()->assertSee('3 of 6');
     }
 
-    public function test_the_tenants_page_offers_the_lease_policies_modal_and_keeps_the_plain_link(): void
+    public function test_the_leases_page_offers_the_lease_policies_modal_and_keeps_the_plain_link(): void
     {
         $l = $this->makeLandlord();
 
-        $this->actingAs($l)->get(route('landlord.tenants.index'))
+        $this->actingAs($l)->get(route('landlord.contracts.index'))
             ->assertOk()
             ->assertSee('open-lease-policies', false)
             ->assertSee('landlord\\/leases\\/panel', false)

@@ -113,11 +113,15 @@ class TenancyController extends Controller
 
         $data = $request->validate([
             'move_out_date' => ['nullable', 'date', 'before_or_equal:' . BusinessTime::today()],
+            // Optional: the landlord can note the deposit as returned now, or do it later from the lease.
+            'deposit_returned_amount' => ['nullable', 'numeric', 'min:0'],
         ], [
             'move_out_date.before_or_equal' => 'A move-out date cannot be in the future.',
         ]);
 
-        $ended = DB::transaction(function () use ($reservation, $data) {
+        $depositNote = null;
+
+        $ended = DB::transaction(function () use ($reservation, $data, &$depositNote) {
             $locked = Reservation::whereKey($reservation->getKey())
                 ->with(['unit', 'property', 'tenant'])
                 ->lockForUpdate()
@@ -129,6 +133,10 @@ class TenancyController extends Controller
 
             if ($wasEnded) {
                 $this->notifyTenancyEnded($locked);
+
+                if (filled($data['deposit_returned_amount'] ?? null)) {
+                    $depositNote = $this->recordDepositReturn($locked, (float) $data['deposit_returned_amount']);
+                }
             }
 
             return $wasEnded;
@@ -138,9 +146,116 @@ class TenancyController extends Controller
             return back()->with('error', 'This tenancy is not currently active, so it cannot be ended.');
         }
 
+        $message = 'Lease ended. The unit is available again and no new months are billed.'.($depositNote ? ' '.$depositNote : '');
+
+        // The lease modal on the Leases page ends it in place and comes back to the list.
+        if ($request->input('from') === 'contracts') {
+            return redirect()->route('landlord.contracts.index', ['status' => 'ended'])->with('success', $message);
+        }
+
         return redirect()
             ->route('landlord.tenancies.show', $reservation)
-            ->with('success', 'Tenancy ended. The unit is available again and the ledger is closed.');
+            ->with('success', $message);
+    }
+
+    /**
+     * Note that the deposit went back to the tenant, after the lease has ended. The landlord's own record: no money
+     * moves here. Allowed once, up to what is left of the deposit after any deposit charges.
+     */
+    public function returnDeposit(Request $request, Reservation $reservation)
+    {
+        Gate::authorize('viewTenancy', $reservation);
+        abort_unless($reservation->rental_status === 'Completed', 404);
+
+        $data = $request->validate(['deposit_returned_amount' => ['required', 'numeric', 'min:0']]);
+
+        $note = DB::transaction(function () use ($reservation, $data) {
+            $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();
+
+            return $this->recordDepositReturn($locked, (float) $data['deposit_returned_amount']);
+        });
+
+        return redirect()
+            ->route('landlord.contracts.index', ['status' => 'ended', 'open' => $reservation->reservation_id])
+            ->with($note ? 'success' : 'warning', $note ?: 'The deposit was already marked as returned.');
+    }
+
+    /**
+     * "Stop collecting": the landlord gives up on rent an ended tenant still owes. The months stay on the ledger,
+     * but the balance leaves every total and no reminder is sent. Only for an ended lease that has a balance, and
+     * reversible with resumeCollecting().
+     */
+    public function stopCollecting(Request $request, Reservation $reservation)
+    {
+        Gate::authorize('viewTenancy', $reservation);
+        abort_unless($reservation->rental_status === 'Completed', 404);
+
+        $result = DB::transaction(function () use ($reservation) {
+            $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();
+
+            if ($locked->rent_written_off_at) {
+                return null;
+            }
+
+            $owed = RentLedger::for($locked)->summary()['outstanding'];
+            if ($owed <= 0) {
+                return false;
+            }
+
+            $locked->forceFill(['rent_written_off_amount' => $owed, 'rent_written_off_at' => now()])->save();
+
+            AuditLog::record(
+                'rent.stop_collecting',
+                'Landlord stopped collecting ₱'.number_format($owed, 2).' of unpaid rent on an ended lease',
+                $locked,
+                null,
+                ['amount' => $owed],
+            );
+
+            return $owed;
+        });
+
+        return match (true) {
+            $result === null => back()->with('warning', 'You had already stopped collecting this.'),
+            $result === false => back()->with('warning', 'Nothing is owed on this lease.'),
+            default => back()->with('success', 'Stopped collecting ₱'.number_format($result, 2).'. It no longer counts as owed. You can resume any time.'),
+        };
+    }
+
+    /** Undo stopCollecting(): the balance counts as owed again. */
+    public function resumeCollecting(Request $request, Reservation $reservation)
+    {
+        Gate::authorize('viewTenancy', $reservation);
+        abort_unless($reservation->rental_status === 'Completed', 404);
+
+        DB::transaction(function () use ($reservation) {
+            $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();
+
+            if (! $locked->rent_written_off_at) {
+                return;
+            }
+
+            $locked->forceFill(['rent_written_off_amount' => null, 'rent_written_off_at' => null])->save();
+
+            AuditLog::record('rent.resume_collecting', 'Landlord resumed collecting unpaid rent on an ended lease', $locked);
+        });
+
+        return back()->with('success', 'Collecting resumed. The balance counts as owed again.');
+    }
+
+    /** Writes the deposit-return note (once, capped at the deposit that is left). Null when it was already recorded. */
+    private function recordDepositReturn(Reservation $reservation, float $amount): ?string
+    {
+        if ($reservation->deposit_returned_at) {
+            return null;
+        }
+
+        $left = RentLedger::for($reservation)->summary()['depositRemaining'];
+        $amount = round(min(max($amount, 0), $left), 2);
+
+        $reservation->forceFill(['deposit_returned_amount' => $amount, 'deposit_returned_at' => now()])->save();
+
+        return 'Deposit return of ₱'.number_format($amount, 2).' recorded.';
     }
 
     /**

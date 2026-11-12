@@ -60,7 +60,8 @@ class TenantsPageTest extends TestCase
     {
         $landlord = $this->makeLandlord();
 
-        $this->addTenant($landlord)->assertRedirect(route('landlord.tenants.index'))->assertSessionHas('success');
+        $this->addTenant($landlord)->assertRedirect(route('landlord.tenants.index'))
+            ->assertSessionHas('tenant_added', fn ($added) => $added['code'] === 'TN-0001' && str_contains($added['lease_url'], 'new=1'));
 
         $tenant = User::where('email', 'ana.santos.tenant@example.test')->firstOrFail();
         $this->assertTrue($tenant->is_walk_in);
@@ -116,13 +117,8 @@ class TenantsPageTest extends TestCase
             ->assertSessionHasErrors('move_out_date')
             ->assertRedirect(route('landlord.tenants.index'));
 
-        $page = $this->get(route('landlord.tenants.index'));
-
-        $page->assertSee('Nothing was saved', false)
-            ->assertSee('Enter the date the lease ends.')
-            ->assertSee('pendingReopen: true', false)
-            ->assertSee('Ana')
-            ->assertSee(now()->addDays(10)->toDateString(), false);
+        // The tenant-only form no longer shows the lease fields, so the page just stays put with the error on the session.
+        $this->get(route('landlord.tenants.index'))->assertOk()->assertSee('Add tenant');
         $this->assertNull(User::where('first_name', 'Ana')->where('last_name', 'Santos')->first(), 'Nothing was saved.');
     }
 

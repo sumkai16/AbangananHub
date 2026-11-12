@@ -449,6 +449,10 @@ One tenant's inquiry-to-tenancy record on one unit. `rental_status` walks Inquir
 | lease_file_path | varchar(255) | null | | Signed paper copy, private disk |
 | lease_file_name | varchar(255) | null | | |
 | lease_uploaded_at | timestamp | null | | |
+| deposit_returned_amount | decimal(10,2) | null | | What the landlord noted as given back after the lease ended. Capped at the deposit left after deposit charges |
+| deposit_returned_at | timestamp | null | | When that was noted; null = not returned yet. A record only, no money moves |
+| rent_written_off_amount | decimal(10,2) | null | | Unpaid rent when the landlord pressed Stop collecting on an ended lease |
+| rent_written_off_at | timestamp | null | | Set = stopped collecting: `RentLedger::summary()` reports no balance and no reminders go out. Null again on Resume |
 | agreed_at | timestamp | null | | Set by `signAgreement()` |
 | agreed_ip | varchar(255) | null | | |
 | landlord_tc_accepted_at | timestamp | null | | |
@@ -879,6 +883,18 @@ A property's Activity Log (Landlord > property > Activity Log tab, and Overview'
 - Quiet while a property is a Draft (only its creation, and the submit, are recorded).
 - `unit.status_changed` rows exist only from the backfill (from `occupancy_activities`); live availability changes are told by the reservation lines.
 - `2026_11_05_000300_backfill_property_activities` fills it from properties, units, `audit_logs` listing/unit decisions, `occupancy_activities` and visible reviews. Idempotent; `down()` removes only `backfilled` rows.
+
+### platform_ratings
+How users rate AbangananHub itself (the landing page rating box). One row per account; rating again edits it. Admin reads them under platform feedback.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| platform_rating_id | bigint unsigned | NN | PK | |
+| user_id | bigint unsigned | NN | UNIQUE, FK → users, cascade | One rating per account |
+| rating | tinyint unsigned | NN | | 1 to 5 |
+| comment | varchar(1000) | null | | Optional |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | Bumped when the user changes their rating |
 
 ### settings
 Overrides only. A key with no row falls through to `config/rentals.php`; clearing a field in the admin form deletes the row.

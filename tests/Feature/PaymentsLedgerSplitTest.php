@@ -73,7 +73,7 @@ class PaymentsLedgerSplitTest extends TestCase
             ->assertDontSee('Record payment')
             ->assertDontSee('Rent ledger');
 
-        $this->assertSame(route('landlord.tenants.index'), $this->activeNavHref($response->getContent()));
+        $this->assertSame(route('landlord.contracts.index'), $this->activeNavHref($response->getContent()));
     }
 
     public function test_the_contract_modal_links_to_the_ledger(): void

@@ -41,7 +41,11 @@
         </div>
         <div>
             <label class="{{ $label }}" for="{{ $idPrefix }}_occupants">Occupants</label>
-            <input id="{{ $idPrefix }}_occupants" type="number" name="occupants_count" value="{{ old('occupants_count', 1) }}" min="1" :max="unit?.limit ?? 20" class="{{ $input }}">
+            <input id="{{ $idPrefix }}_occupants" type="number" name="occupants_count" value="{{ old('occupants_count', 1) }}" min="1" :max="unit?.limit ?? 20" :disabled="!unit && {{ $idPrefix === 'contract' ? 'true' : 'false' }}"
+                x-effect="if (unit && unit.limit && Number($el.value) > Number(unit.limit)) $el.value = unit.limit"
+                class="{{ $input }} disabled:bg-[#F7F8FC] disabled:text-[#94A3B8]">
+            <p class="mt-1 text-[11.5px] text-[#5B6A8E]" x-show="unit && unit.limit" x-cloak>Max <span x-text="unit?.limit"></span> for this unit</p>
+            <p class="mt-1 text-[11.5px] text-[#5B6A8E]" x-show="!unit">Set by the unit</p>
             @error('occupants_count')<p class="{{ $err }}">{{ $message }}</p>@enderror
         </div>
         <div class="col-span-3 -mt-1">

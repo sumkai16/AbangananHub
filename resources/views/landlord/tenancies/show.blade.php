@@ -404,12 +404,12 @@
                         <p class="text-[12.5px] text-[#5B6A8E] leading-relaxed mb-4">
                             Marks this tenancy complete and returns
                             <strong class="text-[#060D26]">{{ $unit->unit_label ?? 'the unit' }}</strong>
-                            to your available units. The ledger stays readable but stops accepting new payments.
+                            to your available units. No new months are billed. Rent still owed can be collected, or you can stop collecting it, from Payments.
                         </p>
 
                         <form method="POST" action="{{ route('landlord.tenancies.end', $reservation) }}"
                             data-confirm="End this tenancy?"
-                            data-confirm-message="The unit becomes available again and no further payments can be recorded against this ledger. This cannot be undone."
+                            data-confirm-message="The unit becomes available again and no new months are billed. This cannot be undone."
                             data-confirm-button="End tenancy"
                             data-confirm-type="warning">
                             @csrf

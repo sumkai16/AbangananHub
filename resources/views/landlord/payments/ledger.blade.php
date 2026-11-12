@@ -8,6 +8,10 @@
         $unit = $reservation->unit;
         $isWalkIn = (bool) $tenant?->is_walk_in;
         $isActive = $reservation->rental_status === 'Occupied';
+        // An ended lease can still collect the rent it is owed, until the landlord stops collecting it.
+        $isEnded = $reservation->rental_status === 'Completed';
+        $isWrittenOff = $summary['paymentStatus'] === 'written_off';
+        $canRecord = $isActive || ($isEnded && ! $isWrittenOff && $summary['outstanding'] > 0);
         // Before move-in there is nothing to bill: the ledger derives periods from the move-in date, so showing it would report arrears for a tenant who has not arrived.
         $hasStarted = in_array($reservation->rental_status, ['Occupied', 'Completed'], true);
         $tenantName = trim(($tenant->first_name ?? '') . ' ' . ($tenant->last_name ?? '')) ?: 'Unknown tenant';
@@ -43,6 +47,7 @@
             'upcoming'   => ['dot' => 'bg-[#5B6A8E]', 'text' => 'text-[#5B6A8E]', 'label' => 'Upcoming'],
             'paid'       => ['dot' => 'bg-[#15803D]', 'text' => 'text-[#15803D]', 'label' => 'Paid'],
             'paid_ahead' => ['dot' => 'bg-[#060D26]', 'text' => 'text-[#060D26]', 'label' => 'Paid Ahead'],
+            'written_off' => ['dot' => 'bg-[#94A3B8]', 'text' => 'text-[#5B6A8E]', 'label' => 'Not collecting'],
         ];
         $paymentStatusStyle = $paymentStatusStyles[$summary['paymentStatus']] ?? $paymentStatusStyles['upcoming'];
 
@@ -126,7 +131,7 @@
         @if($hasStarted)
             @php
                 // One detail payload per period, keyed by month, shared by the lease strip and both month lists.
-                $periodDetails = $periods->mapWithKeys(function ($period) use ($periodStyleFor, $reservation, $isActive) {
+                $periodDetails = $periods->mapWithKeys(function ($period) use ($periodStyleFor, $reservation, $canRecord) {
                     $style = $periodStyleFor($period);
                     $detail = \App\Services\RentLedger::periodPayload($period);
                     $detail['pill'] = $style['pill'];
@@ -139,7 +144,7 @@
                         $detail['waive_action'] = route('landlord.tenancies.waiveLateFee', $reservation);
                     }
                     // The month's own Record button: an unpaid month of a running tenancy opens the record form for it.
-                    if ($isActive && ! $period['is_future'] && $period['balance'] > 0) {
+                    if ($canRecord && ! $period['is_future'] && $period['balance'] > 0) {
                         $detail['record'] = [
                             'period' => $period['period']->toDateString(),
                             'balance' => number_format($period['balance'], 2, '.', ''),
@@ -208,6 +213,8 @@
                             <p class="mt-2 text-[13.5px] leading-relaxed text-white/75 max-w-[48ch]">
                                 @if($summary['prepaidThrough'])
                                     Paid in advance through <span class="font-semibold text-white">{{ $summary['prepaidThrough']->format('F Y') }}</span>.
+                                @elseif($isWrittenOff)
+                                    You stopped collecting this balance. The months stay on the ledger below.
                                 @elseif($isActive)
                                     All paid up. Nothing is owed right now.
                                 @else
@@ -217,7 +224,7 @@
                         @endif
                     </div>
 
-                    @if($isActive)
+                    @if($canRecord)
                         <div class="mt-auto grid grid-cols-1 sm:flex gap-2">
                             <button type="button" @click="$dispatch('open-record-payment')"
                                 class="h-11 sm:h-10 px-4 inline-flex items-center justify-center gap-2 rounded-xl text-[13.5px] font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#060D26] transition-colors duration-200 cursor-pointer bg-[#FF8A66] text-[#060D26] hover:bg-[#E96F4F]">
@@ -226,7 +233,7 @@
                                 </svg>
                                 Record payment
                             </button>
-                            @if(! $isWalkIn && $summary['outstanding'] > 0)
+                            @if($isActive && ! $isWalkIn && $summary['outstanding'] > 0)
                                 <form method="POST" action="{{ route('landlord.tenancies.remind', $reservation) }}"
                                     data-confirm="Send a rent reminder?" data-confirm-message="{{ $tenant->first_name }} gets a notification about the unpaid rent." data-confirm-button="Send reminder">
                                     @csrf
@@ -239,6 +246,30 @@
                                     </button>
                                 </form>
                             @endif
+                            @if($isEnded && ! $isWrittenOff)
+                                {{-- An ended tenant who will not pay: give up on the balance. Reversible. --}}
+                                <form method="POST" action="{{ route('landlord.tenancies.stopCollecting', $reservation) }}"
+                                    data-confirm="Stop collecting this balance?"
+                                    data-confirm-message="₱{{ number_format($summary['outstanding'], 2) }} will no longer count as owed, and {{ $tenant->first_name }} gets no more reminders. The months stay on the ledger and you can resume any time."
+                                    data-confirm-button="Stop collecting" data-confirm-type="warning">
+                                    @csrf
+                                    <button type="submit"
+                                        class="w-full h-11 sm:h-10 px-4 inline-flex items-center justify-center rounded-xl border border-white/25 text-white text-[13.5px] font-semibold hover:bg-white/10 transition-colors duration-200 cursor-pointer">
+                                        Stop collecting
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
+                    @elseif($isEnded && $isWrittenOff)
+                        <div class="mt-auto flex flex-wrap items-center gap-3">
+                            <p class="text-[13.5px] text-white/80">Not collecting <span class="font-semibold text-white tabular-nums">{{ $peso($summary['writtenOffAmount']) }}</span></p>
+                            <form method="POST" action="{{ route('landlord.tenancies.resumeCollecting', $reservation) }}">
+                                @csrf
+                                <button type="submit"
+                                    class="h-11 sm:h-10 px-4 inline-flex items-center justify-center rounded-xl border border-white/25 text-white text-[13.5px] font-semibold hover:bg-white/10 transition-colors duration-200 cursor-pointer">
+                                    Resume collecting
+                                </button>
+                            </form>
                         </div>
                     @endif
                 </section>
@@ -591,7 +622,7 @@
     </div>
 
     {{-- Record payment modal — teleported so no ancestor's transform or overflow can clip it (RULES.md → Modals & Overlays). --}}
-    @if($isActive)
+    @if($canRecord)
         @include('landlord.payments.partials.record-payment-modal')
     @endif
 

@@ -36,6 +36,7 @@ class TenantController extends Controller
 
     /** The stage chips, in order. 'ending' and 'no-agreement' overlap the others, so they are flags on a row. */
     public const STAGES = [
+        'active' => 'Active',
         'living' => 'Living there',
         'moving' => 'Moving in',
         'ending' => 'Ending soon',
@@ -49,7 +50,7 @@ class TenantController extends Controller
     private const PER_PAGE = 20;
 
     /** Old Tenants-page filters (Active / Pending) from before the merge. */
-    private const OLD_STATUS = ['active' => 'living', 'pending' => 'none'];
+    private const OLD_STATUS = ['pending' => 'none'];
 
     public function index(Request $request)
     {
@@ -91,9 +92,9 @@ class TenantController extends Controller
         $filtered = $stage === '' ? $scoped : $scoped->filter(fn ($r) => $this->inStage($r, $stage))->values();
 
         // The page shows one table per property, so keep each property's tenants together (tenants with no
-        // unit yet last). sortBy is stable, so the order inside a property is unchanged.
+        // unit yet first, so they are the first thing seen). sortBy is stable, so the order inside a property is unchanged.
         $filtered = $filtered
-            ->sortBy(fn ($r) => $r['shown'] ? '0'.Str::lower($r['shown']->property->title).'|'.$r['shown']->property_id : '1')
+            ->sortBy(fn ($r) => $r['shown'] ? '1'.Str::lower($r['shown']->property->title).'|'.$r['shown']->property_id : '0')
             ->values();
         // Whole-list total per property: a property cut across two pages still shows its real size.
         $groupTotals = $filtered->countBy(fn ($r) => $r['shown']?->property_id ?? 0);
@@ -129,6 +130,7 @@ class TenantController extends Controller
     private function inStage(array $r, string $stage): bool
     {
         return match ($stage) {
+            'active' => in_array($r['stage'], ['living', 'moving'], true),
             'ending' => $r['ending'],
             'no-agreement' => $r['noAgreement'],
             default => $r['stage'] === $stage,
@@ -191,7 +193,13 @@ class TenantController extends Controller
                     : 'The lease is in and the unit is reserved until '.$row->tenant->first_name.' moves in.').$note);
         }
 
-        return redirect()->route('landlord.tenants.index')->with('success', $row->code().' added as Pending.'.$note);
+        // The "tenant added" popup (tenants/partials/_added-modal) offers Add lease with this tenant picked.
+        return redirect()->route('landlord.tenants.index')->with('tenant_added', [
+            'name' => trim($row->tenant->first_name.' '.$row->tenant->last_name),
+            'code' => $row->code(),
+            'invited' => (bool) $invited,
+            'lease_url' => route('landlord.contracts.index', ['new' => 1, 'tenant' => $row->landlord_tenant_id]),
+        ]);
     }
 
     /** The view modal's body, fetched when it opens so emergency contacts are not embedded in the list. */
@@ -199,18 +207,7 @@ class TenantController extends Controller
     {
         Gate::authorize('view', $landlordTenant);
 
-        // One modal: a tenant with a contract opens on it (the contract view carries their details and other
-        // contracts); a tenant without one gets their details and an Add contract button.
-        $shown = $landlordTenant->reservations()
-            ->whereIn('rental_status', ContractController::CONTRACT_STATUSES)
-            ->orderByRaw("FIELD(rental_status, 'Occupied', 'Reserved', 'Rental Agreement Signed', 'Completed')")
-            ->latest('reservation_date')
-            ->first();
-
-        if ($shown) {
-            return view('landlord.contracts.partials._details', ContractController::detailsData($shown));
-        }
-
+        // The tenant's own details only. Lease details open from the Leases page (ContractController::show).
         $landlordTenant->load('tenant.tenantDetail');
         $reservations = $landlordTenant->reservations()->with(['unit', 'property'])->latest('reservation_date')->get();
 

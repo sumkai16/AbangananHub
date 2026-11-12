@@ -28,6 +28,7 @@
         close() { this.show = false; },
      }"
      x-on:{{ $event }}.window="open($event.detail.url)"
+     x-on:close-view-modals.window="close()"
      x-on:keydown.escape.window="close()">
 
     <template x-teleport="body">
@@ -40,7 +41,8 @@
                 x-transition:enter-end="opacity-100 translate-y-0"
                 x-transition:leave="transition ease-in duration-150"
                 x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-                class="relative w-full sm:max-w-3xl max-h-[92dvh] overflow-y-auto bg-white border border-[#E2E4EC] rounded-t-2xl sm:rounded-2xl shadow-[0_20px_60px_rgba(6,13,38,0.18)]">
+                @if(!empty($maxWidth)) style="max-width: {{ $maxWidth }};" @endif
+                class="relative w-full {{ empty($maxWidth) ? 'sm:max-w-3xl' : '' }} max-h-[92dvh] overflow-y-auto bg-white border border-[#E2E4EC] rounded-t-2xl sm:rounded-2xl shadow-[0_20px_60px_rgba(6,13,38,0.18)]">
 
                 <button type="button" @click="close()" aria-label="Close"
                     class="absolute right-4 top-4 w-8 h-8 rounded-lg flex items-center justify-center text-[#5B6A8E] hover:bg-[#F7F8FC] hover:text-[#060D26] transition-colors duration-200 cursor-pointer z-10">

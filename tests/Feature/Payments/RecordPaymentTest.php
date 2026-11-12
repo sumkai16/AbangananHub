@@ -443,13 +443,75 @@ class RecordPaymentTest extends TestCase
 
     public function test_payments_cannot_be_added_unless_the_tenancy_is_occupied(): void
     {
-        foreach (['Completed', 'Cancelled', 'Rejected', 'Reserved', 'Inquiry'] as $status) {
+        foreach (['Cancelled', 'Rejected', 'Reserved', 'Inquiry'] as $status) {
             $t = $this->makeTenancy(['rental_status' => $status]);
 
             $this->record($t)->assertForbidden();
 
             $this->assertNothingWritten($t);
         }
+    }
+
+    // ─── Ended tenancies: collect what is still owed, or stop collecting ─
+
+    public function test_an_ended_tenancy_still_takes_rent_it_is_owed_but_never_more_than_the_balance(): void
+    {
+        $t = $this->makeTenancy(['rental_status' => 'Completed']);
+        $owed = $this->summary($t)['outstanding'];
+        $this->assertGreaterThan(0, $owed);
+
+        // More than is owed would spill into a month after move-out and read as "paid ahead".
+        $this->record($t, ['amount' => $owed + 1])->assertSessionHasErrors('amount');
+        $this->assertNothingWritten($t);
+
+        // Anything but rent is refused too.
+        $this->record($t, ['payment_type' => 'Utility', 'billing_period' => null, 'amount' => 100])->assertSessionHasErrors('amount');
+        $this->assertNothingWritten($t);
+
+        $this->record($t, ['amount' => 5000])->assertSessionHas('success');
+        $this->assertSame($owed - 5000, $this->summary($t)['outstanding']);
+    }
+
+    public function test_stopping_collection_removes_the_balance_everywhere_and_can_be_undone(): void
+    {
+        $t = $this->makeTenancy(['rental_status' => 'Completed']);
+        $owed = $this->summary($t)['outstanding'];
+
+        $this->actingAs($t['landlord'])
+            ->post(route('landlord.tenancies.stopCollecting', $t['reservation']))
+            ->assertSessionHas('success');
+
+        $summary = $this->summary($t);
+        $this->assertSame(0.0, $summary['outstanding']);
+        $this->assertSame(0.0, $summary['overdueAmount']);
+        $this->assertSame(0, $summary['overdueCount']);
+        $this->assertSame('written_off', $summary['paymentStatus']);
+        $this->assertSame($owed, $summary['writtenOffAmount']);
+        $this->assertTrue(RentLedger::for($t['reservation']->fresh())->unsettledPeriods()->isEmpty());
+
+        // Nothing more can be recorded against a lease the landlord has given up on.
+        $this->record($t)->assertForbidden();
+        $this->assertNothingWritten($t);
+
+        $this->actingAs($t['landlord'])
+            ->post(route('landlord.tenancies.resumeCollecting', $t['reservation']))
+            ->assertSessionHas('success');
+
+        $this->assertSame($owed, $this->summary($t)['outstanding']);
+    }
+
+    public function test_only_an_ended_tenancy_can_stop_collecting_and_only_by_its_landlord(): void
+    {
+        $running = $this->makeTenancy();
+        $this->actingAs($running['landlord'])
+            ->post(route('landlord.tenancies.stopCollecting', $running['reservation']))
+            ->assertNotFound();
+
+        $ended = $this->makeTenancy(['rental_status' => 'Completed']);
+        $this->actingAs($this->makeLandlord())
+            ->post(route('landlord.tenancies.stopCollecting', $ended['reservation']))
+            ->assertForbidden();
+        $this->assertNull($ended['reservation']->fresh()->rent_written_off_at);
     }
 
     public function test_a_refused_request_writes_nothing_even_when_it_would_split_across_months(): void
@@ -558,7 +620,8 @@ class RecordPaymentTest extends TestCase
         $this->assertNothingWritten($t);
 
         $closed = $this->makeTenancy(['rental_status' => 'Completed']);
-        $this->apiRecord($closed)->assertForbidden();
+        // The mobile API stays Occupied-only: the lock inside answers 409 (the web form is the only way to collect on an ended lease).
+        $this->apiRecord($closed)->assertStatus(409);
         $this->assertNothingWritten($closed);
 
         $this->app['auth']->forgetGuards();

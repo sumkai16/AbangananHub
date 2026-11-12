@@ -124,12 +124,15 @@ class ReservationPolicy
     /**
      * Recording a payment writes a money row that only a void can undo,
      * never a delete, so it is owner-only and refuses once the tenancy is
-     * over — a closed ledger should not gain new entries.
+     * over — except to collect rent an ended tenant still owes (RecordPayment checks the balance and caps the amount).
      */
     public function recordPayment(User $user, Reservation $reservation): bool
     {
+        // A running tenancy, or an ended one that still has rent the landlord has not given up on (the controller
+        // also checks there is a balance and caps the amount).
         return $this->viewTenancy($user, $reservation)
-            && $reservation->rental_status === 'Occupied';
+            && ($reservation->rental_status === 'Occupied'
+                || ($reservation->rental_status === 'Completed' && $reservation->rent_written_off_at === null));
     }
 
     /**

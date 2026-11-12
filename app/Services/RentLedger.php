@@ -251,7 +251,7 @@ class RentLedger
         $nextDue = $billed->firstWhere(fn ($p) => in_array($p['status'], ['due', 'partial'], true));
         $prepaidThrough = $prepaid->last()['period'] ?? null;
 
-        return [
+        $summary = [
             'monthlyRent'      => $this->reservation->currentRent(),
             'dueDay'           => $this->reservation->rentDueDay(),
             'periodCount'      => $periods->count(),
@@ -308,6 +308,32 @@ class RentLedger
             // next to a single month's rent.
             'unpaidMonthCount' => $billed->filter(fn ($p) => $p['balance'] > 0)->count(),
         ];
+
+        return $this->isWrittenOff() ? $this->withoutBalance($summary) : $summary;
+    }
+
+    /** The landlord has stopped collecting what this (ended) tenant still owes. */
+    public function isWrittenOff(): bool
+    {
+        return $this->reservation->rent_written_off_at !== null;
+    }
+
+    /**
+     * A written-off lease owes nothing as far as every total, badge and reminder is concerned. The months themselves
+     * stay in periods() so the ledger still shows what happened; only the headline figures are zeroed.
+     */
+    private function withoutBalance(array $summary): array
+    {
+        return [
+            'outstanding'      => 0.0,
+            'overdueAmount'    => 0.0,
+            'overdueCount'     => 0,
+            'unpaidMonthCount' => 0,
+            'oldestOverdue'    => null,
+            'paymentStatus'    => 'written_off',
+            'writtenOffAmount' => round((float) $this->reservation->rent_written_off_amount, 2),
+            'writtenOffAt'     => $this->reservation->rent_written_off_at,
+        ] + $summary;
     }
 
     /**
@@ -337,6 +363,10 @@ class RentLedger
      */
     public function unsettledPeriods(): Collection
     {
+        if ($this->isWrittenOff()) {
+            return collect();
+        }
+
         return $this->periods()
             ->filter(fn ($p) => $p['status'] !== 'paid' && ! $p['is_future'])
             ->values();

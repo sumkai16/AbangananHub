@@ -164,7 +164,7 @@ class ContractsPageTest extends TestCase
             ->assertOk()
             ->assertSee('Liza Santos')
             ->assertSee('₱5,000.00')
-            ->assertSee('End contract');
+            ->assertSee('End lease');
 
         $this->actingAs($this->makeLandlord())->get(route('landlord.contracts.show', $contract))->assertForbidden();
     }
@@ -190,8 +190,8 @@ class ContractsPageTest extends TestCase
 
         $this->actingAs($landlord)->get(route('landlord.contracts.show', $contract))
             ->assertOk()
-            ->assertSee('Documents')
-            ->assertSee('Agreement missing')
+            ->assertSee('Agreement')
+            ->assertSee('No signed copy yet')
             ->assertSee('Upload signed copy')
             ->assertSee(route('landlord.leases.show', $contract), false)
             ->assertSee(route('landlord.leases.upload', $contract), false)

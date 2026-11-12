@@ -86,7 +86,7 @@
         open(detail) { if (detail && detail.tenant) this.tenantId = String(detail.tenant); this.show = true; if (this.unitId && !this.rent) this.pickUnit(); },
         close() { this.show = false; },
      }"
-     x-init="$watch('unitId', () => pickUnit())"
+     x-init="if (unit) propertyId = unit.property; $watch('unitId', () => pickUnit()); $watch('propertyId', () => pickProperty())"
      x-on:open-add-contract.window="open($event.detail)"
      x-on:keydown.escape.window="close()">
 
@@ -133,7 +133,40 @@
 
                     <div class="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 sm:px-7 py-5 grid gap-5">
 
+                    {{-- Who and where: any tenant on the list (Pending or Active), then a property, then a free unit of it. --}}
+                    <div class="grid gap-3" x-ref="unitBlock">
+                        <p class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">Tenant and unit</p>
+                        <div>
+                            <label class="{{ $label }}">Tenant</label>
+                            <x-styled-select name="landlord_tenant_id" :options="$tenantSelect" x-model="tenantId" placeholder="Choose a tenant" required
+                                class="{{ $input }} text-left" />
+                            @error('landlord_tenant_id')<p class="{{ $err }}">{{ $message }}</p>@enderror
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="{{ $label }}">Property</label>
+                                <x-styled-select name="_property" :options="$propertySelect" x-model="propertyId" placeholder="Choose a property"
+                                    class="{{ $input }} text-left" />
+                            </div>
+                            <div>
+                                <label class="{{ $label }}">Unit</label>
+                                <p x-show="!propertyId" class="h-11 flex items-center px-3.5 rounded-xl border border-dashed border-[#E2E4EC] text-[13.5px] text-[#94A3B8]">Pick a property first</p>
+                                @foreach($unitSelects as $pid => $options)
+                                    <template x-if="propertyId === '{{ $pid }}'">
+                                        <div>
+                                            <x-styled-select name="unit_id" :options="$options" x-model="unitId" placeholder="Choose a unit" required
+                                                class="{{ $input }} text-left" />
+                                        </div>
+                                    </template>
+                                @endforeach
+                                @error('unit_id')<p class="{{ $err }}">{{ $message }}</p>@enderror
+                                <p x-show="unitMissing" x-cloak class="{{ $err }}">Choose a unit.</p>
+                            </div>
+                        </div>
+                    </div>
+
                     @include('landlord.contracts.partials._contract-fields', ['idPrefix' => 'contract'])
+                    </div>
 
                     {{-- Footer: always visible, so the submit never scrolls out of reach. The running total sits beside it. --}}
                     <div class="shrink-0 border-t border-[#E2E4EC] bg-white px-5 sm:px-7 pt-3.5" style="padding-bottom: max(14px, env(safe-area-inset-bottom));">

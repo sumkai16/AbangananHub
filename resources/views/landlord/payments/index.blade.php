@@ -36,8 +36,10 @@
                 'paid'         => $oldestUnpaid['paid'] ?? 0.0,
                 'monthsLabel'  => $summary['unpaidMonthCount'] > 1 ? $summary['unpaidMonthCount'] . ' months' : null,
                 // Reminders go to an app account, so not walk-ins or inactive users, and only while rent is owed.
-                'canRemind'    => $tenant && ! $tenant->is_walk_in && $tenant->account_status === 'active' && $summary['outstanding'] > 0,
+                'canRemind'    => $reservation->rental_status === 'Occupied' && $tenant && ! $tenant->is_walk_in && $tenant->account_status === 'active' && $summary['outstanding'] > 0,
                 'isOverdue'    => $row['paymentStatus'] === 'overdue',
+                'isEnded'      => $reservation->rental_status === 'Completed',
+                'writtenOff'   => $row['paymentStatus'] === 'written_off',
             ];
         });
 
@@ -335,6 +337,7 @@
                                 class="flex-1 flex items-center justify-center h-10 rounded-xl border border-[#FF8A66] text-[#B35A3D] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">
                                 Open Ledger
                             </a>
+                            @include('landlord.payments.partials._ended-actions', ['item' => $item, 'reservation' => $reservation])
                             @if($item['canRemind'])
                                 <form method="POST" action="{{ route('landlord.tenancies.remind', $reservation) }}"
                                     data-confirm="Send {{ $reservation->tenant->first_name }} a rent reminder?"
@@ -463,6 +466,7 @@
                                                     </button>
                                                 </form>
                                             @endif
+                                            @include('landlord.payments.partials._ended-actions', ['item' => $item, 'reservation' => $reservation])
                                             <a href="{{ route('landlord.payments.ledger', $reservation) }}" data-page-panel data-page-panel-back="Payments"
                                                 class="inline-flex items-center gap-1 text-[#060D26] text-[12.5px] font-semibold hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer whitespace-nowrap">
                                                 Open ledger

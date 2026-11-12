@@ -33,10 +33,9 @@
     $chipUrl = fn ($key) => route('landlord.tenants.index', $keep + ($key === '' ? [] : ['status' => $key]));
     $filtered = $stage !== '' || $keep !== [];
     // Chips that only matter when something is in them stay out of the way the rest of the time.
-    $chips = collect(\App\Http\Controllers\Landlord\TenantController::STAGES)
-        ->reject(fn ($label, $key) => in_array($key, ['ending', 'no-agreement'], true) && ($counts[$key] ?? 0) === 0 && $stage !== $key)
-        ->all();
-    $alertChips = ['moving', 'ending', 'no-agreement', 'none'];
+    // Three cards: everyone, those with a lease, those still waiting for one.
+    $chips = ['' => 'Total', 'active' => 'Active', 'none' => 'Pending'];
+    $alertChips = ['none'];
 
     // One row's status pill, the line under the name, and the one action it needs.
     $statusOf = fn ($r) => $r['contractStatus']
@@ -63,19 +62,13 @@
             @if($errors->any() && old('_form') === 'tenant') $nextTick(() => $dispatch('open-tenant-form', @js(old('_action') ? ['action' => old('_action')] : []))); @endif
         ">
 
-        <x-page-header title="Tenants" subtitle="Everyone you rent to, with their contract and agreement. Add a tenant first, then give them a contract.">
+        <x-page-header title="Tenants" subtitle="Everyone you rent to. Add a tenant first, then give them a lease on the Leases page.">
             <x-slot:icon>
                 <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                 </svg>
             </x-slot:icon>
             <x-slot:actions>
-                <a href="{{ route('landlord.leases.index') }}"
-                    @click.prevent="$dispatch('open-lease-policies', { url: @js(route('landlord.leases.panel')) })"
-                    class="inline-flex items-center justify-center gap-2 h-11 px-4 sm:px-5 rounded-full border border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-sm font-semibold transition-all duration-200 cursor-pointer">
-                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg>
-                    Lease policies
-                </a>
                 <a href="{{ route('landlord.tenants.export') }}"
                     title="Download your tenants as a spreadsheet (CSV)"
                     class="hidden sm:inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-sm font-semibold transition-all duration-200 cursor-pointer">
@@ -90,25 +83,6 @@
             </x-slot:actions>
         </x-page-header>
 
-        {{-- Tenants with no contract yet: the next thing to do for each is one tap away. --}}
-        @if(! $filtered && $waiting->isNotEmpty())
-            <section class="mb-4 rounded-2xl border border-dashed border-[#B45309]/40 bg-[#FBBF24]/[0.10] p-4" aria-labelledby="waiting-title">
-                <div class="flex items-center justify-between gap-3">
-                    <h2 id="waiting-title" class="text-[11px] font-bold uppercase tracking-wide text-[#B45309]">Waiting for a contract · {{ $waiting->count() }}</h2>
-                    @if($waiting->count() > 3)
-                        <a href="{{ $chipUrl('none') }}" class="text-[12px] font-bold text-[#060D26] underline underline-offset-2">See all {{ $waiting->count() }}</a>
-                    @endif
-                </div>
-                <ul class="mt-2 divide-y divide-[#B45309]/15">
-                    @foreach($waiting->take(3) as $w)
-                        <li class="flex items-center justify-between gap-3 py-2">
-                            <p class="min-w-0 truncate text-[13.5px] font-bold text-[#060D26]">{{ $w['name'] }} <span class="font-normal text-[12px] text-[#5B6A8E]">{{ $w['code'] }}</span></p>
-                            <button type="button" class="{{ $coralBtn }}" @click="$dispatch('open-add-contract', { tenant: {{ $w['row']->landlord_tenant_id }} })">Give contract</button>
-                        </li>
-                    @endforeach
-                </ul>
-            </section>
-        @endif
 
         {{-- Search, property and the stage chips. The chips are links, so they work without script and can be shared. --}}
         <form data-live method="GET" action="{{ route('landlord.tenants.index') }}" class="mb-5">
@@ -149,25 +123,20 @@
             @php
                 // One line under each number, and a drawn icon (heroicons outline path) per stage.
                 $cardMeta = [
-                    'living' => ['Currently renting', 'm2.25 12 8.954-8.955a1.126 1.126 0 0 1 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25'],
-                    'moving' => ['Lease starts soon', 'M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9'],
-                    'ending' => ['Lease ends soon', 'M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'],
-                    'no-agreement' => ['Signed copy missing', 'M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z'],
+                    '' => ['On your list', 'M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z'],
+                    'active' => ['Have a lease', 'm2.25 12 8.954-8.955a1.126 1.126 0 0 1 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25'],
                     'none' => ['No lease yet', 'M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z'],
                 ];
-            @endphp
-            @php
-                // One row that fills the width whatever number of cards show (Ending soon and No agreement hide when empty).
-                // Literal class names so Tailwind keeps them.
-                $cardGrid = [5 => 'sm:grid-cols-3 lg:grid-cols-5', 4 => 'sm:grid-cols-4'][count($chips)] ?? 'sm:grid-cols-3';
+                $cardGrid = 'sm:grid-cols-3';
             @endphp
             @if($show !== 'former')
             <nav class="mt-4 grid grid-cols-2 gap-3 {{ $cardGrid }}" aria-label="Filter tenants by stage">
                 @foreach($chips as $key => $label)
                     @php
-                        $count = $counts[$key];
+                        $key = (string) $key;
+                        $count = $key === '' ? $counts['all'] : $counts[$key];
                         $alert = $count > 0 && in_array($key, $alertChips, true);
-                        $on = $stage === $key;
+                        $on = $key !== '' && $stage === $key;
                     @endphp
                     {{-- With no "All" card, tapping the active one clears the filter. --}}
                     <x-stat-card :label="$label" :value="$count" :sub="$cardMeta[$key][0]"
@@ -225,7 +194,7 @@
                                 @php $st = $statusOf($r); @endphp
                                 <li class="px-5 py-4">
                                     <div class="flex items-start justify-between gap-3">
-                                        <button type="button" class="min-w-0 text-left cursor-pointer" @click="$dispatch('open-contract', { url: @js(route('landlord.tenants.show', $r['row'])) })">
+                                        <button type="button" class="min-w-0 text-left cursor-pointer" @click="$dispatch('open-tenant', { url: @js(route('landlord.tenants.show', $r['row'])) })">
                                             <p class="text-[14px] font-bold text-[#060D26] truncate">{{ $r['name'] }}</p>
                                             <p class="text-[12px] text-[#5B6A8E]">{{ $r['code'] }}@if($r['shown']) · {{ $r['shown']->unit->unit_label ?? 'No unit' }}@else · {{ $r['tenant']->contact_number ?: ($r['tenant']->email ?: 'No contact') }}@endif</p>
                                         </button>
@@ -240,7 +209,7 @@
                                         @if($r['stage'] === 'none')
                                             <button type="button" class="{{ $coralBtn }} ml-auto" @click="$dispatch('open-add-contract', { tenant: {{ $r['row']->landlord_tenant_id }} })">Give contract</button>
                                         @elseif($r['ending'])
-                                            <button type="button" class="{{ $coralBtn }} ml-auto" @click="$dispatch('open-contract', { url: @js(route('landlord.tenants.show', ['landlordTenant' => $r['row'], 'renew' => 1])) })">Renew</button>
+                                            <button type="button" class="{{ $coralBtn }} ml-auto" @click="$dispatch('open-contract', { url: @js(route('landlord.contracts.show', ['reservation' => $r['shown'], 'renew' => 1])) })">Renew</button>
                                         @endif
                                     </div>
                                 </li>
@@ -275,7 +244,7 @@
                                         @endphp
                                         <tr class="hover:bg-[#ECEEF6] transition-colors duration-200">
                                             <td class="px-5 py-3.5">
-                                                <button type="button" class="block w-full min-w-0 text-left cursor-pointer" @click="$dispatch('open-contract', { url: @js(route('landlord.tenants.show', $r['row'])) })">
+                                                <button type="button" class="block w-full min-w-0 text-left cursor-pointer" @click="$dispatch('open-tenant', { url: @js(route('landlord.tenants.show', $r['row'])) })">
                                                     <span class="block text-[13px] font-bold text-[#060D26] truncate">{{ $r['name'] }}</span>
                                                     <span class="block text-[11.5px] text-[#5B6A8E]">{{ $r['code'] }}@if($r['tenant']->is_walk_in) · Added by you{{ $r['tenant']->email ? ', invite pending' : '' }}@endif</span>
                                                 </button>
@@ -309,7 +278,7 @@
                                                     @if($r['stage'] === 'none')
                                                         <button type="button" class="{{ $coralBtn }}" @click="$dispatch('open-add-contract', { tenant: {{ $r['row']->landlord_tenant_id }} })">Give contract</button>
                                                     @elseif($r['ending'])
-                                                        <button type="button" class="{{ $coralBtn }}" @click="$dispatch('open-contract', { url: @js(route('landlord.tenants.show', ['landlordTenant' => $r['row'], 'renew' => 1])) })">Renew</button>
+                                                        <button type="button" class="{{ $coralBtn }}" @click="$dispatch('open-contract', { url: @js(route('landlord.contracts.show', ['reservation' => $r['shown'], 'renew' => 1])) })">Renew</button>
                                                     @endif
                                                     @include('landlord.tenants.partials._row-actions', ['r' => $r])
                                                 </div>
@@ -330,10 +299,11 @@
         @endif
         </div>
 
-        @include('landlord.contracts.partials._view-modal', ['event' => 'open-contract', 'label' => 'Tenant and contract details'])
+        @include('landlord.contracts.partials._view-modal', ['event' => 'open-tenant', 'label' => 'Tenant details', 'maxWidth' => '480px'])
+        @include('landlord.contracts.partials._view-modal', ['event' => 'open-contract', 'label' => 'Lease details'])
         @include('landlord.contracts.partials._add-modal')
         @include('landlord.tenants.partials._form-modal')
-        @include('landlord.leases.partials._modal')
+        @include('landlord.tenants.partials._added-modal')
     </div>
 
     <script src="{{ asset('js/date-picker.js') }}"></script>
