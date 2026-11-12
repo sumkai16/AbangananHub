@@ -21,6 +21,7 @@
             'suggested' => \App\Support\HouseRules::SUGGESTED,
             'docs' => array_values(old('required_documents', $storedDocs->pluck('key')->filter(fn ($k) => $k !== 'other')->values()->all())),
             'custom' => array_values(old('custom_documents', $storedDocs->where('key', 'other')->pluck('label')->values()->all())),
+            'askDocs' => old('required_documents') !== null || old('custom_documents') !== null || $storedDocs->isNotEmpty() || ! empty($template->required_documents),
             'ids' => array_map('intval', old('assigned_properties', $assigned)),
             'all' => $properties->pluck('property_id')->map(fn ($id) => (int) $id)->all(),
             'docLabels' => \App\Support\RequiredDocuments::TYPES,
@@ -67,6 +68,7 @@
             addSection(title = '', rules = ['']) { this.sections.push({ title, rules: [...rules], hidden: false }); },
             addSuggested(title) { if (!this.sections.some(s => s.title === title)) this.addSection(title, this.suggested[title]); },
             get docsSummary() {
+                if (!this.askDocs) return 'Off, tenants upload nothing';
                 const names = [...this.docs.map(k => this.docLabels[k]).filter(Boolean), ...this.custom.filter(c => c.trim())];
                 return names.length ? names.join(', ') : 'None required';
             },
@@ -305,6 +307,13 @@
                         <span class="{{ $chev }}" x-text="open === 'docs' ? '▴' : '▾'" aria-hidden="true"></span>
                     </button>
                     <div x-show="open === 'docs'" x-cloak class="border-t border-[#E2E4EC] bg-[#FBFBFE] px-4 pb-4 pt-3">
+                        <label class="mb-3 flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5">
+                            <span class="text-[13px] font-semibold text-[#060D26]">Ask tenants to upload documents</span>
+                            <input type="checkbox" role="switch" x-model="askDocs" class="peer sr-only">
+                            <span aria-hidden="true" class="relative h-6 w-11 shrink-0 rounded-full bg-[#C9CDD9] transition-colors peer-checked:bg-[#060D26] peer-focus-visible:ring-2 peer-focus-visible:ring-[#FF8A66] after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5"></span>
+                        </label>
+                        <p x-show="!askDocs" class="text-[12px] text-[#5B6A8E]">Off: tenants can sign without uploading anything.</p>
+                        <fieldset x-show="askDocs" :disabled="!askDocs" class="min-w-0">
                         <p class="mb-2 text-[12px] text-[#5B6A8E]">The tenant cannot sign until each one is uploaded. Only you and the tenant can see them, and they are deleted 30 days after the tenancy ends.</p>
                         <div class="flex flex-col gap-1">
                             @foreach(\App\Support\RequiredDocuments::TYPES as $key => $docLabel)
@@ -326,6 +335,7 @@
                             class="mt-2 text-[12.5px] font-bold text-[#060D26] underline underline-offset-2">Add another document</button>
                         @error('required_documents.*')<p class="{{ $error }}">{{ $message }}</p>@enderror
                         @error('custom_documents.*')<p class="{{ $error }}">{{ $message }}</p>@enderror
+                        </fieldset>
                     </div>
                 </div>
 
