@@ -6,7 +6,7 @@
 --}}
 @php
     // The landlord's most recent QR in any chat. Offered first so they don't re-pick the screenshot for every tenant.
-    $lastShare = \App\Models\PaymentQrShare::where('shared_by', auth()->id())->latest('payment_qr_share_id')->first();
+    $lastShare = \App\Models\PaymentQrShare::lastReadableBy(auth()->id());
 @endphp
 <div x-data="paymentQrSheet({{ $conversation->conversation_id }}, {{ $lastShare?->payment_qr_share_id ?? 'null' }})" :data-sheet-open="open" @keydown.escape.window="close()">
     <button type="button" @click="open = true"
