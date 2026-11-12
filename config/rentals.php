@@ -155,10 +155,10 @@ return [
         'auto_cancel' => env('STALE_AUTO_CANCEL', true),
         'inquiry' => ['remind_days' => 2, 'cancel_days' => 7],
         'negotiation' => ['remind_days' => 5, 'cancel_days' => 14],
-        'agreement' => ['remind_days' => 2, 'cancel_days' => 5],
+        'agreement' => ['remind_days' => 1, 'cancel_days' => 3],
         // Signed but the move-in money has not arrived (counted from the signature). A tenant with a payment report
         // waiting on the landlord is left alone: that is the landlord's turn.
-        'signed' => ['remind_days' => 3, 'cancel_days' => 10],
+        'signed' => ['remind_days' => 1, 'cancel_days' => 3],
         // Move-in money paid straight to the landlord but nobody confirmed the move-in (counted from the payment, or
         // the move-in date if later). Reminds only: the money is paid, so it is never cancelled.
         'paid' => ['remind_days' => 3, 'cancel_days' => null],

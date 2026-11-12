@@ -952,6 +952,67 @@ class Reservation extends Model
             ->first();
     }
 
+    /**
+     * The moment the current quiet spell began: what reservations:process-stale counts its reminder and cancel
+     * days from, and what paymentDeadline() adds to.
+     */
+    public function quietSince(): Carbon
+    {
+        if ($this->rental_status === 'Rental Agreement Signed') {
+            // Unpaid: from the signature. Paid: from the payment, or the move-in date if that is later (a tenant
+            // who paid early is not "late" before they are due to move in).
+            $since = Carbon::parse($this->move_in_paid_at ?? $this->agreed_at ?? $this->updated_at);
+            $moveIn = $this->target_move_in_date?->copy()->startOfDay();
+
+            return $this->move_in_paid_at && $moveIn && $moveIn->gt($since) ? $moveIn : $since;
+        }
+
+        // Created, for an Inquiry (nobody answered yet); otherwise the last status change, e.g. the agreement being sent.
+        $since = $this->rental_status === 'Inquiry' ? $this->created_at : $this->updated_at;
+
+        // Any document upload or review is activity on the agreement, even though it writes to another table.
+        if ($this->rental_status === 'Pending Rental Agreement') {
+            $lastDocument = $this->documents()->max('updated_at');
+
+            if ($lastDocument && Carbon::parse($lastDocument)->gt($since)) {
+                $since = Carbon::parse($lastDocument);
+            }
+        }
+
+        if ($this->rental_status === 'Under Negotiation' && $this->conversation_id) {
+            $lastMessage = Message::where('conversation_id', $this->conversation_id)
+                ->where(fn ($q) => $q->whereNull('kind')->orWhere('kind', '!=', 'system'))
+                ->max('sent_at'); // messages have sent_at, not created_at
+
+            if ($lastMessage && Carbon::parse($lastMessage)->gt($since)) {
+                $since = Carbon::parse($lastMessage);
+            }
+        }
+
+        return $since;
+    }
+
+    /**
+     * The day this reservation is closed automatically if nothing happens, while it holds the unit and waits on the
+     * tenant (agreement unsigned, or signed and unpaid). Null otherwise, or when auto-cancel is off. Date only:
+     * the daily job runs it, so it can land any time on that day.
+     */
+    public function paymentDeadline(): ?Carbon
+    {
+        $key = match (true) {
+            $this->rental_status === 'Pending Rental Agreement' => 'agreement',
+            $this->rental_status === 'Rental Agreement Signed' && ! $this->moveInSettled() => 'signed',
+            default => null,
+        };
+        $days = $key ? config("rentals.stale_reservations.$key.cancel_days") : null;
+
+        if ($days === null || ! config('rentals.stale_reservations.auto_cancel')) {
+            return null;
+        }
+
+        return $this->quietSince()->copy()->addDays($days)->timezone(config('rentals.timezone'));
+    }
+
     /** Why an agreement cannot be sent for this reservation right now because of its unit, or null. */
     public function agreementBlockedReason(): ?string
     {

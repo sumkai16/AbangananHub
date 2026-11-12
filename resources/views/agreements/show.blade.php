@@ -206,6 +206,17 @@
                             </p>
                         </div>
 
+                        {{-- Tell the tenant when this expires: the unit is held for them only for a short window. --}}
+                        @if ($signBy = $reservation->paymentDeadline())
+                            @php $payDays = (int) config('rentals.stale_reservations.signed.cancel_days'); @endphp
+                            <p class="mb-4 rounded-xl border border-[#FBBF24]/35 bg-[#FBBF24]/10 px-4 py-3 text-[13px] leading-relaxed text-[#92600A]">
+                                Sign by <strong>{{ $signBy->format('F j, Y') }}</strong> or this agreement closes and the unit is released.
+                                @if ($payDays > 0)
+                                    After you sign, you have {{ $payDays }} {{ $payDays === 1 ? 'day' : 'days' }} to pay the move-in amount to keep the unit.
+                                @endif
+                            </p>
+                        @endif
+
                         <label for="agree" class="flex items-start gap-3 mb-4 cursor-pointer">
                             <input type="checkbox" name="agree" id="agree" required
                                 class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66] focus:ring-offset-0 transition">
@@ -285,6 +296,11 @@
 
                     @elseif(!$hasPayment)
                         <div class="mt-4">
+                            @if ($payBy = $reservation->paymentDeadline())
+                                <p class="mb-3 rounded-xl border border-[#FBBF24]/35 bg-[#FBBF24]/10 px-4 py-3 text-[13px] leading-relaxed text-[#92600A]">
+                                    Signed, waiting for your payment. Pay by <strong>{{ $payBy->format('F j, Y') }}</strong> or the reservation closes and the unit is released.
+                                </p>
+                            @endif
                             @if($hadAbandonedCheckout)
                                 <p class="mb-3 rounded-xl border border-[#FBBF24]/35 bg-[#FBBF24]/10 px-4 py-3 text-[13px] text-[#92600A]">
                                     Your last payment attempt wasn't completed. You can try again below.

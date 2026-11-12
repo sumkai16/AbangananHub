@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Message;
 use App\Models\Notification;
 use App\Models\Reservation;
 use Illuminate\Console\Command;
@@ -50,7 +49,7 @@ class ProcessStaleReservations extends Command
 
             foreach ($rows as $reservation) {
                 try {
-                    $quietSince = $this->quietSince($reservation);
+                    $quietSince = $reservation->quietSince();
 
                     // The tenant uploaded what the lease asked for and the landlord has not reviewed it: the landlord is
                     // the one holding this up, so the tenant is never cancelled for it. Nudge the landlord instead.
@@ -101,43 +100,6 @@ class ProcessStaleReservations extends Command
         }
 
         return $query->get();
-    }
-
-    /** The moment the current quiet spell began. */
-    private function quietSince(Reservation $reservation): Carbon
-    {
-        if ($reservation->rental_status === 'Rental Agreement Signed') {
-            // Unpaid: from the signature. Paid: from the payment, or the move-in date if that is later (a tenant
-            // who paid early is not "late" before they are due to move in).
-            $since = Carbon::parse($reservation->move_in_paid_at ?? $reservation->agreed_at ?? $reservation->updated_at);
-            $moveIn = $reservation->target_move_in_date?->copy()->startOfDay();
-
-            return $reservation->move_in_paid_at && $moveIn && $moveIn->gt($since) ? $moveIn : $since;
-        }
-
-        // Created, for an Inquiry (nobody answered yet); otherwise the last status change, e.g. the agreement being sent.
-        $since = $reservation->rental_status === 'Inquiry' ? $reservation->created_at : $reservation->updated_at;
-
-        // Any document upload or review is activity on the agreement, even though it writes to another table.
-        if ($reservation->rental_status === 'Pending Rental Agreement') {
-            $lastDocument = $reservation->documents()->max('updated_at');
-
-            if ($lastDocument && Carbon::parse($lastDocument)->gt($since)) {
-                $since = Carbon::parse($lastDocument);
-            }
-        }
-
-        if ($reservation->rental_status === 'Under Negotiation' && $reservation->conversation_id) {
-            $lastMessage = Message::where('conversation_id', $reservation->conversation_id)
-                ->where(fn ($q) => $q->whereNull('kind')->orWhere('kind', '!=', 'system'))
-                ->max('created_at');
-
-            if ($lastMessage && Carbon::parse($lastMessage)->gt($since)) {
-                $since = Carbon::parse($lastMessage);
-            }
-        }
-
-        return $since;
     }
 
     private function shouldRemind(Reservation $reservation, Carbon $quietSince, array $rules): bool
