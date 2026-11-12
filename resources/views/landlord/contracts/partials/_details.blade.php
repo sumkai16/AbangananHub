@@ -35,8 +35,55 @@
     $leaseStatus = $reservation->leaseStatus();
 @endphp
 
-<div x-data="{ ending: false, renewing: @js($canRenew && ($startRenewing ?? false)), uploading: false, rating: @js($canRate && ($startRating ?? false)), stars: 0, hovered: 0, count: 0,
+<div x-data="{ agreementOpen: false, agreementLoaded: false, agreementReady: false, ending: false, renewing: @js($canRenew && ($startRenewing ?? false)), uploading: false, rating: @js($canRate && ($startRating ?? false)), stars: 0, hovered: 0, count: 0,
         rate(on) { this.renewing = false; this.rating = on; this.$nextTick(() => this.$root.closest('.overflow-y-auto')?.scrollTo(0, 0)); } }">
+
+{{-- The agreement, over the lease modal: the printable page (leases.show?embed=1) in a frame, printed from here.
+     The frame loads on first open only, and Print waits for it. --}}
+<template x-teleport="body">
+    <div x-show="agreementOpen" x-cloak @keydown.escape.window="agreementOpen = false"
+        style="z-index: 60;"
+        class="fixed inset-0 flex items-end sm:items-center justify-center sm:p-4"
+        role="dialog" aria-modal="true" aria-labelledby="agreement-title-{{ $reservation->reservation_id }}">
+        <div x-show="agreementOpen" x-transition.opacity @click="agreementOpen = false" class="absolute inset-0 bg-[#060D26]/40 backdrop-blur-sm"></div>
+
+        <div x-show="agreementOpen"
+            x-transition:enter="transition ease-out duration-250"
+            x-transition:enter-start="opacity-0 translate-y-6 motion-reduce:translate-y-0"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+            style="max-width: 860px; height: min(90vh, 1100px);"
+            class="relative w-full flex flex-col bg-white rounded-t-2xl sm:rounded-2xl shadow-[0_20px_60px_rgba(6,13,38,0.18)] overflow-hidden">
+
+            <div class="shrink-0 flex items-center justify-between gap-3 px-5 sm:px-6 py-3.5 border-b border-[#E2E4EC]">
+                <div class="min-w-0">
+                    <h2 id="agreement-title-{{ $reservation->reservation_id }}" class="text-[16px] font-semibold text-[#060D26] leading-tight">Lease agreement</h2>
+                    <p class="text-[12.5px] text-[#5B6A8E] truncate">{{ $tenant->first_name }} {{ $tenant->last_name }} · {{ $reservation->unit?->unit_label }}</p>
+                </div>
+                <div class="flex shrink-0 items-center gap-2">
+                    <button type="button" :disabled="!agreementReady" @click="$refs.agreementFrame.contentWindow.print()"
+                        class="inline-flex items-center gap-1.5 h-10 px-4 rounded-full bg-[#FF8A66] text-[13px] font-semibold text-[#060D26] hover:bg-[#E96F4F] disabled:opacity-50 disabled:cursor-wait cursor-pointer transition-colors duration-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" /></svg>
+                        Print
+                    </button>
+                    <button type="button" @click="agreementOpen = false" aria-label="Close"
+                        class="w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-[#5B6A8E] hover:bg-[#ECEEF6] hover:text-[#060D26] transition-colors duration-200 cursor-pointer">
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="relative flex-1 min-h-0 bg-white">
+                <p x-show="!agreementReady" class="absolute inset-0 flex items-center justify-center text-[13px] text-[#5B6A8E]">Loading the lease agreement...</p>
+                <template x-if="agreementLoaded">
+                    <iframe x-ref="agreementFrame" src="{{ route('landlord.leases.show', ['reservation' => $reservation, 'embed' => 1]) }}"
+                        title="Lease agreement" class="w-full h-full border-0" @load="agreementReady = true"></iframe>
+                </template>
+            </div>
+        </div>
+    </div>
+</template>
 
 <div x-show="!rating">
 
@@ -87,7 +134,7 @@
                     <p class="mt-0.5 text-[13.5px] leading-snug text-[#7A5A1F]">Print it, have both of you sign it, then upload the signed copy.</p>
                     <div class="mt-3 flex flex-wrap gap-2">
                         <button type="button" @click="uploading = !uploading" class="{{ $ctaBtn }}">Upload agreement</button>
-                        <a href="{{ route('landlord.leases.show', $reservation) }}" target="_blank" rel="noopener" class="{{ $ghostBtn }} bg-white">View &amp; print</a>
+                        <button type="button" @click="agreementOpen = true; agreementLoaded = true" class="{{ $ghostBtn }} bg-white cursor-pointer">View &amp; print</button>
                     </div>
                 </div>
             @else
@@ -101,7 +148,7 @@
                         @endif
                     </p>
                     <div class="mt-3 flex flex-wrap gap-2">
-                        <a href="{{ route('landlord.leases.show', $reservation) }}" target="_blank" rel="noopener" class="{{ $ghostBtn }}">View agreement</a>
+                        <button type="button" @click="agreementOpen = true; agreementLoaded = true" class="{{ $ghostBtn }} cursor-pointer">View agreement</button>
                         @if($reservation->lease_file_path)
                             <a href="{{ route('landlord.leases.file', $reservation) }}" target="_blank" rel="noopener" class="{{ $ghostBtn }}">Open agreement</a>
                         @endif

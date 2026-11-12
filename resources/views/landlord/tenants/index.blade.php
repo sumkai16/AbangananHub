@@ -171,29 +171,26 @@
         @else
             {{-- One table per property, same band-and-table look as Units. The controller sorted the rows by property, so groupBy keeps that order. --}}
             @php $groups = $rows->getCollection()->groupBy(fn ($r) => $r['shown']?->property_id ?? 0); @endphp
-            <div class="space-y-8">
+            <div class="space-y-5">
             @foreach($groups as $propertyId => $items)
                 @php
                     $groupProperty = $propertyId ? $items->first()['shown']->property : null;
                     $groupTotal = $groupTotals[$propertyId] ?? $items->count();
                 @endphp
                 <section>
-                    <x-card flush class="!rounded-none">
-                        {{-- Property label: a soft tinted bar on top of its table --}}
-                        <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-0.5 px-5 py-2.5 bg-[#ECEEF6] border-b border-[#E2E4EC] border-l-4 border-l-[#FF8A66]">
-                            <div class="min-w-0 flex items-baseline gap-2">
-                                <h2 class="text-[13.5px] font-bold text-[#060D26] truncate">{{ $groupProperty?->title ?? 'No unit yet' }}</h2>
-                                <span class="text-[11.5px] text-[#5B6A8E] whitespace-nowrap">
-                                    {{ $groupTotal }} {{ Str::plural('tenant', $groupTotal) }}@if($items->count() < $groupTotal) · {{ $items->count() }} on this page @endif
-                                </span>
-                            </div>
+                    <x-card flush>
+                        {{-- Property name and count, the same header as the Leases tables. --}}
+                        <div class="flex items-center justify-between gap-3 px-5 py-3.5 border-b border-[#E2E4EC]">
+                            <h2 class="text-[14px] font-bold text-[#060D26] truncate">{{ $groupProperty?->title ?? 'No unit yet' }}</h2>
+                            <span class="text-[12px] text-[#5B6A8E] shrink-0">
+                                {{ $groupTotal }} {{ Str::plural('tenant', $groupTotal) }}@if($items->count() < $groupTotal) · {{ $items->count() }} on this page @endif
+                            </span>
                         </div>
-
                         {{-- Phone and tablet: one card per tenant --}}
                         <ul class="lg:hidden divide-y divide-[#E2E4EC]">
                             @foreach($items as $r)
                                 @php $st = $statusOf($r); @endphp
-                                <li class="px-5 py-4">
+                                <li class="px-5 py-3.5">
                                     <div class="flex items-start justify-between gap-3">
                                         <button type="button" class="min-w-0 text-left cursor-pointer" @click="$dispatch('open-tenant', { url: @js(route('landlord.tenants.show', $r['row'])) })">
                                             <p class="text-[14px] font-bold text-[#060D26] truncate">{{ $r['name'] }}</p>
@@ -226,13 +223,13 @@
                                 </colgroup>
                                 <thead>
                                     <tr class="border-b border-[#E2E4EC]">
-                                        <th class="px-5 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Tenant</th>
-                                        <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Unit</th>
-                                        <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Lease</th>
-                                        <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide text-right">Rent</th>
-                                        <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Lease agreement</th>
-                                        <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Status</th>
-                                        <th class="px-5 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide text-right"><span class="sr-only">Actions</span></th>
+                                        <th class="px-5 py-3 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Tenant</th>
+                                        <th class="px-4 py-3 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Unit</th>
+                                        <th class="px-4 py-3 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Lease</th>
+                                        <th class="px-4 py-3 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide text-right">Rent</th>
+                                        <th class="px-4 py-3 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Lease agreement</th>
+                                        <th class="px-4 py-3 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Status</th>
+                                        <th class="px-5 py-3 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide text-right"><span class="sr-only">Actions</span></th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-[#E2E4EC]">
@@ -244,24 +241,24 @@
                                             $docs = $c?->documents ?? collect();
                                         @endphp
                                         <tr class="hover:bg-[#ECEEF6] transition-colors duration-200">
-                                            <td class="px-5 py-3.5">
+                                            <td class="px-5 py-3">
                                                 <button type="button" class="block w-full min-w-0 text-left cursor-pointer" @click="$dispatch('open-tenant', { url: @js(route('landlord.tenants.show', $r['row'])) })">
                                                     <span class="block text-[13px] font-bold text-[#060D26] truncate">{{ $r['name'] }}</span>
                                                     <span class="block text-[11.5px] text-[#5B6A8E]">{{ $r['code'] }}@if($r['tenant']->is_walk_in) · Added by you{{ $r['tenant']->email ? ', invite pending' : '' }}@endif</span>
                                                 </button>
                                             </td>
-                                            <td class="px-4 py-3.5 text-[13px] text-[#060D26]">
+                                            <td class="px-4 py-3 text-[13px] text-[#060D26]">
                                                 @if($c)
                                                     {{ $c->unit->unit_label ?? '' }}
                                                 @else
                                                     <span class="text-[#5B6A8E]">None</span>
                                                 @endif
                                             </td>
-                                            <td class="px-4 py-3.5 text-[13px] text-[#5B6A8E] whitespace-nowrap tabular-nums">
+                                            <td class="px-4 py-3 text-[13px] text-[#5B6A8E] whitespace-nowrap tabular-nums">
                                                 {{ $c ? $fmt($c->target_move_in_date).' → '.$fmt($c->target_move_out_date) : '—' }}
                                             </td>
-                                            <td class="px-4 py-3.5 text-[13px] font-semibold text-[#060D26] text-right tabular-nums">{{ $c ? '₱'.number_format($c->currentRent()) : '—' }}</td>
-                                            <td class="px-4 py-3.5 text-[13px]">
+                                            <td class="px-4 py-3 text-[13px] font-semibold text-[#060D26] text-right tabular-nums">{{ $c ? '₱'.number_format($c->currentRent()) : '—' }}</td>
+                                            <td class="px-4 py-3 text-[13px]">
                                                 @if(! $c)
                                                     <span class="text-[#5B6A8E]">—</span>
                                                 @else
@@ -271,10 +268,10 @@
                                                     @endif
                                                 @endif
                                             </td>
-                                            <td class="px-4 py-3.5">
+                                            <td class="px-4 py-3">
                                                 <span class="inline-flex items-center h-6 px-2.5 rounded-full border text-[11px] font-bold whitespace-nowrap {{ $pill[$st['tone']] }}">{{ $st['label'] }}</span>
                                             </td>
-                                            <td class="px-5 py-3.5">
+                                            <td class="px-5 py-3">
                                                 <div class="flex items-center justify-end gap-2">
                                                     @if($r['stage'] === 'none')
                                                         <button type="button" class="{{ $coralBtn }}" @click="$dispatch('open-add-contract', { tenant: {{ $r['row']->landlord_tenant_id }} })">Add lease</button>
