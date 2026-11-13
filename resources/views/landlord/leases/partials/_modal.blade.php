@@ -1,5 +1,5 @@
 {{--
-    The Lease policies modal on the Tenants page. Opened with $dispatch('open-lease-policies', { url }), where url is
+    The Rental policies modal on the Tenants page. Opened with $dispatch('open-lease-policies', { url }), where url is
     landlord.leases.panel. The body (_panel.blade.php) is fetched when it opens and fetched again after each save, so
     a dropdown or switch changes the policy without leaving the page. Open rows and the scroll position are kept
     across a save. The full page (landlord.leases.index) is still there for the links from the property and unit pages.
@@ -66,7 +66,7 @@
      x-on:keydown.escape.window="close()">
 
     <template x-teleport="body">
-        <div x-show="show" x-cloak class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" role="dialog" aria-modal="true" aria-label="Lease policies">
+        <div x-show="show" x-cloak class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" role="dialog" aria-modal="true" aria-label="Rental policies">
             <div x-show="show" x-transition.opacity @click="close()" class="absolute inset-0 bg-[#060D26]/40 backdrop-blur-sm"></div>
 
             <div x-show="show" x-ref="dialog" tabindex="-1"
@@ -82,7 +82,7 @@
                         <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
                     </div>
                     <div class="min-w-0">
-                        <h2 class="text-[18px] font-bold leading-tight tracking-tight text-[#060D26]">Lease policies</h2>
+                        <h2 class="text-[18px] font-bold leading-tight tracking-tight text-[#060D26]">Rental policies</h2>
                         <p class="mt-0.5 text-[12.5px] text-[#5B6A8E]">The rules and wording your tenants agree to, per property and unit.</p>
                     </div>
                     <button type="button" @click="close()" aria-label="Close"

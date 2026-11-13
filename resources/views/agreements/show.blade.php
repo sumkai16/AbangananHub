@@ -13,6 +13,10 @@
         // for good, and the tenant had no way to try again.
         $hasPayment = $reservation->payments->whereIn('status', ['Pending', 'Held', 'Paid', 'Released'])
             ->reject(fn ($p) => $p->isStalePending())->isNotEmpty();
+        // A reservation fee paid directly is part of the move-in, not all of it: the tenant still sees the pay card for the balance.
+        if ($hasPayment && ! $heldPayment && $reservation->moveInPaid() > 0 && $reservation->moveInShortfall() > 0) {
+            $hasPayment = false;
+        }
         $hadAbandonedCheckout = ! $hasPayment && $reservation->payments->contains(fn ($p) => $p->isStalePending());
         $processingPayment = $hasPayment && !$heldPayment && !$reservation->isOccupied();
         // Direct payments: money paid to the landlord and confirmed (or recorded by them) sets move_in_paid_at.
@@ -21,7 +25,7 @@
         $directPaid = $reservation->move_in_paid_at !== null;
         // Where the tenant is, for the progress bar: reviewing and signing share the first two steps.
         $stage = $reservation->isOccupied() ? 4 : (($directPaid || $hasPayment) ? 3 : ($reservation->isAgreementSigned() ? 2 : 1));
-        $stepLabels = ['Review lease', 'Sign', 'Pay', 'Move in'];
+        $stepLabels = ['Review rental', 'Sign', 'Pay', 'Move in'];
         $startDate = $terms['start'] ? \Illuminate\Support\Carbon::parse($terms['start']) : null;
         $endDate = $terms['end'] ? \Illuminate\Support\Carbon::parse($terms['end']) : null;
         $lengthMonths = $startDate && $endDate ? max(1, (int) round($startDate->floatDiffInMonths($endDate))) : null;
@@ -133,7 +137,7 @@
         <x-card flush class="p-5 sm:p-8 print:border-none print:shadow-none print:p-0" x-data="{ all: false }">
             {{-- ===== The lease — frozen terms, see App\Support\LeaseTerms ===== --}}
             <div class="mb-3 flex items-center justify-between gap-3 print:hidden">
-                <h2 class="text-[19px] font-bold tracking-tight text-[#060D26]">The lease</h2>
+                <h2 class="text-[19px] font-bold tracking-tight text-[#060D26]">The rental</h2>
                 {{-- Clauses are collapsible rows when the lease uses the standard wording; a landlord's own text is one block. --}}
                 @if(empty($terms['body']))
                     <button type="button" class="inline-flex min-h-[40px] items-center rounded-xl border border-[#E2E4EC] bg-white px-3.5 text-[13px] font-bold text-[#060D26] transition-colors hover:bg-[#F7F8FC]"
@@ -298,7 +302,11 @@
                         <div class="mt-4">
                             @if ($payBy = $reservation->paymentDeadline())
                                 <p class="mb-3 rounded-xl border border-[#FBBF24]/35 bg-[#FBBF24]/10 px-4 py-3 text-[13px] leading-relaxed text-[#92600A]">
-                                    Signed, waiting for your payment. Pay by <strong>{{ $payBy->format('F j, Y') }}</strong> or the reservation closes and the unit is released.
+                                    @if($reservation->moveInPaid() > 0)
+                                        You paid &#8369;{{ number_format($reservation->moveInPaid(), 2) }}. The balance of &#8369;{{ number_format($reservation->moveInShortfall(), 2) }} is due by <strong>{{ $payBy->format('F j, Y') }}</strong>@if($reservation->balanceOverdue()) and is now overdue. Your landlord has kept the unit for you for now, so pay it soon.@else. Pay it to keep the unit.@endif
+                                    @else
+                                        Signed, waiting for your payment. Pay by <strong>{{ $payBy->format('F j, Y') }}</strong> or the reservation closes and the unit is released.
+                                    @endif
                                 </p>
                             @endif
                             @if($hadAbandonedCheckout)

@@ -121,7 +121,7 @@
             </div>
 
             {{-- Two blocks instead of eight equal cells: who to reach on the left, the lease on
-                 the right, with the lease drawn as a timeline. Stacks on a phone. --}}
+                 the right, with the rental drawn as a timeline. Stacks on a phone. --}}
             @php
                 $moveIn = $reservation->target_move_in_date;
                 $moveOut = $reservation->target_move_out_date;
@@ -180,7 +180,7 @@
                 {{-- Lease timeline --}}
                 <div class="p-5 sm:p-6">
                     <div class="flex items-baseline justify-between gap-3">
-                        <h2 class="text-[12px] font-bold uppercase tracking-wide text-[#5B6A8E]">Lease</h2>
+                        <h2 class="text-[12px] font-bold uppercase tracking-wide text-[#5B6A8E]">Rental</h2>
                         <p class="text-[12px] text-[#5B6A8E]">
                             {{ $reservation->duration_of_stay ?? 'Term not recorded' }} &middot; rent due day {{ $summary['dueDay'] }}
                         </p>
@@ -211,7 +211,7 @@
                 </div>
             </div>
                     {{-- Lease document — printable lease + signed copy. See plans/formal-lease-agreement.md.
-                         Lives here with the lease dates rather than in its own side card. --}}
+                         Lives here with the rental dates rather than in its own side card. --}}
                     @php
                         $leaseStatus = $reservation->leaseStatus();
                         $leaseTerms = \App\Support\LeaseTerms::for($reservation);

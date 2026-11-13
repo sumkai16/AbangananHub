@@ -55,6 +55,10 @@ class PropertyUnitController extends Controller
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
             // Every monthly rental carries a deposit — no longer optional.
             'security_deposit'    => 'required|numeric|min:0|max:999999.99',
+            'payment_arrangement'    => 'required|in:reservation_fee,advance_deposit,full_payment',
+            'reservation_fee_amount' => 'nullable|required_if:payment_arrangement,reservation_fee|numeric|min:1|max:999999.99',
+            'payment_deadline_days'  => 'nullable|integer|min:1|max:7',
+            'reservation_conditions' => 'nullable|string|max:500',
             'occupancy_limit'     => 'required|integer|min:1|max:100',
             'availability_status' => 'required|in:Available,Reserved,Occupied,Maintenance',
             'description'         => 'nullable|string|max:300',
@@ -94,6 +98,10 @@ class PropertyUnitController extends Controller
                 'furnishing_status'   => $validated['furnishing_status'] ?? null,
                 'rental_fee'          => $validated['rental_fee'],
                 'security_deposit'    => $validated['security_deposit'] ?? null,
+                'payment_arrangement'    => $validated['payment_arrangement'],
+                'reservation_fee_amount' => $validated['payment_arrangement'] === 'reservation_fee' ? $validated['reservation_fee_amount'] : null,
+                'payment_deadline_days'  => $validated['payment_deadline_days'] ?? null,
+                'reservation_conditions' => $validated['reservation_conditions'] ?? null,
                 'occupancy_limit'     => $validated['occupancy_limit'],
                 'availability_status' => $validated['availability_status'],
                 'description'         => $validated['description'] ?? null,
@@ -170,6 +178,10 @@ class PropertyUnitController extends Controller
             // every new unit. A unit that genuinely charges no deposit needs a
             // way to say so after creation; see SCHEMA.md.
             'security_deposit'    => 'nullable|numeric|min:0|max:999999.99',
+            'payment_arrangement'    => 'required|in:reservation_fee,advance_deposit,full_payment',
+            'reservation_fee_amount' => 'nullable|required_if:payment_arrangement,reservation_fee|numeric|min:1|max:999999.99',
+            'payment_deadline_days'  => 'nullable|integer|min:1|max:7',
+            'reservation_conditions' => 'nullable|string|max:500',
             'occupancy_limit'     => 'required|integer|min:1|max:100',
             'availability_status' => 'required|in:Available,Reserved,Occupied,Maintenance',
             'description'         => 'nullable|string|max:300',
@@ -231,6 +243,10 @@ class PropertyUnitController extends Controller
                 // silently null it (ARCHITECTURE.md documents this exact
                 // shape once already, for this same edit page).
                 'security_deposit'    => array_key_exists('security_deposit', $validated) ? $validated['security_deposit'] : $unit->security_deposit,
+                'payment_arrangement'    => $validated['payment_arrangement'],
+                'reservation_fee_amount' => $validated['payment_arrangement'] === 'reservation_fee' ? $validated['reservation_fee_amount'] : null,
+                'payment_deadline_days'  => $validated['payment_deadline_days'] ?? null,
+                'reservation_conditions' => $validated['reservation_conditions'] ?? null,
                 'occupancy_limit'     => $validated['occupancy_limit'],
                 'availability_status' => $validated['availability_status'],
                 'description'         => $validated['description'] ?? null,

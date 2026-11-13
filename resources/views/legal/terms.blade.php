@@ -32,7 +32,7 @@
                 'title' => 'What AbangananHub is (and is not)',
                 'icon' => 'M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21',
                 'body' => [
-                    'AbangananHub is a marketplace that helps tenants find rentals and helps landlords list them. We are not a landlord, agent, broker or party to any lease. Any rental agreement is strictly between the tenant and the landlord. We verify documents and review reports to make the platform safer, but we do not guarantee any listing, landlord or tenant, and “Verified” means only that the required documents were reviewed and approved.',
+                    'AbangananHub is a marketplace that helps tenants find rentals and helps landlords list them. We are not a landlord, agent, broker or party to any rental. Any rental agreement is strictly between the tenant and the landlord. We verify documents and review reports to make the platform safer, but we do not guarantee any listing, landlord or tenant, and “Verified” means only that the required documents were reviewed and approved.',
                 ],
             ],
             [

@@ -9,19 +9,32 @@
 @php
     $isMoveIn = $type === 'MoveIn';
     $landlordName = $reservation->property?->landlord?->first_name ?? 'your landlord';
-    $onlineAmount = $isMoveIn ? $reservation->moveInRent() : max(0, (float) ($period['balance'] ?? 0));
-    $deposit = $isMoveIn ? (float) $reservation->agreedDeposit() : 0.0;
+    // Move-in: what is still owed (after any part already paid), split into the rent side and the deposit.
+    $owedParts = $isMoveIn ? $reservation->moveInParts($reservation->moveInShortfall()) : null;
+    $onlineAmount = $isMoveIn ? round($owedParts['fee'] + $owedParts['rent'], 2) : max(0, (float) ($period['balance'] ?? 0));
+    $deposit = $isMoveIn ? $owedParts['deposit'] : 0.0;
     $fee = \App\Support\ServiceFee::for($onlineAmount);
     $onlineTotal = $onlineAmount + $deposit + $fee;
     $methods = \App\Support\PaymentMethods::forReservation($reservation);
     // Online pays the earliest unsettled month only, so paying a month ahead is QR or cash.
     $online = $methods['online'] && ! ($period['is_future'] ?? false);
+    // Online takes any amount from the minimum (the reservation fee, then whatever is still owed) up to everything
+    // owed, so a tenant can pay in parts before move-in. Nothing left to pay = nothing to offer.
+    if ($isMoveIn && $reservation->moveInShortfall() <= 0.009) {
+        $online = false;
+    }
+    $feeUnit = $isMoveIn && $reservation->reservationFee() > 0;
+    // Online amount: free choice between $minPay and $maxPay (only reservation-fee units have a gap between them).
+    $maxPay = $isMoveIn ? $reservation->moveInShortfall() : 0.0;
+    $minPay = $isMoveIn ? min($reservation->minimumMoveInPayment() ?: $maxPay, $maxPay) : 0.0;
+    $flex = $online && $isMoveIn && $maxPay - $minPay > 0.009;
+    $feeFirst = $feeUnit && ! $reservation->reservationFeePaid() && $reservation->moveInPaid() <= 0;
     $qr = $methods['qr'];
     $cash = $methods['cash'];
     $direct = $qr || $cash;
     // A landlord who takes online only, and a month paid ahead (online pays the due month): nothing to offer yet.
     $noWayYet = ! $online && ! $direct;
-    $cashAmount = $isMoveIn ? $onlineAmount + $deposit : $onlineAmount;
+    $cashAmount = $isMoveIn ? ($reservation->minimumMoveInPayment() ?: $onlineAmount + $deposit) : $onlineAmount;
     $chatLink = $reservation->conversation_id
         ? route('conversations.index', ['active' => $reservation->conversation_id])
         : route('tenancy.chat', $reservation);
@@ -193,14 +206,55 @@
                 Online pays one month at a time, so this pays {{ $period['label'] }} only. To pay all {{ $payAllMonths }} months at once, pay {{ $landlordName }} directly.
             </p>
         @endif
-        <form action="{{ $checkoutUrl }}" method="POST" class="rounded-2xl border border-[#E2E4EC] bg-white p-4 sm:p-5" x-data="{ agreed: {{ old('accept_terms') ? 'true' : 'false' }} }">
+        <form action="{{ $checkoutUrl }}" method="POST" class="rounded-2xl border border-[#E2E4EC] bg-white p-4 sm:p-5" x-data="{ agreed: {{ old('accept_terms') ? 'true' : 'false' }}@if($flex),
+                        amount: {{ json_encode(old('amount', round($minPay, 2))) }},
+                        min: {{ json_encode(round($minPay, 2)) }}, max: {{ json_encode(round($maxPay, 2)) }},
+                        feeFirst: {{ json_encode($feeFirst) }}, resFee: {{ json_encode((float) $reservation->reservationFee()) }},
+                        depLeft: {{ json_encode(max(0.0, (float) $reservation->agreedDeposit() - $reservation->moveInPaid())) }},
+                        pct: {{ json_encode((float) config('rentals.online_payment_fee_percent', 0)) }}, fixed: {{ json_encode((float) config('rentals.online_payment_fee_fixed', 0)) }},
+                        get amt() { const n = parseFloat(this.amount); return isNaN(n) ? 0 : n; },
+                        get ok() { return this.amt + 0.01 >= this.min && this.amt <= this.max + 0.01; },
+                        get fee() { return this.feeFirst ? Math.min(this.amt, this.resFee) : 0; },
+                        get dep() { return Math.min(this.amt - this.fee, Math.max(0, this.depLeft - this.fee)); },
+                        get rent() { return Math.max(0, this.amt - this.fee - this.dep); },
+                        get onlineFee() { const b = this.fee + this.rent; return b > 0 && (this.pct > 0 || this.fixed > 0) ? Math.round((b * this.pct / 100 + this.fixed) * 100) / 100 : 0; },
+                        money(v) { return '₱' + Number(v).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+                    @endif }">
             @csrf
             @if($errors->has('payment'))
                 <div role="alert" class="mb-3 rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/10 px-4 py-3 text-[13px] font-semibold text-[#B91C1C]">
                     {{ $errors->first('payment') }}
                 </div>
             @endif
-            <dl class="space-y-1.5 text-[13px]">
+            @if($flex)
+                <div>
+                    <label for="online-amount-{{ $anchor }}" class="mb-1 block text-[12px] font-semibold text-[#060D26]">How much do you want to pay now?</label>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[16px] font-bold text-[#060D26]">&#8369;</span>
+                        <input id="online-amount-{{ $anchor }}" name="amount" type="number" step="0.01" inputmode="decimal" x-model="amount" :min="min" :max="max" required
+                            class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5 text-[16px] sm:text-[14px] tabular-nums text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]">
+                    </div>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                        <button type="button" @click="amount = min" class="rounded-full border border-[#E2E4EC] px-3 py-1 text-[12px] font-bold text-[#060D26] hover:bg-[#F7F8FC]">{{ $feeFirst ? 'Reservation fee' : 'Minimum' }} &#8369;{{ number_format($minPay, 2) }}</button>
+                        <button type="button" @click="amount = max" class="rounded-full border border-[#E2E4EC] px-3 py-1 text-[12px] font-bold text-[#060D26] hover:bg-[#F7F8FC]">{{ $feeFirst ? 'Pay in full' : 'Pay the balance' }} &#8369;{{ number_format($maxPay, 2) }}</button>
+                    </div>
+                    <p x-show="!ok" x-cloak class="mt-1.5 text-[12px] text-[#DC2626]">Enter an amount from &#8369;{{ number_format($minPay, 2) }} to &#8369;{{ number_format($maxPay, 2) }}.</p>
+                    @error('amount')<p class="mt-1.5 text-[12px] text-[#DC2626]">{{ $message }}</p>@enderror
+                    <p class="mt-2 rounded-lg bg-[#F7F8FC] px-3 py-2 text-[12px] leading-relaxed text-[#060D26]">
+                        @if($feeFirst)
+                            Pay the &#8369;{{ number_format($reservation->reservationFee(), 2) }} reservation fee now to hold the unit, or more. The rest of the &#8369;{{ number_format($maxPay, 2) }} is due before you move in, and you can pay it online later in as many parts as you like.
+                        @else
+                            &#8369;{{ number_format($maxPay, 2) }} is still due before you move in. Pay all of it now, or part of it and the rest later.
+                        @endif
+                    </p>
+                    <dl class="mt-3 space-y-1.5 text-[13px]">
+                        <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Payment</dt><dd class="font-semibold tabular-nums text-[#060D26]" x-text="money(ok ? amt : 0)"></dd></div>
+                        <div class="flex justify-between gap-3" x-show="onlineFee > 0" x-cloak><dt class="text-[#5B6A8E]">Online payment fee</dt><dd class="font-semibold tabular-nums text-[#060D26]" x-text="money(onlineFee)"></dd></div>
+                        <div class="flex justify-between gap-3 border-t border-[#E2E4EC] pt-1.5"><dt class="font-bold text-[#060D26]">Total</dt><dd class="text-[18px] font-extrabold tabular-nums text-[#060D26]" x-text="money(ok ? amt + onlineFee : 0)"></dd></div>
+                    </dl>
+                </div>
+            @endif
+            <dl class="space-y-1.5 text-[13px] {{ $flex ? 'hidden' : '' }}">
                 <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">{{ $isMoveIn ? $reservation->moveInRentLabel() : $period['label'] }}</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($onlineAmount, 2) }}</dd></div>
                 @if($deposit > 0)
                     <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Security deposit</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($deposit, 2) }}</dd></div>
@@ -214,9 +268,13 @@
                 <p class="mt-2 text-[12px] leading-relaxed text-[#5B6A8E]">The fee covers the cost of paying online. Paying {{ $landlordName }} directly has no fee.</p>
             @endif
             <div class="mt-3"><x-payment-agree route="online" :landlord-name="$landlordName" :move-in="$isMoveIn" :fee="$fee" :id="'agree-online-'.$anchor" /></div>
-            <button type="submit" :disabled="!agreed"
+            <button type="submit" :disabled="!agreed{{ $flex ? ' || !ok' : '' }}"
                 class="mt-4 h-11 w-full rounded-xl bg-[#FF8A66] px-5 text-sm font-bold text-[#060D26] shadow-sm transition-all duration-200 hover:bg-[#E96F4F] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[#FF8A66]">
-                Pay &#8369;{{ number_format($onlineTotal, 2) }} online
+                @if($flex)
+                    <span x-text="ok ? 'Pay ' + money(amt + onlineFee) + ' online' : 'Enter a valid amount'"></span>
+                @else
+                    Pay &#8369;{{ number_format($onlineTotal, 2) }} online
+                @endif
             </button>
             <p x-show="!agreed" x-cloak class="mt-1.5 text-center text-[12.5px] text-[#5B6A8E]">Tick the box above to continue.</p>
             <x-payment-test-notice class="mt-3" />
@@ -238,7 +296,18 @@
         <div class="rounded-2xl border border-[#E2E4EC] bg-white p-4 sm:p-5">
             <h3 class="text-[15px] font-normal text-[#060D26]">Pay {{ $landlordName }} in cash</h3>
             <p class="mt-1 text-2xl font-extrabold tabular-nums text-[#060D26]">&#8369;{{ number_format($cashAmount, 2) }}</p>
-            <p class="text-[12px] text-[#5B6A8E]">{{ $isMoveIn ? $reservation->moveInBreakdown() : $period['label'] }}</p>
+            @if($feeUnit)
+                <p class="mt-1 inline-block rounded-full bg-[#FF8A66]/15 px-2.5 py-0.5 text-[11.5px] font-bold text-[#060D26]">{{ $reservation->reservationFeePaid() ? 'Balance before move-in' : 'Reservation fee' }}</p>
+                <p class="mt-2 rounded-lg bg-[#F7F8FC] px-3 py-2 text-[12.5px] leading-relaxed text-[#060D26]">
+                    @if($reservation->reservationFeePaid())
+                        Your reservation fee is paid and the unit is held for you. Pay the balance of &#8369;{{ number_format($reservation->moveInShortfall(), 2) }} before you move in.
+                    @else
+                        This holds the unit with a reservation fee of &#8369;{{ number_format($reservation->reservationFee(), 2) }}. The remaining &#8369;{{ number_format($reservation->moveInBalanceAfterFee(), 2) }} ({{ $reservation->moveInBreakdown() }} in total) is due before you move in.
+                    @endif
+                </p>
+            @else
+                <p class="text-[12px] text-[#5B6A8E]">{{ $isMoveIn ? $reservation->moveInBreakdown() : $period['label'] }}</p>
+            @endif
             <ol class="mt-3 space-y-1.5 text-[13px] leading-relaxed text-[#060D26] list-decimal pl-5">
                 <li>Agree a time and place with {{ $landlordName }} in <a href="{{ $chatLink }}" class="font-bold underline">your chat</a>.</li>
                 <li>Hand over the exact amount and ask for a receipt.</li>

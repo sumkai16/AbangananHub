@@ -109,7 +109,7 @@ class LandlordTenantRosterTest extends TestCase
         $reservation = $this->reservationOn($unit, $tenant, 'Rental Agreement Signed');
 
         $claim = PaymentClaim::create([
-            'reservation_id' => $reservation->reservation_id, 'claim_type' => 'MoveIn', 'amount' => 5000,
+            'reservation_id' => $reservation->reservation_id, 'claim_type' => 'MoveIn', 'amount' => $reservation->moveInDue(),
             'payment_method' => 'GCash', 'reference_no' => 'GC1', 'paid_on' => '2026-10-13',
             'status' => 'Pending', 'filed_by' => $tenant->user_id,
         ]);

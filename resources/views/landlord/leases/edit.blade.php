@@ -164,7 +164,7 @@
                         <textarea id="lease-welcome" name="welcome_message" x-model="welcome" rows="3" maxlength="1500"
                             placeholder="e.g. Welcome to our boarding house! Please read the rules below and message us anytime."
                             class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3.5 py-3 text-[14px] leading-relaxed text-[#060D26] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/25"></textarea>
-                        <p class="{{ $hint }}">Shown at the top of the lease, after the names of both parties.</p>
+                        <p class="{{ $hint }}">Shown at the top of the rental, after the names of both parties.</p>
                         @error('welcome_message')<p class="{{ $error }}">{{ $message }}</p>@enderror
                     </div>
                 </div>
@@ -177,7 +177,7 @@
                     </button>
                     <div x-show="open === 'houserules'" x-cloak class="border-t border-[#E2E4EC] bg-[#FBFBFE] px-4 pb-5 pt-4" x-data="{ listed: false }">
                         <p class="text-[12.5px] leading-relaxed text-[#5B6A8E]">
-                            The lease prints only the rules you write here, grouped under headings. Your listing's rules are shown to tenants when they browse, not on the lease, so add any you want them to sign.
+                            The rental prints only the rules you write here, grouped under headings. Your listing's rules are shown to tenants when they browse, not on the rental, so add any you want them to sign.
                             <button type="button" x-show="ids.length" @click="listed = !listed" class="ml-1 font-semibold text-[#060D26] underline underline-offset-2" x-text="listed ? 'Hide listing rules' : 'See listing rules'"></button>
                         </p>
 
@@ -219,12 +219,12 @@
                                         <span class="shrink-0 text-[12px] font-semibold text-[#5B6A8E]" x-text="section.rules.filter(r => r.trim()).length + ' rules' + (section.hidden ? ' · hidden' : '')"></span>
                                         <input type="hidden" :name="'house_rule_sections[' + i + '][hidden]'" :value="section.hidden ? 1 : 0">
                                         <button type="button" @click="section.hidden = !section.hidden" :aria-pressed="!!section.hidden" class="shrink-0 text-[12px] font-semibold text-[#5B6A8E] hover:text-[#060D26]"
-                                            x-text="section.hidden ? 'Show' : 'Hide'" :aria-label="(section.hidden ? 'Show ' : 'Hide ') + (section.title || 'section') + ' on the lease'"></button>
+                                            x-text="section.hidden ? 'Show' : 'Hide'" :aria-label="(section.hidden ? 'Show ' : 'Hide ') + (section.title || 'section') + ' on the rental'"></button>
                                         <button type="button" x-show="section.hidden" x-cloak @click="sections.splice(i, 1)" class="shrink-0 text-[12px] font-semibold text-[#5B6A8E] hover:text-[#DC2626]" :aria-label="'Delete ' + (section.title || 'section')">Delete</button>
                                     </div>
                                     {{-- Rules: numbered, one per row. Folded (not removed) so every field still posts. --}}
                                     <div x-show="!section.collapsed">
-                                        <p x-show="section.hidden" x-cloak class="border-t border-[#E2E4EC] px-4 py-2 text-[12px] text-[#5B6A8E]">Kept here but left off the lease.</p>
+                                        <p x-show="section.hidden" x-cloak class="border-t border-[#E2E4EC] px-4 py-2 text-[12px] text-[#5B6A8E]">Kept here but left off the rental.</p>
                                         <ol class="flex flex-col">
                                             <template x-for="(rule, j) in section.rules" :key="j">
                                                 <li class="group flex items-center gap-3 border-t border-[#E2E4EC] px-4">
@@ -348,7 +348,7 @@
                     </button>
                     <div x-show="open === 'applies'" x-cloak class="border-t border-[#E2E4EC] bg-[#FBFBFE] px-4 pb-4 pt-3">
                         <div class="flex items-center justify-between gap-2">
-                            <p class="text-[12px] text-[#5B6A8E]">Units with their own policy keep it. Set units on the Lease policies page.</p>
+                            <p class="text-[12px] text-[#5B6A8E]">Units with their own policy keep it. Set units on the Rental policies page.</p>
                             @if($properties->isNotEmpty())
                                 <div class="flex shrink-0 gap-3 text-[12px] font-semibold">
                                     <button type="button" @click="ids = [...all]" class="text-[#060D26] underline underline-offset-2">Select all</button>

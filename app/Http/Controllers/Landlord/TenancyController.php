@@ -146,7 +146,7 @@ class TenancyController extends Controller
             return back()->with('error', 'This tenancy is not currently active, so it cannot be ended.');
         }
 
-        $message = 'Lease ended. The unit is available again and no new months are billed.'.($depositNote ? ' '.$depositNote : '');
+        $message = 'Rental ended. The unit is available again and no new months are billed.'.($depositNote ? ' '.$depositNote : '');
 
         // The lease modal on the Leases page ends it in place and comes back to the list.
         if ($request->input('from') === 'contracts') {
@@ -206,7 +206,7 @@ class TenancyController extends Controller
 
             AuditLog::record(
                 'rent.stop_collecting',
-                'Landlord stopped collecting ₱'.number_format($owed, 2).' of unpaid rent on an ended lease',
+                'Landlord stopped collecting ₱'.number_format($owed, 2).' of unpaid rent on an ended rental',
                 $locked,
                 null,
                 ['amount' => $owed],
@@ -217,7 +217,7 @@ class TenancyController extends Controller
 
         return match (true) {
             $result === null => back()->with('warning', 'You had already stopped collecting this.'),
-            $result === false => back()->with('warning', 'Nothing is owed on this lease.'),
+            $result === false => back()->with('warning', 'Nothing is owed on this rental.'),
             default => back()->with('success', 'Stopped collecting ₱'.number_format($result, 2).'. It no longer counts as owed. You can resume any time.'),
         };
     }
@@ -237,7 +237,7 @@ class TenancyController extends Controller
 
             $locked->forceFill(['rent_written_off_amount' => null, 'rent_written_off_at' => null])->save();
 
-            AuditLog::record('rent.resume_collecting', 'Landlord resumed collecting unpaid rent on an ended lease', $locked);
+            AuditLog::record('rent.resume_collecting', 'Landlord resumed collecting unpaid rent on an ended rental', $locked);
         });
 
         return back()->with('success', 'Collecting resumed. The balance counts as owed again.');

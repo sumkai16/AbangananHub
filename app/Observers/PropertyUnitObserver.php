@@ -23,7 +23,7 @@ class PropertyUnitObserver
         'rental_fee'        => 'rent',
         'security_deposit'  => 'deposit',
         'occupancy_limit'   => 'capacity',
-        'lease_template_id' => 'lease policy',
+        'lease_template_id' => 'rental policy',
     ];
 
     public function created(PropertyUnit $unit): void

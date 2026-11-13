@@ -57,7 +57,7 @@ class ContractController extends Controller
                 ->orWhere('last_name', 'like', "%{$search}%")
                 ->orWhere('email', 'like', "%{$search}%")))
             ->when($request->boolean('lease_missing'), fn ($q) => $q->whereNull('lease_file_path')->whereNull('agreed_at'))
-            ->with(['tenant', 'unit', 'property', 'renewals'])
+            ->with(['tenant', 'unit', 'property', 'renewals', 'documents'])
             ->orderBy('property_id')
             ->orderByRaw("FIELD(rental_status, 'Rental Agreement Signed', 'Reserved', 'Occupied', 'Completed')")
             ->orderBy('target_move_out_date')
@@ -104,8 +104,8 @@ class ContractController extends Controller
         return redirect()
             ->route('landlord.contracts.index', ['open' => $reservation->reservation_id])
             ->with('success', $reservation->rental_status === 'Occupied'
-                ? 'Lease added. The unit is now occupied.'
-                : 'Lease added. The unit is reserved until '.$row->tenant->first_name.' moves in.');
+                ? 'Rental added. The unit is now occupied.'
+                : 'Rental added. The unit is reserved until '.$row->tenant->first_name.' moves in.');
     }
 
     /** The contract's details, rendered for the view modal (fetched when it opens, not embedded per row). */
@@ -181,7 +181,7 @@ class ContractController extends Controller
 
             AuditLog::record(
                 'contract.renew',
-                'Lease renewed to '.Carbon::parse($data['new_move_out_date'])->format('M j, Y').' on '.($locked->property?->title ?? 'a property'),
+                'Rental renewed to '.Carbon::parse($data['new_move_out_date'])->format('M j, Y').' on '.($locked->property?->title ?? 'a property'),
                 $locked,
                 null,
                 ['new_monthly_rent' => (float) $data['new_monthly_rent'], 'rent_effective_from' => $data['rent_effective_from']],
@@ -191,8 +191,8 @@ class ContractController extends Controller
                 Notification::notify(
                     $locked->tenant_id,
                     'reservation',
-                    'Your lease was renewed',
-                    'Your lease now runs until '.$renewal->new_move_out_date->format('M j, Y').'. Rent from '
+                    'Your rental was renewed',
+                    'Your rental now runs until '.$renewal->new_move_out_date->format('M j, Y').'. Rent from '
                         .$renewal->rent_effective_from->format('F Y').' is ₱'.number_format((float) $renewal->new_monthly_rent, 2).'.',
                     route('tenancy.show', $locked),
                 );
@@ -202,10 +202,10 @@ class ContractController extends Controller
         });
 
         if (! $renewed) {
-            return back()->with('error', 'This lease can no longer be renewed.');
+            return back()->with('error', 'This rental can no longer be renewed.');
         }
 
         return redirect()->route('landlord.tenants.index', ['open' => $reservation->reservation_id])
-            ->with('success', 'Lease renewed until '.$renewed->new_move_out_date->format('M j, Y').'.');
+            ->with('success', 'Rental renewed until '.$renewed->new_move_out_date->format('M j, Y').'.');
     }
 }

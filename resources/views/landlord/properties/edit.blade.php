@@ -215,7 +215,7 @@
                             <p class="text-[13px] text-[#060D26]">
                                 {{ $property->leaseTemplate?->name ?? 'Standard policy' }}
                                 <span class="text-[#5B6A8E]">&middot; units can use their own.</span>
-                                <a href="{{ route('landlord.leases.index', ['property' => $property->property_id]) }}" class="ml-1 font-semibold text-[#060D26] underline underline-offset-2">Change in Lease policies</a>
+                                <a href="{{ route('landlord.leases.index', ['property' => $property->property_id]) }}" class="ml-1 font-semibold text-[#060D26] underline underline-offset-2">Change in Rental policies</a>
                             </p>
                             @if($property->leaseTemplate && ($property->leaseTemplate->rent_grace_days !== null || $property->leaseTemplate->late_fee_type !== null))
                                 <p class="mt-1 text-[12px] text-[#B45309]">This policy sets its own rent rules, so the rent rules below apply only to units on another policy.</p>
@@ -223,7 +223,7 @@
                         </div>
                     </x-form-section>
 
-                    <x-form-section title="Rent rules" description="Private to you. Each lease keeps the rules that were in force when it was sent.">
+                    <x-form-section title="Rent rules" description="Private to you. Each rental keeps the rules that were in force when it was sent.">
                         <x-slot:icon>{!! $ico('M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z') !!}</x-slot:icon>
 
                         <div x-data="{

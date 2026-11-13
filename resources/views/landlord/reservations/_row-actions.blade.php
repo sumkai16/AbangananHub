@@ -32,7 +32,7 @@
 @elseif($report)
     <form method="POST" action="{{ route('landlord.paymentClaims.confirm', $report) }}"
         data-confirm="Confirm ₱{{ number_format((float) $report->amount, 2) }} from {{ $tenantName }}?"
-        data-confirm-message="{{ $report->payment_method }}, reference {{ $report->reference_no }}, paid {{ $report->paid_on->format('M j') }}. Only confirm after you see it in your account. The unit is then held for {{ $tenantName }} and the lease moves to Leases."
+        data-confirm-message="{{ $report->payment_method }}, reference {{ $report->reference_no }}, paid {{ $report->paid_on->format('M j') }}. Only confirm after you see it in your account. The unit is then held for {{ $tenantName }} and the rental moves to Rentals."
         data-confirm-button="Confirm payment">
         @csrf
         <button type="submit" class="{{ $primary }}">Confirm payment</button>
@@ -63,4 +63,34 @@
         @csrf @method('PATCH')
         <button type="submit" class="{{ $quiet }}">Cancel</button>
     </form>
+@endif
+
+{{-- Fee paid, balance past due: the reservation stays open, so say so and let the landlord choose. --}}
+@if($reservation->balanceOverdue())
+    <span class="basis-full inline-flex w-fit items-center rounded-full bg-[#FBBF24]/[0.14] px-2.5 py-1 text-[11.5px] font-semibold text-[#92400E]">Balance overdue: &#8369;{{ number_format($reservation->moveInShortfall(), 2) }}. Reservation kept open.</span>
+@endif
+
+{{-- Money the tenant paid you on a reservation that ended: record whether you returned it or kept it. --}}
+@if(in_array($status, ['Cancelled', 'Rejected'], true) && ($toSettle = $reservation->moneyToSettle()) > 0)
+    <div x-data="{ open: false, decision: 'refunded' }" class="basis-full">
+        <button type="button" x-show="!open" @click="open = true" class="{{ $primary }}">Settle &#8369;{{ number_format($toSettle, 2) }}@if($reservation->move_in_refund_requested_at) (refund requested)@endif</button>
+        <form x-show="open" x-cloak method="POST" action="{{ route('landlord.reservations.settlePayment', $reservation) }}" class="mt-1 space-y-2 rounded-xl border border-[#E2E4EC] bg-white p-3">
+            @csrf
+            <p class="text-[12px] text-[#060D26]">{{ $tenantName }} paid you &#8369;{{ number_format($toSettle, 2) }}. This only records what you did; the money is between you and {{ $tenantName }}.</p>
+            <label class="flex items-center gap-2 text-[12.5px] text-[#060D26]"><input type="radio" name="decision" value="refunded" x-model="decision"> I returned it</label>
+            <label class="flex items-center gap-2 text-[12.5px] text-[#060D26]"><input type="radio" name="decision" value="kept" x-model="decision"> I am keeping it</label>
+            <div x-show="decision === 'refunded'">
+                <label class="mb-1 block text-[11px] font-semibold text-[#060D26]">Amount returned (&#8369;)</label>
+                <input type="number" name="amount" step="0.01" min="0" max="{{ $toSettle }}" value="{{ number_format($toSettle, 2, '.', '') }}" class="w-full rounded-lg border border-[#E2E4EC] px-2.5 py-2 text-[13px] tabular-nums text-[#060D26]">
+            </div>
+            <div>
+                <label class="mb-1 block text-[11px] font-semibold text-[#060D26]">Note to the tenant <span class="font-normal text-[#5B6A8E]" x-text="decision === 'kept' ? '(required)' : '(required if you keep part)'"></span></label>
+                <input type="text" name="note" maxlength="255" class="w-full rounded-lg border border-[#E2E4EC] px-2.5 py-2 text-[13px] text-[#060D26]" placeholder="e.g. Fee is non-refundable per the unit conditions">
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="{{ $primary }}">Save</button>
+                <button type="button" @click="open = false" class="{{ $quiet }}">Close</button>
+            </div>
+        </form>
+    </div>
 @endif

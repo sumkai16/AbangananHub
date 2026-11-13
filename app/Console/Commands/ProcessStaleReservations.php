@@ -47,8 +47,25 @@ class ProcessStaleReservations extends Command
 
             $rows = $this->rows($key, $status);
 
+            $stageRules = $rules;
+
             foreach ($rows as $reservation) {
                 try {
+                    // A landlord's own payment deadline for the unit replaces the platform default for this stage.
+                    $rules = $stageRules;
+                    $days = $reservation->paymentDeadlineDays($key);
+                    if ($days !== null && $days !== ($stageRules['cancel_days'] ?? null)) {
+                        $rules['cancel_days'] = $days;
+                        $rules['remind_days'] = max(1, min($stageRules['remind_days'], $days - 1));
+                    }
+
+                    // Part of the move-in money (the reservation fee) is already with the landlord: never cancel the
+                    // tenant and lose it. Remind both sides once the balance is past due; the landlord decides.
+                    if ($key === 'signed' && $reservation->moveInPaid() > 0) {
+                        $rules['cancel_days'] = null;
+                        $rules['remind_days'] = $reservation->paymentDeadlineDays('signed') ?? $rules['remind_days'];
+                    }
+
                     $quietSince = $reservation->quietSince();
 
                     // The tenant uploaded what the lease asked for and the landlord has not reviewed it: the landlord is
@@ -139,7 +156,9 @@ class ProcessStaleReservations extends Command
             'negotiation' => $this->both($reservation, $landlordId, $tenantId, 'Talks have gone quiet',
                 "The conversation about {$unit} has had no new message for a while. Pick it up before the reservation is closed.".$closing, $thread),
             'agreement' => $this->agreementReminder($reservation, $landlordId, $tenantId, $unit, $name, $closing, $thread),
-            'signed' => $this->unpaidReminder($reservation, $landlordId, $tenantId, $unit, $name, $closing, $thread),
+            'signed' => $reservation->moveInPaid() > 0
+                ? $this->balanceReminder($reservation, $landlordId, $tenantId, $unit, $name, $thread)
+                : $this->unpaidReminder($reservation, $landlordId, $tenantId, $unit, $name, $closing, $thread),
             'paid' => $this->both($reservation, $landlordId, $tenantId, 'Move-in still to confirm',
                 "The move-in payment for {$unit} is confirmed, but the move-in has not been. Once the keys are handed over, tap Confirm move-in to start the tenancy.", $thread),
         };
@@ -187,6 +206,20 @@ class ProcessStaleReservations extends Command
             route('agreements.show', $reservation), $reservation->conversation_id);
         Notification::notify($landlordId, 'agreement', 'Move-in payment not made yet',
             "{$name} signed the rental agreement for {$unit} but has not paid yet. We reminded them.".$closing, $thread, $reservation->conversation_id);
+    }
+
+    /** Fee paid, balance past due: nothing is cancelled. The tenant is asked to pay, the landlord to decide. */
+    private function balanceReminder(Reservation $reservation, int $landlordId, int $tenantId, string $unit, string $name, string $thread): void
+    {
+        $left = number_format($reservation->moveInShortfall(), 2);
+        $paid = number_format($reservation->moveInPaid(), 2);
+
+        Notification::notify($tenantId, 'agreement', 'Balance is due',
+            "You paid ₱{$paid} for {$unit}, but the balance of ₱{$left} was due. Pay your landlord to keep the unit.",
+            route('agreements.show', $reservation), $reservation->conversation_id);
+        Notification::notify($landlordId, 'agreement', 'Balance overdue',
+            "{$name} paid ₱{$paid} for {$unit} but has not paid the balance of ₱{$left}. The reservation stays open. Wait, or cancel it and record whether you return the ₱{$paid}.",
+            $thread, $reservation->conversation_id);
     }
 
     /** True when the reservation was actually cancelled (false when money is held or a checkout is open). */

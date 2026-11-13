@@ -65,3 +65,23 @@
 @endif
 
 @include('payments.partials._refund-notice', ['reservation' => $reservation])
+
+{{-- Money paid straight to the landlord on a reservation that ended: say where it stands, and let the tenant ask. --}}
+@if(in_array($status, ['Cancelled', 'Rejected'], true))
+    @php $owed = $reservation->moneyToSettle(); @endphp
+    @if($reservation->move_in_refund_decision === 'refunded')
+        <p class="basis-full text-[12px] leading-snug text-[#15803D]">Your landlord recorded &#8369;{{ number_format((float) $reservation->move_in_refund_amount, 2) }} as returned to you.@if($reservation->move_in_refund_note) {{ $reservation->move_in_refund_note }}@endif</p>
+    @elseif($reservation->move_in_refund_decision === 'kept')
+        <p class="basis-full text-[12px] leading-snug text-[#92400E]">Your landlord kept your payment: {{ $reservation->move_in_refund_note ?: 'no reason given' }}. If this is not right, <a href="{{ route('reports.create') }}" class="font-semibold underline">report a problem</a>.</p>
+    @elseif($owed > 0)
+        <p class="basis-full text-[12px] leading-snug text-[#92400E]">You paid &#8369;{{ number_format($owed, 2) }} directly to your landlord. They have not recorded a refund yet.</p>
+        @if($reservation->move_in_refund_requested_at === null)
+            <form action="{{ route('reservations.requestRefund', $reservation) }}" method="POST">
+                @csrf
+                <button type="submit" class="{{ $ghost }} cursor-pointer">Request refund</button>
+            </form>
+        @else
+            <span class="text-[12px] font-semibold text-[#5B6A8E]">Refund requested {{ $reservation->move_in_refund_requested_at->format('M j') }}</span>
+        @endif
+    @endif
+@endif

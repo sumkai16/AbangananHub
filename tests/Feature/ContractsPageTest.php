@@ -107,7 +107,26 @@ class ContractsPageTest extends TestCase
         $this->assertSame('Available', $unit->fresh()->availability_status);
     }
 
-    public function test_a_contract_needs_an_end_date(): void
+    public function test_moving_in_today_requires_the_rent_and_the_security_deposit(): void
+    {
+        $landlord = $this->makeLandlord();
+        $unit = $this->makeUnit($this->makeProperty($landlord), ['security_deposit' => 2000]);
+        $row = LandlordTenant::ensureFor($landlord->user_id, $this->makeTenant()->user_id);
+        $today = now()->toDateString();
+        $form = fn (array $o) => $this->validForm($row, $unit, $o + [
+            'move_in_date' => $today, 'move_out_date' => now()->addYear()->toDateString(),
+            'agreed_monthly_rent' => 2000, 'payment_method' => 'Cash',
+        ]);
+
+        // 2,000 would be booked as the deposit and leave the first month unpaid.
+        $this->actingAs($landlord)->post(route('landlord.contracts.store'), $form(['initial_amount' => 2000]))
+            ->assertSessionHasErrors('initial_amount');
+
+        $this->actingAs($landlord)->post(route('landlord.contracts.store'), $form(['initial_amount' => 4000]))
+            ->assertSessionDoesntHaveErrors('initial_amount');
+    }
+
+    public function test_the_end_date_is_optional_so_a_rental_can_be_open_ended(): void
     {
         $landlord = $this->makeLandlord();
         $unit = $this->makeUnit($this->makeProperty($landlord));
@@ -115,7 +134,7 @@ class ContractsPageTest extends TestCase
 
         $this->actingAs($landlord)
             ->post(route('landlord.contracts.store'), $this->validForm($row, $unit, ['move_out_date' => '']))
-            ->assertSessionHasErrors('move_out_date');
+            ->assertSessionDoesntHaveErrors('move_out_date');
     }
 
     public function test_another_landlords_tenant_or_unit_is_refused(): void
@@ -164,7 +183,7 @@ class ContractsPageTest extends TestCase
             ->assertOk()
             ->assertSee('Liza Santos')
             ->assertSee('₱5,000.00')
-            ->assertSee('End lease');
+            ->assertSee('End rental');
 
         $this->actingAs($this->makeLandlord())->get(route('landlord.contracts.show', $contract))->assertForbidden();
     }
@@ -190,7 +209,7 @@ class ContractsPageTest extends TestCase
 
         $this->actingAs($landlord)->get(route('landlord.contracts.show', $contract))
             ->assertOk()
-            ->assertSee('No lease agreement yet')
+            ->assertSee('No rental agreement yet')
             ->assertSee('Upload agreement')
             ->assertSee(route('landlord.leases.show', $contract), false)
             ->assertSee(route('landlord.leases.upload', $contract), false)
@@ -206,7 +225,7 @@ class ContractsPageTest extends TestCase
 
         $this->actingAs($landlord)->post(route('landlord.leases.upload', $contract), [
             'from' => 'contracts',
-            'lease_file' => UploadedFile::fake()->create('lease.pdf', 120, 'application/pdf'),
+            'lease_file' => UploadedFile::fake()->create('rental.pdf', 120, 'application/pdf'),
         ])->assertRedirect(route('landlord.tenants.index', ['open' => $contract->reservation_id]))
             ->assertSessionHas('success');
 
@@ -215,7 +234,7 @@ class ContractsPageTest extends TestCase
         Storage::disk('local')->assertExists($contract->lease_file_path);
 
         $this->actingAs($landlord)->get(route('landlord.contracts.show', $contract))
-            ->assertSee('Lease agreement uploaded')->assertSee('Open agreement')->assertSee('Replace agreement');
+            ->assertSee('Rental agreement uploaded')->assertSee('Open agreement')->assertSee('Replace agreement');
     }
 
     public function test_a_wrong_file_from_the_modal_reopens_it_with_the_error(): void
@@ -240,7 +259,7 @@ class ContractsPageTest extends TestCase
 
         $this->actingAs($this->makeLandlord())->post(route('landlord.leases.upload', $contract), [
             'from' => 'contracts',
-            'lease_file' => UploadedFile::fake()->create('lease.pdf', 120, 'application/pdf'),
+            'lease_file' => UploadedFile::fake()->create('rental.pdf', 120, 'application/pdf'),
         ])->assertForbidden();
 
         $this->assertNull($contract->fresh()->lease_file_path);

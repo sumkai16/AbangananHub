@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Landlord\SendAgreementRequest;
+use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\PaymentClaim;
 use App\Models\Property;
@@ -214,6 +215,65 @@ class ReservationController extends Controller
         }
 
         return back()->with('success', 'Reservation cancelled.');
+    }
+
+    /**
+     * Record what became of move-in money the tenant paid straight to the landlord on a reservation that has ended:
+     * returned (in full or part) or kept, with a reason. AbangananHub never held it, so nothing moves here: this is
+     * the landlord's own record, shown to the tenant, who can report it if they disagree.
+     */
+    public function settleMoveInMoney(Request $request, Reservation $reservation)
+    {
+        Gate::authorize('reject', $reservation);
+
+        $data = $request->validate([
+            'decision' => ['required', Rule::in(['refunded', 'kept'])],
+            'amount' => ['nullable', 'numeric', 'min:0'],
+            'note' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $result = DB::transaction(function () use ($reservation, $data) {
+            $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();
+            $paid = $locked->moneyToSettle();
+
+            if ($paid <= 0) {
+                return ['error' => 'There is no payment to settle on this reservation.'];
+            }
+
+            $returned = $data['decision'] === 'kept' ? 0.0 : round(min((float) ($data['amount'] ?? $paid), $paid), 2);
+            $kept = round($paid - $returned, 2);
+
+            if ($returned <= 0 && $data['decision'] === 'refunded') {
+                return ['error' => 'Enter the amount you returned.'];
+            }
+
+            if ($kept > 0 && blank($data['note'] ?? null)) {
+                return ['error' => 'Tell the tenant why you kept ₱'.number_format($kept, 2).'.'];
+            }
+
+            $locked->forceFill([
+                'move_in_refund_decision' => $returned > 0 ? 'refunded' : 'kept',
+                'move_in_refund_amount' => $returned,
+                'move_in_refund_note' => $data['note'] ?? null,
+                'move_in_refund_at' => now(),
+            ])->save();
+
+            AuditLog::record('move_in_refund.record', '₱'.number_format($returned, 2).' of ₱'.number_format($paid, 2).' move-in money recorded as returned', $locked, null, ['kept' => $kept, 'note' => $data['note'] ?? null]);
+
+            Notification::notify($locked->tenant_id, 'payment',
+                $returned > 0 ? 'Your payment was returned' : 'Your landlord kept your payment',
+                ($returned > 0 ? 'Your landlord recorded ₱'.number_format($returned, 2).' as returned to you.' : 'Your landlord kept your ₱'.number_format($paid, 2).' payment.')
+                    .($kept > 0 && $returned > 0 ? ' ₱'.number_format($kept, 2).' was kept.' : '')
+                    .(filled($data['note'] ?? null) ? ' Reason: '.$data['note'] : '')
+                    .' If this is not right, use Report a problem.',
+                route('reservations.index'), $locked->conversation_id);
+
+            return ['ok' => 'Recorded. The tenant was told.'];
+        });
+
+        return isset($result['error'])
+            ? back()->withErrors(['reservation' => $result['error']])
+            : back()->with('success', $result['ok']);
     }
 
     public function advanceToNegotiation(Reservation $reservation)

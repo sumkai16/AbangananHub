@@ -161,6 +161,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/reservations', [ReservationController::class, 'index'])->name('reservations.index');
         Route::post('/reservations', [ReservationController::class, 'store'])->name('reservations.store');
         Route::patch('/reservations/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel');
+        Route::post('/reservations/{reservation}/request-refund', [ReservationController::class, 'requestRefund'])->name('reservations.requestRefund');
 
         Route::get('/reservations/{reservation}/agreement', [AgreementController::class, 'show'])->name('agreements.show');
         Route::post('/reservations/{reservation}/agreement/sign', [AgreementController::class, 'sign'])->name('agreements.sign');
@@ -231,6 +232,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/reservations/viewings/blocked-days/{blockedDate}', [App\Http\Controllers\Landlord\ViewingController::class, 'unblock'])->name('viewings.unblock');
         Route::patch('/reservations/{reservation}/reject', [App\Http\Controllers\Landlord\ReservationController::class, 'reject'])->name('reservations.reject');
         Route::patch('/reservations/{reservation}/cancel', [App\Http\Controllers\Landlord\ReservationController::class, 'cancel'])->name('reservations.cancel');
+        Route::post('/reservations/{reservation}/settle-payment', [App\Http\Controllers\Landlord\ReservationController::class, 'settleMoveInMoney'])->name('reservations.settlePayment');
         Route::patch('/reservations/{reservation}/advance-negotiation', [App\Http\Controllers\Landlord\ReservationController::class, 'advanceToNegotiation'])->name('reservations.advanceNegotiation');
         Route::patch('/reservations/{reservation}/accept-and-send', [App\Http\Controllers\Landlord\ReservationController::class, 'acceptAndSendAgreement'])->name('reservations.acceptAndSend');
         // Lease policies (URL /landlord/lease-policies): lease template library and where each template is used (plans/lease-templates-page.md)

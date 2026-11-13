@@ -55,7 +55,7 @@
                         <h2 id="tenant-form-title" class="text-[17px] font-normal text-[#060D26]" x-text="editing ? 'Edit tenant' : 'Add tenant'"></h2>
                         <p class="text-[12.5px] text-[#5B6A8E] mt-0.5" x-text="editing
                             ? 'Changing the email sends a new invite to that address.'
-                            : 'They show as Pending until you give them a lease. With an email, we invite them to set a password.'"></p>
+                            : 'They show as Pending until you give them a rental. With an email, we invite them to set a password.'"></p>
                     </div>
                     <button type="button" @click="close()" aria-label="Close"
                         class="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-[#5B6A8E] hover:bg-[#F7F8FC] hover:text-[#060D26] transition-colors duration-200 cursor-pointer">
@@ -102,7 +102,7 @@
                     </div>
 
                     <div class="flex justify-end gap-2 pt-1">
-                        <button type="button" @click="close()" class="h-11 px-5 rounded-full border border-[#5B6A8E]/30 text-[13.5px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">Cancel</button>
+                        <button type="button" @click="close()" class="h-11 px-5 rounded-full border border-[#060D26]/35 bg-white text-[13.5px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">Cancel</button>
                         <button type="submit" class="h-11 px-6 rounded-full bg-[#FF8A66] text-[13.5px] font-semibold text-[#060D26] hover:bg-[#E96F4F] transition-colors duration-200 cursor-pointer"
                             x-text="editing ? 'Save changes' : 'Add tenant'"></button>
                     </div>

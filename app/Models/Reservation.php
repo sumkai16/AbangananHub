@@ -61,6 +61,11 @@ class Reservation extends Model
         'lease_uploaded_at',
         'deposit_returned_amount',
         'deposit_returned_at',
+        'move_in_refund_decision',
+        'move_in_refund_amount',
+        'move_in_refund_note',
+        'move_in_refund_at',
+        'move_in_refund_requested_at',
         'rent_written_off_at',
         'rent_written_off_amount',
         'agreed_at',
@@ -88,6 +93,9 @@ class Reservation extends Model
             'stale_reminder_sent_at' => 'datetime',
             'reservation_date' => 'date',
             'deposit_returned_at' => 'datetime',
+            'move_in_refund_at' => 'datetime',
+            'move_in_refund_requested_at' => 'datetime',
+            'move_in_refund_amount' => 'decimal:2',
             'rent_written_off_at' => 'datetime',
             'rent_written_off_amount' => 'decimal:2',
             'deposit_returned_amount' => 'decimal:2',
@@ -571,10 +579,15 @@ class Reservation extends Model
             return true;
         }
 
-        return $this->payments()
+        // A reservation-fee unit can be paid online in parts, so an Initial (rent) row no longer means "all paid":
+        // its completion is move_in_paid_at (set when the last part lands). Before parts existed a full online
+        // payment wrote no Reservation Fee row, and that case still counts as settled.
+        $initial = $this->payments()
             ->where('payment_type', 'Initial')
             ->whereIn('status', ['Held', 'Paid', 'Released'])
             ->exists();
+
+        return $initial && ! ($this->reservationFee() > 0 && $this->payments()->where('payment_type', 'Reservation Fee')->exists());
     }
 
     /**
@@ -588,16 +601,26 @@ class Reservation extends Model
             return true;
         }
 
-        return $this->relationLoaded('payments')
-            ? $this->payments->contains(fn (Payment $p) => $p->payment_type === 'Initial' && in_array($p->status, ['Held', 'Paid', 'Released'], true))
-            : $this->hasSettledInitialPayment();
+        if (! $this->relationLoaded('payments')) {
+            return $this->hasSettledInitialPayment();
+        }
+
+        // See hasSettledInitialPayment(): on a fee unit that took a Reservation Fee row, only move_in_paid_at settles it.
+        if ($this->reservationFee() > 0 && $this->payments->contains('payment_type', 'Reservation Fee')) {
+            return false;
+        }
+
+        return $this->payments->contains(fn (Payment $p) => $p->payment_type === 'Initial' && in_array($p->status, ['Held', 'Paid', 'Released'], true));
     }
 
     /** The query form of moveInSettled(), for stage tabs and the unit hold. */
     public function scopeMoveInSettled(Builder $query): Builder
     {
         return $query->where(fn ($q) => $q->whereNotNull('move_in_paid_at')
-            ->orWhereHas('payments', fn ($p) => $p->where('payment_type', 'Initial')->whereIn('status', ['Held', 'Paid', 'Released'])));
+            ->orWhere(fn ($legacy) => $legacy
+                ->whereHas('payments', fn ($p) => $p->where('payment_type', 'Initial')->whereIn('status', ['Held', 'Paid', 'Released']))
+                // A fee unit paid in parts online is settled by move_in_paid_at only (see hasSettledInitialPayment()).
+                ->whereDoesntHave('payments', fn ($p) => $p->where('payment_type', 'Reservation Fee'))));
     }
 
     /** True when the move-in money came through a PayMongo checkout (not recorded by the landlord). */
@@ -605,7 +628,7 @@ class Reservation extends Model
     {
         $payments = $this->relationLoaded('payments') ? $this->payments : $this->payments()->get();
 
-        return $payments->contains(fn (Payment $p) => $p->payment_type === 'Initial' && ! $p->isManuallyRecorded()
+        return $payments->contains(fn (Payment $p) => in_array($p->payment_type, ['Initial', 'Reservation Fee'], true) && ! $p->isManuallyRecorded()
             && in_array($p->status, ['Held', 'Paid', 'Released'], true));
     }
 
@@ -1004,7 +1027,7 @@ class Reservation extends Model
             $this->rental_status === 'Rental Agreement Signed' && ! $this->moveInSettled() => 'signed',
             default => null,
         };
-        $days = $key ? config("rentals.stale_reservations.$key.cancel_days") : null;
+        $days = $key ? $this->paymentDeadlineDays($key) : null;
 
         if ($days === null || ! config('rentals.stale_reservations.auto_cancel')) {
             return null;
@@ -1230,6 +1253,185 @@ class Reservation extends Model
         return round($this->moveInRent() + $this->agreedDeposit(), 2);
     }
 
+    /** The unit's payment arrangement: reservation_fee, advance_deposit (the original flow) or full_payment. */
+    public function paymentArrangement(): string
+    {
+        return $this->unit?->payment_arrangement ?: 'advance_deposit';
+    }
+
+    /** The fee that holds the unit under the reservation_fee arrangement; 0 under the others. */
+    public function reservationFee(): float
+    {
+        return $this->paymentArrangement() === 'reservation_fee'
+            ? round((float) ($this->unit?->reservation_fee_amount ?? 0), 2)
+            : 0.0;
+    }
+
+    /** True once a Reservation Fee row is settled (Paid, or Held online). */
+    public function reservationFeePaid(): bool
+    {
+        $payments = $this->relationLoaded('payments') ? $this->payments : $this->payments()->get();
+
+        return $payments->contains(fn (Payment $p) => $p->payment_type === 'Reservation Fee' && in_array($p->status, ['Held', 'Paid', 'Released'], true));
+    }
+
+    /**
+     * Move-in money received so far: the fee, the deposit, the advance-month rent rows and an online Initial row.
+     * Monthly rows after the advance months are ordinary rent and do not count.
+     */
+    public function moveInPaid(): float
+    {
+        $payments = $this->relationLoaded('payments') ? $this->payments : $this->payments()->get();
+        $start = $this->tenancyStartDate()?->copy()->startOfMonth();
+        $until = $start?->copy()->addMonthsNoOverflow($this->advanceMonths());
+
+        return round($payments->filter(fn (Payment $p) => in_array($p->status, ['Held', 'Paid', 'Released'], true)
+            && match ($p->payment_type) {
+                'Reservation Fee', 'Deposit', 'Initial' => true,
+                'Monthly' => $p->billing_period !== null && $until !== null && $p->billing_period->lt($until),
+                default => false,
+            })->sum('amount'), 2);
+    }
+
+    /** What is still owed of moveInDue(). */
+    public function moveInShortfall(): float
+    {
+        return round(max(0.0, $this->moveInDue() - $this->moveInPaid()), 2);
+    }
+
+    /**
+     * The least the next move-in payment may be: the fee while the unit is not yet held under reservation_fee,
+     * otherwise whatever is still owed. A payment below it is refused, so a tenant can never reach Occupied
+     * with the balance unpaid.
+     */
+    public function minimumMoveInPayment(): float
+    {
+        if ($this->reservationFee() > 0 && ! $this->reservationFeePaid() && $this->moveInPaid() <= 0) {
+            return min($this->reservationFee(), $this->moveInDue());
+        }
+
+        return $this->moveInShortfall();
+    }
+
+    /**
+     * What the next move-in payment is made of, as [label, amount] pairs that add up to the payment. Before the
+     * reservation fee is paid that is the fee alone; the rest is shown by moveInBalanceAfterFee(). After a part
+     * payment it is what is still owed, deposit first (the order MoveInPaymentBreakdown allocates in).
+     *
+     * @return array<int, array{0: string, 1: float}>
+     */
+    public function moveInPayLines(): array
+    {
+        $due = $this->moveInDue();
+        $months = $this->advanceMonths();
+        $rentLabel = $months === 1 ? 'First month’s rent' : $months.' months’ rent in advance';
+
+        if ($this->reservationFee() > 0 && ! $this->reservationFeePaid() && $this->moveInPaid() <= 0) {
+            return [['Reservation fee', min($this->reservationFee(), $due)]];
+        }
+
+        $lines = [];
+        $left = $this->moveInShortfall();
+        $deposit = $this->agreedDeposit();
+        $paid = $this->moveInPaid();
+
+        // Money already received covers the deposit first, then rent.
+        $depositOwed = max(0.0, round($deposit - $paid, 2));
+        $rentOwed = round($left - $depositOwed, 2);
+
+        if ($depositOwed > 0) {
+            $lines[] = ['Security deposit', $depositOwed];
+        }
+        if ($rentOwed > 0) {
+            $lines[] = [$months > 0 ? $rentLabel : 'Rent', $rentOwed];
+        }
+
+        return $lines ?: [['Move-in balance', $left]];
+    }
+
+    /**
+     * How one move-in payment of $amount splits into the rows an online checkout writes: the reservation fee first
+     * (a fee unit that has not taken it yet), then the deposit, then rent. The same order the direct path uses
+     * (MoveInPaymentRecorder), so a part payment online and a part payment direct add up the same.
+     *
+     * @return array{fee: float, deposit: float, rent: float}
+     */
+    public function moveInParts(float $amount): array
+    {
+        $amount = round(max(0.0, $amount), 2);
+        $credited = $this->moveInPaid();
+        $fee = 0.0;
+
+        if ($this->reservationFee() > 0 && ! $this->reservationFeePaid() && $credited <= 0) {
+            $fee = round(min($amount, $this->reservationFee()), 2);
+            $amount = round($amount - $fee, 2);
+            $credited += $fee;
+        }
+
+        $deposit = round(min($amount, max(0.0, $this->agreedDeposit() - $credited)), 2);
+
+        return ['fee' => $fee, 'deposit' => $deposit, 'rent' => round($amount - $deposit, 2)];
+    }
+
+    /** What is still due after the reservation fee alone: shown beside the fee so the tenant knows what follows. */
+    public function moveInBalanceAfterFee(): float
+    {
+        return round(max(0.0, $this->moveInDue() - $this->reservationFee()), 2);
+    }
+
+    /** Signed, part of the move-in money is in (the fee), the rest is past its due date. The reservation is kept, not cancelled. */
+    public function balanceOverdue(): bool
+    {
+        return $this->rental_status === 'Rental Agreement Signed'
+            && $this->moveInPaid() > 0
+            && $this->moveInShortfall() > 0
+            && ($due = $this->paymentDeadline()) !== null
+            && $due->lt(now()->timezone(config('rentals.timezone'))->startOfDay());
+    }
+
+    /**
+     * Move-in money paid straight to the landlord on a reservation that has ended, with no decision recorded yet.
+     * Zero when money is held by AbangananHub (an admin settles that) or already settled.
+     */
+    public function moneyToSettle(): float
+    {
+        if (! in_array($this->rental_status, ['Cancelled', 'Rejected'], true) || $this->move_in_refund_decision !== null) {
+            return 0.0;
+        }
+
+        $payments = $this->payments()->get();
+
+        if ($payments->contains(fn (Payment $p) => $p->status === 'Held')) {
+            return 0.0;
+        }
+
+        return round((float) $payments->where('status', 'Paid')->whereNotNull('recorded_by')
+            ->whereIn('payment_type', ['Reservation Fee', 'Deposit', 'Monthly', 'Initial'])->sum('amount'), 2);
+    }
+
+    /** Tells the landlord there is money to settle when a reservation with direct payments is cancelled. */
+    private function notifyMoneyToSettle(): void
+    {
+        $amount = $this->moneyToSettle();
+        $landlordId = $this->property?->landlord_id;
+
+        if ($amount <= 0 || ! $landlordId) {
+            return;
+        }
+
+        Notification::notify($landlordId, 'payment', 'Payment to settle',
+            '₱'.number_format($amount, 2).' was paid to you for a reservation that has now ended. Record whether you returned it or kept it.',
+            route('landlord.reservations.index'), $this->conversation_id);
+    }
+
+    /** Days the tenant has to pay for this unit: the landlord's own setting, else the platform default. */
+    public function paymentDeadlineDays(string $key): ?int
+    {
+        $own = $this->unit?->payment_deadline_days;
+
+        return in_array($key, ['agreement', 'signed'], true) && $own ? (int) $own : config("rentals.stale_reservations.$key.cancel_days");
+    }
+
     /**
      * The rent part of moveInDue(): the agreed advance months (at least the move-in month). The online checkout's
      * Initial row carries this; the deposit is its own Deposit row, so refunds and payouts work per row.
@@ -1374,7 +1576,7 @@ class Reservation extends Model
      */
     public function directPaymentNotice(string $payee): ?string
     {
-        if ($this->move_in_paid_at === null) {
+        if ($this->move_in_paid_at === null || $this->paidOnline()) {
             return null;
         }
 
@@ -1501,6 +1703,7 @@ class Reservation extends Model
             if ($saved) {
                 $this->cancelLinkedConversation();
                 $this->releaseUnitIfUnclaimed();
+                $this->notifyMoneyToSettle();
             }
 
             return $saved;

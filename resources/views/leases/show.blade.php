@@ -2,7 +2,7 @@
 @extends(request()->boolean('embed') ? 'layouts.embed' : ($isLandlordView ? 'layouts.landlord' : 'layouts.app'), $isLandlordView || request()->boolean('embed') ? [] : ['searchBar' => false])
 
 {{--
-    The printable lease, shared by both parties (Landlord\LeaseController and
+    The printable rental, shared by both parties (Landlord\LeaseController and
     Tenant\LeaseController render the same view, see ReservationPolicy::viewLease).
     For a walk-in: print, both sign on the paper lines, then upload the signed
     copy from the tenancy page. For an online tenant: what they e-signed, with
@@ -46,7 +46,7 @@
         </div>
         @unless ($signedOnline || $embed)
             <p class="text-sm text-[#5B6A8E] mt-1 print:hidden">
-                Print this, have both parties sign and date it, then upload the signed copy from the lease on the Leases page.
+                Print this, have both parties sign and date it, then upload the signed copy from the rental on the Rentals page.
             </p>
         @endunless
     </div>

@@ -482,10 +482,10 @@ class PaymentController extends Controller
                 $owed = RentLedger::for($locked)->summary()['outstanding'];
 
                 if ($data['payment_type'] !== 'Monthly' || $owed <= 0) {
-                    throw ValidationException::withMessages(['amount' => 'This lease has ended. Only unpaid rent can still be recorded.']);
+                    throw ValidationException::withMessages(['amount' => 'This rental has ended. Only unpaid rent can still be recorded.']);
                 }
                 if ((float) $data['amount'] > $owed + 0.001) {
-                    throw ValidationException::withMessages(['amount' => 'This tenant owes ₱'.number_format($owed, 2).'. You cannot record more than that on an ended lease.']);
+                    throw ValidationException::withMessages(['amount' => 'This tenant owes ₱'.number_format($owed, 2).'. You cannot record more than that on an ended rental.']);
                 }
             }
 

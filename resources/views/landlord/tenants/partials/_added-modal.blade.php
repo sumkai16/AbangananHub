@@ -1,6 +1,6 @@
 {{--
     Shown once after Add tenant saves: the tenant is on the list as Pending, and the landlord can go straight to Add
-    lease with this tenant already picked (lease_url = landlord.contracts.index?new=1&tenant={id}), or leave it.
+    rental with this tenant already picked (lease_url = landlord.contracts.index?new=1&tenant={id}), or leave it.
     Opened by the 'tenant-added' window event (the form saves in the background, _form-modal), or from the
     'tenant_added' flash after a plain form post. Data shape: TenantController::store.
     Sizes are inline so the popup never depends on a rebuilt stylesheet.
@@ -58,18 +58,18 @@
                 {{-- The next step --}}
                 <div class="mt-5 rounded-xl border border-[#E2E4EC] bg-[#F7F8FC]" style="padding: 14px 16px;">
                     <p class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">Next step</p>
-                    <p class="mt-1 text-[14px] font-semibold text-[#060D26]">Give <span x-text="first"></span> a lease</p>
-                    <p class="mt-0.5 text-[12.5px] leading-relaxed text-[#5B6A8E]">Pick the unit, dates and rent. <span x-text="first"></span> turns Active once the lease starts.</p>
+                    <p class="mt-1 text-[14px] font-semibold text-[#060D26]">Give <span x-text="first"></span> a rental</p>
+                    <p class="mt-0.5 text-[12.5px] leading-relaxed text-[#5B6A8E]">Pick the unit, dates and rent. <span x-text="first"></span> turns Active once the rental starts.</p>
                 </div>
 
                 <div class="mt-5 flex flex-col-reverse sm:flex-row gap-2">
                     <button type="button" @click="open = false"
-                        class="sm:flex-1 h-11 rounded-full border border-[#E2E4EC] text-[13.5px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] cursor-pointer transition-colors duration-200">
+                        class="sm:flex-1 h-11 rounded-full border border-[#060D26]/35 bg-white text-[13.5px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] cursor-pointer transition-colors duration-200">
                         Not now
                     </button>
                     <a :href="t.lease_url"
                         class="sm:flex-1 h-11 inline-flex items-center justify-center gap-1.5 rounded-full bg-[#FF8A66] text-[13.5px] font-semibold text-[#060D26] hover:bg-[#E96F4F] transition-colors duration-200">
-                        Add lease
+                        Add rental
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                     </a>
                 </div>

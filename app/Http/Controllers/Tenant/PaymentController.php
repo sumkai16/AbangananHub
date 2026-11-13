@@ -43,6 +43,11 @@ class PaymentController extends Controller
             return back()->withErrors(['payment' => 'The initial payment for this reservation has already been made.']);
         }
 
+        // The tenant chooses how much to pay now: at least the minimum (the reservation fee, or what is owed), at
+        // most what is still owed. Left empty it is everything owed, which is how the form used to work.
+        $request->validate(['amount' => ['nullable', 'numeric', 'min:1', 'max:10000000']]);
+        $amount = $request->filled('amount') ? round((float) $request->input('amount'), 2) : null;
+
         if ($message = $this->clearStaleCheckouts($reservation, 'Initial')) {
             return back()->withErrors(['payment' => $message]);
         }
@@ -57,6 +62,7 @@ class PaymentController extends Controller
             successUrl: route('payments.success', $reservation),
             cancelUrl: route('agreements.show', $reservation),
             busyMessage: 'A payment session is already in progress.',
+            moveInAmount: $amount,
         );
 
         PaymentTerms::record($reservation, 'online', 'MoveIn');
@@ -134,7 +140,7 @@ class PaymentController extends Controller
 
         // The Initial row is the lead of the checkout; the Deposit row is created after it and must not be shown as the payment.
         $latestPayment = Payment::where('reservation_id', $reservation->reservation_id)
-            ->where('payment_type', 'Initial')
+            ->whereIn('payment_type', ['Initial', 'Reservation Fee'])
             ->latest('payment_id')
             ->first();
 

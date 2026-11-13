@@ -158,7 +158,7 @@ class TenantsPageTest extends TestCase
         $unit = $this->makeUnit($this->makeProperty($landlord));
 
         $this->addTenant($landlord, ['unit_id' => $unit->unit_id, 'lease_mode' => 'now',
-            'lease_file' => UploadedFile::fake()->create('lease.pdf', 100, 'application/pdf')] + $this->contractFields())
+            'lease_file' => UploadedFile::fake()->create('rental.pdf', 100, 'application/pdf')] + $this->contractFields())
             ->assertSessionHasNoErrors();
 
         $contract = Reservation::where('unit_id', $unit->unit_id)->firstOrFail();

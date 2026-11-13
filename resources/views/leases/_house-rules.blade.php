@@ -1,6 +1,6 @@
 {{--
-    The house rules of a lease: the policy's titled sections (older leases may also start with "Property rules", the
-    listing's rules, which were printed until Nov 2026). Leases sent before
+    The house rules of a lease: the policy's titled sections (older rentals may also start with "Property rules", the
+    listing's rules, which were printed until Nov 2026). Rentals sent before
     sections existed only have the flat `house_rules` list and render that. Needs $terms, $heading, $body; $title
     is the heading text (already numbered by the caller when the clauses are numbered).
 --}}

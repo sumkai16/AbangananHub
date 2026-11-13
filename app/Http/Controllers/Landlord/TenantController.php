@@ -41,7 +41,7 @@ class TenantController extends Controller
         'moving' => 'Moving in',
         'ending' => 'Ending soon',
         'no-agreement' => 'No agreement',
-        'none' => 'No lease',
+        'none' => 'No rental',
     ];
 
     /** The Tenants dropdown. Former tenants are history, so the page starts on the current ones. */
@@ -191,8 +191,8 @@ class TenantController extends Controller
         if ($reservation) {
             return redirect()->route('landlord.tenants.index', ['open' => $reservation->reservation_id])
                 ->with('success', $row->code().' added. '.($reservation->rental_status === 'Occupied'
-                    ? 'The lease is in and the unit is now occupied.'
-                    : 'The lease is in and the unit is reserved until '.$row->tenant->first_name.' moves in.').$note);
+                    ? 'The rental is in and the unit is now occupied.'
+                    : 'The rental is in and the unit is reserved until '.$row->tenant->first_name.' moves in.').$note);
         }
 
         // The "tenant added" popup (tenants/partials/_added-modal) offers Add lease with this tenant picked.
@@ -286,9 +286,9 @@ class TenantController extends Controller
         });
 
         return match ($result) {
-            'live' => back()->with('error', 'This tenant has a lease or booking in progress. End or cancel it on the Tenants page first.'),
+            'live' => back()->with('error', 'This tenant has a rental or booking in progress. End or cancel it on the Tenants page first.'),
             'deleted' => back()->with('success', 'Tenant deleted.'),
-            default => back()->with('success', 'Tenant removed from your list. Their past leases and payments stay in your records.'),
+            default => back()->with('success', 'Tenant removed from your list. Their past rentals and payments stay in your records.'),
         };
     }
 

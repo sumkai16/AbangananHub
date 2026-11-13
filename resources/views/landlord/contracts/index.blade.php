@@ -1,6 +1,6 @@
 @extends('layouts.landlord')
 
-@section('page-title', 'Leases')
+@section('page-title', 'Rentals')
 
 @php
     $pill = [
@@ -22,7 +22,7 @@
             @if(request()->boolean('new') || ($errors->any() && old('_form') === 'contract')) $nextTick(() => $dispatch('open-add-contract')); @endif
         ">
 
-        <x-page-header title="Leases" subtitle="Every lease on your properties, whether it started online or you added it yourself.">
+        <x-page-header title="Rentals" subtitle="Every rental on your properties, whether it started online or you added it yourself.">
             <x-slot:icon>
                 <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
@@ -33,12 +33,12 @@
                     @click.prevent="$dispatch('open-lease-policies', { url: @js(route('landlord.leases.panel')) })"
                     class="inline-flex items-center justify-center gap-2 h-11 px-4 sm:px-5 rounded-full border border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-sm font-semibold transition-all duration-200 cursor-pointer">
                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg>
-                    Lease policies
+                    Rental policies
                 </a>
                 <button type="button" @click="$dispatch('open-add-contract')"
                     class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                    Add lease
+                    Add rental
                 </button>
             </x-slot:actions>
         </x-page-header>
@@ -49,8 +49,8 @@
             <x-stat-card label="Awaiting move-in" :value="$stats['awaiting']" value-color="#B45309" :href="route('landlord.contracts.index', ['status' => 'awaiting'])" sub="Signed, not moved in" />
             <x-stat-card label="Ending soon" :value="$stats['ending']" value-color="{{ $stats['ending'] > 0 ? '#B45309' : '#060D26' }}"
                 sub="Within {{ config('rentals.renewal_window_days') }} days" :href="route('landlord.contracts.index', ['status' => 'active'])" />
-            <x-stat-card label="Lease agreement missing" :value="$stats['lease_missing']" value-color="{{ $stats['lease_missing'] > 0 ? '#B45309' : '#060D26' }}"
-                sub="No lease agreement on file" :href="route('landlord.contracts.index', ['lease_missing' => 1])" />
+            <x-stat-card label="Rental agreement missing" :value="$stats['lease_missing']" value-color="{{ $stats['lease_missing'] > 0 ? '#B45309' : '#060D26' }}"
+                sub="No rental agreement on file" :href="route('landlord.contracts.index', ['lease_missing' => 1])" />
         </div>
 
         {{-- Filters --}}
@@ -58,7 +58,7 @@
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
                 <div class="relative flex-1 min-w-[200px]">
                     <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" /></svg>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by tenant name or email..." aria-label="Search leases by tenant"
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by tenant name or email..." aria-label="Search rentals by tenant"
                         x-on:input.debounce.400ms="$el.form.requestSubmit()"
                         class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
                 </div>
@@ -72,8 +72,8 @@
         </form>
 
         @if($groups->isEmpty())
-            <x-empty-state title="No leases here yet"
-                message="Add a lease for a tenant on your list, or accept an online booking and it will show up here once the agreement is signed.">
+            <x-empty-state title="No rentals here yet"
+                message="Add a rental for a tenant on your list, or accept an online booking and it will show up here once the agreement is signed.">
                 <x-slot:icon>
                     <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
                 </x-slot:icon>
@@ -86,7 +86,7 @@
                 <x-card flush>
                     <div class="flex items-center justify-between gap-3 px-5 py-3.5 border-b border-[#E2E4EC]">
                         <h2 class="text-[14px] font-bold text-[#060D26] truncate">{{ $property->title }}</h2>
-                        <span class="text-[12px] text-[#5B6A8E] shrink-0">{{ $propertyContracts->count() }} {{ Str::plural('lease', $propertyContracts->count()) }}</span>
+                        <span class="text-[12px] text-[#5B6A8E] shrink-0">{{ $propertyContracts->count() }} {{ Str::plural('rental', $propertyContracts->count()) }}</span>
                     </div>
 
                     {{-- Phone and tablet: one card per contract --}}
@@ -116,15 +116,16 @@
                     <div class="hidden lg:block overflow-x-auto">
                         {{-- Fixed column widths, the same in every property's table, so Unit, dates and the rest line
                              up down the page whatever a row says (e.g. "No agreement on file" under a tenant). --}}
-                        <table class="w-full min-w-[940px] table-fixed text-left">
+                        <table class="w-full min-w-[1100px] table-fixed text-left">
                             <colgroup>
                                 <col>
                                 <col class="w-[120px]">
                                 <col class="w-[230px]">
                                 <col class="w-[100px]">
                                 <col class="w-[80px]">
-                                <col class="w-[180px]">
-                                <col class="w-[68px]">
+                                <col class="w-[130px]">
+                                <col class="w-[150px]">
+                                <col class="w-[150px]">
                             </colgroup>
                             <thead>
                                 <tr class="border-b border-[#E2E4EC]">
@@ -133,34 +134,50 @@
                                     <th class="px-4 py-3 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Move-in → Move-out</th>
                                     <th class="px-4 py-3 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide text-right">Rent</th>
                                     <th class="px-4 py-3 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Due</th>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Rental agreement</th>
                                     <th class="px-4 py-3 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Status</th>
                                     <th class="px-5 py-3 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide text-right"><span class="sr-only">Actions</span></th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-[#E2E4EC]">
                                 @foreach($propertyContracts as $contract)
-                                    @php $status = $contract->contractStatus(); @endphp
+                                    @php
+                                        $status = $contract->contractStatus();
+                                        $lease = $contract->leaseStatus();
+                                        $docs = $contract->documents;
+                                    @endphp
                                     <tr class="hover:bg-[#ECEEF6] transition-colors duration-200">
                                         <td class="px-5 py-3">
                                             <p class="text-[13px] font-bold text-[#060D26] truncate">{{ $contract->tenant->first_name }} {{ $contract->tenant->last_name }}</p>
                                             <p class="text-[11.5px] text-[#5B6A8E] truncate">
                                                 {{ $codes[$contract->tenant_id] ?? '' }}
-                                                @if($contract->leaseStatus() === 'missing') · <span class="text-[#B45309]">No lease agreement on file</span> @endif
                                             </p>
                                         </td>
                                         <td class="px-4 py-3 text-[13px] text-[#060D26] truncate">{{ $contract->unit->unit_label ?? 'No unit' }}</td>
                                         <td class="px-4 py-3 text-[13px] text-[#5B6A8E] whitespace-nowrap tabular-nums">{{ $fmt($contract->target_move_in_date) }} → {{ $fmt($contract->target_move_out_date) }}</td>
                                         <td class="px-4 py-3 text-[13px] font-semibold text-[#060D26] text-right tabular-nums">₱{{ number_format($contract->currentRent()) }}</td>
                                         <td class="px-4 py-3 text-[13px] text-[#5B6A8E] whitespace-nowrap">Day {{ $contract->rentDueDay() }}</td>
+                                        <td class="px-4 py-3 text-[13px]">
+                                            <span class="inline-flex items-center h-6 px-2.5 rounded-full border text-[11px] font-bold whitespace-nowrap {{ $lease === 'missing' ? $pill['warn'] : $pill['ok'] }}">{{ ['uploaded' => 'Uploaded', 'signed_online' => 'Signed online', 'missing' => 'Missing'][$lease] }}</span>
+                                            @if($docs->isNotEmpty())
+                                                <span class="block mt-0.5 text-[11.5px] text-[#5B6A8E]">Docs {{ $docs->reject->isOutstanding()->count() }}/{{ $docs->count() }}</span>
+                                            @endif
+                                        </td>
                                         <td class="px-4 py-3">
                                             <span class="inline-flex items-center h-6 px-2.5 rounded-full border text-[11px] font-bold whitespace-nowrap {{ $pill[$status['tone']] }}">{{ $status['label'] }}</span>
                                         </td>
-                                        <td class="px-5 py-3 text-right">
-                                            <button type="button" title="View lease" aria-label="View lease for {{ $contract->tenant->first_name }}"
+                                        <td class="px-5 py-3">
+                                          <div class="flex items-center justify-end gap-2">
+                                            @if($contract->rental_status === 'Occupied' && in_array($status['tone'], ['warn', 'bad'], true))
+                                                <button type="button" @click="$dispatch('open-contract', { url: @js(route('landlord.contracts.show', ['reservation' => $contract, 'renew' => 1])) })"
+                                                    class="inline-flex items-center justify-center h-9 px-3.5 rounded-full bg-[#FF8A66] text-[12px] font-bold text-[#060D26] hover:bg-[#E96F4F] transition-colors duration-200 cursor-pointer whitespace-nowrap">Renew</button>
+                                            @endif
+                                            <button type="button" title="View rental" aria-label="View rental for {{ $contract->tenant->first_name }}"
                                                 @click="$dispatch('open-contract', { url: @js(route('landlord.contracts.show', $contract)) })"
                                                 class="h-9 w-9 inline-flex items-center justify-center rounded-full border border-[#5B6A8E]/30 text-[#060D26] hover:bg-white cursor-pointer transition-colors duration-200">
                                                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
                                             </button>
+                                          </div>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -171,7 +188,7 @@
             @endforeach
         </div>
 
-        @include('landlord.contracts.partials._view-modal')
+        @include('landlord.contracts.partials._view-modal', ['label' => 'Rental details', 'maxWidth' => '560px'])
         @include('landlord.contracts.partials._add-modal')
         @include('landlord.leases.partials._modal')
     </div>

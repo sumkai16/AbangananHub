@@ -203,7 +203,7 @@
                             {{ $peso($summary['outstanding']) }}
                         </p>
                         {{-- Only what the tiles beside it do not already say: the due date is the "Next due" tile, and how
-                             this month is going is the lease bars below. --}}
+                             this month is going is the rental bars below. --}}
                         @if($isOverdue)
                             <p class="mt-2 text-[13.5px] leading-relaxed text-white/75 max-w-[48ch]">
                                 <span class="font-semibold text-[#FCA5A5]">{{ $peso($summary['overdueAmount']) }} overdue</span>
@@ -218,7 +218,7 @@
                                 @elseif($isActive)
                                     All paid up. Nothing is owed right now.
                                 @else
-                                    This lease has ended. Nothing is owed.
+                                    This rental has ended. Nothing is owed.
                                 @endif
                             </p>
                         @endif
@@ -305,7 +305,7 @@
                             <p class="mt-1 text-[12px] text-[#5B6A8E]">{{ ucfirst($relativeDay($summary['nextDueDate'])) }} · {{ $summary['nextDueDate']->format('Y') }}</p>
                         @else
                             <p class="text-[18px] sm:text-[20px] leading-none font-bold tracking-tight text-[#5B6A8E]">—</p>
-                            <p class="mt-1 text-[12px] text-[#5B6A8E]">{{ $isActive ? 'Nothing scheduled' : 'Lease ended' }}</p>
+                            <p class="mt-1 text-[12px] text-[#5B6A8E]">{{ $isActive ? 'Nothing scheduled' : 'Rental ended' }}</p>
                         @endif
                     </div>
                 </div>

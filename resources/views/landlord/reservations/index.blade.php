@@ -610,7 +610,7 @@
                         <div class="p-3 bg-[#ECEEF6] rounded-xl border border-[#FF8A66]/20">
                             @include('landlord.reservations._agreement-fields', ['idPrefix' => 'agreement_modal'])
                             <p class="mb-3 text-xs leading-relaxed text-[#5B6A8E]">
-                                Sends your lease template, or the standard rental agreement if you have not written one.
+                                Sends your rental template, or the standard rental agreement if you have not written one.
                                 <a x-show="agreement.chat_url" :href="agreement.chat_url" class="font-bold text-[#060D26] underline underline-offset-2">Edit the agreement for this tenant in the chat</a>
                             </p>
                             {{-- Asked once per payment route (LandlordTerms), the same as the chat's Send agreement. --}}

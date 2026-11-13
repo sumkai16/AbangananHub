@@ -104,7 +104,7 @@ class LeaseTemplateController extends Controller
         $this->syncProperties($request, $template);
 
         return redirect()->route('landlord.lease-templates.edit', $template)
-            ->with('success', 'Policy saved. Choose which properties and units use it on the Lease policies page.');
+            ->with('success', 'Policy saved. Choose which properties and units use it on the Rental policies page.');
     }
 
     public function edit(Request $request, LeaseTemplate $leaseTemplate)

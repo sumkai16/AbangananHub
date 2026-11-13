@@ -43,7 +43,7 @@ export function createLeaseEditor({ element, html, labels, onChange }) {
             Field.configure({ labels }),
         ],
         editorProps: {
-            attributes: { class: 'lease-prose', 'aria-label': 'Lease text', role: 'textbox', 'aria-multiline': 'true' },
+            attributes: { class: 'lease-prose', 'aria-label': 'Rental text', role: 'textbox', 'aria-multiline': 'true' },
         },
         onTransaction: onChange,
     });

@@ -1,5 +1,5 @@
 {{--
-    The tenant's side of the documents a lease asks for. One row per requirement: status, Upload / Replace, and the
+    The tenant's side of the documents a rental asks for. One row per requirement: status, Upload / Replace, and the
     landlord's reason when a file was sent back. Needs $reservation (documents loaded or loadable).
     Rules: App\Services\TenancyDocuments. Files are private; only the landlord of the property can open them.
 --}}

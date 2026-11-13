@@ -41,7 +41,7 @@ class LeaseTemplatesTest extends TestCase
 
     private function template($landlord, array $attrs = []): LeaseTemplate
     {
-        $t = new LeaseTemplate(['name' => $attrs['name'] ?? 'Lease '.uniqid()] + $attrs);
+        $t = new LeaseTemplate(['name' => $attrs['name'] ?? 'Rental '.uniqid()] + $attrs);
         $t->landlord_id = $landlord->user_id;
         $t->save();
 
@@ -170,7 +170,7 @@ class LeaseTemplatesTest extends TestCase
         ['landlord' => $l, 'prop' => $prop] = $this->setupLandlord();
 
         $this->actingAs($l)->get(route('landlord.lease-templates.create'))->assertOk()
-            ->assertSee('The lease prints only the rules you write here')->assertSee('No smoking')->assertSee('Suggested:')->assertSee('Curfew and quiet hours');
+            ->assertSee('The rental prints only the rules you write here')->assertSee('No smoking')->assertSee('Suggested:')->assertSee('Curfew and quiet hours');
     }
 
     public function test_a_hidden_section_is_kept_in_the_policy_but_left_off_the_lease(): void
@@ -241,7 +241,7 @@ class LeaseTemplatesTest extends TestCase
         ['landlord' => $l] = $this->setupLandlord();
 
         $this->actingAs($l)->post(route('landlord.lease-templates.store'), [
-            'name' => 'Bedspace lease', 'body' => '<h3>Rules</h3><p>Be kind<script>x()</script></p>',
+            'name' => 'Bedspace rental', 'body' => '<h3>Rules</h3><p>Be kind<script>x()</script></p>',
             'late_fee_type' => 'fixed', 'late_fee_value' => '150', 'notice_days' => '14',
             'house_rule_sections' => [['title' => 'Curfew', 'rules' => ['Lights out at 11', '']], ['title' => 'Empty', 'rules' => ['']]],
         ])->assertSessionHasNoErrors();
@@ -253,7 +253,7 @@ class LeaseTemplatesTest extends TestCase
         $this->assertSame(14, $template->notice_days);
 
         $this->actingAs($l)->put(route('landlord.lease-templates.update', $template), [
-            'name' => 'Bedspace lease v2', 'late_fee_type' => 'none', 'late_fee_value' => '150',
+            'name' => 'Bedspace rental v2', 'late_fee_type' => 'none', 'late_fee_value' => '150',
         ])->assertSessionHasNoErrors();
         $template->refresh();
         $this->assertSame('none', $template->late_fee_type);
@@ -313,12 +313,12 @@ class LeaseTemplatesTest extends TestCase
     public function test_the_leases_page_lists_templates_and_where_they_are_used(): void
     {
         ['landlord' => $l, 'prop' => $prop] = $this->setupLandlord();
-        $template = $this->template($l, ['name' => 'Bedspace lease']);
+        $template = $this->template($l, ['name' => 'Bedspace rental']);
         $prop->forceFill(['lease_template_id' => $template->lease_template_id])->save();
 
         // By property: the property's policy, its units, and the list of policies.
         $this->actingAs($l)->get(route('landlord.leases.index'))->assertOk()
-            ->assertSee('Lease policies')->assertSee($prop->title)->assertSee('This property uses')->assertSee('Bedspace lease')
+            ->assertSee('Rental policies')->assertSee($prop->title)->assertSee('This property uses')->assertSee('Bedspace rental')
             ->assertSee('Standard policy')->assertSee('1 in use')->assertSee('Edit policy');
         $this->actingAs($l)->get(route('landlord.leases.index', ['property' => $prop->property_id]))->assertOk()->assertSee('Same as property');
         $this->actingAs($l)->get(route('landlord.lease-templates.edit', $template))->assertOk()->assertSee('Rent rules')->assertSee('Open editor')->assertSee('Save policy');
@@ -342,7 +342,7 @@ class LeaseTemplatesTest extends TestCase
     public function test_the_chat_editor_opens_on_the_units_template_and_names_it(): void
     {
         ['landlord' => $l, 'prop' => $prop, 'reservation' => $r] = $this->setupLandlord();
-        $template = $this->template($l, ['name' => 'Room lease', 'body' => '<p>Room wording.</p>']);
+        $template = $this->template($l, ['name' => 'Room rental', 'body' => '<p>Room wording.</p>']);
         $prop->forceFill(['lease_template_id' => $template->lease_template_id])->save();
         $conversation = Conversation::create([
             'tenant_id' => $r->tenant_id, 'landlord_id' => $l->user_id, 'property_id' => $prop->property_id, 'unit_id' => $r->unit_id, 'type' => 'inquiry',
@@ -351,7 +351,7 @@ class LeaseTemplatesTest extends TestCase
 
         $this->actingAs($l)->get(route('conversations.show', $conversation), ['X-Requested-With' => 'XMLHttpRequest'])
             ->assertOk()
-            ->assertSee('Sending: Room lease')
+            ->assertSee('Sending: Room rental')
             ->assertSee('Room wording.');
     }
 
@@ -384,23 +384,23 @@ class LeaseTemplatesTest extends TestCase
     public function test_the_version_goes_up_when_content_changes_and_not_on_a_rename(): void
     {
         ['landlord' => $l] = $this->setupLandlord();
-        $t = $this->template($l, ['name' => 'Room lease', 'body' => '<p>One.</p>']);
+        $t = $this->template($l, ['name' => 'Room rental', 'body' => '<p>One.</p>']);
         $this->assertSame(1, $t->fresh()->version);
 
-        $this->actingAs($l)->put(route('landlord.lease-templates.update', $t), ['name' => 'Room lease (new name)', 'body' => '<p>One.</p>']);
+        $this->actingAs($l)->put(route('landlord.lease-templates.update', $t), ['name' => 'Room rental (new name)', 'body' => '<p>One.</p>']);
         $this->assertSame(1, $t->fresh()->version);
 
-        $this->actingAs($l)->put(route('landlord.lease-templates.update', $t), ['name' => 'Room lease', 'body' => '<p>Two.</p>']);
+        $this->actingAs($l)->put(route('landlord.lease-templates.update', $t), ['name' => 'Room rental', 'body' => '<p>Two.</p>']);
         $this->assertSame(2, $t->fresh()->version);
 
-        $this->actingAs($l)->put(route('landlord.lease-templates.update', $t), ['name' => 'Room lease', 'body' => '<p>Two.</p>', 'notice_days' => '20']);
+        $this->actingAs($l)->put(route('landlord.lease-templates.update', $t), ['name' => 'Room rental', 'body' => '<p>Two.</p>', 'notice_days' => '20']);
         $this->assertSame(3, $t->fresh()->version);
     }
 
     public function test_the_sent_lease_records_the_template_version_and_shows_the_welcome_message_and_a_cover(): void
     {
         ['landlord' => $l, 'prop' => $prop, 'reservation' => $r] = $this->setupLandlord();
-        $t = $this->template($l, ['name' => 'Room lease', 'welcome_message' => "Welcome home!\nMessage us anytime."]);
+        $t = $this->template($l, ['name' => 'Room rental', 'welcome_message' => "Welcome home!\nMessage us anytime."]);
         $t->forceFill(['version' => 4])->save();
         $prop->forceFill(['lease_template_id' => $t->lease_template_id])->save();
 
@@ -418,18 +418,18 @@ class LeaseTemplatesTest extends TestCase
     {
         ['landlord' => $l, 'prop' => $a] = $this->setupLandlord();
         $b = $this->makeProperty($l);
-        $t = $this->template($l, ['name' => 'Shared lease']);
+        $t = $this->template($l, ['name' => 'Shared rental']);
         $a->forceFill(['lease_template_id' => $t->lease_template_id])->save();
 
         $this->actingAs($l)->put(route('landlord.lease-templates.update', $t), [
-            'name' => 'Shared lease', 'assign_present' => '1', 'assigned_properties' => [$b->property_id],
+            'name' => 'Shared rental', 'assign_present' => '1', 'assigned_properties' => [$b->property_id],
         ])->assertSessionHasNoErrors();
 
         $this->assertNull($a->fresh()->lease_template_id);
         $this->assertSame($t->lease_template_id, $b->fresh()->lease_template_id);
 
         // A form without the checklist (or another client) leaves assignments alone.
-        $this->actingAs($l)->put(route('landlord.lease-templates.update', $t), ['name' => 'Shared lease']);
+        $this->actingAs($l)->put(route('landlord.lease-templates.update', $t), ['name' => 'Shared rental']);
         $this->assertSame($t->lease_template_id, $b->fresh()->lease_template_id);
     }
 

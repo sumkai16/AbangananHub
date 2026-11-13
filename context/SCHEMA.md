@@ -303,6 +303,10 @@ The atomic rentable thing: a room, bedspace or whole apartment.
 | description | text | null | | |
 | rental_fee | decimal(10,2) | NN | | |
 | security_deposit | decimal(8,2) | null | | Null = "no deposit", never ₱0. Required on create; optional on edit |
+| payment_arrangement | varchar(20) | NN | advance_deposit | `reservation_fee` / `advance_deposit` / `full_payment` |
+| reservation_fee_amount | decimal(10,2) | null | | Required when arrangement is `reservation_fee` |
+| payment_deadline_days | tinyint unsigned | null | | 1-7; null = platform default (`rentals.stale_reservations`) |
+| reservation_conditions | varchar(500) | null | | Landlord's free-text conditions |
 | occupancy_limit | int unsigned | NN | | |
 | availability_status | enum('Available','Reserved','Occupied','Maintenance') | null, = 'Available' | | Cached from reservations; see §3 |
 | vacated_at | timestamp | null | | |
@@ -451,6 +455,11 @@ One tenant's inquiry-to-tenancy record on one unit. `rental_status` walks Inquir
 | lease_uploaded_at | timestamp | null | | |
 | deposit_returned_amount | decimal(10,2) | null | | What the landlord noted as given back after the lease ended. Capped at the deposit left after deposit charges |
 | deposit_returned_at | timestamp | null | | When that was noted; null = not returned yet. A record only, no money moves |
+| move_in_refund_decision | varchar(10) | null | | `refunded` or `kept`: the landlord's record of move-in money (e.g. a reservation fee) the tenant paid directly on a reservation that ended. Null = not settled yet |
+| move_in_refund_amount | decimal(10,2) | null | | Amount recorded as returned (0 when kept) |
+| move_in_refund_note | varchar(255) | null | | Reason; required when any of it is kept |
+| move_in_refund_at | timestamp | null | | When the landlord recorded it |
+| move_in_refund_requested_at | timestamp | null | | When the tenant asked for the refund (once) |
 | rent_written_off_amount | decimal(10,2) | null | | Unpaid rent when the landlord pressed Stop collecting on an ended lease |
 | rent_written_off_at | timestamp | null | | Set = stopped collecting: `RentLedger::summary()` reports no balance and no reminders go out. Null again on Resume |
 | agreed_at | timestamp | null | | Set by `signAgreement()` |
@@ -655,7 +664,7 @@ One money movement on a tenancy: online escrow, landlord-recorded, or a correcti
 |---|---|---|---|---|
 | payment_id | bigint unsigned | NN | PK | |
 | reservation_id | bigint unsigned | NN | FK → reservations, cascade | Index `(reservation_id, billing_period)` |
-| payment_type | enum('Initial','Monthly','Deposit','Utility','Other') | NN | | |
+| payment_type | enum('Initial','Monthly','Deposit','Utility','Other','Reservation Fee') | NN | | |
 | billing_period | date | null | | The month a `Monthly` payment settles; required for `Monthly`, null otherwise |
 | amount | decimal(10,2) | NN | | What the landlord is owed. Serializes as a string; `parseFloat()` client-side |
 | service_fee | decimal(10,2) | NN, = 0 | | The online payment fee the tenant paid on top of `amount`. Not owed to the landlord (payouts sum `amount` only). Set on the `Initial` / `Monthly` row of an online checkout, frozen when the checkout is created; 0 on every other row |

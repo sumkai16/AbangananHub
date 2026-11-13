@@ -1,11 +1,11 @@
 {{--
-    "Add lease": a tenant from the landlord's list, one free unit, the dates and the rent. Posts to
+    "Add rental": a tenant from the landlord's list, one free unit, the dates and the rent. Posts to
     landlord.contracts.store (LeaseContractCreator). Opened with $dispatch('open-add-contract'); a failed submit
     reopens it with the old values (old('_form') === 'contract').
 
     Layout: one column (bottom sheet on phones, 600px dialog above), three groups separated by space and a hairline:
     who and where → term and rent → paperwork and money. Fixed header and footer; only the fields scroll. No extra
-    terms field: the lease's wording and house rules come from the unit's policy (Policies page). Field names are
+    terms field: the rental's wording and house rules come from the unit's policy (Policies page). Field names are
     unchanged.
 --}}
 @php
@@ -50,6 +50,7 @@
         today: @js(now()->toDateString()),
         get unit() { return this.units[this.unitId] ?? null; },
         get propertyUnits() { return Object.entries(this.units).filter(([, u]) => u.property === this.propertyId); },
+        get moveInToday() { return !!this.moveIn && this.moveIn === this.today; },
         get paymentRequired() { return !!this.moveIn && this.moveIn <= this.today; },
         get paymentOn() { return this.paymentRequired || this.recordPayment; },
         get minMoveOut() {
@@ -105,7 +106,7 @@
 
                 <div class="shrink-0 flex items-start justify-between gap-4 px-5 sm:px-7 pt-6 pb-4 border-b border-[#E2E4EC]">
                     <div>
-                        <h2 id="add-contract-title" class="text-[20px] font-semibold text-[#060D26] leading-tight">Add a lease</h2>
+                        <h2 id="add-contract-title" class="text-[20px] font-semibold text-[#060D26] leading-tight">Add a rental</h2>
                         <p class="text-[13px] text-[#5B6A8E] mt-1">For a tenant you already agreed with. The unit is held for them until they move in.</p>
                     </div>
                     <button type="button" @click="close()" aria-label="Close"
@@ -175,8 +176,8 @@
                                 <span class="font-semibold text-[#060D26] tabular-nums" x-text="peso(rent)"></span>/mo<span x-show="stayLength"> for <span x-text="stayLength"></span></span>
                             </p>
                             <div class="flex gap-2 w-full sm:w-auto sm:ml-auto">
-                                <button type="button" @click="close()" class="flex-1 sm:flex-none h-11 px-5 rounded-full text-[14px] font-semibold text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">Cancel</button>
-                                <button type="submit" class="flex-[2] sm:flex-none h-11 px-7 rounded-full bg-[#FF8A66] text-[14px] font-semibold text-[#060D26] hover:bg-[#E96F4F] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30 transition-colors duration-200 cursor-pointer">Create lease</button>
+                                <button type="button" @click="close()" class="flex-1 sm:flex-none h-11 px-5 rounded-full border border-[#060D26]/35 bg-white text-[14px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">Cancel</button>
+                                <button type="submit" class="flex-[2] sm:flex-none h-11 px-7 rounded-full bg-[#FF8A66] text-[14px] font-semibold text-[#060D26] hover:bg-[#E96F4F] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30 transition-colors duration-200 cursor-pointer">Create rental</button>
                             </div>
                         </div>
                     </div>

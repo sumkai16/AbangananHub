@@ -116,14 +116,14 @@ class LeaseTest extends TestCase
     {
         $this->walkIn([
             'lease_mode' => 'now',
-            'lease_file' => UploadedFile::fake()->create('lease.pdf', 200, 'application/pdf'),
+            'lease_file' => UploadedFile::fake()->create('rental.pdf', 200, 'application/pdf'),
         ])->assertRedirect();
 
         $reservation = $this->latestWalkIn();
         // walkIn() uses a future move-in date, so the unit is reserved, not occupied yet.
         $this->assertSame('Reserved', $reservation->rental_status);
         $this->assertNotNull($reservation->lease_snapshot);
-        $this->assertSame('lease.pdf', $reservation->lease_file_name);
+        $this->assertSame('rental.pdf', $reservation->lease_file_name);
         $this->assertSame('uploaded', $reservation->leaseStatus());
         Storage::disk('local')->assertExists($reservation->lease_file_path);
 
@@ -187,7 +187,7 @@ class LeaseTest extends TestCase
         $reservation = $this->latestWalkIn();
 
         $this->actingAs($this->landlord)->post(route('landlord.leases.upload', $reservation), [
-            'lease_file' => UploadedFile::fake()->create('lease.docx', 50),
+            'lease_file' => UploadedFile::fake()->create('rental.docx', 50),
         ])->assertSessionHasErrors('lease_file');
 
         $this->actingAs($this->landlord)->post(route('landlord.leases.upload', $reservation), [
@@ -199,7 +199,7 @@ class LeaseTest extends TestCase
     {
         $this->walkIn([
             'lease_mode' => 'now',
-            'lease_file' => UploadedFile::fake()->create('lease.pdf', 50, 'application/pdf'),
+            'lease_file' => UploadedFile::fake()->create('rental.pdf', 50, 'application/pdf'),
         ]);
         $reservation = $this->latestWalkIn();
 

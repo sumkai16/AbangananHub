@@ -1,5 +1,5 @@
 {{--
-    Wraps a multi-page printable document (lease, tenant agreement). On screen it is invisible.
+    Wraps a multi-page printable document (rental, tenant agreement). On screen it is invisible.
     On paper it gives every page the same top and bottom margin while the @page itself has none, which is
     what makes Chrome and Edge leave out their own date / URL / page-number header and footer. A table's
     <thead> and <tfoot> repeat on each printed page, so they carry the spacers. The side margin is padding

@@ -31,7 +31,7 @@
 
     <div class="{{ auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-14 min-h-[calc(100vh-72px)]">
 
-        <x-page-header title="My Rentals" subtitle="Every place you rent or have rented. Open one for its rent, payments and lease.">
+        <x-page-header title="My Rentals" subtitle="Every place you rent or have rented. Open one for its rent, payments and rental.">
             <x-slot:icon>
                 <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5 12 3l9 7.5M5 9.5V20a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V9.5" />

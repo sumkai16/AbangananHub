@@ -19,7 +19,7 @@
             @error('move_in_date')<p class="{{ $err }}">{{ $message }}</p>@enderror
         </div>
         <div>
-            <label class="{{ $label }}" for="{{ $idPrefix }}_move_out">Move-out</label>
+            <label class="{{ $label }}" for="{{ $idPrefix }}_move_out">Move-out <span class="font-normal text-[#5B6A8E]">(optional)</span></label>
             <x-date-picker name="move_out_date" id="{{ $idPrefix }}_move_out" x-model="moveOut" min-expr="minMoveOut" />
             @error('move_out_date')<p class="{{ $err }}">{{ $message }}</p>@enderror
         </div>
@@ -97,6 +97,9 @@
                 <input id="{{ $idPrefix }}_ref" type="text" name="reference_no" value="{{ old('reference_no') }}" maxlength="255" class="{{ $input }}">
             </div>
             <p class="col-span-2 text-[12px] text-[#5B6A8E]">Allocated to the deposit first, then rent from the move-in month.</p>
+            <p x-show="typeof moveInToday !== 'undefined' && moveInToday" x-cloak class="col-span-2 rounded-lg border border-[#F59E0B]/50 bg-[#FFF6E5] px-3 py-2 text-[12.5px] text-[#7A3E00]">
+                Moving in today: collect at least <span class="font-semibold tabular-nums" x-text="peso(moveInDue)"></span> (first month’s rent<span x-show="deposit > 0"> + security deposit</span>).
+            </p>
         </div>
     </template>
     @foreach(['initial_amount', 'payment_method', 'reference_no'] as $field)

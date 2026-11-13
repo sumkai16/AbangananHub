@@ -116,7 +116,7 @@
 
                     <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5">
                         <button type="button" @click="show = false"
-                            class="h-11 px-5 rounded-full border border-[#E2E4EC] text-[#5B6A8E] text-sm font-semibold hover:bg-[#F7F8FC] hover:text-[#060D26] transition-all duration-200 cursor-pointer">
+                            class="h-11 px-5 rounded-full border border-[#060D26]/35 bg-white text-[#060D26] text-sm font-semibold hover:bg-[#ECEEF6] transition-all duration-200 cursor-pointer">
                             Cancel
                         </button>
                         <button type="submit"

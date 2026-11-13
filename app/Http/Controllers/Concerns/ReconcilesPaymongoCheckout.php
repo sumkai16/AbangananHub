@@ -136,12 +136,15 @@ trait ReconcilesPaymongoCheckout
         string $successUrl,
         string $cancelUrl,
         string $busyMessage,
+        ?float $moveInAmount = null,
     ): array {
         $isMoveIn = $type === 'Initial';
-        $deposit = $isMoveIn ? round((float) $reservation->agreedDeposit(), 2) : 0.0;
+        // A move-in is paid in whole or in parts, so what this checkout carries is worked out under the lock below.
+        $parts = ['fee' => 0.0, 'deposit' => 0.0, 'rent' => $rent];
+        $deposit = 0.0;
         $fee = ServiceFee::for($rent);
 
-        $rows = DB::transaction(function () use ($reservation, $type, $billingPeriod, $rent, $deposit, $fee, $isMoveIn) {
+        $rows = DB::transaction(function () use ($reservation, $type, $billingPeriod, $rent, &$deposit, &$fee, &$parts, $isMoveIn, $moveInAmount) {
             // Lock the reservation row so two concurrent requests (e.g. a double click) can't both pass the
             // "no pending payment" check before either has inserted its Payment rows.
             $locked = Reservation::whereKey($reservation->reservation_id)->lockForUpdate()->first();
@@ -156,9 +159,24 @@ trait ReconcilesPaymongoCheckout
                     throw ValidationException::withMessages(['payment' => ['Agreement must be signed before payment.']]);
                 }
 
-                if ($locked->hasSettledInitialPayment()) {
+                if ($locked->hasSettledInitialPayment() || $locked->moveInShortfall() <= 0.009) {
                     throw ValidationException::withMessages(['payment' => ['The initial payment for this reservation has already been made.']]);
                 }
+
+                // Re-read under the lock: what is owed may have moved since the form was shown.
+                $locked->unsetRelation('payments');
+                $amount = round($moveInAmount ?? $locked->moveInShortfall(), 2);
+
+                if ($amount + 0.01 < $locked->minimumMoveInPayment() || $amount > $locked->moveInShortfall() + 0.01) {
+                    throw ValidationException::withMessages(['amount' => [
+                        'Enter an amount from ₱'.number_format($locked->minimumMoveInPayment(), 2).' to ₱'.number_format($locked->moveInShortfall(), 2).'.',
+                    ]]);
+                }
+
+                $parts = $locked->moveInParts(min($amount, $locked->moveInShortfall()));
+                $deposit = $parts['deposit'];
+                // The online fee is a percentage of the rent side only; the deposit is not charged one.
+                $fee = ServiceFee::for($parts['fee'] + $parts['rent']);
 
                 if ($locked->unitHeldByAnother(['Rental Agreement Signed', 'Reserved', 'Occupied'])) {
                     throw ValidationException::withMessages(['payment' => ['This unit is no longer available. Please contact your landlord.']]);
@@ -178,24 +196,32 @@ trait ReconcilesPaymongoCheckout
             }
 
             // Placeholder rows reserve this reservation for the current request until they carry PayMongo's session id.
-            $rows = [Payment::create([
-                'reservation_id' => $locked->reservation_id,
-                'payment_type' => $type,
-                'billing_period' => $billingPeriod,
-                'amount' => $rent,
-                'service_fee' => $fee,
-                'payment_method' => 'GCash',
-                'status' => 'Pending',
-            ])];
-
-            if ($deposit > 0) {
+            // A part payment carries only what it pays for: no row for a part that is zero. The online fee rides on the first row.
+            $rows = [];
+            $make = function (string $paymentType, float $amount) use (&$rows, $locked, $billingPeriod, $fee) {
                 $rows[] = Payment::create([
                     'reservation_id' => $locked->reservation_id,
-                    'payment_type' => 'Deposit',
-                    'amount' => $deposit,
+                    'payment_type' => $paymentType,
+                    'billing_period' => $paymentType === 'Initial' || $paymentType === 'Monthly' ? $billingPeriod : null,
+                    'amount' => $amount,
+                    'service_fee' => $rows === [] ? $fee : 0,
                     'payment_method' => 'GCash',
                     'status' => 'Pending',
                 ]);
+            };
+
+            if (! $isMoveIn) {
+                $make($type, $rent);
+            } else {
+                if ($parts['fee'] > 0) {
+                    $make('Reservation Fee', $parts['fee']);
+                }
+                if ($parts['rent'] > 0) {
+                    $make('Initial', $parts['rent']);
+                }
+                if ($parts['deposit'] > 0) {
+                    $make('Deposit', $parts['deposit']);
+                }
             }
 
             return $rows;
@@ -205,7 +231,18 @@ trait ReconcilesPaymongoCheckout
             throw ValidationException::withMessages(['payment' => [$busyMessage]]);
         }
 
-        $lines = [['name' => $rentLineName, 'amount' => $rent]];
+        $lines = [];
+
+        if ($isMoveIn) {
+            if ($parts['fee'] > 0) {
+                $lines[] = ['name' => $reservation->unit->unit_name.' — Reservation fee', 'amount' => $parts['fee']];
+            }
+            if ($parts['rent'] > 0) {
+                $lines[] = ['name' => $rentLineName, 'amount' => $parts['rent']];
+            }
+        } else {
+            $lines[] = ['name' => $rentLineName, 'amount' => $rent];
+        }
 
         if ($deposit > 0) {
             $lines[] = ['name' => $reservation->unit->unit_name.' — Security deposit', 'amount' => $deposit];
@@ -278,7 +315,7 @@ trait ReconcilesPaymongoCheckout
         // A move-in checkout is an Initial row plus a Deposit row. Look at both: a Deposit row left alone when its
         // Initial row was cleared would block every new session ("already in progress") while the page shows nothing.
         $stale = Payment::where('reservation_id', $reservation->getKey())
-            ->whereIn('payment_type', $type === 'Initial' ? ['Initial', 'Deposit'] : [$type])
+            ->whereIn('payment_type', $type === 'Initial' ? ['Initial', 'Deposit', 'Reservation Fee'] : [$type])
             ->where('status', 'Pending')
             ->when($billingPeriod, fn ($q) => $q->whereDate('billing_period', $billingPeriod->toDateString()))
             ->get()
@@ -330,7 +367,7 @@ trait ReconcilesPaymongoCheckout
     protected function findOpenCheckout(Reservation $reservation, string $type): ?Payment
     {
         return Payment::where('reservation_id', $reservation->getKey())
-            ->where('payment_type', $type)
+            ->whereIn('payment_type', $type === 'Initial' ? ['Initial', 'Deposit', 'Reservation Fee'] : [$type])
             ->where('status', 'Pending')
             ->whereNotNull('paymongo_checkout_session_id')
             ->latest('payment_id')

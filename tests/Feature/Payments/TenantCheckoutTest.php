@@ -347,6 +347,91 @@ class TenantCheckoutTest extends TestCase
         $this->assertCount(1, $this->paymentsOf($t['reservation']));
     }
 
+    // ─── flexible move-in: pay in parts, finish before move-in ───
+
+    private function feeUnitTenancy(): array
+    {
+        return $this->signedTenancy(['agreed_monthly_rent' => 5000], [
+            'payment_arrangement' => 'reservation_fee', 'reservation_fee_amount' => 1000, 'security_deposit' => 5000,
+        ]);
+    }
+
+    /** @return array<int, Payment> the pending rows of the one checkout, by type */
+    private function pendingByType(Reservation $reservation)
+    {
+        return Payment::where('reservation_id', $reservation->reservation_id)->where('status', 'Pending')->get()->keyBy('payment_type');
+    }
+
+    #[DataProvider('surfaces')]
+    public function test_a_fee_unit_can_be_paid_online_for_the_reservation_fee_alone(string $surface): void
+    {
+        $this->fakeCheckoutCreated('cs_fee_only');
+        $t = $this->feeUnitTenancy();
+
+        $response = $this->startCheckout($surface, 'initial', $t['tenant'], $t['reservation'], ['amount' => 1000]);
+
+        $this->assertCheckoutUrlReturned($response, $surface, 'https://checkout.paymongo.test/cs_fee_only');
+        $rows = $this->pendingByType($t['reservation']);
+        $this->assertSame(['Reservation Fee'], $rows->keys()->all());
+        $this->assertSame(1000.0, (float) $rows['Reservation Fee']->amount);
+    }
+
+    #[DataProvider('surfaces')]
+    public function test_a_part_payment_below_the_fee_or_above_what_is_owed_is_refused(string $surface): void
+    {
+        $this->fakeCheckoutCreated();
+        $t = $this->feeUnitTenancy();
+
+        $low = $this->startCheckout($surface, 'initial', $t['tenant'], $t['reservation'], ['amount' => 500]);
+        $high = $this->startCheckout($surface, 'initial', $t['tenant'], $t['reservation'], ['amount' => 10500]);
+
+        if ($surface === 'api') {
+            $low->assertStatus(422)->assertJsonValidationErrors('amount');
+            $high->assertStatus(422)->assertJsonValidationErrors('amount');
+        } else {
+            $low->assertSessionHasErrors('amount');
+            $high->assertSessionHasErrors('amount');
+        }
+        Http::assertNothingSent();
+        $this->assertCount(0, $this->paymentsOf($t['reservation']));
+    }
+
+    public function test_the_balance_can_be_paid_online_after_the_fee_and_completes_the_move_in(): void
+    {
+        // PayMongo gives each checkout its own id: first the fee's, then the balance's.
+        $session = fn (string $id) => ['data' => ['id' => $id, 'attributes' => ['checkout_url' => 'https://checkout.paymongo.test/'.$id]]];
+        Http::fake(['api.paymongo.com/v1/checkout_sessions' => Http::sequence()->push($session('cs_one'), 200)->push($session('cs_two'), 200)]);
+        $t = $this->feeUnitTenancy();
+        $reservation = $t['reservation'];
+
+        $this->startCheckout('web', 'initial', $t['tenant'], $reservation, ['amount' => 1000]);
+        $fee = $this->pendingByType($reservation)['Reservation Fee'];
+        \App\Services\PaymongoCheckout::settle($fee, 'gcash', [], null);
+
+        $reservation->refresh();
+        $this->assertNull($reservation->move_in_paid_at, 'Only the fee is in: the balance is still owed.');
+        $this->assertSame(9000.0, $reservation->moveInShortfall());
+        $this->assertFalse($reservation->moveInSettled());
+        $this->assertSame('Held', $fee->fresh()->status);
+
+        // Same rule as paying direct: once the fee is in, the balance is paid in one go, so less than all of it is refused.
+        $this->startCheckout('web', 'initial', $t['tenant'], $reservation, ['amount' => 3000])->assertSessionHasErrors('amount');
+
+        $this->startCheckout('web', 'initial', $t['tenant'], $reservation)->assertSessionHasNoErrors();
+        $rows = $this->pendingByType($reservation);
+        $this->assertSame(4000.0, (float) $rows['Deposit']->amount, 'The fee already counts toward the deposit.');
+        $this->assertSame(5000.0, (float) $rows['Initial']->amount);
+        \App\Services\PaymongoCheckout::settle($rows['Initial'], 'gcash', [], null);
+
+        $reservation->refresh();
+        $this->assertNotNull($reservation->move_in_paid_at);
+        $this->assertSame(0.0, $reservation->moveInShortfall());
+        $this->assertTrue($reservation->moveInSettled());
+
+        // Nothing left to pay: a further online payment is refused.
+        $this->startCheckout('web', 'initial', $t['tenant'], $reservation)->assertSessionHasErrors('payment');
+    }
+
     // ─── (3) amount correctness: initial checkout ───────────────
 
     #[DataProvider('surfaces')]
@@ -358,7 +443,7 @@ class TenantCheckoutTest extends TestCase
         $reservation = $t['reservation'];
 
         // A client that tries to name its own price must be ignored.
-        $response = $this->startCheckout($surface, 'initial', $t['tenant'], $reservation, ['amount' => 1, 'amount_centavos' => 100]);
+        $response = $this->startCheckout($surface, 'initial', $t['tenant'], $reservation, ['amount_centavos' => 100]);
 
         $this->assertCheckoutUrlReturned($response, $surface, 'https://checkout.paymongo.test/cs_checkout_initial');
 

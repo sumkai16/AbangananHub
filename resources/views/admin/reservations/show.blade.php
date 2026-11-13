@@ -102,8 +102,8 @@
             <x-card flush>
                 <div class="grid grid-cols-2 gap-px bg-[#E2E4EC] xl:grid-cols-4">
                     @foreach([
-                        ['Monthly rent', $unit || $reservation->agreed_monthly_rent ? $peso($reservation->monthlyRent()) : '—', 'Agreed for this lease'],
-                        ['Security deposit', $peso($reservation->agreedDeposit()), 'Agreed for this lease'],
+                        ['Monthly rent', $unit || $reservation->agreed_monthly_rent ? $peso($reservation->monthlyRent()) : '—', 'Agreed for this rental'],
+                        ['Security deposit', $peso($reservation->agreedDeposit()), 'Agreed for this rental'],
                         ['Paid so far', $peso($paid), $reservation->payments->count().' '.\Illuminate\Support\Str::plural('payment', $reservation->payments->count())],
                         ['Held', $peso($held), 'Until move-in is confirmed'],
                     ] as [$label, $value, $note])

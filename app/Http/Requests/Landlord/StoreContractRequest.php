@@ -25,8 +25,8 @@ class StoreContractRequest extends StoreWalkInTenantRequest
                 ->where('landlord_id', $this->user()->user_id)
                 ->whereNull('archived_at')],
             ...$rules,
-            // A contract states its end; the walk-in form allowed an open-ended stay.
-            'move_out_date' => ['required', 'date', 'after:move_in_date'],
+            // The end date is optional: left blank, the rental is open-ended (no end, no renewal, rent keeps running).
+            'move_out_date' => ['nullable', 'date', 'after:move_in_date'],
             'agreement_terms_notes' => ['nullable', 'string', 'max:2000'],
         ];
     }
@@ -35,9 +35,8 @@ class StoreContractRequest extends StoreWalkInTenantRequest
     {
         return [
             ...parent::messages(),
-            'landlord_tenant_id.required' => 'Choose the tenant this lease is for.',
+            'landlord_tenant_id.required' => 'Choose the tenant this rental is for.',
             'landlord_tenant_id.exists' => 'Choose a tenant from your list.',
-            'move_out_date.required' => 'Enter the date the lease ends.',
         ];
     }
 }

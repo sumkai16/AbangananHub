@@ -207,7 +207,7 @@ class ReservationObserver
                 // but leave tenant_confirmed_move_in_at null on purpose, and
                 // both send their own "deposit released" notices; telling the
                 // landlord the tenant confirmed would be untrue and a duplicate.
-                if ($reservation->move_in_paid_at !== null) {
+                if ($reservation->move_in_paid_at !== null && ! $reservation->paidOnline()) {
                     // Paid directly, nothing was held. Tell whoever did not press the button.
                     $actorId = auth()->id();
 

@@ -1,5 +1,5 @@
 {{--
-    The body of the Lease policies modal (landlord.leases.panel), fetched when the modal opens and again after every
+    The body of the Rental policies modal (landlord.leases.panel), fetched when the modal opens and again after every
     save. Two columns from lg up: where each property and unit gets its policy, and the policy library. Below lg the
     two are tabs (`tab` lives on the modal shell, _modal.blade.php). Every form here is saved in place by the shell
     (its submit handler), so a dropdown or switch never reloads the page.
@@ -136,7 +136,7 @@
                             <p class="truncate text-[13.5px] font-semibold text-[#060D26]">{{ $template->name }}</p>
                             <p class="text-[12px] text-[#5B6A8E]">{{ $uses ? $uses.' in use' : 'Not used' }} · v{{ $template->version }}</p>
                         </div>
-                        <a href="{{ route('landlord.lease-templates.edit', $template) }}" class="inline-flex h-9 shrink-0 items-center rounded-lg border border-[#5B6A8E]/30 bg-white px-3.5 text-[12.5px] font-bold text-[#060D26] transition-colors hover:bg-[#ECEEF6]">Edit</a>
+                        <a href="{{ route('landlord.lease-templates.edit', $template) }}" class="inline-flex h-9 shrink-0 items-center rounded-lg border border-[#060D26]/35 bg-white px-3.5 text-[12.5px] font-bold text-[#060D26] transition-colors hover:bg-[#ECEEF6]">Edit</a>
                     </li>
                 @endforeach
                 <li class="py-3">

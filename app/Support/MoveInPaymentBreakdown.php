@@ -49,21 +49,29 @@ class MoveInPaymentBreakdown
         private readonly float $rent,
         private readonly float $deposit,
         private readonly Carbon $moveInMonth,
+        private readonly float $alreadyCredited = 0.0,
     ) {
         $this->allocate();
     }
 
+    /**
+     * @param  float  $alreadyCredited  Money for this move-in already recorded in an earlier payment (a reservation
+     *                                  fee, or a first part). It counts toward the deposit and rent but is not
+     *                                  written again, so a second payment only adds the rows for what is new.
+     */
     public static function make(
         float $amountReceived,
         float $rent,
         float $deposit,
         Carbon|string $moveInDate,
+        float $alreadyCredited = 0.0,
     ): self {
         return new self(
             max(0.0, round($amountReceived, 2)),
             max(0.0, round($rent, 2)),
             max(0.0, round($deposit, 2)),
             Carbon::parse($moveInDate)->startOfMonth(),
+            max(0.0, round($alreadyCredited, 2)),
         );
     }
 
@@ -188,7 +196,16 @@ class MoveInPaymentBreakdown
      */
     private function allocate(): void
     {
-        $remaining = $this->amountReceived;
+        $this->split();
+
+        if ($this->alreadyCredited > 0) {
+            $this->trimCredited();
+        }
+    }
+
+    private function split(): void
+    {
+        $remaining = round($this->amountReceived + $this->alreadyCredited, 2);
 
         if ($remaining <= 0) {
             return;
@@ -227,5 +244,26 @@ class MoveInPaymentBreakdown
             $last = count($this->rentSlices) - 1;
             $this->rentSlices[$last]['amount'] = round($this->rentSlices[$last]['amount'] + $remaining, 2);
         }
+    }
+
+    /** Drop the part of the split that an earlier payment already wrote, deposit first, then rent month by month. */
+    private function trimCredited(): void
+    {
+        $credit = $this->alreadyCredited;
+
+        $take = min($credit, $this->depositPortion);
+        $this->depositPortion = round($this->depositPortion - $take, 2);
+        $credit = round($credit - $take, 2);
+
+        foreach ($this->rentSlices as $i => $slice) {
+            if ($credit <= 0) {
+                break;
+            }
+            $take = min($credit, $slice['amount']);
+            $this->rentSlices[$i]['amount'] = round($slice['amount'] - $take, 2);
+            $credit = round($credit - $take, 2);
+        }
+
+        $this->rentSlices = array_values(array_filter($this->rentSlices, fn (array $slice) => $slice['amount'] > 0));
     }
 }

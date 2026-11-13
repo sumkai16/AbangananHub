@@ -122,6 +122,39 @@ class StoreWalkInTenantRequest extends FormRequest
             }
         });
 
+        // Moving in today: the money collected must cover one month's rent plus the security deposit, if the unit has one.
+        // MoveInPaymentBreakdown fills the deposit first, so a lone "rent" payment equal to the deposit would be booked as
+        // the deposit and leave the first month unpaid. An earlier move-in date (a tenancy recorded after the fact) still
+        // only warns, per ARCHITECTURE.md; a future one has nothing to collect yet.
+        $validator->after(function (Validator $validator) {
+            $moveIn = $this->input('move_in_date');
+            $unitId = $this->input('unit_id');
+
+            if (! $moveIn || ! $unitId || $validator->errors()->hasAny(['move_in_date', 'unit_id', 'initial_amount', 'agreed_monthly_rent'])
+                || ! Carbon::parse($moveIn)->isSameDay(Carbon::today())) {
+                return;
+            }
+
+            $unit = PropertyUnit::find($unitId);
+
+            if (! $unit) {
+                return;
+            }
+
+            $rent = $this->filled('agreed_monthly_rent') ? (float) $this->input('agreed_monthly_rent') : (float) $unit->rental_fee;
+            $deposit = (float) ($unit->security_deposit ?? 0);
+            $required = round($rent + $deposit, 2);
+
+            if ($required > 0 && round((float) $this->input('initial_amount'), 2) < $required) {
+                $validator->errors()->add(
+                    'initial_amount',
+                    'A tenant moving in today must pay at least ₱' . number_format($required, 2)
+                        . ' (first month’s rent ₱' . number_format($rent, 2)
+                        . ($deposit > 0 ? ' + security deposit ₱' . number_format($deposit, 2) : '') . ').'
+                );
+            }
+        });
+
         $validator->after(function (Validator $validator) {
             $moveIn = $this->input('move_in_date');
             $moveOut = $this->input('move_out_date');
