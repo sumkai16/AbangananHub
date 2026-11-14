@@ -43,3 +43,6 @@ Schedule::command('reservations:process-stale')->dailyAt('08:30')->timezone(conf
 
 // A tenant's "I paid" that the landlord has not answered: nudge the landlord at 1 and 3 days (config rentals.claim_reminder_days).
 Schedule::command('payment-claims:remind')->dailyAt('08:45')->timezone(config('rentals.timezone'));
+
+// Audit log tamper check: re-walks the hash chain, caches the result for the Activity Logs badge, alerts admins on a break.
+Schedule::command('audit:verify')->dailyAt('03:30')->timezone(config('rentals.timezone'));

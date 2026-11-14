@@ -9,6 +9,24 @@
 
     @include('admin.activity._tabs')
 
+    {{-- Last result of the nightly `audit:verify` hash-chain check (never computed in this request). --}}
+    @php($chain = \Illuminate\Support\Facades\Cache::get('audit-chain:last'))
+    <div class="mb-3 flex justify-end">
+        @if(! $chain)
+            <span class="inline-flex items-center gap-1.5 text-[12px] text-[#5B6A8E]">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#5B6A8E]"></span>Not checked yet
+            </span>
+        @elseif($chain['ok'])
+            <span class="inline-flex items-center gap-1.5 text-[12px] text-[#060D26]">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#22C55E]"></span>Log intact · checked {{ $chain['at']->copy()->timezone(config('rentals.timezone'))->format('M j, g:i A') }}
+            </span>
+        @else
+            <span class="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#DC2626]">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#DC2626]"></span>Log altered at entry #{{ $chain['broken_at'] }}
+            </span>
+        @endif
+    </div>
+
     <x-stat-strip class="mb-5" :cells="[
         ['label' => 'Actions', 'value' => number_format($stats['total']), 'note' => 'Matching these filters'],
         ['label' => 'Today', 'value' => number_format($stats['today']), 'note' => 'Last 24 hours'],

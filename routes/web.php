@@ -451,6 +451,7 @@ Route::middleware('auth')->group(function () {
 
         // Audit logs — read-only by design; audit rows are append-only.
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+        Route::get('/audit-logs/export', [AuditLogController::class, 'export'])->middleware('throttle:5,1')->name('audit-logs.export');
         // Account & security events (sign-ins, failures, access denied). Read-only, like the audit log.
         // Admin two-factor setup and the step-up password check (the middleware lets these through).
         Route::get('/security/two-factor', [\App\Http\Controllers\Admin\TwoFactorSetupController::class, 'show'])->name('security.two-factor');
@@ -461,6 +462,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/step-up', [\App\Http\Controllers\Admin\StepUpController::class, 'confirm'])->middleware('throttle:5,1')->name('stepUp.confirm');
         Route::post('/users/{user}/sign-out-everywhere', \App\Http\Controllers\Admin\UserSessionController::class)->middleware('recent.password')->name('users.signOutEverywhere');
         Route::get('/security-events', [\App\Http\Controllers\Admin\SecurityEventController::class, 'index'])->name('security-events.index');
+        Route::get('/security-events/export', [\App\Http\Controllers\Admin\SecurityEventController::class, 'export'])->middleware('throttle:5,1')->name('security-events.export');
 
         // System settings — whitelisted overrides of config/rentals.php
         Route::get('/settings', [SettingController::class, 'edit'])->name('settings.edit');

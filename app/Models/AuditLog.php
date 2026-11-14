@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use App\Services\Security\AuditChain;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Append-only record of consequential admin actions.
@@ -61,6 +63,7 @@ class AuditLog extends Model
         'user.status_change'        => 'User status changed',
         'user.password_reset_link'  => 'Password reset link sent',
         'user.sign_out_everywhere'  => 'User signed out everywhere',
+        'activity.export'           => 'Activity log exported',
         'security.two_factor_enabled'   => 'Admin two-factor turned on',
         'security.two_factor_disabled'  => 'Admin two-factor turned off',
         'security.two_factor_codes'     => 'Admin recovery codes regenerated',
@@ -88,6 +91,8 @@ class AuditLog extends Model
         'reason',
         'metadata',
         'ip_address',
+        'prev_hash',
+        'row_hash',
     ];
 
     protected $casts = [
@@ -111,7 +116,7 @@ class AuditLog extends Model
     ): self {
         $actor = Auth::user();
 
-        return self::create([
+        $attributes = [
             'actor_id'       => $actor?->user_id,
             // Snapshotted so the row stays readable after the actor is deleted
             // and actor_id is nulled out by the FK's ON DELETE SET NULL.
@@ -124,7 +129,23 @@ class AuditLog extends Model
             'reason'         => $reason,
             'metadata'       => $metadata ?: null,
             'ip_address'     => request()->ip(),
-        ]);
+        ];
+
+        // The row locked here is the newest one, so concurrent writers queue and each chains to the true previous row.
+        return DB::transaction(function () use ($attributes) {
+            $createdAt = now()->startOfSecond();
+            $prev = DB::table('audit_logs')->orderByDesc('log_id')->lockForUpdate()->value('row_hash')
+                ?? AuditChain::genesis();
+
+            $attributes['prev_hash'] = $prev;
+            $attributes['row_hash'] = AuditChain::hash($attributes + ['created_at' => $createdAt]);
+
+            $log = new self($attributes);
+            $log->created_at = $createdAt;
+            $log->save();
+
+            return $log;
+        });
     }
 
     public function actor(): BelongsTo
