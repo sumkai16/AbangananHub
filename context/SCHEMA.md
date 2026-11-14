@@ -99,6 +99,10 @@ A person. Tenants, landlords and admins are all rows here; the role lives in `us
 | remember_token | varchar(100) | null | | |
 | created_at | timestamp | null | | |
 | updated_at | timestamp | null | | |
+| two_factor_secret | text | null | | Authenticator secret, encrypted (`encrypted` cast). Hidden from serialisation. Set only once the user confirms a first code |
+| two_factor_recovery_codes | text | null | | Encrypted JSON array of bcrypt hashes of the unused `XXXX-XXXX` recovery codes; a used code's hash is removed |
+| two_factor_confirmed_at | timestamp | null | | Two-factor is on when this is set (`User::hasTwoFactor()`). Required for every Admin (`security.admin_two_factor`) |
+| two_factor_last_step | bigint unsigned | null | | Last accepted 30-second TOTP step; a code at or below it is refused (replay guard) |
 
 Rules:
 - Walk-in and social-login accounts get a random unknowable password. A walk-in is also `inactive`, so it can never log in or leave a review; keeping walk-ins in `users` is what lets `reservations.tenant_id` stay NOT NULL.

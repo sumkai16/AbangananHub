@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Status:** Draft — waiting for Axcee's review of the "Decisions to confirm" section. Not started.
+**Status:** Phase 1 (Tasks 1-5) built, verified in the browser and committed Nov 14 2026 (`29637de`). Phases 2-4 not started. D1 (block admin API tokens) is already in.
 
 **Goal:** Record sign-ins, failures and access denials; protect accounts (2FA for admins, step-up password, new-sign-in alerts, session control, leaked-password block); and make the admin audit log tamper-evident, filterable and exportable.
 

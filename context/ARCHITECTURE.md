@@ -257,6 +257,19 @@ the double-fire the locks were added to prevent.
 Read-only surface: `Admin\AuditLogController@index` only. No store/update/destroy and no "clear logs"
 button anywhere, by design. Retention/pruning is deliberately unimplemented — see Known Tradeoffs.
 
+### Account & security events (Nov 14 2026)
+`audit_logs` answers "what did an admin do". `auth_events` answers "who signed in, who failed, who was refused". They are separate tables on purpose: anyone on the internet can generate failed logins, and that noise would bury the admin trail. Rows: sign-in, failed sign-in, lockout, sign-out, password reset or change, email change, social link, access denied (403).
+
+**One writer.** `AuthEventRecorder::record()` is the only code that inserts. Laravel's `Login`, `Failed`, `Lockout`, `Logout` and `PasswordReset` events are mapped by the `RecordAuthEvents` subscriber (registered in `AppServiceProvider`), so password, Google/Facebook and webview sign-ins are all caught without each controller remembering. A few events are explicit calls (password and email change, social link, mobile API login). The 403 hook is a `renderable` callback in `bootstrap/app.php`, not `report`: Laravel never reports `HttpException` or `AuthorizationException`, so a report callback never runs for them.
+
+**Never breaks a login.** A failed write is caught, logged and swallowed. Warning events (`AuthEvent::WARNING_EVENTS`) are capped per IP (`security.auth_events_ip_cap_per_minute`); real sign-ins never are. `Failed` carries the typed password in its credentials, so the listener reads the email only.
+
+**Device cookie.** `EnsureDeviceCookie` gives each browser a random id (`ah_device`, one year). It is stored on each row so a later task can tell a new browser from a known one.
+
+**Admins and the API.** An admin cannot get a Sanctum token from the mobile API (password or social path): a token would skip the web-only 2FA planned in Phase 3.
+
+**Admin passwords.** An admin never sets or sees another user's password. The user page sends Laravel's standard reset link (`UserController::sendPasswordReset`, audited). Read surface: `Admin\SecurityEventController@index`, read-only like the audit log. Plan: `plans/security-audit-hardening.md`.
+
 ### System Settings (July 26 2026)
 The escrow and rent-ledger clocks are admin-editable at `admin/settings` instead of needing a deploy.
 

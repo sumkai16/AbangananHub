@@ -2,6 +2,15 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 14 2026 — Account & security events, Activity Logs tabs, new admin user page (branch `axci`)
+**Run `php artisan migrate`** (new `auth_events` table). Checked in Chrome as admin, tenant and landlord: failed sign-ins, lockout, sign-in/out and a 403 all landed on the right rows. Automated: `tests/Feature/Security/*` plus the full suite pass. Phases 2 to 4 of `plans/security-audit-hardening.md` are **not built yet** (new-sign-in email, sessions list, admin 2FA, step-up password, hash-chained audit log, CSV export, CSP enforce).
+- **What changed:** every sign-in, failed sign-in, lockout, sign-out, password or email change, social link and 403 now writes a row to `auth_events`, kept apart from `audit_logs` so attacker-made noise cannot bury the admin trail. Kept 90 days. The admin sidebar item is now **Activity Logs** with two tabs: **Admin actions** (the old audit log, new Role filter) and **Account & security** (filters: search, role, event, dates).
+- **Admin user page redesigned** (cover header, stat strip, recent reservations or properties, admin activity, recent sign-ins). Times on these pages now show in Manila time (`rentals.timezone`); the audit log showed UTC before.
+- **Admins no longer edit a user's password.** The Edit modal has no password fields (create still asks for one). The user page has **Send password reset link**, audited as `user.password_reset_link`.
+- **Admins cannot get a mobile API token** (they sign in on the web, so the web 2FA planned for Phase 3 cannot be bypassed).
+- **Safety:** a failed log write is swallowed and never blocks a login; no password, token or secret is ever stored; failed-login rows are capped per IP (30 a minute).
+- **Files:** migration `2026_11_15_000100_create_auth_events_table`, `AuthEvent`, `Services/Security/AuthEventRecorder`, `Listeners/Security/RecordAuthEvents`, `Http/Middleware/EnsureDeviceCookie`, `Support/UserAgentSummary`, `Admin\SecurityEventController`, `Admin\AuditLogController`, `Admin\UserController`, `Api\AuthController`, `bootstrap/app.php` (403 hook), `admin/security-events/index`, `admin/activity/_tabs`, `admin/users/show`, `admin/users/_form`.
+
 ## Nov 10 2026 — Handover photo required to mark the keys turned over
 **Run `php artisan migrate`** (two nullable columns on `reservations`). **Needs a manual check in the browser** (checklist in `plans/move-in-evidence-and-reminder-emails.md`). Automated: `HandoverPhotoTest` (5) plus the related payment suites pass.
 - **What changed:** on an online (held) payment the landlord must attach a photo of the keys or the handover before "Mark keys turned over" starts the tenant's 7-day countdown. The tenant sees it on their agreement page; the admin sees "View photo" (or "No photo") under "Keys marked" on the conversation page. A photo is evidence, not proof.

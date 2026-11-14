@@ -247,6 +247,13 @@ Full procedure: `plans/hostinger-vps-deployment.md`. The rules that generalize b
   same lesson the admin document-preview routes already encode. Re-check this when wiring anything
   new across roles in production.
 
+## Account & security events (established Nov 14 2026)
+- Record sign-ins, failures, lockouts, access denials and account changes through `AuthEventRecorder::record()` only. Never `AuthEvent::create()` from a controller.
+- Never put a password, reset token, 2FA code, recovery code or session id in `auth_events.metadata` or `audit_logs.metadata`. A Laravel `Failed` event holds the typed password: read `credentials['email']` and nothing else.
+- Logging must never block or break a login. The recorder swallows its own failures; do not wrap new calls in code that can throw.
+- Show times on admin pages with `->timezone(config('rentals.timezone'))`. Timestamps are stored in UTC and a bare `->format()` shows UTC.
+- Admins do not set or edit another user's password. Send the reset link instead.
+
 ## Forms: validation (established Oct 8 2026)
 - **Auth and profile forms carry `novalidate`** (login, register, forgot/reset password, profile edit, password change, delete account). The server's Laravel validation decides, and its messages show inline under the field that failed, so the browser's native popup never appears. Server rules already cover every field, so nothing relies on `required` / `type=email` in the HTML.
 - **Show errors per field**: `<x-input-error :messages="$errors->get('email')" />` (or an `@error` block). A single `$errors->first()` banner is not enough once `novalidate` is on. Login used one; it now shows the email and password errors under their own fields.
