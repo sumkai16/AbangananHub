@@ -2,13 +2,19 @@
 
 namespace App\Listeners\Security;
 
+use App\Mail\NewSignInMail;
 use App\Services\Security\AuthEventRecorder;
+use App\Services\Security\NewDeviceDetector;
+use App\Support\UserAgentSummary;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Events\Dispatcher;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 /**
  * Maps Laravel's auth events to auth_events rows. Registered in AppServiceProvider::boot().
@@ -31,7 +37,43 @@ class RecordAuthEvents
             return;
         }
 
-        $this->recorder()->record('login', $event->user, channel: $this->channel());
+        $recorded = $this->recorder()->record('login', $event->user, channel: $this->channel());
+
+        $this->alertOnNewDevice($event->user, $recorded);
+    }
+
+    /**
+     * Email admins and landlords (tenants get nothing) when a sign-in comes from a browser they have not used in 90
+     * days. Runs after the response via defer(), and a mail failure is logged and swallowed: it must never break a login.
+     */
+    private function alertOnNewDevice(\App\Models\User $user, ?\App\Models\AuthEvent $recorded): void
+    {
+        try {
+            if (! $recorded || ! $user->email || ! ($user->hasRole('Admin') || $user->hasRole('Landlord'))) {
+                return;
+            }
+
+            if (! app(NewDeviceDetector::class)->isNew($user, $recorded->device_id, $recorded->event_id)) {
+                return;
+            }
+
+            $mail = new NewSignInMail(
+                $recorded->created_at->copy()->timezone(config('rentals.timezone'))->format('M j, Y \a\t g:i A'),
+                UserAgentSummary::from($recorded->user_agent),
+                $recorded->ip_address,
+            );
+            $to = $user->email;
+
+            defer(function () use ($to, $mail) {
+                try {
+                    Mail::to($to)->send($mail);
+                } catch (Throwable $e) {
+                    Log::warning('Could not send new sign-in email', ['error' => $e->getMessage()]);
+                }
+            });
+        } catch (Throwable $e) {
+            Log::warning('Could not check for a new device', ['error' => $e->getMessage()]);
+        }
     }
 
     public function onFailed(Failed $event): void

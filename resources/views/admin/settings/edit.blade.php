@@ -21,6 +21,8 @@
         </x-slot:icon>
     </x-page-header>
 
+    @include('admin.settings._tabs')
+
     @if($errors->any())
         <div class="rounded-2xl border border-[#EF4444]/25 bg-[#EF4444]/[0.05] px-5 py-4 mb-5">
             <p class="text-[13px] font-semibold text-[#DC2626]">Nothing was saved — please fix the fields below.</p>

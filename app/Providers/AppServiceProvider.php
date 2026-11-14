@@ -21,6 +21,7 @@ use App\Services\AiSearch\NullDriver;
 use App\Services\AiSearch\OpenRouterDriver;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\View;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -51,6 +52,12 @@ class AppServiceProvider extends ServiceProvider
         $this->applyRentalSettingOverrides();
 
         Event::subscribe(RecordAuthEvents::class);
+
+        // Refuse passwords found in known breaches (k-anonymity lookup; passes if the API is down). Unit tests skip
+        // the network call.
+        Password::defaults(fn () => app()->runningUnitTests()
+            ? Password::min(8)
+            : Password::min(8)->uncompromised());
 
         Payment::observe(PaymentObserver::class);
         PropertyUnit::observe(PropertyUnitObserver::class);

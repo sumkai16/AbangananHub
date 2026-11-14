@@ -16,6 +16,7 @@
         "laravel/sanctum": "^4.3",
         "laravel/socialite": "^5.29",
         "laravel/tinker": "^2.10.1",
+        "pragmarx/google2fa": "^9.1",
         "thiagoalessio/tesseract_ocr": "^2.13"
     },
     "require-dev": {

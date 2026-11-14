@@ -79,6 +79,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile/tenant-details', [TenantDetailController::class, 'update'])->name('profile.tenantDetails.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    // Where you are signed in, and signing out the other devices (asks for the current password).
+    Route::delete('/account/sessions/{id}', [\App\Http\Controllers\Account\SessionController::class, 'destroy'])->name('account.sessions.destroy');
+    Route::delete('/account/sessions', [\App\Http\Controllers\Account\SessionController::class, 'destroyOthers'])->name('account.sessions.destroyOthers');
+
     // Landlord verification — open to any authenticated user, no role gate
     Route::get('/landlord/apply', [VerificationController::class, 'create'])->name('landlord.verification.create');
     Route::post('/landlord/apply', [VerificationController::class, 'store'])->name('landlord.verification.store');
@@ -351,7 +355,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Admin-specific routes
-    Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+    Route::middleware(['admin', 'two-factor'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
         Route::get('/listings/approval', [ListingController::class, 'approval'])->name('listings.approval');
@@ -372,13 +376,13 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');
-        Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
+        Route::post('/users', [AdminUserController::class, 'store'])->middleware('recent.password')->name('users.store');
         Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
         Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
-        Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
+        Route::put('/users/{user}', [AdminUserController::class, 'update'])->middleware('recent.password')->name('users.update');
         Route::post('/users/{user}/password-reset', [AdminUserController::class, 'sendPasswordReset'])->name('users.passwordReset');
-        Route::patch('/users/{user}/status', [AdminUserController::class, 'updateStatus'])->name('users.updateStatus');
-        Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+        Route::patch('/users/{user}/status', [AdminUserController::class, 'updateStatus'])->middleware('recent.password')->name('users.updateStatus');
+        Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->middleware('recent.password')->name('users.destroy');
 
         Route::get('/reservations', [AdminReservationController::class, 'index'])->name('reservations.index');
         Route::get('/reservations/{reservation}', [AdminReservationController::class, 'show'])->name('reservations.show');
@@ -414,26 +418,26 @@ Route::middleware('auth')->group(function () {
         Route::patch('/reports/{report}/resolve', [App\Http\Controllers\Admin\ReportController::class, 'resolve'])->name('reports.resolve');
 
         Route::get('/payments', [App\Http\Controllers\Admin\PaymentController::class, 'index'])->name('payments.index');
-        Route::post('/payments/{payment}/release', [App\Http\Controllers\Admin\PaymentController::class, 'release'])->name('payments.release');
+        Route::post('/payments/{payment}/release', [App\Http\Controllers\Admin\PaymentController::class, 'release'])->middleware('recent.password')->name('payments.release');
         // Give a held online payment back to the tenant (the other way out of the move-in review queue).
         Route::post('/payments/{payment}/refund', [PaymentRefundController::class, 'store'])
-            ->middleware('throttle:10,1')->name('payments.refund');
+            ->middleware('throttle:10,1')->middleware('recent.password')->name('payments.refund');
 
         // Landlord payouts — manual GCash transfer queue, see
         // docs/specs/2026-07-26-landlord-payout-design.md
         Route::get('/payouts', [App\Http\Controllers\Admin\PayoutController::class, 'index'])->name('payouts.index');
-        Route::post('/payouts/{user}/mark-paid-out', [App\Http\Controllers\Admin\PayoutController::class, 'markPaidOut'])->name('payouts.markPaidOut');
-        Route::post('/payouts/{payout}/retry', [App\Http\Controllers\Admin\PayoutController::class, 'retry'])->name('payouts.retry');
+        Route::post('/payouts/{user}/mark-paid-out', [App\Http\Controllers\Admin\PayoutController::class, 'markPaidOut'])->middleware('recent.password')->name('payouts.markPaidOut');
+        Route::post('/payouts/{payout}/retry', [App\Http\Controllers\Admin\PayoutController::class, 'retry'])->middleware('recent.password')->name('payouts.retry');
         Route::post('/payouts/{payout}/check', [App\Http\Controllers\Admin\PayoutController::class, 'check'])->name('payouts.check');
-        Route::post('/payouts/{user}/approve-account', [App\Http\Controllers\Admin\PayoutController::class, 'approveAccount'])->name('payouts.approveAccount');
-        Route::post('/payouts/{user}/pause', [App\Http\Controllers\Admin\PayoutController::class, 'pause'])->name('payouts.pause');
-        Route::post('/payouts/{user}/resume', [App\Http\Controllers\Admin\PayoutController::class, 'resume'])->name('payouts.resume');
+        Route::post('/payouts/{user}/approve-account', [App\Http\Controllers\Admin\PayoutController::class, 'approveAccount'])->middleware('recent.password')->name('payouts.approveAccount');
+        Route::post('/payouts/{user}/pause', [App\Http\Controllers\Admin\PayoutController::class, 'pause'])->middleware('recent.password')->name('payouts.pause');
+        Route::post('/payouts/{user}/resume', [App\Http\Controllers\Admin\PayoutController::class, 'resume'])->middleware('recent.password')->name('payouts.resume');
 
         // Deposit charges — admin oversight/override of a landlord's claims
         // against a tenant's held security deposit. ReservationPolicy::
         // voidDepositCharge() authorizes Admin here the same as the landlord.
         Route::get('/deposit-charges', [App\Http\Controllers\Admin\DepositChargeController::class, 'index'])->name('deposit-charges.index');
-        Route::post('/deposit-charges/{depositCharge}/void', [App\Http\Controllers\Admin\DepositChargeController::class, 'void'])->name('deposit-charges.void');
+        Route::post('/deposit-charges/{depositCharge}/void', [App\Http\Controllers\Admin\DepositChargeController::class, 'void'])->middleware('recent.password')->name('deposit-charges.void');
 
         // Profile
         Route::get('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'edit'])->name('profile.edit');
@@ -448,11 +452,19 @@ Route::middleware('auth')->group(function () {
         // Audit logs — read-only by design; audit rows are append-only.
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
         // Account & security events (sign-ins, failures, access denied). Read-only, like the audit log.
+        // Admin two-factor setup and the step-up password check (the middleware lets these through).
+        Route::get('/security/two-factor', [\App\Http\Controllers\Admin\TwoFactorSetupController::class, 'show'])->name('security.two-factor');
+        Route::post('/security/two-factor', [\App\Http\Controllers\Admin\TwoFactorSetupController::class, 'store'])->name('security.two-factor.store');
+        Route::post('/security/two-factor/recovery-codes', [\App\Http\Controllers\Admin\TwoFactorSetupController::class, 'regenerateCodes'])->name('security.two-factor.codes');
+        Route::delete('/security/two-factor', [\App\Http\Controllers\Admin\TwoFactorSetupController::class, 'destroy'])->middleware('recent.password')->name('security.two-factor.destroy');
+        Route::get('/step-up', [\App\Http\Controllers\Admin\StepUpController::class, 'status'])->name('stepUp.status');
+        Route::post('/step-up', [\App\Http\Controllers\Admin\StepUpController::class, 'confirm'])->middleware('throttle:5,1')->name('stepUp.confirm');
+        Route::post('/users/{user}/sign-out-everywhere', \App\Http\Controllers\Admin\UserSessionController::class)->middleware('recent.password')->name('users.signOutEverywhere');
         Route::get('/security-events', [\App\Http\Controllers\Admin\SecurityEventController::class, 'index'])->name('security-events.index');
 
         // System settings — whitelisted overrides of config/rentals.php
         Route::get('/settings', [SettingController::class, 'edit'])->name('settings.edit');
-        Route::patch('/settings', [SettingController::class, 'update'])->name('settings.update');
+        Route::patch('/settings', [SettingController::class, 'update'])->middleware('recent.password')->name('settings.update');
     });
 
     // Conversations and messages

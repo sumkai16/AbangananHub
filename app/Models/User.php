@@ -41,6 +41,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     protected function casts(): array
@@ -52,6 +54,11 @@ class User extends Authenticatable
             'accepts_qr_payments' => 'boolean',
             'accepts_cash_payments' => 'boolean',
             'landlord_terms_accepted_at' => 'datetime',
+            // Never mass-assignable: only App\Services\Security\TwoFactor writes these (forceFill).
+            'two_factor_secret' => 'encrypted',
+            'two_factor_recovery_codes' => 'encrypted:array',
+            'two_factor_confirmed_at' => 'datetime',
+            'two_factor_last_step' => 'integer',
         ];
     }
 
@@ -179,6 +186,12 @@ class User extends Authenticatable
     }
 
     // ─── Role Helpers ────────────────────────────────────────
+
+    /** Two-factor is on once the user confirmed it with a first valid code. */
+    public function hasTwoFactor(): bool
+    {
+        return $this->two_factor_confirmed_at !== null;
+    }
 
     public function hasRole(string $role): bool
     {

@@ -31,5 +31,8 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <!-- Security tests turn these on per test with config([...]); everything else runs without them. -->
+        <env name="ADMIN_TWO_FACTOR" value="off"/>
+        <env name="STEP_UP_ENABLED" value="false"/>
     </php>
 </phpunit>

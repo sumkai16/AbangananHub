@@ -29,7 +29,7 @@ class AuthEventRecorder
                 RateLimiter::hit($key, 60);
             }
 
-            return AuthEvent::create([
+            $row = AuthEvent::create([
                 'user_id'    => $user?->user_id,
                 'email'      => $email ?? $user?->email,
                 'event'      => $event,
@@ -39,10 +39,26 @@ class AuthEventRecorder
                 'device_id'  => $request->cookies->get(config('security.device_cookie', 'ah_device')),
                 'metadata'   => $metadata ?: null,
             ]);
+
+            if (in_array($event, AuthEvent::WARNING_EVENTS, true)) {
+                $this->inspect($row);
+            }
+
+            return $row;
         } catch (Throwable $e) {
             Log::warning('Could not record auth event', ['event' => $event, 'error' => $e->getMessage()]);
 
             return null;
+        }
+    }
+
+    /** Alerting is a bonus: whatever goes wrong in there must never break (or hide) the event that was just written. */
+    private function inspect(AuthEvent $row): void
+    {
+        try {
+            app(SuspiciousActivityMonitor::class)->inspect($row);
+        } catch (Throwable $e) {
+            Log::warning('Suspicious-activity check failed', ['event' => $row->event, 'error' => $e->getMessage()]);
         }
     }
 }

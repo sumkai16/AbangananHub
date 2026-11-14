@@ -31,4 +31,11 @@ return [
     'auth_events_retention_days'     => 90,
     'auth_events_ip_cap_per_minute'  => 30,
     'device_cookie'                  => 'ah_device',
+
+    /* Phase 2-3 of plans/security-audit-hardening.md. */
+    // required: every Admin must set up and pass two-factor. off: the middleware is a no-op (tests, emergencies).
+    'admin_two_factor' => env('ADMIN_TWO_FACTOR', 'required'),
+    // Re-enter the password before the risky admin actions, fresh for this many seconds.
+    'step_up_enabled' => env('STEP_UP_ENABLED', true),
+    'step_up_seconds' => 900,
 ];

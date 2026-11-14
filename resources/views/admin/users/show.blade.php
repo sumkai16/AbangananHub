@@ -329,6 +329,18 @@
                                 Send password reset link
                             </button>
                         </form>
+
+                        {{-- Ends every session and mobile token for this account. Owned by the sessions task (UserSessionController). --}}
+                        @if ($user->user_id !== auth()->id())
+                            <form action="{{ route('admin.users.signOutEverywhere', $user) }}" method="POST" class="mt-2"
+                                data-confirm="Sign this user out everywhere?"
+                                data-confirm-type="warning"
+                                data-confirm-message="Every browser and the mobile app will be signed out. They can sign in again with their password."
+                                data-confirm-button="Sign out everywhere">
+                                @csrf
+                                <button type="submit" class="w-full h-10 inline-flex items-center justify-center gap-2 text-[13px] font-semibold border border-[#FBBF24]/35 text-[#B45309] rounded-xl hover:bg-[#FBBF24]/[0.10] transition-colors cursor-pointer">Sign out everywhere</button>
+                            </form>
+                        @endif
                     @else
                         <p class="text-[12.5px] font-medium text-[#B45309]">No sign-in email on this account, so there is nothing to send a link to.</p>
                     @endif

@@ -154,6 +154,9 @@
                 @include('profile.partials.update-password-form')
             </div>
 
+            {{-- Where you're signed in --}}
+            @include('profile.partials.sessions')
+
             {{-- Danger Zone --}}
             <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-6">
                 @include('profile.partials.delete-user-form')

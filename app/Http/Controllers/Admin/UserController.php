@@ -90,7 +90,7 @@ class UserController extends Controller
             'first_name'     => 'required|string|max:100',
             'last_name'      => 'required|string|max:100',
             'email'          => 'required|email|unique:users,email',
-            'password'       => 'required|string|min:8|confirmed',
+            'password'       => ['required', 'string', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
             'contact_number' => ['nullable', 'string', 'max:20', Phone::RULE],
             'account_status' => 'required|in:active,suspended,inactive',
             'roles'          => 'required|array|min:1',
