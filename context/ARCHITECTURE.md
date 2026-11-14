@@ -270,6 +270,17 @@ button anywhere, by design. Retention/pruning is deliberately unimplemented — 
 
 **Admin passwords.** An admin never sets or sees another user's password. The user page sends Laravel's standard reset link (`UserController::sendPasswordReset`, audited). Read surface: `Admin\SecurityEventController@index`, read-only like the audit log. Plan: `plans/security-audit-hardening.md`.
 
+### Admin hardening: 2FA, step-up, sessions, tamper evidence (Nov 15 2026)
+**Two-factor** (`EnsureTwoFactor`, alias `two-factor`) sits on the whole admin route group, after `admin`. An admin with 2FA must pass `/two-factor-challenge` (session flag `auth.two_factor_passed`); an admin without it is sent to setup (`admin.security.two-factor`, shown as a tab under System Settings) while `config('security.admin_two_factor') === 'required'`. Because it guards the area and not the login, password, Google/Facebook and webview sign-ins are all covered. The mobile API refuses to issue admins a token for the same reason. `TwoFactor::verify()` accepts a TOTP (a step can be used once: compare-and-set on `two_factor_last_step`) or a recovery code (bcrypt hashes, each spent once). Setup is not reachable until the challenge is passed, otherwise a password alone could mint recovery codes.
+
+**Step-up** (`RequireRecentPassword`, alias `recent.password`) is applied per route to the risky admin actions. Session key `auth.step_up_at`, 15 minutes (`security.step_up_seconds`). It is enforced on the server; a blocked normal request goes back with `step_up_required` and one global modal (`admin/_step-up-modal`) takes the password or a 2FA code. JSON requests get 423. No per-form markup, because the guarded forms are of many kinds. An admin with no password and no 2FA (social-only) cannot pass it.
+
+**Sessions.** `SessionManager` reads the `sessions` table and Sanctum tokens; revoking also cycles `remember_token`. `SuspiciousActivityMonitor` runs after every warning `auth_events` write (inside its own try/catch) and notifies all admins, deduped one hour per rule and subject.
+
+**Tamper evidence.** `AuditLog::record()` reads the previous `row_hash` under `lockForUpdate`, sets `created_at` explicitly, and stores `prev_hash` plus an HMAC-SHA256 `row_hash` over a canonical payload (`AuditChain::payload`: fixed field order, recursively key-sorted metadata, so MariaDB JSON key order never matters). Key: `AUDIT_CHAIN_KEY`, falling back to `APP_KEY`; **never change it after rows exist** or every row fails. `audit:verify` (daily 03:30) checks the whole chain; any missing hash counts as tampering. Detects an edited row, a deleted row anywhere but the tail. Cannot detect deletion of the newest rows. `audit_logs` is never pruned, because pruning would break the chain.
+
+**Export.** `CsvExport` streams UTF-8 with a BOM, prefixes formula-looking cells with `'`, and caps at `security.export_row_cap`. `index` and `export` share one `filtered()` builder per controller so they cannot disagree; each export writes an `activity.export` audit row first.
+
 ### System Settings (July 26 2026)
 The escrow and rent-ledger clocks are admin-editable at `admin/settings` instead of needing a deploy.
 

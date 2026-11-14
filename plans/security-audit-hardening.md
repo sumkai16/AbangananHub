@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Status:** Phase 1 (Tasks 1-5) built, verified in the browser and committed Nov 14 2026 (`29637de`). Phases 2-4 not started. D1 (block admin API tokens) is already in.
+**Status:** All 15 tasks built (Phases 1-4), committed Nov 15 2026. Phase 1 and the leaked-password and 2FA pages are browser-checked; the rest of the manual checklist below is still pending (Axcee). Task 14 (CSP enforce) is runbook-only: switch it on the VPS after a week of report-only. Delete this plan once the checklist has been run end to end.
 
 **Goal:** Record sign-ins, failures and access denials; protect accounts (2FA for admins, step-up password, new-sign-in alerts, session control, leaked-password block); and make the admin audit log tamper-evident, filterable and exportable.
 

@@ -303,7 +303,15 @@ server {
     add_header X-Frame-Options "SAMEORIGIN";
     add_header X-Content-Type-Options "nosniff";
     # CSP, Permissions-Policy, Referrer-Policy and HSTS come from the app (SecurityHeaders middleware), not nginx.
-    # Start with CSP_MODE=report-only in .env, check the "CSP violation" lines in laravel.log, then CSP_MODE=enforce.
+    # CSP rollout (reporting is proven: a POST to /csp-report writes a "CSP violation" line to laravel.log):
+    #   1. Deploy with CSP_MODE=report-only. Click through the admin dashboard, browse + map, lease editor, chat
+    #      (Reverb), a PayMongo checkout and the sign-in providers.
+    #   2. After a week, `grep "CSP violation" storage/logs/laravel.log`. Each line is a real blocked source: add it
+    #      to App\Support\ContentSecurityPolicy, or drop the thing that loads it. Zero lines means ready.
+    #   3. Set CSP_MODE=enforce and `php artisan config:clear`; repeat the click-through.
+    # What enforce does today: stops other sites framing ours, blocks plugins, <base> tricks and posting forms to other
+    # sites, and limits where images, fonts, frames and connections may come from. It does NOT stop an injected inline
+    # script, because script-src still needs 'unsafe-inline' and 'unsafe-eval' (see ContentSecurityPolicy docblock).
     # HSTS only reaches the browser if TRUSTED_PROXIES is set, so the app can see the request was https.
 
     # --- Compression ---

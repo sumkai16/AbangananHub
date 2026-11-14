@@ -862,6 +862,8 @@ Append-only record of consequential admin and landlord actions. Written by `Audi
 | reason | text | null | | |
 | metadata | json | null | | Before/after values, amounts |
 | ip_address | varchar(45) | null | | Fits IPv6 |
+| prev_hash | char(64) | null | | Hash chain: the previous row's `row_hash` (64 zeros for the first row). `App\Services\Security\AuditChain` |
+| row_hash | char(64) | null | index | HMAC-SHA256 (key `security.audit_chain_key`) over this row's content and `prev_hash`; `audit:verify` re-checks it nightly, so an edited or deleted row is detectable |
 | created_at | timestamp | null | index | No `updated_at` (`UPDATED_AT = null`) |
 
 New consequential action: add its key to `ACTION_LABELS` (the filter dropdown reads it) and call `AuditLog::record()` inside that action's transaction.

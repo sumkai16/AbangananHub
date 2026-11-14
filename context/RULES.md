@@ -253,6 +253,11 @@ Full procedure: `plans/hostinger-vps-deployment.md`. The rules that generalize b
 - Logging must never block or break a login. The recorder swallows its own failures; do not wrap new calls in code that can throw.
 - Show times on admin pages with `->timezone(config('rentals.timezone'))`. Timestamps are stored in UTC and a bare `->format()` shows UTC.
 - Admins do not set or edit another user's password. Send the reset link instead.
+- Validate a password field as `['bail', 'required', 'string', ...]`. Without `bail`, `current_password` runs on an array body and crashes with a 500 (`HostilePostInputTest` catches this).
+- **Audit rows are hash-chained.** Write them only through `AuditLog::record()`; never insert into or update `audit_logs` with raw SQL or a seeder, and never change `AUDIT_CHAIN_KEY` once rows exist. Do not prune `audit_logs`.
+- A new risky admin action (money, users, settings) gets `->middleware('recent.password')` on its route. A new admin route group member needs no 2FA code: the `two-factor` middleware is already on the group.
+- Tests that need 2FA or step-up turn it on per test with `config(['security.admin_two_factor' => 'required'])` / `config(['security.step_up_enabled' => true])`; phpunit defaults both off.
+- Several agents or terminals running tests together collide on the one MySQL test database. Run them through `flock /tmp/ah-phpunit.lock php artisan test ...`.
 
 ## Forms: validation (established Oct 8 2026)
 - **Auth and profile forms carry `novalidate`** (login, register, forgot/reset password, profile edit, password change, delete account). The server's Laravel validation decides, and its messages show inline under the field that failed, so the browser's native popup never appears. Server rules already cover every field, so nothing relies on `required` / `type=email` in the HTML.
