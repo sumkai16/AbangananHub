@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\AuthEvent;
 use App\Models\LandlordVerification;
 use App\Models\Notification;
 use App\Models\User;
@@ -13,6 +14,7 @@ use App\Support\Phone;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
@@ -133,7 +135,18 @@ class UserController extends Controller
         $landlordRating = $user->landlordRatingSummary();
         $tenantRating = $user->tenantRatingSummary();
 
-        return view('admin.users.show', compact('user', 'landlordRating', 'tenantRating'));
+        $recentReservations = $user->reservations()->with('property:property_id,title')->latest('created_at')->limit(5)->get();
+        $recentProperties   = $user->properties()->latest('created_at')->limit(5)->get();
+
+        // What admins did to this account, newest first.
+        $adminActivity = AuditLog::where('auditable_type', User::class)
+            ->where('auditable_id', $user->user_id)
+            ->latest('created_at')->limit(6)->get();
+
+        // The last few sign-ins and security events on this account, for the Security card.
+        $recentAuthEvents = AuthEvent::where('user_id', $user->user_id)->latest('created_at')->limit(5)->get();
+
+        return view('admin.users.show', compact('user', 'landlordRating', 'tenantRating', 'recentReservations', 'recentProperties', 'adminActivity', 'recentAuthEvents'));
     }
 
     public function edit(User $user)
@@ -149,7 +162,6 @@ class UserController extends Controller
             'first_name'     => 'required|string|max:100',
             'last_name'      => 'required|string|max:100',
             'email'          => ['required', 'email', Rule::unique('users', 'email')->ignore($user->user_id, 'user_id')],
-            'password'       => 'nullable|string|min:8|confirmed',
             'contact_number' => ['nullable', 'string', 'max:20', Phone::RULE],
             'account_status' => 'required|in:active,suspended,inactive',
             'roles'          => 'required|array|min:1',
@@ -178,13 +190,8 @@ class UserController extends Controller
             'account_status' => $data['account_status'],
         ]);
 
-        $passwordReset = ! empty($data['password']);
-        if ($passwordReset) {
-            $user->update(['password' => Hash::make($data['password'])]);
-        }
-
         // Sync roles: remove old, assign new
-        \DB::transaction(function () use ($user, $data, $before, $passwordReset) {
+        \DB::transaction(function () use ($user, $data, $before) {
             $user->roles()->delete();
             $user->unsetRelation('roles');
             foreach ($data['roles'] as $role) {
@@ -205,10 +212,6 @@ class UserController extends Controller
                     $changes[$field] = $before[$field] . ' → ' . $value;
                 }
             }
-            if ($passwordReset) {
-                $changes['password'] = 'reset by admin';
-            }
-
             AuditLog::record(
                 'user.update',
                 "Updated account {$user->email}." . ($changes ? '' : ' No tracked fields changed.'),
@@ -220,6 +223,27 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.show', $user)
             ->with('success', 'User updated successfully.');
+    }
+
+    /**
+     * Email the user a password reset link. Admins never set or see a password; the
+     * user chooses their own through the normal reset flow.
+     */
+    public function sendPasswordReset(User $user)
+    {
+        if (! $user->email) {
+            return back()->with('error', 'This account has no email address to send a reset link to.');
+        }
+
+        $status = Password::sendResetLink(['email' => $user->email]);
+
+        if ($status !== Password::RESET_LINK_SENT) {
+            return back()->with('error', __($status));
+        }
+
+        AuditLog::record('user.password_reset_link', "Sent a password reset link to {$user->email}.", $user);
+
+        return back()->with('success', "Password reset link sent to {$user->email}.");
     }
 
     public function updateStatus(Request $request, User $user)

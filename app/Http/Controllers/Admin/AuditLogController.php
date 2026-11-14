@@ -12,10 +12,13 @@ use Illuminate\Http\Request;
  */
 class AuditLogController extends Controller
 {
+    private const ROLES = ['Admin', 'Landlord', 'Tenant'];
+
     public function index(Request $request)
     {
         $search = $request->input('search');
         $action = $request->input('action', '');
+        $role   = in_array($request->input('role'), self::ROLES, true) ? $request->input('role') : '';
         $from   = $request->input('from');
         $to     = $request->input('to');
 
@@ -29,6 +32,7 @@ class AuditLogController extends Controller
                 });
             })
             ->when(array_key_exists($action, AuditLog::ACTION_LABELS), fn($q) => $q->where('action', $action))
+            ->when($role !== '', fn($q) => $q->whereHas('actor.roles', fn($r) => $r->where('role', $role)))
             ->when($from, fn($q) => $q->whereDate('created_at', '>=', $from))
             ->when($to, fn($q) => $q->whereDate('created_at', '<=', $to));
 
@@ -42,7 +46,8 @@ class AuditLogController extends Controller
         $logs = $base->latest('created_at')->paginate(25)->withQueryString();
 
         $actionOptions = ['' => 'All actions'] + AuditLog::ACTION_LABELS;
+        $roleOptions   = ['' => 'All roles'] + array_combine(self::ROLES, self::ROLES);
 
-        return view('admin.audit-logs.index', compact('logs', 'stats', 'search', 'action', 'from', 'to', 'actionOptions'));
+        return view('admin.audit-logs.index', compact('logs', 'stats', 'search', 'action', 'role', 'from', 'to', 'actionOptions', 'roleOptions'));
     }
 }

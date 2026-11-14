@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\SocialAccount;
 use App\Models\User;
+use App\Services\Security\AuthEventRecorder;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -113,6 +114,12 @@ class SocialiteController extends Controller
             return response()->json(['message' => self::LINK_REFUSED], 409);
         }
 
+        if ($user->hasRole('Admin')) {
+            return response()->json(['message' => 'Admins sign in on the web.'], 403);
+        }
+
+        app(AuthEventRecorder::class)->record('login', $user, channel: 'api');
+
         return response()->json([
             'user' => new UserResource($user->load('payoutAccount')),
             'token' => $user->createToken($request->string('device_name'))->plainTextToken,
@@ -158,10 +165,14 @@ class SocialiteController extends Controller
             }
 
             // Adds a row; an existing link (this or another provider) is never overwritten.
-            SocialAccount::firstOrCreate(
+            $link = SocialAccount::firstOrCreate(
                 ['user_id' => $user->user_id, 'provider' => $provider],
                 ['provider_id' => $socialUser->getId()],
             );
+
+            if ($link->wasRecentlyCreated) {
+                app(AuthEventRecorder::class)->record('social_linked', $user, metadata: ['provider' => $provider], channel: $provider);
+            }
 
             if (! $user->profile_picture && $socialUser->getAvatar()) {
                 $user->forceFill(['profile_picture' => $socialUser->getAvatar()])->save();
@@ -191,6 +202,8 @@ class SocialiteController extends Controller
             'provider_id' => $socialUser->getId(),
         ]);
 
+        app(AuthEventRecorder::class)->record('social_linked', $user, metadata: ['provider' => $provider], channel: $provider);
+
         $user->assignRole('Tenant');
 
         event(new Registered($user));
@@ -206,6 +219,11 @@ class SocialiteController extends Controller
      */
     private function claimUnverifiedAccount(User $user): void
     {
+        // No user-facing unlink exists; this is the only place links are removed, so audit each one.
+        foreach ($user->socialAccounts()->pluck('provider') as $removed) {
+            app(AuthEventRecorder::class)->record('social_unlinked', $user, metadata: ['provider' => $removed, 'reason' => 'account_claimed']);
+        }
+
         $user->socialAccounts()->delete();
         $user->forceFill([
             'password'          => Hash::make(Str::random(40)),

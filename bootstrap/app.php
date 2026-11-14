@@ -3,6 +3,7 @@
 use App\Http\Middleware\DropArrayFilters;
 use App\Http\Middleware\EmbeddedPage;
 use App\Http\Middleware\EnsureAccountActive;
+use App\Http\Middleware\EnsureDeviceCookie;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureLandlord;
 use App\Http\Middleware\EnsureTenant;
@@ -29,6 +30,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             DropArrayFilters::class,
             EnsureAccountActive::class,
+            EnsureDeviceCookie::class,
         ]);
         $middleware->alias([
             'tenant'   => EnsureTenant::class,
@@ -62,6 +64,23 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'emergency_contact_relationship',
             'emergency_contact_number',
         ]);
+
+        // Record who got turned away from a page they should not see. Laravel never *reports* 4xx HTTP exceptions
+        // (HttpException and AuthorizationException are in its built-in "don't report" list), so a report()
+        // callback would never fire. A render callback does run, and returning null leaves the 403 response and
+        // the normal logging untouched. Policies and authorize() arrive here already converted to a 403.
+        // Only /admin/* denials and signed-in users are recorded; anonymous 403s on public pages are noise.
+        $exceptions->renderable(function (\Symfony\Component\HttpKernel\Exception\HttpException $e, \Illuminate\Http\Request $request) {
+            if ($e->getStatusCode() === 403 && ($request->is('admin/*') || $request->user())) {
+                app(\App\Services\Security\AuthEventRecorder::class)->record(
+                    'access_denied',
+                    $request->user(),
+                    metadata: ['path' => $request->path(), 'method' => $request->method()],
+                );
+            }
+
+            return null;
+        });
     })->create();
 
 // Behind a tunnel or a reverse proxy the browser speaks https to the proxy and the proxy speaks http to us, so

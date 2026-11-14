@@ -51,23 +51,8 @@
         @error('contact_number')<p class="text-[11px] text-[#DC2626] mt-1">{{ $message }}</p>@enderror
     </div>
 
-    {{-- Password: required on create, optional on edit --}}
-    @if($editing)
-        <div class="rounded-2xl border border-[#E2E4EC] bg-[#F7F8FC] p-4 space-y-3">
-            <p class="text-[11px] font-bold uppercase tracking-widest text-[#5B6A8E]">Change Password <span class="font-normal normal-case text-[#5B6A8E]">(leave blank to keep current)</span></p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <input type="password" name="password" placeholder="New password" aria-label="New password"
-                        class="{{ $inputBase }} {{ $errors->has('password') ? $inputBad : 'border-[#E2E4EC] bg-white' }}">
-                    @error('password')<p class="text-[11px] text-[#DC2626] mt-1">{{ $message }}</p>@enderror
-                </div>
-                <div>
-                    <input type="password" name="password_confirmation" placeholder="Confirm new password" aria-label="Confirm new password"
-                        class="{{ $inputBase }} border-[#E2E4EC] bg-white">
-                </div>
-            </div>
-        </div>
-    @else
+    {{-- Password: set on create only. Admins never edit an existing password; they send a reset link from the profile page. --}}
+    @unless($editing)
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <label for="password" class="{{ $labelCls }}">Password <span class="text-[#DC2626]">*</span></label>
@@ -81,7 +66,7 @@
                     class="{{ $inputBase }} {{ $inputOk }}">
             </div>
         </div>
-    @endif
+    @endunless
 
     {{-- Roles --}}
     <div>

@@ -26,4 +26,9 @@ return [
         'port' => env('VITE_REVERB_PORT', env('REVERB_PORT')),
         'scheme' => env('VITE_REVERB_SCHEME', env('REVERB_SCHEME', 'https')),
     ],
+
+    /* Account & security events (auth_events). See plans/security-audit-hardening.md. */
+    'auth_events_retention_days'     => 90,
+    'auth_events_ip_cap_per_minute'  => 30,
+    'device_cookie'                  => 'ah_device',
 ];

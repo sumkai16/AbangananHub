@@ -8,6 +8,7 @@ use App\Models\Reservation;
 use App\Services\AccountFilePurger;
 use App\Services\ImageUploader;
 use App\Services\RentLedger;
+use App\Services\Security\AuthEventRecorder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -52,15 +53,21 @@ class ProfileController extends Controller
     /**
      * Update the user's profile information.
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(ProfileUpdateRequest $request, AuthEventRecorder $events): RedirectResponse
     {
         $request->user()->fill($request->safe()->except('current_password'));
 
+        $oldEmail = null;
         if ($request->user()->isDirty('email')) {
+            $oldEmail = $request->user()->getOriginal('email');
             $request->user()->email_verified_at = null;
         }
 
         $request->user()->save();
+
+        if ($oldEmail !== null) {
+            $events->record('email_changed', $request->user(), metadata: ['from' => $oldEmail, 'to' => $request->user()->email]);
+        }
 
         return Redirect::route('profile.edit')->with('success', 'Your profile has been updated.');
     }

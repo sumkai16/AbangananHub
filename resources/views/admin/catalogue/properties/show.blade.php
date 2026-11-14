@@ -362,32 +362,43 @@
             </div>
 
             {{-- Documents: a scoped summary plus the request action, which needs this property's context. Full review lives in Property Documents. --}}
-            <div x-show="tab === 'documents'" x-cloak x-data="{ requesting: false }">
-                <x-card flush>
-                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#E2E4EC] px-5 py-3.5">
-                        <p class="text-[13px] text-[#5B6A8E]">{{ $docsTotal > 0 ? $docsVerified.' of '.$docsTotal.' verified' : 'Nothing has been uploaded or requested yet.' }}</p>
-                        <button type="button" @click="requesting = !requesting" :aria-expanded="requesting" class="inline-flex h-9 items-center rounded-lg border border-[#E2E4EC] bg-white px-3 text-[12.5px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#F7F8FC] cursor-pointer">Request a document</button>
+            <div x-show="tab === 'documents'" x-cloak class="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+                {{-- No overflow-hidden here: it would clip the select's dropdown panel. Rounding is on the rows instead. --}}
+                <div class="rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
+                    <div class="flex items-center justify-between gap-2 border-b border-[#E2E4EC] px-5 py-3.5">
+                        <h3 class="text-[14px] font-semibold text-[#060D26]">Documents</h3>
+                        <p class="text-[12.5px] text-[#5B6A8E]">{{ $docsTotal > 0 ? $docsVerified.' of '.$docsTotal.' verified' : 'None yet' }}</p>
                     </div>
-                    <form x-show="requesting" x-cloak method="POST" action="{{ route('admin.properties.documents.request', $property) }}" class="flex flex-wrap items-end gap-2 border-b border-[#E2E4EC] bg-[#F7F8FC] px-5 py-3">
-                        @csrf
-                        <div class="min-w-[200px] flex-1">
-                            @php $requestDocumentTypeOptions = ['' => 'Select a document type'] + array_combine(\App\Models\PropertyDocument::TYPES, \App\Models\PropertyDocument::TYPES); @endphp
-                            <x-styled-select name="document_type" required :options="$requestDocumentTypeOptions" :selected="''" class="h-9 w-full rounded-lg border border-[#E2E4EC] bg-white px-3 text-[13px] text-[#060D26]" />
-                        </div>
-                        <button type="submit" class="h-9 rounded-lg bg-[#FF8A66] px-4 text-[12.5px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#E96F4F] cursor-pointer">Send request</button>
-                    </form>
                     @if($docsTotal > 0)
                         <ul class="divide-y divide-[#E2E4EC]">
                             @foreach($property->documents->sortByDesc('updated_at') as $document)
-                                <li><a href="{{ route('admin.documents.show', $document) }}" class="flex items-center justify-between gap-3 px-5 py-3 transition-colors duration-200 hover:bg-[#F7F8FC]">
+                                <li><a href="{{ route('admin.documents.show', $document) }}" class="flex items-center justify-between gap-3 px-5 py-3 transition-colors duration-200 hover:bg-[#F7F8FC] {{ $loop->last ? 'rounded-b-2xl' : '' }}">
                                     <span class="min-w-0"><span class="block truncate text-[13.5px] font-semibold text-[#060D26]">{{ $document->document_type }}</span>
                                         <span class="block text-[12px] text-[#5B6A8E]">Updated {{ $document->updated_at?->format('M j, Y') }}@if($document->expiry_date) · expires {{ $document->expiry_date->format('M j, Y') }}@endif</span></span>
                                     <x-admin.status :status="$document->isRequested() ? 'Requested' : $document->display_status" class="shrink-0" />
                                 </a></li>
                             @endforeach
                         </ul>
+                    @else
+                        <div class="flex items-center gap-3 px-5 py-6">
+                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F7F8FC] text-[#5B6A8E]">
+                                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+                            </span>
+                            <p class="text-[13px] text-[#5B6A8E]">The landlord hasn't uploaded anything. Ask for a document and it will show up here.</p>
+                        </div>
                     @endif
-                </x-card>
+                </div>
+
+                <form method="POST" action="{{ route('admin.properties.documents.request', $property) }}" class="rounded-2xl border border-[#E2E4EC] bg-white p-5 shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
+                    @csrf
+                    <h3 class="text-[14px] font-semibold text-[#060D26]">Request a document</h3>
+                    <p class="mt-1 text-[12.5px] text-[#5B6A8E]">The landlord is notified and can upload it from their dashboard.</p>
+                    @php $requestDocumentTypeOptions = ['' => 'Select a document type'] + array_combine(\App\Models\PropertyDocument::TYPES, \App\Models\PropertyDocument::TYPES); @endphp
+                    <div class="mt-3">
+                        <x-styled-select name="document_type" required :options="$requestDocumentTypeOptions" :selected="''" panel-class="!w-full !max-w-none [&_span]:!whitespace-normal [&_span]:!overflow-visible [&_span]:!text-clip" class="h-10 w-full rounded-lg border border-[#E2E4EC] bg-white px-3 text-[13px] text-[#060D26]" />
+                    </div>
+                    <button type="submit" class="mt-3 h-10 w-full rounded-lg bg-[#FF8A66] px-4 text-[13px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#E96F4F] cursor-pointer">Send request</button>
+                </form>
             </div>
 
             {{-- Reservations --}}

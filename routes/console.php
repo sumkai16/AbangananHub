@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\AiSearchLog;
+use App\Models\AuthEvent;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -31,7 +32,8 @@ Schedule::command('reservations:process-rent-reminders')->dailyAt('08:00')->time
 Schedule::command('reservations:purge-tenant-documents')->dailyAt('03:30')->timezone(config('rentals.timezone'));
 
 // AI search logs are kept 30 days (App\Models\AiSearchLog::prunable()).
-Schedule::command('model:prune', ['--model' => [AiSearchLog::class]])->dailyAt('03:00')->timezone(config('rentals.timezone'));
+// Account & security events are kept 90 days (config security.auth_events_retention_days).
+Schedule::command('model:prune', ['--model' => [AiSearchLog::class, AuthEvent::class]])->dailyAt('03:00')->timezone(config('rentals.timezone'));
 // Landlord payouts: the immediate job (SendLandlordPayout) does the work as money becomes payable; this sweep
 // polls transfers PayMongo has not confirmed and sends anything still owed (hold over, wallet was short, job missed).
 Schedule::command('payouts:send')->hourly()->withoutOverlapping()->onOneServer()->timezone(config('rentals.timezone'));

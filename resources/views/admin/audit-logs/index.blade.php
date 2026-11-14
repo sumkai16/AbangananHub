@@ -1,11 +1,13 @@
 @extends('layouts.admin')
 
-@section('page-title', 'Audit Logs')
+@section('page-title', 'Activity Logs')
 
 @section('content')
 <div class="max-w-[1600px] mx-auto">
 
-    <x-page-header icon-path="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5A3.375 3.375 0 006.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0015 2.25h-1.5a2.251 2.251 0 00-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v12c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5a9 9 0 00-9-9z" title="Audit Logs" subtitle="Every consequential admin action, recorded and unalterable." />
+    <x-page-header icon-path="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5A3.375 3.375 0 006.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0015 2.25h-1.5a2.251 2.251 0 00-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v12c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5a9 9 0 00-9-9z" title="Activity Logs" subtitle="Every consequential admin action, recorded and unalterable." />
+
+    @include('admin.activity._tabs')
 
     <x-stat-strip class="mb-5" :cells="[
         ['label' => 'Actions', 'value' => number_format($stats['total']), 'note' => 'Matching these filters'],
@@ -33,6 +35,9 @@
                 <x-styled-select autosubmit name="action" :options="$actionOptions" :selected="$action"
                     class="h-10 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13.5px] text-[#060D26] max-w-[220px]" />
 
+                <x-styled-select autosubmit name="role" :options="$roleOptions" :selected="$role"
+                    class="h-10 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13.5px] text-[#060D26] max-w-[160px]" />
+
                 <div>
                     <label for="audit-from" class="sr-only">From date</label>
                     <x-date-picker autosubmit name="from" id="audit-from" value="{{ $from }}" placeholder="From" class="w-full lg:w-36" />
@@ -43,7 +48,7 @@
                 </div>
 
 
-                @if($search || $action || $from || $to)
+                @if($search || $action || $role || $from || $to)
                     <a href="{{ route('admin.audit-logs.index') }}"
                         class="h-10 px-4 rounded-xl border border-[#5B6A8E]/25 text-[13.5px] text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 inline-flex items-center gap-1.5">
                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -57,7 +62,7 @@
     </form>
 
     @if($logs->isEmpty())
-        <x-card flush><x-admin.empty title="No audit entries found" :note="$search || $action || $from || $to ? 'Try a different search or filter.' : null" /></x-card>
+        <x-card flush><x-admin.empty title="No audit entries found" :note="$search || $action || $role || $from || $to ? 'Try a different search or filter.' : null" /></x-card>
     @else
         <x-card flush>
             <div class="overflow-x-auto">
@@ -75,8 +80,8 @@
                         @foreach($logs as $log)
                             <tr class="hover:bg-[#F7F8FC] transition-colors duration-200 align-top">
                                 <td class="px-4 py-3 whitespace-nowrap">
-                                    <p class="text-[12.5px] font-semibold text-[#060D26]">{{ $log->created_at?->format('M j, Y') }}</p>
-                                    <p class="text-[11px] text-[#5B6A8E]">{{ $log->created_at?->format('g:i A') }}</p>
+                                    <p class="text-[12.5px] font-semibold text-[#060D26]">{{ $log->created_at?->timezone(config('rentals.timezone'))->format('M j, Y') }}</p>
+                                    <p class="text-[11px] text-[#5B6A8E]">{{ $log->created_at?->timezone(config('rentals.timezone'))->format('g:i A') }}</p>
                                 </td>
                                 <td class="px-4 py-3">
                                     <p class="text-[12.5px] font-semibold text-[#060D26]">{{ $log->actor_name }}</p>

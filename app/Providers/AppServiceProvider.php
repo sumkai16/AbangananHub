@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Listeners\Security\RecordAuthEvents;
+use Illuminate\Support\Facades\Event;
 use App\Models\Conversation;
 use App\Models\Payment;
 use App\Models\Property;
@@ -47,6 +49,8 @@ class AppServiceProvider extends ServiceProvider
         Model::preventLazyLoading(! app()->isProduction());
 
         $this->applyRentalSettingOverrides();
+
+        Event::subscribe(RecordAuthEvents::class);
 
         Payment::observe(PaymentObserver::class);
         PropertyUnit::observe(PropertyUnitObserver::class);

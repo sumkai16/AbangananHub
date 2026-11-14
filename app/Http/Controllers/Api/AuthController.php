@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Services\Security\AuthEventRecorder;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -59,7 +60,7 @@ class AuthController extends Controller
      * Login with email + password, returning a Sanctum token
      * scoped to the given device.
      */
-    public function login(Request $request): JsonResponse
+    public function login(Request $request, AuthEventRecorder $events): JsonResponse
     {
         $request->validate([
             'email'       => ['required', 'string', 'email'],
@@ -70,6 +71,8 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
+            $events->record('login_failed', $user, $request->email, channel: 'api');
+
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
@@ -83,6 +86,15 @@ class AuthController extends Controller
                 'email' => ['This account has been suspended.'],
             ]);
         }
+
+        // Admins sign in on the web, where two-factor applies. A bearer token would bypass it.
+        if ($user->hasRole('Admin')) {
+            $events->record('access_denied', $user, metadata: ['reason' => 'admin_api_token'], channel: 'api');
+
+            return response()->json(['message' => 'Admins sign in on the web.'], 403);
+        }
+
+        $events->record('login', $user, channel: 'api');
 
         $token = $user->createToken($request->device_name)->plainTextToken;
 

@@ -376,6 +376,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
         Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
         Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
+        Route::post('/users/{user}/password-reset', [AdminUserController::class, 'sendPasswordReset'])->name('users.passwordReset');
         Route::patch('/users/{user}/status', [AdminUserController::class, 'updateStatus'])->name('users.updateStatus');
         Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
 
@@ -446,6 +447,8 @@ Route::middleware('auth')->group(function () {
 
         // Audit logs — read-only by design; audit rows are append-only.
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+        // Account & security events (sign-ins, failures, access denied). Read-only, like the audit log.
+        Route::get('/security-events', [\App\Http\Controllers\Admin\SecurityEventController::class, 'index'])->name('security-events.index');
 
         // System settings — whitelisted overrides of config/rentals.php
         Route::get('/settings', [SettingController::class, 'edit'])->name('settings.edit');

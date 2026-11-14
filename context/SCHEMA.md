@@ -862,6 +862,24 @@ Append-only record of consequential admin and landlord actions. Written by `Audi
 
 New consequential action: add its key to `ACTION_LABELS` (the filter dropdown reads it) and call `AuditLog::record()` inside that action's transaction.
 
+### auth_events
+Account and security events: sign-ins, failures, lockouts, password and email changes, social links, access denied (403). Written only by `AuthEventRecorder` (listeners in `RecordAuthEvents`, plus explicit calls). A failed write is logged and never blocks a login. Kept apart from `audit_logs` on purpose: anyone can generate failed logins, and that noise must not bury the admin trail. Rows are pruned after 90 days (`security.auth_events_retention_days`, `model:prune`). Never holds a password, token, 2FA code or session id.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| event_id | bigint unsigned | NN | PK | |
+| user_id | bigint unsigned | null | FK → users, set null; index `(user_id, created_at)` | Null when no account matched the typed email, and after the account is deleted |
+| email | varchar(255) | null | | The address typed or on the account, kept when `user_id` is null |
+| event | varchar(40) | NN | index `(event, created_at)` | A key of `AuthEvent::EVENTS` |
+| channel | varchar(20) | NN, default `web` | | `web`, `google`, `facebook`, `webview`, `api` |
+| ip_address | varchar(45) | null | index `(ip_address, created_at)` | Fits IPv6 |
+| user_agent | varchar(255) | null | | Truncated. Shown as "Chrome on Android" via `UserAgentSummary` |
+| device_id | char(36) | null | | The `ah_device` cookie, used to tell a new browser from a known one |
+| metadata | json | null | | `from`/`to` on email change, `path`/`method` on access denied, `provider` on social link |
+| created_at | timestamp | null | index | No `updated_at` (`UPDATED_AT = null`) |
+
+New event type: add its key to `AuthEvent::EVENTS` (the filter reads it) and record it through `AuthEventRecorder::record()`.
+
 ### property_activities
 A property's Activity Log (Landlord > property > Activity Log tab, and Overview's recent activity). One line per thing that happened on the listing: who did it (as a role), what, when. Written by observers (`PropertyObserver`, `PropertyUnitObserver`, `PropertyMediaObserver`, `UnitMediaObserver`, `PropertyDocumentObserver`, `ReviewObserver`, `ReservationActivityObserver`, `PaymentActivityObserver`) through `PropertyActivity::record()` / `recordMerged()`, inside the acting transaction, so a rollback leaves no line. A failed write is logged and never blocks the action. Separate from `audit_logs` (admin's consequential-actions record) and `occupancy_activities` (Analytics reads it).
 
