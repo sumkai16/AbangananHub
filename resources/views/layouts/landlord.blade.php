@@ -22,6 +22,14 @@
         })();
     </script>
     <style>
+        /* A page that has to load in full (Messages, Analytics) cross-fades instead of flashing, and the sidebar is held
+           still through it, so it reads as only the page changing. Browsers without cross-document transitions ignore this. */
+        @view-transition { navigation: auto; }
+        #landlord-sidebar { view-transition-name: landlord-sidebar; }
+        ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 140ms; }
+        ::view-transition-group(landlord-sidebar) { animation-duration: 0s; }
+        @media (prefers-reduced-motion: reduce) { ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; } }
+
         /* Paint the sidebar and content offset on first byte at desktop width, before Alpine boots. */
         @media (min-width: 1024px) {
             #landlord-sidebar[x-cloak] {
@@ -285,6 +293,7 @@
                     @foreach($navItems as $item)
                         @php $badge = $item['badge'] ?? 0; $badgeKey = $item['badgeKey'] ?? null; @endphp
                         <a href="{{ $item['href'] }}" @if($item['active']) aria-current="page" @endif
+                            data-page-swap="nav" @click="sidebarOpen = false"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium mb-0.5 transition-colors duration-200
                                 {{ $item['active'] ? 'bg-white/[0.10] text-white font-semibold' : 'text-white/65 hover:bg-white/[0.06] hover:text-[#FF8A66]' }}">
@@ -390,7 +399,7 @@
                 </button>
 
                 {{-- Page title: pages push it from <x-page-header> (or by hand) and the in-page title hides below lg. --}}
-                <div class="flex min-w-0 flex-1 items-center gap-2 px-3">@stack('mobile-title')</div>
+                <div id="mobile-title" class="flex min-w-0 flex-1 items-center gap-2 px-3">@stack('mobile-title')</div>
 
                 <div class="flex shrink-0 items-center gap-2">
                     <x-theme-toggle class="w-9 h-9 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26] hover:bg-[#ECEEF6]" />
@@ -556,7 +565,8 @@
         </script>
     @endif
 
-    @stack('scripts')
+    {{-- Page scripts. A page that pushes one is opened with a normal load, never swapped (see page-swap.js). --}}
+    <div id="page-scripts">@stack('scripts')</div>
 
 </body>
 

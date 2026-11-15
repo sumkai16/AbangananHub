@@ -24,6 +24,7 @@ Schedule::command('occupancy:snapshot')->dailyAt('23:55')->timezone(config('rent
 // Rent reminders — notifies landlords (and platform tenants) about upcoming
 // and overdue monthly rent, read off the ledger. Morning delivery reads better
 // than the nightly escrow run. Idempotent via the rent_reminders guard.
+Schedule::command('reservations:write-off-overdue-rent')->dailyAt('09:00')->timezone(config('rentals.timezone'));
 Schedule::command('reservations:process-rent-reminders')->dailyAt('08:00')->timezone(config('rentals.timezone'));
 
 // Tenant documents (ID photos, clearances) are deleted 30 days after the tenancy ends; the record stays.

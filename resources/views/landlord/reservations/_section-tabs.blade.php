@@ -10,7 +10,7 @@
         'requests' => ['Rental requests', route('landlord.reservations.index')],
         'viewings' => ['Viewings', route('landlord.viewings.index')],
     ] as $key => [$label, $href])
-        <a href="{{ $href }}" @if ($active === $key) aria-current="page" @endif
+        <a href="{{ $href }}" data-page-swap="nav" @if ($active === $key) aria-current="page" @endif
             class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 h-10 px-5 rounded-full text-[13px] font-semibold transition-colors
                 {{ $active === $key ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E] hover:text-[#060D26]' }}">
             {{ $label }}

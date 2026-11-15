@@ -24,7 +24,7 @@
     </x-page-header>
 
     {{-- The people, split by role. Each cell filters the list below. --}}
-    <x-stat-strip class="mb-5" :cells="[
+    <x-stat-strip data-swap-region="cards" class="mb-5" :cells="[
         ['label' => 'All users', 'value' => number_format($total), 'note' => $statusCounts['active'].' active', 'href' => $link(['status' => $status]), 'active' => $role === 'All'],
         ['label' => 'Landlords', 'value' => number_format($roleCounts['Landlord']), 'note' => $attention['applications'] > 0 ? $attention['applications'].' application'.($attention['applications'] > 1 ? 's' : '').' waiting' : 'No applications waiting', 'href' => $link(['role' => 'Landlord', 'status' => $status]), 'active' => $role === 'Landlord'],
         ['label' => 'Tenants', 'value' => number_format($roleCounts['Tenant']), 'note' => $attention['walk_ins'] > 0 ? $attention['walk_ins'].' added by landlords' : 'All self-registered', 'href' => $link(['role' => 'Tenant', 'status' => $status]), 'active' => $role === 'Tenant'],
@@ -48,7 +48,7 @@
             @endif
         </form>
 
-        <x-admin.tabs class="border-b-0" :tabs="[
+        <x-admin.tabs data-swap-region="tabs" class="border-b-0" :tabs="[
             ['label' => 'Any status', 'href' => $link(['role' => $role, 'search' => $search]), 'active' => $status === 'all'],
             ['label' => 'Active', 'count' => $statusCounts['active'], 'href' => $link(['role' => $role, 'status' => 'active']), 'active' => $status === 'active'],
             ['label' => 'Suspended', 'count' => $statusCounts['suspended'], 'href' => $link(['role' => $role, 'status' => 'suspended']), 'active' => $status === 'suspended'],
@@ -56,6 +56,7 @@
         ]" />
     </div>
 
+    <div data-swap-region="results">
     @if ($users->isEmpty())
         <x-card flush><x-admin.empty title="No users found" note="Try a different search or filter." /></x-card>
     @else
@@ -124,6 +125,7 @@
             </div>
         </x-card>
     @endif
+    </div>
 
     {{-- Under the list: what needs doing, and how fast people are joining. --}}
     <div class="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-5">
@@ -168,11 +170,14 @@
 
 @push('scripts')
     @vite('resources/js/charts.js')
-    <script>
-        // Draws on load and again after live search swaps the page content (resources/js/live-filter.js).
-        function drawSignupChart() {
+    <script data-swap-safe>
+        // Draws on load, when the page is swapped in, and again after live search swaps the page content
+        // (resources/js/live-filter.js). The previous page visit's listener is removed first, and a canvas that
+        // already has a chart is cleared, so neither piles up.
+        const drawSignupChart = function () {
             const el = document.getElementById('signupChart');
             if (! el || typeof Chart === 'undefined') return;
+            Chart.getChart(el)?.destroy();
             const dark = document.documentElement.classList.contains('dark');
             new Chart(el, {
                 type: 'bar',
@@ -191,8 +196,10 @@
                     },
                 },
             });
-        }
-        document.addEventListener('DOMContentLoaded', drawSignupChart);
+        };
+        if (window.signupChartDraw) document.removeEventListener('live:swapped', window.signupChartDraw);
+        window.signupChartDraw = drawSignupChart;
         document.addEventListener('live:swapped', drawSignupChart);
+        document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', drawSignupChart) : drawSignupChart();
     </script>
 @endpush

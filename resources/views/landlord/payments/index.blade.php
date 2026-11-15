@@ -46,7 +46,7 @@
         });
 
         // The summary strip and counts above read every tenancy; only the rows listed below are cut to a page.
-        $pageRows = \App\Support\Paging::collection($displayRows, 20);
+        $pageRows = \App\Support\Paging::collection($displayRows, 10);
     @endphp
 
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
@@ -329,7 +329,7 @@
                             <div>
                                 <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wide">Balance</p>
                                 <p class="text-[13px] font-semibold {{ $item['writtenOff'] ? 'text-[#5B6A8E]' : ($summary['outstanding'] > 0 ? 'text-[#DC2626]' : 'text-[#060D26]') }} mt-0.5">
-                                    ₱{{ number_format($item['balance'], 2) }}@if($item['writtenOff']) <span class="block text-[11px] font-normal text-[#94A3B8]">Not collecting</span>@endif
+                                    ₱{{ number_format($item['balance'], 2) }}@if($item['writtenOff']) <span class="block text-[11px] font-normal text-[#94A3B8]">Written off</span>@endif
                                 </p>
                             </div>
                         </div>
@@ -444,7 +444,7 @@
                                     <td
                                         class="px-4 py-4 text-[13px] text-right tabular-nums whitespace-nowrap {{ $summary['outstanding'] > 0 ? 'font-semibold text-[#DC2626]' : 'text-[#5B6A8E]' }}">
                                         ₱{{ number_format($item['balance'], 2) }}
-                                        @if($item['writtenOff'])<p class="text-[11px] font-normal text-[#94A3B8]">Not collecting</p>@endif
+                                        @if($item['writtenOff'])<p class="text-[11px] font-normal text-[#94A3B8]">Written off</p>@endif
                                         @if($item['monthsLabel'])
                                             <p class="text-[11px] font-normal text-[#94A3B8]">{{ $item['monthsLabel'] }}</p>
                                         @endif

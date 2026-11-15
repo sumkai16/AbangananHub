@@ -1,6 +1,6 @@
 @props(['href', 'label', 'icon', 'active' => false, 'filled' => false])
 {{-- One admin sidebar row. Needs the layout's Alpine `sidebarCollapsed`; collapsed, the label becomes a tooltip. --}}
-<a href="{{ $href }}" @if($active) aria-current="page" @endif
+<a href="{{ $href }}" @if($active) aria-current="page" @endif data-page-swap="nav" @click="sidebarOpen = false"
     {{ $attributes->class([
         'group relative flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors duration-200',
         'bg-white/[0.10] text-white' => $active,

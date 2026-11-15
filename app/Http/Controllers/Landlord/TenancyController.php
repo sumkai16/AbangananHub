@@ -10,6 +10,7 @@ use App\Models\Reservation;
 use App\Models\TenantDetail;
 use App\Services\RentLedger;
 use App\Services\RentReminderNotifier;
+use App\Services\RentWriteOff;
 use App\Support\BusinessTime;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -181,66 +182,33 @@ class TenancyController extends Controller
     }
 
     /**
-     * "Stop collecting": the landlord gives up on rent an ended tenant still owes. The months stay on the ledger,
-     * but the balance leaves every total and no reminder is sent. Only for an ended lease that has a balance, and
-     * reversible with resumeCollecting().
+     * "Write off now": the landlord decides an ended tenant's unpaid rent will not be paid. The months stay on the ledger,
+     * but the balance leaves every total. (Left alone, it is written off by itself after rentals.write_off_after_days.)
+     * Only for an ended lease that has a balance, and reversible with resumeCollecting().
      */
     public function stopCollecting(Request $request, Reservation $reservation)
     {
         Gate::authorize('viewTenancy', $reservation);
         abort_unless($reservation->rental_status === 'Completed', 404);
 
-        $result = DB::transaction(function () use ($reservation) {
-            $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();
-
-            if ($locked->rent_written_off_at) {
-                return null;
-            }
-
-            $owed = RentLedger::for($locked)->summary()['outstanding'];
-            if ($owed <= 0) {
-                return false;
-            }
-
-            $locked->forceFill(['rent_written_off_amount' => $owed, 'rent_written_off_at' => now()])->save();
-
-            AuditLog::record(
-                'rent.stop_collecting',
-                'Landlord stopped collecting ₱'.number_format($owed, 2).' of unpaid rent on an ended rental',
-                $locked,
-                null,
-                ['amount' => $owed],
-            );
-
-            return $owed;
-        });
+        $result = RentWriteOff::apply($reservation, RentWriteOff::MANUAL);
 
         return match (true) {
-            $result === null => back()->with('warning', 'You had already stopped collecting this.'),
+            $result === null => back()->with('warning', 'This is already written off.'),
             $result === false => back()->with('warning', 'Nothing is owed on this rental.'),
-            default => back()->with('success', 'Stopped collecting ₱'.number_format($result, 2).'. It no longer counts as owed. You can resume any time.'),
+            default => back()->with('success', 'Wrote off ₱'.number_format($result, 2).'. It no longer counts as owed. You can collect it again any time.'),
         };
     }
 
-    /** Undo stopCollecting(): the balance counts as owed again. */
+    /** Undo the write-off: the balance counts as owed again, and the daily job leaves this rental alone. */
     public function resumeCollecting(Request $request, Reservation $reservation)
     {
         Gate::authorize('viewTenancy', $reservation);
         abort_unless($reservation->rental_status === 'Completed', 404);
 
-        DB::transaction(function () use ($reservation) {
-            $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();
+        RentWriteOff::resume($reservation);
 
-            if (! $locked->rent_written_off_at) {
-                return;
-            }
-
-            $locked->forceFill(['rent_written_off_amount' => null, 'rent_written_off_at' => null])->save();
-
-            AuditLog::record('rent.resume_collecting', 'Landlord resumed collecting unpaid rent on an ended rental', $locked);
-        });
-
-        return back()->with('success', 'Collecting resumed. The balance counts as owed again.');
+        return back()->with('success', 'Collecting again. The balance counts as owed, and it will not be written off automatically.');
     }
 
     /** Writes the deposit-return note (once, capped at the deposit that is left). Null when it was already recorded. */

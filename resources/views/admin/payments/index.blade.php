@@ -22,7 +22,7 @@
     @endphp
 
     {{-- Pesos only: the tabs below carry the counts. --}}
-    <x-stat-strip class="mb-3" :cells="[
+    <x-stat-strip data-swap-region="cards" class="mb-3" :cells="[
         ['label' => 'Held', 'value' => '₱'.number_format($sums['Held'], 2), 'note' => 'Waiting for move-in', 'dot' => '#FBBF24', 'href' => $cellHref('Held'), 'active' => $status === 'Held'],
         ['label' => 'Released', 'value' => '₱'.number_format($sums['Released'], 2), 'note' => 'Sent on to landlords', 'dot' => '#22C55E', 'href' => $cellHref('Released'), 'active' => $status === 'Released'],
         ['label' => 'Recorded', 'value' => '₱'.number_format($sums['Paid'], 2), 'note' => 'Offline, reported by landlords', 'dot' => '#94A3B8', 'href' => $cellHref('Paid'), 'active' => $status === 'Paid'],
@@ -69,6 +69,7 @@
         </div>
     </form>
 
+    <div data-swap-region="results" class="flex flex-1 flex-col min-h-0">
     @if ($payments->isEmpty())
         @php
             $empty = [
@@ -213,6 +214,7 @@
             </div>
         </x-card>
     @endif
+    </div>
 
     @include('admin.payments.partials.refund-modal')
 

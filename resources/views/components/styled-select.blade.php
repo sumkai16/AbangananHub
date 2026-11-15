@@ -89,6 +89,7 @@
 
     <button type="button" x-ref="trigger" @click="open = !open" :aria-expanded="open" @disabled($disabled)
         aria-haspopup="listbox"
+        @if($required) data-fv-required data-fv-text="{{ $placeholder }}." @endif
         :class="invalid ? 'ring-2 ring-[#EF4444]/40 border-[#EF4444]' : ''"
         {{ $attributes->class(['flex items-center justify-between gap-2 transition-shadow', $disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer']) }}>
         <span x-text="label" class="truncate"></span>

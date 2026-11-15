@@ -48,7 +48,7 @@ class PaymentController extends Controller
         'upcoming'   => ['dot' => 'bg-[#94A3B8]', 'text' => 'text-[#5B6A8E]', 'label' => 'Upcoming'],
         'paid'       => ['dot' => 'bg-[#15803D]', 'text' => 'text-[#15803D]', 'label' => 'Paid'],
         'paid_ahead' => ['dot' => 'bg-[#060D26]', 'text' => 'text-[#060D26]', 'label' => 'Paid Ahead'],
-        'written_off' => ['dot' => 'bg-[#94A3B8]', 'text' => 'text-[#5B6A8E]', 'label' => 'Not collecting'],
+        'written_off' => ['dot' => 'bg-[#94A3B8]', 'text' => 'text-[#5B6A8E]', 'label' => 'Written off'],
     ];
 
     private const METHODS = ['Cash', 'GCash', 'Bank Transfer', 'Maya', 'Check', 'Other'];

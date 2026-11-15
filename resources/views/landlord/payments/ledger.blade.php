@@ -11,6 +11,11 @@
         // An ended lease can still collect the rent it is owed, until the landlord stops collecting it.
         $isEnded = $reservation->rental_status === 'Completed';
         $isWrittenOff = $summary['paymentStatus'] === 'written_off';
+        // An ended rental that still owes: collecting until the write-off day, with a warning shortly before it.
+        $writeOffOn = \App\Services\RentWriteOff::dueOn($reservation);
+        $writeOffSoon = $writeOffOn && \App\Services\RentWriteOff::inWarning($reservation);
+        $depositLeft = (float) ($summary['depositRemaining'] ?? 0);
+        $writtenOffLoss = $isWrittenOff ? \App\Services\RentWriteOff::loss((float) $summary['writtenOffAmount'], $depositLeft) : 0;
         $canRecord = $isActive || ($isEnded && ! $isWrittenOff && $summary['outstanding'] > 0);
         // Before move-in there is nothing to bill: the ledger derives periods from the move-in date, so showing it would report arrears for a tenant who has not arrived.
         $hasStarted = in_array($reservation->rental_status, ['Occupied', 'Completed'], true);
@@ -47,7 +52,7 @@
             'upcoming'   => ['dot' => 'bg-[#5B6A8E]', 'text' => 'text-[#5B6A8E]', 'label' => 'Upcoming'],
             'paid'       => ['dot' => 'bg-[#15803D]', 'text' => 'text-[#15803D]', 'label' => 'Paid'],
             'paid_ahead' => ['dot' => 'bg-[#060D26]', 'text' => 'text-[#060D26]', 'label' => 'Paid Ahead'],
-            'written_off' => ['dot' => 'bg-[#94A3B8]', 'text' => 'text-[#5B6A8E]', 'label' => 'Not collecting'],
+            'written_off' => ['dot' => 'bg-[#94A3B8]', 'text' => 'text-[#5B6A8E]', 'label' => 'Written off'],
         ];
         $paymentStatusStyle = $paymentStatusStyles[$summary['paymentStatus']] ?? $paymentStatusStyles['upcoming'];
 
@@ -214,7 +219,10 @@
                                 @if($summary['prepaidThrough'])
                                     Paid in advance through <span class="font-semibold text-white">{{ $summary['prepaidThrough']->format('F Y') }}</span>.
                                 @elseif($isWrittenOff)
-                                    You stopped collecting this balance. The months stay on the ledger below.
+                                    {{ $reservation->rent_write_off_source === 'auto'
+                                        ? 'This rent went unpaid for '.\App\Services\RentWriteOff::afterDays().' days after move-out, so it was written off automatically.'
+                                        : 'You wrote this rent off.' }}
+                                    The months stay on the ledger below.
                                 @elseif($isActive)
                                     All paid up. Nothing is owed right now.
                                 @else
@@ -223,6 +231,27 @@
                             </p>
                         @endif
                     </div>
+
+                    {{-- Ended, still owed: it keeps counting until the write-off day. The deposit is shown so it can be set against it. --}}
+                    @if($isEnded && ! $isWrittenOff && $summary['outstanding'] > 0)
+                        <div class="text-[13px] leading-relaxed text-white/75 max-w-[52ch] space-y-1">
+                            @if($writeOffOn)
+                                <p>
+                                    @if($writeOffSoon)
+                                        <span class="font-semibold text-[#FCD34D]">Will be written off on {{ $writeOffOn->format('M j, Y') }}</span>
+                                        unless it is paid by then.
+                                    @else
+                                        Still collecting. Written off automatically on <span class="font-semibold text-white">{{ $writeOffOn->format('M j, Y') }}</span> if unpaid.
+                                    @endif
+                                </p>
+                            @else
+                                <p>Still collecting. It will not be written off automatically.</p>
+                            @endif
+                            @if($depositLeft > 0)
+                                <p>Deposit held <span class="font-semibold text-white tabular-nums">{{ $peso($depositLeft) }}</span>{{ $depositLeft >= $summary['outstanding'] ? ', enough to cover this.' : ', covers part of this.' }}</p>
+                            @endif
+                        </div>
+                    @endif
 
                     @if($canRecord)
                         <div class="mt-auto grid grid-cols-1 sm:flex gap-2">
@@ -247,27 +276,37 @@
                                 </form>
                             @endif
                             @if($isEnded && ! $isWrittenOff)
-                                {{-- An ended tenant who will not pay: give up on the balance. Reversible. --}}
+                                {{-- An ended tenant who will not pay: write the balance off now instead of waiting. Reversible. --}}
                                 <form method="POST" action="{{ route('landlord.tenancies.stopCollecting', $reservation) }}"
-                                    data-confirm="Stop collecting this balance?"
-                                    data-confirm-message="₱{{ number_format($summary['outstanding'], 2) }} will no longer count as owed, and {{ $tenant->first_name }} gets no more reminders. The months stay on the ledger and you can resume any time."
-                                    data-confirm-button="Stop collecting" data-confirm-type="warning">
+                                    data-confirm="Write off this balance now?"
+                                    data-confirm-message="₱{{ number_format($summary['outstanding'], 2) }} will no longer count as owed.{{ $depositLeft > 0 ? ' You are still holding ₱'.number_format($depositLeft, 2).' of deposit.' : '' }} The months stay on the ledger and you can collect it again any time."
+                                    data-confirm-button="Write off now" data-confirm-type="warning">
                                     @csrf
                                     <button type="submit"
                                         class="w-full h-11 sm:h-10 px-4 inline-flex items-center justify-center rounded-xl border border-white/25 text-white text-[13.5px] font-semibold hover:bg-white/10 transition-colors duration-200 cursor-pointer">
-                                        Stop collecting
+                                        Write off now
                                     </button>
                                 </form>
                             @endif
                         </div>
                     @elseif($isEnded && $isWrittenOff)
                         <div class="mt-auto flex flex-wrap items-center gap-3">
-                            <p class="text-[13.5px] text-white/80">Not collecting <span class="font-semibold text-white tabular-nums">{{ $peso($summary['writtenOffAmount']) }}</span></p>
+                            <div class="text-[13.5px] text-white/80 space-y-1">
+                                <p>Written off <span class="font-semibold text-white tabular-nums">{{ $peso($summary['writtenOffAmount']) }}</span>
+                                    {{ $reservation->rent_write_off_source === 'auto' ? 'automatically' : 'by you' }}{{ $summary['writtenOffAt'] ? ' on '.$summary['writtenOffAt']->format('M j, Y') : '' }}</p>
+                                <p>
+                                    @if($writtenOffLoss <= 0)
+                                        Covered by the deposit you hold ({{ $peso($depositLeft) }}). No loss.
+                                    @else
+                                        Loss <span class="font-semibold text-[#FCA5A5] tabular-nums">{{ $peso($writtenOffLoss) }}</span>{{ $depositLeft > 0 ? ' after the deposit you hold ('.$peso($depositLeft).')' : '' }}.
+                                    @endif
+                                </p>
+                            </div>
                             <form method="POST" action="{{ route('landlord.tenancies.resumeCollecting', $reservation) }}">
                                 @csrf
                                 <button type="submit"
                                     class="h-11 sm:h-10 px-4 inline-flex items-center justify-center rounded-xl border border-white/25 text-white text-[13.5px] font-semibold hover:bg-white/10 transition-colors duration-200 cursor-pointer">
-                                    Resume collecting
+                                    Collect again
                                 </button>
                             </form>
                         </div>

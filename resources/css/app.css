@@ -525,3 +525,8 @@ html.dark .route-line {
     stroke-opacity: 0.95;
     filter: drop-shadow(0 0 1.5px rgba(6, 13, 38, 0.95));
 }
+
+/* A list that was just filtered in place (page-swap.js, data-swap-region="results") eases in. */
+.swap-in { animation: swap-in 260ms ease-out; }
+@keyframes swap-in { from { opacity: 0.35; transform: translateY(6px); } }
+@media (prefers-reduced-motion: reduce) { .swap-in { animation: none; } }

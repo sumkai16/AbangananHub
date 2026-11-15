@@ -39,6 +39,7 @@
     'disabledExpr' => null,
     'placeholder' => 'mm / dd / yyyy',
     'autosubmit' => false,
+    'required' => false,
 ])
 
 @php
@@ -58,7 +59,7 @@
 >
     <input type="hidden" name="{{ $name }}" :value="date">
 
-    <button type="button" id="{{ $inputId }}" @click="toggle()" :disabled="fieldDisabled"
+    <button type="button" id="{{ $inputId }}" @if($required) data-fv-required @endif @click="toggle()" :disabled="fieldDisabled"
         :aria-expanded="open" aria-haspopup="dialog"
         class="w-full text-left rounded-xl bg-white border px-3.5 h-10 flex items-center transition-all focus:outline-none focus:border-[#FF8A66]/60 focus:ring-4 focus:ring-[#FF8A66]/10 disabled:cursor-not-allowed disabled:bg-[#F7F8FC] border-[#E2E4EC]">
         <span class="text-sm font-semibold" :class="date ? 'text-[#060D26]' : 'text-[#94A3B8] font-normal'"

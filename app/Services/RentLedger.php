@@ -312,7 +312,7 @@ class RentLedger
         return $this->isWrittenOff() ? $this->withoutBalance($summary) : $summary;
     }
 
-    /** The landlord has stopped collecting what this (ended) tenant still owes. */
+    /** This (ended) tenant's unpaid rent has been written off, by the landlord or automatically (see RentWriteOff). */
     public function isWrittenOff(): bool
     {
         return $this->reservation->rent_written_off_at !== null;

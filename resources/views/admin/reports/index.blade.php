@@ -16,7 +16,7 @@
                 ['label' => 'Resolved', 'value' => number_format($counts['Resolved']), 'note' => 'Handled', 'dot' => '#22C55E', 'href' => $status === 'Resolved' ? $cellHref(['status' => 'All']) : $cellHref(['status' => 'Resolved']), 'active' => $status === 'Resolved'],
             ];
         @endphp
-        <x-stat-strip :cells="$summary" class="mb-4" />
+        <x-stat-strip data-swap-region="cards" :cells="$summary" class="mb-4" />
 
         <form data-live method="GET" action="{{ route('admin.reports.index') }}" class="mb-4">
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
@@ -40,6 +40,7 @@
             </div>
         </form>
 
+        <div data-swap-region="results">
         <x-card flush>
             @if ($reports->isEmpty())
                 <x-admin.empty title="No reports here" :note="$search ? 'Try a different search.' : null" />
@@ -88,6 +89,7 @@
                 @endif
             @endif
         </x-card>
+        </div>
 
     </div>
 @endsection

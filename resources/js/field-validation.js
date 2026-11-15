@@ -96,14 +96,21 @@ function showError(el, override) {
     el._fv = tagged ? [msg, badge] : [msg];
 }
 
+// Custom pickers (styled select, date picker) keep their value in a hidden input, which the browser never
+// validates. Their trigger button carries data-fv-required; it is empty when that hidden input has no value.
+const customEmpty = (el) => !el.disabled && isVisible(el) && !el.parentElement.querySelector('input[type="hidden"]')?.value;
+
 function validate(form) {
     syncConfirm(form);
     const bad = [...form.querySelectorAll(FIELD_SELECTOR)].filter(
         (el) => !el.disabled && el.type !== 'hidden' && !el.validity.valid && isVisible(el),
     );
-    form.querySelectorAll('.fv-bad').forEach((el) => { if (el.validity.valid) clearError(el); });
+    const custom = [...form.querySelectorAll('[data-fv-required]')].filter(customEmpty);
+    form.querySelectorAll('.fv-bad').forEach((el) => { if (el.validity.valid && !custom.includes(el)) clearError(el); });
     bad.forEach((el) => showError(el));
-    return bad;
+    custom.forEach((el) => showError(el, { tag: 'Required', text: el.dataset.fvText || `${labelFor(el)} is required.` }));
+    // Page order, so the first one scrolled to is the topmost.
+    return [...bad, ...custom].sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
 }
 
 // The browser runs its native check *before* firing `submit`, so noValidate must already be
@@ -141,6 +148,10 @@ const recheck = (e) => {
 };
 document.addEventListener('input', recheck);
 document.addEventListener('change', recheck);
+// A picked option or date changes a hidden input without firing input/change: look again after any click.
+document.addEventListener('click', () => setTimeout(() => {
+    document.querySelectorAll('[data-fv-required].fv-bad').forEach((el) => { if (!customEmpty(el)) clearError(el); });
+}, 0));
 
 // Phone fields accept digits and the usual separators only; letters are dropped as they are typed.
 document.addEventListener('input', (e) => {

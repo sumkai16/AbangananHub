@@ -15,7 +15,7 @@
     <div class="grid grid-cols-2 gap-3">
         <div>
             <label class="{{ $label }}" for="{{ $idPrefix }}_move_in">Move-in</label>
-            <x-date-picker name="move_in_date" id="{{ $idPrefix }}_move_in" x-model="moveIn" :max="now()->addYear()->toDateString()" />
+            <x-date-picker name="move_in_date" id="{{ $idPrefix }}_move_in" x-model="moveIn" required :max="now()->addYear()->toDateString()" />
             @error('move_in_date')<p class="{{ $err }}">{{ $message }}</p>@enderror
         </div>
         <div>
@@ -54,8 +54,9 @@
     </div>
     <div>
         <label class="{{ $label }}" for="{{ $idPrefix }}_terms">Additional terms <span class="font-normal text-[#5B6A8E]">(optional)</span></label>
-        <textarea id="{{ $idPrefix }}_terms" name="agreement_terms_notes" x-model="terms" rows="2" maxlength="2000"
-            class="w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 py-2.5 text-[13.5px] text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30"></textarea>
+        <textarea id="{{ $idPrefix }}_terms" name="agreement_terms_notes" rows="2" maxlength="2000"
+            class="w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 py-2.5 text-[13.5px] text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30">{{ old('agreement_terms_notes') }}</textarea>
+        @error('agreement_terms_notes')<p class="{{ $err }}">{{ $message }}</p>@enderror
     </div>
 </div>
 
@@ -85,7 +86,7 @@
         <div class="grid grid-cols-2 gap-3">
             <div>
                 <label class="{{ $label }}" for="{{ $idPrefix }}_amount">Amount received (₱)</label>
-                <input id="{{ $idPrefix }}_amount" type="number" name="initial_amount" value="{{ old('initial_amount') }}" min="1" step="0.01" class="{{ $input }}">
+                <input id="{{ $idPrefix }}_amount" type="number" name="initial_amount" value="{{ old('initial_amount') }}" min="1" step="0.01" :required="paymentRequired" class="{{ $input }}">
             </div>
             <div>
                 <label class="{{ $label }}">Method</label>
@@ -94,7 +95,7 @@
             </div>
             <div x-show="method !== 'Cash'" class="col-span-2">
                 <label class="{{ $label }}" for="{{ $idPrefix }}_ref">Reference no.</label>
-                <input id="{{ $idPrefix }}_ref" type="text" name="reference_no" value="{{ old('reference_no') }}" maxlength="255" class="{{ $input }}">
+                <input id="{{ $idPrefix }}_ref" type="text" name="reference_no" value="{{ old('reference_no') }}" maxlength="255" :required="method !== 'Cash'" class="{{ $input }}">
             </div>
             <p class="col-span-2 text-[12px] text-[#5B6A8E]">Allocated to the deposit first, then rent from the move-in month.</p>
             <p x-show="typeof moveInToday !== 'undefined' && moveInToday" x-cloak class="col-span-2 rounded-lg border border-[#F59E0B]/50 bg-[#FFF6E5] px-3 py-2 text-[12.5px] text-[#7A3E00]">

@@ -7,7 +7,7 @@
 
     <x-page-header icon-path="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5A3.375 3.375 0 006.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0015 2.25h-1.5a2.251 2.251 0 00-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v12c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5a9 9 0 00-9-9z" title="Audit Logs" subtitle="Every consequential admin action, recorded and unalterable." />
 
-    <x-stat-strip class="mb-5" :cells="[
+    <x-stat-strip data-swap-region="cards" class="mb-5" :cells="[
         ['label' => 'Actions', 'value' => number_format($stats['total']), 'note' => 'Matching these filters'],
         ['label' => 'Today', 'value' => number_format($stats['today']), 'note' => 'Last 24 hours'],
         ['label' => 'Actors', 'value' => number_format($stats['actors']), 'note' => 'Distinct actors'],
@@ -56,6 +56,7 @@
         </div>
     </form>
 
+    <div data-swap-region="results">
     @if($logs->isEmpty())
         <x-card flush><x-admin.empty title="No audit entries found" :note="$search || $action || $from || $to ? 'Try a different search or filter.' : null" /></x-card>
     @else
@@ -121,6 +122,7 @@
             </div>
         </x-card>
     @endif
+    </div>
 
 </div>
 

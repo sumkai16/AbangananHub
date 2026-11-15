@@ -102,7 +102,7 @@
             <div class="col-span-2 min-w-0 border-b border-white/10 px-4 pb-4 sm:px-5 lg:col-span-1 lg:border-b-0 lg:pb-0">
                 <div class="flex items-center justify-between gap-2">
                     <p class="text-[12px] font-semibold text-white/70">Rent this month &middot; {{ now()->format('F') }}</p>
-                    <a href="{{ route('landlord.payments.index') }}"
+                    <a data-page-swap="nav" href="{{ route('landlord.payments.index') }}"
                         class="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#FF8A66] hover:text-white transition-colors duration-200">
                         Ledger
                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
@@ -132,7 +132,7 @@
                 @endif
 
                 @if(auth()->user()->showsPayoutTools())
-                    <a href="{{ route('landlord.payouts.index') }}" class="mt-2 block text-[12px] text-white/65 hover:text-white transition-colors duration-200">
+                    <a data-page-swap="nav" href="{{ route('landlord.payouts.index') }}" class="mt-2 block text-[12px] text-white/65 hover:text-white transition-colors duration-200">
                         Payout from AbangananHub:
                         <span class="font-semibold {{ $pendingPayout > 0 ? 'text-white' : '' }}">{{ $pendingPayout > 0 ? '₱' . number_format($pendingPayout) . ' pending' : 'none pending' }}</span>
                     </a>
@@ -140,7 +140,7 @@
             </div>
 
             {{-- Overdue --}}
-            <a href="{{ route('landlord.payments.index') }}" class="min-w-0 px-4 transition-colors duration-200 hover:bg-white/[0.04] sm:px-5 lg:border-l lg:border-white/10">
+            <a data-page-swap="nav" href="{{ route('landlord.payments.index') }}" class="min-w-0 px-4 transition-colors duration-200 hover:bg-white/[0.04] sm:px-5 lg:border-l lg:border-white/10">
                 <p class="text-[12px] font-semibold text-white/70">Overdue</p>
                 @if($rent['overdueCount'] > 0)
                     <p class="mt-0.5 text-[22px] font-bold leading-tight tabular-nums text-[#FF8A66]">&#8369;{{ number_format($rent['overdueAmount']) }}</p>
@@ -152,17 +152,17 @@
             </a>
 
             @if($totalUnits > 0)
-                <a href="{{ route('landlord.units.index', ['status' => 'Occupied']) }}" class="min-w-0 px-4 transition-colors duration-200 hover:bg-white/[0.04] sm:px-5 lg:border-l lg:border-white/10">
+                <a data-page-swap="nav" href="{{ route('landlord.units.index', ['status' => 'Occupied']) }}" class="min-w-0 px-4 transition-colors duration-200 hover:bg-white/[0.04] sm:px-5 lg:border-l lg:border-white/10">
                     <p class="text-[12px] font-semibold text-white/70">Occupancy</p>
                     <p class="mt-0.5 text-[22px] font-bold leading-tight tabular-nums">{{ $occupiedPct }}%</p>
                     <p class="text-[12px] text-white/65">{{ $occupiedUnits }} of {{ $totalUnits }} {{ Str::plural('unit', $totalUnits) }} rented</p>
                 </a>
-                <a href="{{ route('landlord.units.index', ['status' => 'Available']) }}" class="min-w-0 px-4 transition-colors duration-200 hover:bg-white/[0.04] sm:px-5 lg:border-l lg:border-white/10">
+                <a data-page-swap="nav" href="{{ route('landlord.units.index', ['status' => 'Available']) }}" class="min-w-0 px-4 transition-colors duration-200 hover:bg-white/[0.04] sm:px-5 lg:border-l lg:border-white/10">
                     <p class="text-[12px] font-semibold text-white/70">Vacant units</p>
                     <p class="mt-0.5 text-[22px] font-bold leading-tight tabular-nums">{{ $availableUnits }}</p>
                     <p class="text-[12px] text-white/65">{{ $availableUnits > 0 ? '₱' . number_format($vacantRoll) . ' a month unrented' : 'Nothing sitting empty' }}</p>
                 </a>
-                <a href="{{ route('landlord.reservations.index') }}" class="min-w-0 px-4 transition-colors duration-200 hover:bg-white/[0.04] sm:px-5 lg:border-l lg:border-white/10">
+                <a data-page-swap="nav" href="{{ route('landlord.reservations.index') }}" class="min-w-0 px-4 transition-colors duration-200 hover:bg-white/[0.04] sm:px-5 lg:border-l lg:border-white/10">
                     <p class="text-[12px] font-semibold text-white/70">Open inquiries</p>
                     <p class="mt-0.5 text-[22px] font-bold leading-tight tabular-nums">{{ $openInquiries }}</p>
                     <p class="text-[12px] text-white/65">{{ $openInquiries > 0 ? 'Waiting for your reply' : 'All answered' }}</p>

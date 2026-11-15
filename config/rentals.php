@@ -38,6 +38,12 @@ return [
      */
     'timezone' => 'Asia/Manila',
     /*
+     * Rent an ended tenant still owes keeps counting as owed, and is written off by itself this many days after the
+     * move-out date (a daily job). The ledger warns write_off_warning_days days before. See App\Services\RentWriteOff.
+     */
+    'write_off_after_days' => (int) env('RENT_WRITE_OFF_AFTER_DAYS', 90),
+    'write_off_warning_days' => 7,
+    /*
      * Clock 2 — days the tenant has to confirm move-in after keys are turned over.
      * Expiry releases the held deposit to the landlord.
      */

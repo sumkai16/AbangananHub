@@ -2,6 +2,29 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 15 2026 — Admin: sidebar, cards and tables swap in place (branch `emman`)
+Why: the landlord side no longer reloads the whole page on a sidebar or card click; admin should match. Same mechanism (`resources/js/page-swap.js`), now shell-aware (`#landlord-sidebar` or `#admin-sidebar`). **Not verified in a browser.**
+- **Sidebar:** `x-admin.nav-item` links carry `data-page-swap="nav"`; `x-admin.tabs` links too. The mobile title is `#mobile-title`; pushed scripts sit in `#page-scripts` (a page that pushes an unmarked one still opens with a normal load). Dashboard, Users, Ratings and Report analytics draw their charts from a `data-swap-safe` script, so they swap too (Users also has cards, tabs and results regions). The admin layout also cross-fades full loads (`@view-transition`) with the sidebar held still.
+- **Cards and results:** `data-swap-region="cards"` on the stat strip and `"results"` on the list, on Audit logs, Properties, Units, Conversations, Deposit charges, Payments, Reports, Reservations and Reviews. A card click replaces only those two, and the results fade in. The filter form's hidden inputs are synced.
+- **Pages with tabs only** (Documents, Verifications, Property verifications) swap the whole work area.
+- **Tests:** `tests/Feature/AdminPageSwapRegionsTest.php` (9) checks each list page renders with both regions inside `<main>`.
+
+## Nov 15 2026 — Unpaid rent of an ended tenant: keep collecting, then write it off after 90 days (branch `emman`)
+Why: Stop collecting (Nov 12) was a manual decision, so owed rent either sat on Still owed forever or vanished on one click. Plan: `plans/auto-write-off-unpaid-rent.md`. **Not verified in a browser.** Run `php artisan migrate` (and on the test database).
+- **Rule:** the balance keeps counting as owed. `rentals.write_off_after_days` (env `RENT_WRITE_OFF_AFTER_DAYS`, default 90) after the move-out date the daily job `reservations:write-off-overdue-rent` (09:00 Manila) writes it off, logs it and notifies the landlord (`rent_written_off`). `write_off_warning_days` (7) before, the ledger says "Will be written off on <date>".
+- **Landlord buttons:** **Write off now** replaces Stop collecting; **Collect again** replaces Resume collecting. Collect again sets `rent_write_off_resumed_at`, so the job never writes that rental off twice. There is no separate Recovered state: collect again, then record the payment.
+- **Deposit:** the ledger shows the deposit held beside what is owed, and after a write-off says "Loss ₱X after the deposit" or "Covered by the deposit" (`RentWriteOff::loss`). No money moves.
+- **Label:** "Not collecting" is now "Written off" everywhere.
+- **Code:** `App\Services\RentWriteOff` (used by `TenancyController` and the command), `App\Console\Commands\WriteOffOverdueRent`, migration `2026_11_15_000100` (`rent_write_off_source`, `rent_write_off_resumed_at`), views `payments/ledger`, `payments/index`, `payments/partials/_ended-actions`.
+- **Tests:** `tests/Feature/Payments/RentWriteOffTest.php` (7); `RecordPaymentTest` and `PaymentsPageRemindersTest` still pass.
+
+## Nov 15 2026 — Landlord sidebar stays put: sidebar links swap only the page (branch `emman`)
+Why: every sidebar click did a full browser reload, so the sidebar flashed and reset. Chose to extend the existing `page-swap.js` (swaps `<main id="main">`) over adding Turbo Drive: it already fits this layout, and Turbo would replace the whole `<body>` and need rework on every page with scripts. **Not verified in a browser.**
+- **Sidebar:** links in `layouts/landlord.blade.php` carry `data-page-swap="nav"`; tapping one also closes the mobile sidebar. A click on the current page still reloads it (resets filters).
+- **Shell sync:** after a swap `page-swap.js` updates the title, `#mobile-title`, the active sidebar item and the badge counts. Back/Forward walk between swapped pages.
+- **Safe fallback:** a page that pushes a script (`@push('scripts')` now lands in `#page-scripts`), has an inline script in `<main>`, has a pending flash message, or lacks the sidebar is opened with a normal load. Today that is Analytics, Viewings, Property show, Payments ledger, and Messages.
+- **Pages that swap:** the script-free ones (Dashboard, Properties, Units, Reservations, Tenants, Rentals, Payments, Payouts, Reviews, Complaints, Profile).
+
 ## Nov 15 2026 — Add a rental can create a new tenant in the modal (branch `emman`)
 Why: the modal only listed existing tenants, so a landlord with a tenant not yet on the list had to leave, add them on the Tenants page, and come back. Plan: `plans/add-rental-inline-new-tenant.md`. **Not verified in a browser.**
 - **UI:** `contracts/partials/_add-modal.blade.php` has an Existing tenant / New tenant toggle. New tenant asks first name, last name, mobile, optional email (same rules as Add tenant). An empty tenant list opens on New tenant instead of the old dead-end message.

@@ -149,8 +149,8 @@
 
 @push('scripts')
     @vite('resources/js/charts.js')
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
+    <script data-swap-safe>
+        const drawRatingTrend = () => {
             const el = document.getElementById('ratingTrendChart');
             if (!el || typeof Chart === 'undefined') return;
 
@@ -181,6 +181,8 @@
                     },
                 },
             });
-        });
+        };
+        // Draws now when the page was swapped in (DOM ready, Chart loaded), or after load otherwise.
+        document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', drawRatingTrend) : drawRatingTrend();
     </script>
 @endpush

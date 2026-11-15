@@ -346,8 +346,8 @@
 
 @push('scripts')
 @vite('resources/js/charts.js')
-<script>
-document.addEventListener('DOMContentLoaded', function () {
+<script data-swap-safe>
+const drawReportCharts = function () {
     const donutOpts = {
         animation: false,
         responsive: false,
@@ -407,6 +407,8 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     @endif
-});
+};
+// Draws now when the page was swapped in (DOM ready, Chart loaded), or after load otherwise.
+document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', drawReportCharts) : drawReportCharts();
 </script>
 @endpush

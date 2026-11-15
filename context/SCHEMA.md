@@ -460,8 +460,10 @@ One tenant's inquiry-to-tenancy record on one unit. `rental_status` walks Inquir
 | move_in_refund_note | varchar(255) | null | | Reason; required when any of it is kept |
 | move_in_refund_at | timestamp | null | | When the landlord recorded it |
 | move_in_refund_requested_at | timestamp | null | | When the tenant asked for the refund (once) |
-| rent_written_off_amount | decimal(10,2) | null | | Unpaid rent when the landlord pressed Stop collecting on an ended lease |
-| rent_written_off_at | timestamp | null | | Set = stopped collecting: `RentLedger::summary()` reports no balance and no reminders go out. Null again on Resume |
+| rent_written_off_amount | decimal(10,2) | null | | Unpaid rent at the moment it was written off (by the daily job or Write off now) |
+| rent_written_off_at | timestamp | null | | Set = written off: `RentLedger::summary()` reports no balance and no reminders go out. Null again on Collect again |
+| rent_write_off_source | varchar(10) | null | | `auto` (daily job, `rentals.write_off_after_days` after move-out) or `manual` (Write off now) |
+| rent_write_off_resumed_at | timestamp | null | | Set by Collect again: the daily job never writes this rental off again |
 | agreed_at | timestamp | null | | Set by `signAgreement()` |
 | agreed_ip | varchar(255) | null | | |
 | landlord_tc_accepted_at | timestamp | null | | |

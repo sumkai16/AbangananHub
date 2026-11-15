@@ -14,7 +14,7 @@
         $cellHref = fn (string $st) => route('admin.deposit-charges.index', array_filter(['search' => $search, 'sort' => $sort !== 'newest' ? $sort : null, 'status' => $st === $status ? null : $st]));
     @endphp
 
-    <x-stat-strip class="mb-3" :cells="[
+    <x-stat-strip data-swap-region="cards" class="mb-3" :cells="[
         ['label' => 'All charges', 'value' => $counts['All'], 'note' => 'Claims on held deposits', 'href' => $cellHref('All'), 'active' => $status === 'All'],
         ['label' => 'Active', 'value' => $counts['Active'], 'note' => 'Still standing', 'dot' => '#22C55E', 'href' => $cellHref('Active'), 'active' => $status === 'Active'],
         ['label' => 'Voided', 'value' => $counts['Voided'], 'note' => 'Overturned, with a reason', 'dot' => '#94A3B8', 'href' => $cellHref('Voided'), 'active' => $status === 'Voided'],
@@ -48,6 +48,7 @@
         </div>
     </form>
 
+    <div data-swap-region="results" class="flex flex-1 flex-col min-h-0">
     @if ($charges->isEmpty())
         @php
             $empty = [
@@ -138,6 +139,7 @@
             </div>
         </x-card>
     @endif
+    </div>
 
     {{-- Void reason modal — shared across every row instead of an inline
          per-row form. Admin overriding a landlord's charge needs a reason
