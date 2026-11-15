@@ -28,12 +28,8 @@
     @media print { .agr-screen { display: none !important; } }
 </style>
 
-<div class="agr max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 pb-16">
+<div class="agr max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 pb-16">
     <div class="agr-screen print:hidden">
-        <a href="{{ route('landlord.contracts.index') }}" class="mb-3 inline-flex items-center gap-1 min-h-8 text-[12.5px] font-semibold text-[#5B6A8E] hover:text-[#060D26] transition-colors duration-200">
-            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
-            Rentals
-        </a>
         <x-page-header title="Rental policies" subtitle="The rules and wording your tenants agree to, per property and unit." :icon-path="$docIcon" />
         @include('landlord.leases.partials._tabs', ['active' => 'agreement'])
 

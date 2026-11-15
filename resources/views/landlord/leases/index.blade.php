@@ -8,11 +8,7 @@
         $selectClass = 'h-10 w-full pl-3.5 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13px] text-[#060D26]';
     @endphp
 
-    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 pb-16">
-        <a href="{{ route('landlord.contracts.index') }}" class="mb-3 inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#5B6A8E] hover:text-[#060D26]">
-            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
-            Rentals
-        </a>
+    <div class="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 pb-16">
         <x-page-header title="Rental policies" subtitle="The rules and wording your tenants agree to, per property and unit." :icon-path="$docIcon">
             <x-slot:actions>
                 <a href="{{ route('landlord.lease-templates.create') }}"
@@ -31,15 +27,15 @@
                 $propertyPolicy = $templateById->get($selected->lease_template_id);
                 $propertyOptions = $properties->mapWithKeys(fn ($p) => [(string) $p->property_id => $p->title])->all();
             @endphp
-            <div class="flex flex-col gap-10">
+            <div class="grid grid-cols-1 gap-10 xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start">
 
                 {{-- Your policies: the library. Scrolls sideways on a phone; each card opens the editor. --}}
-                <section aria-labelledby="library-title">
+                <section aria-labelledby="library-title" class="xl:col-start-2 xl:row-start-1 xl:sticky xl:top-6">
                     <h2 id="library-title" class="text-[16px] font-semibold text-[#060D26]">Your policies</h2>
                     <p class="mt-0.5 text-[13px] text-[#5B6A8E]">The wording and rules a tenant agrees to. Anything without a policy uses the standard one.</p>
 
-                    <ul class="mt-4 -mx-4 sm:-mx-6 lg:mx-0 flex gap-3 overflow-x-auto px-4 sm:px-6 lg:px-0 pb-2 snap-x snap-mandatory [scrollbar-width:thin]">
-                        <li class="snap-start shrink-0 w-[240px]">
+                    <ul class="mt-4 -mx-4 sm:-mx-6 lg:mx-0 flex gap-3 overflow-x-auto px-4 sm:px-6 lg:px-0 pb-2 snap-x snap-mandatory xl:flex-col xl:overflow-visible xl:pb-0 xl:snap-none">
+                        <li class="snap-start shrink-0 w-[240px] xl:w-full">
                             <div class="h-full rounded-2xl border border-[#E2E4EC] bg-[#F7F8FC] p-4">
                                 <p class="text-[14px] font-semibold text-[#060D26]">Standard policy</p>
                                 <p class="mt-1 text-[12.5px] leading-snug text-[#5B6A8E]">Built in. Used wherever nothing else is set.</p>
@@ -47,7 +43,7 @@
                         </li>
                         @foreach($templates as $template)
                             @php $uses = $template->properties_count + $template->units_count; @endphp
-                            <li class="snap-start shrink-0 w-[240px]">
+                            <li class="snap-start shrink-0 w-[240px] xl:w-full">
                                 <a href="{{ route('landlord.lease-templates.edit', $template) }}"
                                     class="group flex h-full flex-col rounded-2xl border border-[#E2E4EC] bg-white p-4 transition-[border-color,box-shadow] duration-200 hover:border-[#5B6A8E]/40 hover:shadow-[0_4px_16px_rgba(6,13,38,0.07)] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30">
                                     <span class="flex items-start justify-between gap-2">
@@ -63,8 +59,8 @@
                                 </a>
                             </li>
                         @endforeach
-                        <li class="snap-start shrink-0 w-[200px]">
-                            <a href="{{ route('landlord.lease-templates.create') }}" class="flex h-full min-h-[104px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-dashed border-[#5B6A8E]/40 p-4 text-[13px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#ECEEF6] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30">
+                        <li class="snap-start shrink-0 w-[200px] xl:w-full">
+                            <a href="{{ route('landlord.lease-templates.create') }}" class="flex h-full min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-dashed border-[#5B6A8E]/40 p-4 text-[13px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#ECEEF6] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30">
                                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                                 {{ $templates->isEmpty() ? 'Write your first policy' : 'New policy' }}
                             </a>
@@ -73,11 +69,11 @@
                 </section>
 
                 {{-- Where each policy is used: properties on the left (a dropdown on a phone), the chosen one on the right. --}}
-                <section aria-labelledby="assign-title">
+                <section aria-labelledby="assign-title" class="min-w-0 xl:col-start-1 xl:row-start-1">
                     <h2 id="assign-title" class="text-[16px] font-semibold text-[#060D26]">Where they apply</h2>
                     <p class="mt-0.5 text-[13px] text-[#5B6A8E]">Pick a property, choose its policy, then give any unit a different one if it needs it.</p>
 
-                    <div class="mt-4 grid grid-cols-1 gap-5 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
+                    <div class="mt-4 grid grid-cols-1 gap-5 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
 
                         {{-- Phone and tablet: the dropdown --}}
                         <form method="GET" action="{{ route('landlord.leases.index') }}" class="lg:hidden">
@@ -97,7 +93,7 @@
                                     <li>
                                         <a href="{{ route('landlord.leases.index', ['property' => $p->property_id]) }}" @if($isSelected) aria-current="true" @endif
                                             class="block rounded-xl px-3.5 py-2.5 transition-colors duration-150 focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30 {{ $isSelected ? 'bg-[#ECEEF6]' : 'hover:bg-[#F7F8FC]' }}">
-                                            <span class="block truncate text-[13.5px] text-[#060D26] {{ $isSelected ? 'font-semibold' : 'font-medium' }}">{{ $p->title }}</span>
+                                            <span class="block text-[13.5px] leading-snug text-[#060D26] {{ $isSelected ? 'font-semibold' : 'font-medium' }}">{{ $p->title }}</span>
                                             <span class="mt-0.5 block truncate text-[12px] text-[#5B6A8E]">
                                                 {{ $templateById->get($p->lease_template_id)?->name ?? 'Standard policy' }}@if($ownUnits) · {{ $ownUnits }} {{ \Illuminate\Support\Str::plural('unit', $ownUnits) }} different @endif
                                             </span>
@@ -139,9 +135,9 @@
                                     <h4 class="text-[14px] font-semibold text-[#060D26]">Units</h4>
                                     <p class="text-[12px] text-[#5B6A8E]">A unit can follow the property or have its own.</p>
                                 </div>
-                                <div class="mt-2 divide-y divide-[#E2E4EC]">
+                                <div class="mt-2 grid grid-cols-1 xl:grid-cols-2">
                                     @forelse($selected->units as $unit)
-                                        <form method="POST" action="{{ route('landlord.lease-templates.assign') }}" class="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:gap-4 sm:px-6">
+                                        <form method="POST" action="{{ route('landlord.lease-templates.assign') }}" class="flex flex-col gap-2 border-t border-[#E2E4EC] px-4 py-3 sm:flex-row sm:items-center sm:gap-4 sm:px-6 xl:[&:nth-child(odd)]:border-r">
                                             @csrf @method('PATCH')
                                             <input type="hidden" name="target" value="unit">
                                             <input type="hidden" name="id" value="{{ $unit->unit_id }}">

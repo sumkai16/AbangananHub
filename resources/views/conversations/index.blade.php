@@ -94,7 +94,7 @@
                         <div class="grid grid-cols-2 gap-1 rounded-xl bg-[#ECEEF6] p-1">
                             @foreach ([['inquiry', 'Inquiries'], ['tenancy', $isLandlord ? 'Tenants' : 'My home']] as [$boxKey, $boxLabel])
                                 <a href="{{ route('conversations.index', array_filter(['box' => $boxKey === 'tenancy' ? 'tenancy' : null, 'property_id' => $propertyId])) }}"
-                                    @if($box === $boxKey) aria-current="page" @endif
+                                    data-page-swap="nav" @if($box === $boxKey) aria-current="page" @endif
                                     class="flex h-9 items-center justify-center gap-1.5 rounded-lg text-[13px] font-semibold transition-colors {{ $box === $boxKey ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E] hover:text-[#060D26]' }}">
                                     {{ $boxLabel }}
                                     @if(($boxUnread[$boxKey] ?? 0) > 0)
@@ -121,6 +121,7 @@
                     @endphp
                     @foreach ($tabs as $key => $tab)
                                 <a href="{{ route('conversations.index', array_filter(['box' => $box === 'tenancy' ? 'tenancy' : null, 'status' => $key, 'search' => request('search'), 'property_id' => $propertyId])) }}"
+                                    data-page-swap="nav"
                                     class="flex-1 whitespace-nowrap border-b-2 px-1 py-3 text-center text-[13px] font-semibold transition-colors
                                         {{ $status === $key ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
                                     {{ $tab['label'] }}
