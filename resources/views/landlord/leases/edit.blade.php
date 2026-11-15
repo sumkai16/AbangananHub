@@ -12,6 +12,7 @@
         $storedDocs = collect(old('required_documents') !== null || old('custom_documents') !== null ? [] : ($template->required_documents ?? []));
         $assigned = $exists ? $properties->where('lease_template_id', $template->lease_template_id)->pluck('property_id')->all() : [];
         $state = [
+            'name' => (string) old('name', $template->name),
             'welcome' => (string) old('welcome_message', $template->welcome_message),
             'grace' => (string) old('rent_grace_days', $template->rent_grace_days),
             'feeType' => (string) old('late_fee_type', $template->late_fee_type),
@@ -42,7 +43,7 @@
         $chev = 'text-[11px] text-[#5B6A8E]';
     @endphp
 
-    <div class="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 pb-24"
+    <div class="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 pb-24"
         x-data="{
             ...@js($state),
             open: @js($openOnError),
@@ -99,14 +100,12 @@
         }">
 
         <nav aria-label="Breadcrumb" class="mb-3 flex items-center gap-1.5 text-sm text-[#5B6A8E]">
-            <a href="{{ route('landlord.contracts.index') }}" class="hover:text-[#060D26]">Rentals</a>
-            <span aria-hidden="true">/</span>
-            <a href="{{ route('landlord.leases.index') }}" class="hover:text-[#060D26]">Policies</a>
+            <a href="{{ route('landlord.leases.index') }}" data-page-swap="nav" class="hover:text-[#060D26]">Policies</a>
             <span aria-hidden="true">/</span>
             <span class="truncate font-medium text-[#060D26]">{{ $exists ? $template->name : 'New policy' }}</span>
         </nav>
 
-        <x-page-header :title="$exists ? 'Edit policy' : 'New policy'" subtitle="Changes apply to agreements you send from now on. Agreements already sent don't change.">
+        <x-page-header :title="$exists ? 'Edit policy' : 'New policy'" subtitle="Changes apply to agreements you send from now on. Agreements already sent don't change." icon-path="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z">
             @if($exists)
                 <x-slot:badge>
                     <span class="rounded-full bg-[#ECEEF6] px-2.5 py-0.5 text-[11px] font-bold text-[#060D26]">Version {{ $template->version }}</span>
@@ -114,13 +113,15 @@
             @endif
         </x-page-header>
 
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+        <div class="min-w-0">
         @if($starter)
             {{-- Where a new policy starts: the standard wording with a clause for the property type, or a blank page --}}
             <div class="mb-5">
                 <p class="mb-2 text-[13px] font-semibold text-[#060D26]">Start from</p>
                 <div class="flex gap-2 overflow-x-auto pb-1">
                     @foreach(\App\Support\LeaseBody::STARTERS as $key => $starterLabel)
-                        <a href="{{ route('landlord.lease-templates.create', ['starter' => $key]) }}"
+                        <a href="{{ route('landlord.lease-templates.create', ['starter' => $key]) }}" data-page-swap="nav"
                             @if($starter === $key) aria-current="true" @endif
                             class="shrink-0 rounded-full border px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors {{ $starter === $key ? 'border-[#060D26] bg-[#060D26] text-white' : 'border-[#E2E4EC] bg-white text-[#060D26] hover:bg-[#F7F8FC]' }}">{{ $starterLabel }}</a>
                     @endforeach
@@ -135,7 +136,7 @@
 
             <div>
                 <label for="lease-name" class="{{ $label }}">Policy name</label>
-                <input id="lease-name" name="name" value="{{ old('name', $template->name) }}" required maxlength="100"
+                <input id="lease-name" name="name" x-model="name" value="{{ old('name', $template->name) }}" required maxlength="100"
                     placeholder="e.g. Bedspace policy" class="{{ $input }}">
                 <p class="{{ $hint }}">Only you see this name.</p>
                 @error('name')<p class="{{ $error }}">{{ $message }}</p>@enderror
@@ -159,7 +160,7 @@
                 <div>
                     <button type="button" @click="toggle('welcome')" :aria-expanded="open === 'welcome'" class="{{ $row }}">
                         <span class="min-w-0 flex-1"><span class="block text-[14px] font-semibold text-[#060D26]">Welcome message</span><span class="block truncate text-[12.5px] text-[#5B6A8E]" x-text="welcomeSummary"></span></span>
-                        <span class="{{ $chev }}" x-text="open === 'welcome' ? '▴' : '▾'" aria-hidden="true"></span>
+                        <svg class="shrink-0 text-[#5B6A8E] transition-transform duration-200" :class="open === 'welcome' ? 'rotate-180' : ''" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" /></svg>
                     </button>
                     <div x-show="open === 'welcome'" x-cloak class="border-t border-[#E2E4EC] bg-[#FBFBFE] px-4 pb-4 pt-3">
                         <label for="lease-welcome" class="sr-only">Welcome message</label>
@@ -175,7 +176,7 @@
                 <div>
                     <button type="button" @click="toggle('houserules')" :aria-expanded="open === 'houserules'" class="{{ $row }}">
                         <span class="min-w-0 flex-1"><span class="block text-[14px] font-semibold text-[#060D26]">House rules</span><span class="block truncate text-[12.5px] text-[#5B6A8E]" x-text="houseRulesSummary"></span></span>
-                        <span class="{{ $chev }}" x-text="open === 'houserules' ? '▴' : '▾'" aria-hidden="true"></span>
+                        <svg class="shrink-0 text-[#5B6A8E] transition-transform duration-200" :class="open === 'houserules' ? 'rotate-180' : ''" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" /></svg>
                     </button>
                     <div x-show="open === 'houserules'" x-cloak class="border-t border-[#E2E4EC] bg-[#FBFBFE] px-4 pb-5 pt-4" x-data="{ listed: false }">
                         <p class="text-[12.5px] leading-relaxed text-[#5B6A8E]">
@@ -266,7 +267,7 @@
                 <div>
                     <button type="button" @click="toggle('rules')" :aria-expanded="open === 'rules'" class="{{ $row }}">
                         <span class="min-w-0 flex-1"><span class="block text-[14px] font-semibold text-[#060D26]">Rent rules</span><span class="block truncate text-[12.5px] text-[#5B6A8E]" x-text="rulesSummary"></span></span>
-                        <span class="{{ $chev }}" x-text="open === 'rules' ? '▴' : '▾'" aria-hidden="true"></span>
+                        <svg class="shrink-0 text-[#5B6A8E] transition-transform duration-200" :class="open === 'rules' ? 'rotate-180' : ''" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" /></svg>
                     </button>
                     <div x-show="open === 'rules'" x-cloak class="border-t border-[#E2E4EC] bg-[#FBFBFE] px-4 pb-4 pt-3">
                         <p class="mb-3 text-[12px] text-[#5B6A8E]">Leave a box empty to use the property's setting.</p>
@@ -306,7 +307,7 @@
                 <div>
                     <button type="button" @click="toggle('docs')" :aria-expanded="open === 'docs'" class="{{ $row }}">
                         <span class="min-w-0 flex-1"><span class="block text-[14px] font-semibold text-[#060D26]">Documents tenants upload</span><span class="block truncate text-[12.5px] text-[#5B6A8E]" x-text="docsSummary"></span></span>
-                        <span class="{{ $chev }}" x-text="open === 'docs' ? '▴' : '▾'" aria-hidden="true"></span>
+                        <svg class="shrink-0 text-[#5B6A8E] transition-transform duration-200" :class="open === 'docs' ? 'rotate-180' : ''" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" /></svg>
                     </button>
                     <div x-show="open === 'docs'" x-cloak class="border-t border-[#E2E4EC] bg-[#FBFBFE] px-4 pb-4 pt-3">
                         <label class="mb-3 flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5">
@@ -346,7 +347,7 @@
                     <input type="hidden" name="assign_present" value="1">
                     <button type="button" @click="toggle('applies')" :aria-expanded="open === 'applies'" class="{{ $row }}">
                         <span class="min-w-0 flex-1"><span class="block text-[14px] font-semibold text-[#060D26]">Applies to</span><span class="block truncate text-[12.5px] text-[#5B6A8E]" x-text="appliesSummary"></span></span>
-                        <span class="{{ $chev }}" x-text="open === 'applies' ? '▴' : '▾'" aria-hidden="true"></span>
+                        <svg class="shrink-0 text-[#5B6A8E] transition-transform duration-200" :class="open === 'applies' ? 'rotate-180' : ''" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" /></svg>
                     </button>
                     <div x-show="open === 'applies'" x-cloak class="border-t border-[#E2E4EC] bg-[#FBFBFE] px-4 pb-4 pt-3">
                         <div class="flex items-center justify-between gap-2">
@@ -384,7 +385,7 @@
                     <span></span>
                 @endif
                 <div class="flex items-center gap-2">
-                    <a href="{{ route('landlord.leases.index') }}" class="inline-flex h-10 items-center rounded-xl px-3 text-[13px] font-semibold text-[#5B6A8E] hover:text-[#060D26]">Cancel</a>
+                    <a href="{{ route('landlord.leases.index') }}" data-page-swap="nav" class="inline-flex h-10 items-center rounded-xl px-3 text-[13px] font-semibold text-[#5B6A8E] hover:text-[#060D26]">Cancel</a>
                     <button type="submit" class="h-10 rounded-xl bg-[#FF8A66] px-6 text-[13px] font-bold text-[#060D26] hover:bg-[#E96F4F]">Save policy</button>
                 </div>
             </div>
@@ -392,7 +393,7 @@
 
         @if($exists)
             <div class="mt-4 flex flex-wrap items-center gap-4 text-[13px]">
-                <a href="{{ route('landlord.lease-templates.create', ['from' => $template->lease_template_id]) }}" class="font-semibold text-[#060D26] underline underline-offset-2">Duplicate this policy</a>
+                <a href="{{ route('landlord.lease-templates.create', ['from' => $template->lease_template_id]) }}" data-page-swap="nav" class="font-semibold text-[#060D26] underline underline-offset-2">Duplicate this policy</a>
                 <form method="POST" action="{{ route('landlord.lease-templates.destroy', $template) }}"
                     data-confirm="Delete &quot;{{ $template->name }}&quot;?"
                     data-confirm-message="Properties and units using it will send the standard policy instead. Agreements already sent don't change."
@@ -402,6 +403,47 @@
                 </form>
             </div>
         @endif
+        </div>
+
+        {{-- Right column: the policy at a glance, as it is typed, then how to check it before saving. --}}
+        <aside class="hidden lg:flex flex-col gap-4 lg:sticky lg:top-24" aria-label="Summary">
+            <div class="rounded-2xl border border-[#E2E4EC] bg-white p-5 shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
+                <h3 class="mb-3.5 text-[13px] font-normal text-[#060D26]">At a glance</h3>
+                <dl class="grid gap-3.5 text-[13px]">
+                    <div>
+                        <dt class="text-[11.5px] text-[#5B6A8E]">Name</dt>
+                        <dd class="mt-0.5 break-words font-semibold text-[#060D26]" :class="!name.trim() && '!font-normal text-[#94A3B8]'" x-text="name.trim() || 'Not named yet'"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-[11.5px] text-[#5B6A8E]">Welcome message</dt>
+                        <dd class="mt-0.5 text-[#060D26]" x-text="welcomeSummary"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-[11.5px] text-[#5B6A8E]">House rules</dt>
+                        <dd class="mt-0.5 text-[#060D26]" x-text="houseRulesSummary"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-[11.5px] text-[#5B6A8E]">Rent rules</dt>
+                        <dd class="mt-0.5 text-[#060D26]" x-text="rulesSummary"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-[11.5px] text-[#5B6A8E]">Documents tenants upload</dt>
+                        <dd class="mt-0.5 text-[#060D26]" x-text="docsSummary"></dd>
+                    </div>
+                    <div class="border-t border-[#5B6A8E]/10 pt-3.5">
+                        <dt class="text-[11.5px] text-[#5B6A8E]">Applies to</dt>
+                        <dd class="mt-0.5 font-semibold text-[#060D26]" x-text="appliesSummary"></dd>
+                    </div>
+                </dl>
+            </div>
+            <div class="rounded-2xl bg-[#060D26] p-5">
+                <p class="text-[12.5px] font-semibold leading-snug text-white">Check it before you save</p>
+                <p class="mt-1.5 text-[11.5px] leading-relaxed text-white/60">
+                    "Preview as tenant" shows the agreement the way a tenant reads it, with a sample name. Agreements already sent never change.
+                </p>
+            </div>
+        </aside>
+        </div>
 
         {{-- Preview: the lease as a tenant reads it, with a sample tenant --}}
         <div x-show="previewOpen" x-cloak class="fixed inset-0 z-[80] flex items-stretch justify-center bg-[#060D26]/60 sm:p-6" role="dialog" aria-modal="true" aria-label="Policy preview"

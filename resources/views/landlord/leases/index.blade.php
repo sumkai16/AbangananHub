@@ -37,7 +37,7 @@
                         @foreach($templates as $template)
                             @php $uses = $template->properties_count + $template->units_count; @endphp
                             <li class="snap-start shrink-0 w-[240px] xl:w-full">
-                                <a href="{{ route('landlord.lease-templates.edit', $template) }}"
+                                <a href="{{ route('landlord.lease-templates.edit', $template) }}" data-page-swap="nav"
                                     class="group flex h-full flex-col rounded-2xl border border-[#E2E4EC] bg-white p-4 transition-[border-color,box-shadow] duration-200 hover:border-[#5B6A8E]/40 hover:shadow-[0_4px_16px_rgba(6,13,38,0.07)] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30">
                                     <span class="flex items-start justify-between gap-2">
                                         <span class="min-w-0 truncate text-[14px] font-semibold text-[#060D26]">{{ $template->name }}</span>
@@ -53,7 +53,7 @@
                             </li>
                         @endforeach
                         <li class="snap-start shrink-0 w-[200px] xl:w-full">
-                            <a href="{{ route('landlord.lease-templates.create') }}" class="flex h-full min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-dashed border-[#5B6A8E]/40 p-4 text-[13px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#ECEEF6] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30">
+                            <a href="{{ route('landlord.lease-templates.create') }}" data-page-swap="nav" class="flex h-full min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-dashed border-[#5B6A8E]/40 p-4 text-[13px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#ECEEF6] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30">
                                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                                 {{ $templates->isEmpty() ? 'Write your first policy' : 'New policy' }}
                             </a>
@@ -84,7 +84,7 @@
                                         $ownUnits = $p->units->whereNotNull('lease_template_id')->count();
                                     @endphp
                                     <li>
-                                        <a href="{{ route('landlord.leases.index', ['property' => $p->property_id]) }}" data-page-swap data-swap-only="assign" @if($isSelected) aria-current="true" @endif
+                                        <a href="{{ route('landlord.leases.index', ['property' => $p->property_id]) }}" data-page-swap="nav" data-page-swap data-swap-only="assign" @if($isSelected) aria-current="true" @endif
                                             class="block rounded-xl px-3.5 py-2.5 transition-colors duration-150 focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30 {{ $isSelected ? 'bg-[#ECEEF6]' : 'hover:bg-[#F7F8FC]' }}">
                                             <span class="block text-[13.5px] leading-snug text-[#060D26] {{ $isSelected ? 'font-semibold' : 'font-medium' }}">{{ $p->title }}</span>
                                             <span class="mt-0.5 block truncate text-[12px] text-[#5B6A8E]">
@@ -108,7 +108,7 @@
                                             @foreach($propertyPolicy->summaryChips() as $chip)
                                                 <span class="rounded-full bg-[#ECEEF6] px-2.5 py-0.5 text-[12px] font-medium text-[#060D26]">{{ $chip }}</span>
                                             @endforeach
-                                            <a href="{{ route('landlord.lease-templates.edit', $propertyPolicy) }}" class="ml-1 inline-flex h-9 items-center text-[13px] font-semibold text-[#B35A3D] underline-offset-2 hover:underline">Edit this policy</a>
+                                            <a href="{{ route('landlord.lease-templates.edit', $propertyPolicy) }}" data-page-swap="nav" class="ml-1 inline-flex h-9 items-center text-[13px] font-semibold text-[#B35A3D] underline-offset-2 hover:underline">Edit this policy</a>
                                         </div>
                                     @else
                                         <p class="mt-3 max-w-md text-[13px] leading-relaxed text-[#5B6A8E]">The built-in wording, filled in with this property's rent and house rules.</p>
