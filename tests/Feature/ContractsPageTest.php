@@ -234,7 +234,8 @@ class ContractsPageTest extends TestCase
         Storage::disk('local')->assertExists($contract->lease_file_path);
 
         $this->actingAs($landlord)->get(route('landlord.contracts.show', $contract))
-            ->assertSee('Rental agreement uploaded')->assertSee('Open agreement')->assertSee('Replace agreement');
+            ->assertSee('Rental agreement uploaded')->assertSee('View agreement')->assertDontSee('Open agreement')->assertDontSee('Replace agreement')
+            ->assertSee(route('landlord.leases.file', $contract), false);
     }
 
     public function test_a_wrong_file_from_the_modal_reopens_it_with_the_error(): void

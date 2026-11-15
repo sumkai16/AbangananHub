@@ -44,8 +44,8 @@
 <div x-data="{ agreementOpen: false, agreementLoaded: false, agreementReady: false, ending: false, renewing: @js($canRenew && ($startRenewing ?? false)), uploading: false, rating: @js($canRate && ($startRating ?? false)), stars: 0, hovered: 0, count: 0,
         rate(on) { this.renewing = false; this.rating = on; this.$nextTick(() => this.$root.closest('.overflow-y-auto')?.scrollTo(0, 0)); } }">
 
-{{-- The agreement, over the lease modal: the printable page (leases.show?embed=1) in a frame, printed from here.
-     The frame loads on first open only, and Print waits for it. --}}
+{{-- The agreement, over the rental popup. An uploaded signed copy is shown as it was uploaded; otherwise it is the
+     printable page (leases.show?embed=1), printed from here. The frame loads on first open only. --}}
 <template x-teleport="body">
     <div x-show="agreementOpen" x-cloak @keydown.escape.window="agreementOpen = false"
         style="z-index: 60;"
@@ -68,11 +68,16 @@
                     <p class="text-[12.5px] text-[#5B6A8E] truncate">{{ $tenant->first_name }} {{ $tenant->last_name }} · {{ $reservation->unit?->unit_label }}</p>
                 </div>
                 <div class="flex shrink-0 items-center gap-2">
+                    @if($leaseStatus === 'uploaded')
+                        <a href="{{ route('landlord.leases.file', $reservation) }}" target="_blank" rel="noopener"
+                            class="inline-flex items-center gap-1.5 h-10 px-4 rounded-full border border-[#060D26]/35 bg-white text-[13px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200">Open in a new tab</a>
+                    @else
                     <button type="button" :disabled="!agreementReady" @click="$refs.agreementFrame.contentWindow.print()"
                         class="inline-flex items-center gap-1.5 h-10 px-4 rounded-full bg-[#FF8A66] text-[13px] font-semibold text-[#060D26] hover:bg-[#E96F4F] disabled:opacity-50 disabled:cursor-wait cursor-pointer transition-colors duration-200">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" /></svg>
                         Print
                     </button>
+                    @endif
                     <button type="button" @click="agreementOpen = false" aria-label="Close"
                         class="w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-[#5B6A8E] hover:bg-[#ECEEF6] hover:text-[#060D26] transition-colors duration-200 cursor-pointer">
                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
@@ -83,7 +88,7 @@
             <div class="relative flex-1 min-h-0 bg-white">
                 <p x-show="!agreementReady" class="absolute inset-0 flex items-center justify-center text-[13px] text-[#5B6A8E]">Loading the rental agreement...</p>
                 <template x-if="agreementLoaded">
-                    <iframe x-ref="agreementFrame" src="{{ route('landlord.leases.show', ['reservation' => $reservation, 'embed' => 1]) }}"
+                    <iframe x-ref="agreementFrame" src="{{ $leaseStatus === 'uploaded' ? route('landlord.leases.file', $reservation) : route('landlord.leases.show', ['reservation' => $reservation, 'embed' => 1]) }}"
                         title="Rental agreement" class="w-full h-full border-0" @load="agreementReady = true"></iframe>
                 </template>
             </div>
@@ -198,30 +203,24 @@
                         <button type="button" @click="uploading = !uploading" class="{{ $sqCta }}">Upload agreement</button>
                     @else
                         <button type="button" @click="agreementOpen = true; agreementLoaded = true" class="{{ $sqGhost }}">View agreement</button>
-                        @if($reservation->lease_file_path)
-                            <a href="{{ route('landlord.leases.file', $reservation) }}" target="_blank" rel="noopener" class="{{ $sqGhost }}">Open agreement</a>
-                        @endif
-                        {{-- Signed online is the signed agreement: only a paper rental needs the signed copy uploaded. --}}
-                        @if($leaseStatus !== 'signed_online')
-                            <button type="button" @click="uploading = !uploading" class="{{ $sqGhost }}">Replace agreement</button>
-                        @endif
+                        {{-- Signed online or uploaded: that is the signed agreement. A new copy is attached when the rental is renewed. --}}
                     @endif
                 </div>
             </div>
 
+            @if($leaseStatus === 'missing')
             <form x-show="uploading" x-cloak method="POST" action="{{ route('landlord.leases.upload', $reservation) }}" enctype="multipart/form-data"
                 class="mt-2 grid gap-2 rounded-xl border border-[#E2E4EC] p-4">
                 @csrf
                 {{-- Tells LeaseController::upload to come back to this modal, not the page underneath. --}}
                 <input type="hidden" name="from" value="contracts">
-                <label for="contract_lease_file_{{ $reservation->reservation_id }}" class="text-[13px] text-[#5B6A8E]">PDF, JPG or PNG, up to 10 MB</label>
-                <input type="file" id="contract_lease_file_{{ $reservation->reservation_id }}" name="lease_file" required
-                    accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*"
-                    class="block w-full text-[14px] text-[#060D26] file:mr-3 file:h-11 file:px-4 file:rounded-full file:border-0 file:bg-[#ECEEF6] file:text-[#060D26] file:font-semibold file:cursor-pointer">
+                <label for="contract_lease_file_{{ $reservation->reservation_id }}" class="text-[13px] font-semibold text-[#060D26]">Signed copy</label>
+                <x-file-preview name="lease_file" id="contract_lease_file_{{ $reservation->reservation_id }}" :required="true" />
                 <div class="flex justify-end">
                     <button type="submit" class="{{ $sqCta }}">Upload</button>
                 </div>
             </form>
+            @endif
         </section>
 
         @if(($others ?? collect())->isNotEmpty())
@@ -349,7 +348,7 @@
 
 @if($canRenew)
     {{-- Renew: offered within rentals.renewal_window_days of the end date, or once it has passed. --}}
-    <form method="POST" action="{{ route('landlord.contracts.renew', $reservation) }}" x-ref="renewForm" x-show="renewing" x-cloak
+    <form method="POST" action="{{ route('landlord.contracts.renew', $reservation) }}" enctype="multipart/form-data" x-ref="renewForm" x-show="renewing" x-cloak
         class="mx-6 mb-6 grid gap-3 rounded-2xl border border-[#E2E4EC] bg-[#F7F8FC] p-4">
         @csrf
         <p class="text-[13px] font-semibold text-[#060D26]">Renew this rental</p>
@@ -371,6 +370,16 @@
                 <x-styled-select name="rent_effective_from" :options="$renewMonths" :selected="$renewDefaultMonth"
                     class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 bg-white px-3.5 text-[13.5px] text-[#060D26] text-left" />
                 <p class="mt-1 text-[12px] text-[#5B6A8E]">Months before this keep ₱{{ number_format($reservation->currentRent(), 2) }}.</p>
+            </div>
+            {{-- The only place a signed agreement is replaced: when the terms change. --}}
+            <div class="sm:col-span-2">
+                <label class="block text-[12px] font-semibold text-[#060D26] mb-1.5" for="renew_lease_{{ $reservation->reservation_id }}">
+                    New signed agreement <span class="font-normal text-[#5B6A8E]">(optional)</span>
+                </label>
+                <x-file-preview name="lease_file" id="renew_lease_{{ $reservation->reservation_id }}" />
+                @if($reservation->lease_file_path)
+                    <p class="mt-1 text-[12px] text-[#5B6A8E]">It replaces the agreement on file ({{ $reservation->lease_file_name }}).</p>
+                @endif
             </div>
         </div>
         <div class="flex justify-end gap-2">

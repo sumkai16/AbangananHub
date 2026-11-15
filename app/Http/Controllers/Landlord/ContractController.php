@@ -21,6 +21,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Leases: list, add, view, renew. The Tenants page lists people; this page lists their leases. A contract is a reservation from 'Rental Agreement Signed'
@@ -54,10 +55,17 @@ class ContractController extends Controller
         $contracts = $this->landlordContracts()
             ->whereIn('rental_status', self::FILTERS[$filter])
             ->when($request->integer('property'), fn ($q, $id) => $q->where('property_id', $id))
-            ->when($request->input('search'), fn ($q, $search) => $q->whereHas('tenant', fn ($t) => $t
-                ->where('first_name', 'like', "%{$search}%")
-                ->orWhere('last_name', 'like', "%{$search}%")
-                ->orWhere('email', 'like', "%{$search}%")))
+            // Search finds a tenant by name or email, or a rental by its number (AGR-2026-00015, or just 00015).
+            ->when(trim((string) $request->input('search')), fn ($q, $search) => $q->where(function ($q) use ($search) {
+                $q->whereHas('tenant', fn ($t) => $t
+                    ->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%"));
+
+                if (preg_match('/^(?:agr-?(?:\d{4}-?)?)?0*(\d{1,9})$/i', $search, $m)) {
+                    $q->orWhere('reservation_id', (int) $m[1]);
+                }
+            }))
             ->when($request->boolean('lease_missing'), fn ($q) => $q->whereNull('lease_file_path')->whereNull('agreed_at'))
             // The Ending soon card: running rentals whose end date is inside the renewal window (or already past).
             ->when($request->boolean('ending'), fn ($q) => $q->where('rental_status', 'Occupied')
@@ -185,7 +193,14 @@ class ContractController extends Controller
         Gate::authorize('viewTenancy', $reservation);
         $data = $request->validated();
 
-        $renewed = DB::transaction(function () use ($reservation, $data, $request) {
+        // A new signed agreement for the renewed term is stored first and attached inside the transaction. It is
+        // thrown away again if the renewal is refused, and the file it replaces is deleted only after the commit.
+        $newFile = $request->file('lease_file');
+        $newPath = $newFile ? $newFile->store("leases/{$reservation->property->landlord_id}", 'local') : null;
+        $replacedPath = null;
+
+        try {
+        $renewed = DB::transaction(function () use ($reservation, $data, $request, $newFile, $newPath, &$replacedPath) {
             $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();
 
             if (! in_array($locked->rental_status, ['Reserved', 'Occupied'], true)
@@ -201,6 +216,10 @@ class ContractController extends Controller
             ]);
 
             $locked->update(['target_move_out_date' => $data['new_move_out_date']]);
+
+            if ($newPath) {
+                $replacedPath = LeaseController::attachSignedCopy($locked, $newPath, $newFile->getClientOriginalName());
+            }
 
             AuditLog::record(
                 'contract.renew',
@@ -223,9 +242,23 @@ class ContractController extends Controller
 
             return $renewal;
         });
+        } catch (\Throwable $e) {
+            if ($newPath) {
+                Storage::disk('local')->delete($newPath);
+            }
+            throw $e;
+        }
 
         if (! $renewed) {
+            if ($newPath) {
+                Storage::disk('local')->delete($newPath);
+            }
+
             return back()->with('error', 'This rental can no longer be renewed.');
+        }
+
+        if ($replacedPath) {
+            Storage::disk('local')->delete($replacedPath);
         }
 
         return redirect()->route('landlord.tenants.index', ['open' => $reservation->reservation_id])

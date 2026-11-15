@@ -130,7 +130,7 @@ class LeaseTest extends TestCase
         $this->actingAs($this->landlord)->get(route('landlord.leases.file', $reservation))->assertOk();
     }
 
-    public function test_walk_in_upload_later_then_upload_and_replace(): void
+    public function test_walk_in_upload_later_then_upload_and_a_new_copy_only_when_renewing(): void
     {
         $this->walkIn()->assertRedirect();
         $reservation = $this->latestWalkIn();
@@ -145,7 +145,19 @@ class LeaseTest extends TestCase
         $first = $reservation->fresh()->lease_file_path;
         Storage::disk('local')->assertExists($first);
 
+        // Once a signed copy is on file, a plain second upload is refused and the file stays.
         $this->actingAs($this->landlord)->post(route('landlord.leases.upload', $reservation), [
+            'lease_file' => UploadedFile::fake()->create('signed-v2.pdf', 100, 'application/pdf'),
+        ])->assertSessionHas('error');
+        $reservation->refresh();
+        $this->assertSame($first, $reservation->lease_file_path);
+        $this->assertSame('signed.jpg', $reservation->lease_file_name);
+
+        // Renewing is where the new signed copy goes: it replaces the old one and the old file is deleted.
+        $this->actingAs($this->landlord)->post(route('landlord.contracts.renew', $reservation), [
+            'new_move_out_date' => ($reservation->target_move_out_date ?? now())->copy()->addYear()->toDateString(),
+            'new_monthly_rent' => 2500,
+            'rent_effective_from' => now()->format('Y-m'),
             'lease_file' => UploadedFile::fake()->create('signed-v2.pdf', 100, 'application/pdf'),
         ])->assertSessionHas('success');
 

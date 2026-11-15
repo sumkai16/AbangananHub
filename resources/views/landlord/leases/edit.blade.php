@@ -99,6 +99,8 @@
         }">
 
         <nav aria-label="Breadcrumb" class="mb-3 flex items-center gap-1.5 text-sm text-[#5B6A8E]">
+            <a href="{{ route('landlord.contracts.index') }}" class="hover:text-[#060D26]">Rentals</a>
+            <span aria-hidden="true">/</span>
             <a href="{{ route('landlord.leases.index') }}" class="hover:text-[#060D26]">Policies</a>
             <span aria-hidden="true">/</span>
             <span class="truncate font-medium text-[#060D26]">{{ $exists ? $template->name : 'New policy' }}</span>

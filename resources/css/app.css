@@ -97,6 +97,12 @@ h1, h2, h3, h4, h5, h6 {
         page: doc;
     }
 
+    /* On landlord pages the toasts, confirm dialog, chat bubble and slide-over panel sit after the page shell in the
+       body. None of them belongs on paper, and left in they can print an extra blank sheet after the document. */
+    .landlord-shell ~ * {
+        display: none !important;
+    }
+
     .print-doc-table {
         display: table;
         width: 100%;

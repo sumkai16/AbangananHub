@@ -1,5 +1,5 @@
 {{--
-    The Rental policies modal on the Tenants page. Opened with $dispatch('open-lease-policies', { url }), where url is
+    The Rental policies modal on the Rentals page. Opened with $dispatch('open-lease-policies', { url }), where url is
     landlord.leases.panel. The body (_panel.blade.php) is fetched when it opens and fetched again after each save, so
     a dropdown or switch changes the policy without leaving the page. Open rows and the scroll position are kept
     across a save. The full page (landlord.leases.index) is still there for the links from the property and unit pages.
@@ -102,6 +102,9 @@
                     <a href="{{ route('landlord.leases.index') }}" class="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-[#5B6A8E] underline-offset-2 hover:text-[#060D26] hover:underline">
                         Open full page
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+                    </a>
+                    <a href="{{ route('landlord.leases.agreement') }}" class="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-[#B35A3D] underline-offset-2 hover:underline">
+                        Generate an agreement
                     </a>
                     <p role="status" aria-live="polite" x-text="status" x-show="status" x-cloak
                         :class="bad ? 'text-[#B91C1C]' : 'text-[#15803D]'" class="min-w-0 flex-1 text-[12.5px] font-semibold sm:text-right"></p>

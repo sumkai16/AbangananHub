@@ -27,7 +27,9 @@
 
 <div class="text-[#060D26]">
     {{-- Cover page, printed only: on screen the page around the document already says what this is. --}}
-    <div class="hidden print:flex print:min-h-[85vh] print:flex-col print:items-center print:justify-center print:text-center print:break-after-page">
+    {{-- Not a fixed share of the page height (85vh plus the top and bottom spacers overflowed the sheet and printed a blank
+         page after the cover): it takes its natural height, sits lower with padding, and the next page starts after it. --}}
+    <div class="hidden print:flex print:flex-col print:items-center print:pt-[2.6in] print:text-center print:break-after-page">
         <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[#5B6A8E]">Rental agreement</p>
         <p class="mt-4 text-[26px] font-semibold leading-tight text-[#060D26]">{{ $terms['property']['title'] ?? '' }}</p>
         @if ($terms['unit'])

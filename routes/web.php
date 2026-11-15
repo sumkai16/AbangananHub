@@ -24,6 +24,7 @@ use App\Http\Controllers\Landlord\AnalyticsController;
 use App\Http\Controllers\Landlord\ContractController;
 use App\Http\Controllers\Landlord\DashboardController;
 use App\Http\Controllers\Landlord\DepositChargeController;
+use App\Http\Controllers\Landlord\LeaseAgreementDraftController;
 use App\Http\Controllers\Landlord\LeaseTemplateController;
 use App\Http\Controllers\Landlord\LedgerController;
 use App\Http\Controllers\Landlord\PaymentClaimController;
@@ -237,6 +238,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/reservations/{reservation}/accept-and-send', [App\Http\Controllers\Landlord\ReservationController::class, 'acceptAndSendAgreement'])->name('reservations.acceptAndSend');
         // Lease policies (URL /landlord/lease-policies): lease template library and where each template is used (plans/lease-templates-page.md)
         Route::get('/lease-policies', [LeaseTemplateController::class, 'index'])->name('leases.index');
+        Route::get('/lease-policies/agreement', [LeaseAgreementDraftController::class, 'show'])->name('leases.agreement');
         Route::get('/lease-policies/panel', [LeaseTemplateController::class, 'panel'])->name('leases.panel');
         Route::patch('/lease-policies/assign', [LeaseTemplateController::class, 'assign'])->name('lease-templates.assign');
         Route::post('/lease-policies/templates/preview', [LeaseTemplateController::class, 'preview'])->name('lease-templates.preview');

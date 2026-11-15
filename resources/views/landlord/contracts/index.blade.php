@@ -29,12 +29,6 @@
                 </svg>
             </x-slot:icon>
             <x-slot:actions>
-                <a href="{{ route('landlord.leases.index') }}"
-                    @click.prevent="$dispatch('open-lease-policies', { url: @js(route('landlord.leases.panel')) })"
-                    class="inline-flex items-center justify-center gap-2 h-11 px-4 sm:px-5 rounded-full border border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-sm font-semibold transition-all duration-200 cursor-pointer">
-                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg>
-                    Rental policies
-                </a>
                 <button type="button" @click="$dispatch('open-add-contract')"
                     class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
@@ -61,7 +55,7 @@
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
                 <div class="relative flex-1 min-w-[200px]">
                     <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" /></svg>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by tenant name or email..." aria-label="Search rentals by tenant"
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by tenant, email or rental no...." aria-label="Search rentals by tenant, email or rental number"
                         x-on:input.debounce.400ms="$el.form.requestSubmit()"
                         class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
                 </div>
@@ -106,7 +100,7 @@
                                     <div class="flex items-start justify-between gap-3">
                                         <div class="min-w-0">
                                             <p class="text-[13.5px] font-bold text-[#060D26] truncate">{{ $contract->tenant->first_name }} {{ $contract->tenant->last_name }}</p>
-                                            <p class="text-[11.5px] text-[#5B6A8E]">{{ $codes[$contract->tenant_id] ?? '' }} · {{ $contract->unit->unit_label ?? 'No unit' }} · {{ $contract->property->title }}</p>
+                                            <p class="text-[11.5px] text-[#5B6A8E]">{{ $codes[$contract->tenant_id] ?? '' }} · {{ \App\Support\LeaseTerms::reference($contract) }} · {{ $contract->unit->unit_label ?? 'No unit' }} · {{ $contract->property->title }}</p>
                                         </div>
                                         <span class="shrink-0 inline-flex items-center h-6 px-2.5 rounded-full border text-[11px] font-bold {{ $pill[$status['tone']] }}">{{ $status['label'] }}</span>
                                     </div>
@@ -157,7 +151,7 @@
                                         <td class="px-5 py-3">
                                             <p class="text-[13px] font-bold text-[#060D26] truncate">{{ $contract->tenant->first_name }} {{ $contract->tenant->last_name }}</p>
                                             <p class="text-[11.5px] text-[#5B6A8E] truncate">
-                                                {{ $codes[$contract->tenant_id] ?? '' }}
+                                                {{ $codes[$contract->tenant_id] ?? '' }} · <span class="tabular-nums">{{ \App\Support\LeaseTerms::reference($contract) }}</span>
                                             </p>
                                         </td>
                                         <td class="px-4 py-3 min-w-0">
@@ -204,7 +198,6 @@
 
         @include('landlord.contracts.partials._view-modal', ['label' => 'Rental details', 'maxWidth' => '920px'])
         @include('landlord.contracts.partials._add-modal')
-        @include('landlord.leases.partials._modal')
     </div>
 
     <script src="{{ asset('js/date-picker.js') }}"></script>

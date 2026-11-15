@@ -3,13 +3,17 @@
     It reads the Alpine state of whichever modal includes it: moveIn, moveOut, minMoveOut, rent, terms, leaseMode,
     recordPayment, method, paymentRequired and unit (the chosen unit: { rent, deposit, limit }). $idPrefix keeps the
     element ids unique when both modals are on one page. Posts to LeaseContractCreator's fields (StoreContractRequest).
+    $parts (optional, default all four) picks which blocks to draw, so a stepped modal can put them on different
+    steps: 'dates', 'terms', 'agreement', 'payment'.
 --}}
 @php
+    $parts = $parts ?? ['dates', 'terms', 'agreement', 'payment'];
     $input = 'h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[16px] sm:text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition';
     $label = 'block text-[12px] font-semibold text-[#060D26] mb-1.5';
     $err = 'mt-1 text-[11.5px] font-semibold text-[#EF4444]';
     $section = 'text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]';
 @endphp
+@if(in_array('dates', $parts))
 <div class="grid gap-3">
     <p class="{{ $section }}">Dates</p>
     <div class="grid grid-cols-2 gap-3">
@@ -20,12 +24,14 @@
         </div>
         <div>
             <label class="{{ $label }}" for="{{ $idPrefix }}_move_out">Move-out <span class="font-normal text-[#5B6A8E]">(optional)</span></label>
-            <x-date-picker name="move_out_date" id="{{ $idPrefix }}_move_out" x-model="moveOut" min-expr="minMoveOut" />
+            <x-date-picker name="move_out_date" id="{{ $idPrefix }}_move_out" x-model="moveOut" min-expr="minMoveOut" :align-right="true" />
             @error('move_out_date')<p class="{{ $err }}">{{ $message }}</p>@enderror
         </div>
     </div>
 </div>
+@endif
 
+@if(in_array('terms', $parts))
 <div class="grid gap-3">
     <p class="{{ $section }}">Terms</p>
     <div class="grid grid-cols-3 gap-3">
@@ -59,7 +65,9 @@
         @error('agreement_terms_notes')<p class="{{ $err }}">{{ $message }}</p>@enderror
     </div>
 </div>
+@endif
 
+@if(in_array('agreement', $parts))
 <div class="grid gap-3">
     <p class="{{ $section }}">Signed agreement</p>
     <div class="flex gap-2">
@@ -70,10 +78,14 @@
             <input type="radio" name="lease_mode" value="now" x-model="leaseMode" class="text-[#060D26] focus:ring-[#FF8A66]"> Upload now
         </label>
     </div>
-    <input x-show="leaseMode === 'now'" type="file" name="lease_file" accept=".pdf,.jpg,.jpeg,.png" class="text-[13px]">
+    <div x-show="leaseMode === 'now'" x-cloak>
+        <x-file-preview name="lease_file" :id="$idPrefix.'_lease_file'" />
+    </div>
     @error('lease_file')<p class="{{ $err }}">{{ $message }}</p>@enderror
 </div>
+@endif
 
+@if(in_array('payment', $parts))
 <div class="grid gap-3">
     <div class="flex items-center justify-between gap-3">
         <p class="{{ $section }}">Move-in payment</p>
@@ -107,3 +119,4 @@
         @error($field)<p class="{{ $err }}">{{ $message }}</p>@enderror
     @endforeach
 </div>
+@endif

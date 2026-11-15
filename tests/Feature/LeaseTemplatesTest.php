@@ -318,8 +318,8 @@ class LeaseTemplatesTest extends TestCase
 
         // By property: the property's policy, its units, and the list of policies.
         $this->actingAs($l)->get(route('landlord.leases.index'))->assertOk()
-            ->assertSee('Rental policies')->assertSee($prop->title)->assertSee('This property uses')->assertSee('Bedspace rental')
-            ->assertSee('Standard policy')->assertSee('1 in use')->assertSee('Edit policy');
+            ->assertSee('Rental policies')->assertSee($prop->title)->assertSee('Policy for the whole property')->assertSee('Bedspace rental')
+            ->assertSee('Standard policy')->assertSee('1 in use')->assertSee('Edit this policy');
         $this->actingAs($l)->get(route('landlord.leases.index', ['property' => $prop->property_id]))->assertOk()->assertSee('Same as property');
         $this->actingAs($l)->get(route('landlord.lease-templates.edit', $template))->assertOk()->assertSee('Rent rules')->assertSee('Open editor')->assertSee('Save policy');
         $this->actingAs($l)->get(route('landlord.lease-templates.create'))->assertOk();
@@ -477,15 +477,16 @@ class LeaseTemplatesTest extends TestCase
         $this->actingAs($l)->get(route('conversations.show', $conversation), $ajax)->assertOk()->assertSee('3 of 6');
     }
 
-    public function test_the_leases_page_offers_the_lease_policies_modal_and_keeps_the_plain_link(): void
+    public function test_policies_are_a_sidebar_page_not_a_button_on_the_rentals_page(): void
     {
         $l = $this->makeLandlord();
 
+        // The sidebar links to the Policies page from every landlord page; the Rentals page has no policies popup.
         $this->actingAs($l)->get(route('landlord.contracts.index'))
             ->assertOk()
-            ->assertSee('open-lease-policies', false)
-            ->assertSee('landlord\\/lease-policies\\/panel', false)
-            ->assertSee(route('landlord.leases.index'), false);
+            ->assertSee('Policies')
+            ->assertSee(route('landlord.leases.index'), false)
+            ->assertDontSee('open-lease-policies', false);
     }
 
     public function test_the_policies_panel_lists_only_my_properties_units_and_policies(): void
