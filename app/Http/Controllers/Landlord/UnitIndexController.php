@@ -51,8 +51,8 @@ class UnitIndexController extends Controller
                 'amenities',
                 'reservations.tenant:user_id,first_name,last_name',
             ])
-            // Property first so each property's units sit together (the table view
-            // renders one table per property); newest first within a property.
+            // Property first so each property's units sit together in the single
+            // table; newest first within a property.
             ->orderBy(Property::select('title')->whereColumn('properties.property_id', 'property_units.property_id'))
             ->orderBy('property_id')
             ->latest()->paginate(12)->withQueryString();

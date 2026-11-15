@@ -311,29 +311,8 @@
 
             {{-- Table view --}}
             <div @if($scopedProperty) class="hidden lg:block" @else x-show="view === 'table'" x-cloak @endif>
-            <div class="space-y-8">
-            {{-- One table per property. Scoped to a single property the heading is redundant (it's the page title). --}}
-            @foreach($units->groupBy('property_id') as $groupUnits)
-            @php
-                $groupProperty = $groupUnits->first()->property;
-            @endphp
-            <section>
+            {{-- One table for every unit; the Property dropdown above narrows it. --}}
             <x-card flush class="!rounded-none">
-                {{-- Property label: a soft tinted bar on top of its table --}}
-                @unless($scopedProperty)
-                    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-0.5 px-5 py-2.5 bg-[#ECEEF6] border-b border-[#E2E4EC] border-l-4 border-l-[#FF8A66]">
-                        <div class="min-w-0 flex items-baseline gap-2">
-                            <h2 class="text-[13.5px] font-bold text-[#060D26] truncate">{{ $groupProperty->title }}</h2>
-                            <span class="text-[11.5px] text-[#5B6A8E] whitespace-nowrap">{{ $groupUnits->count() }} {{ Str::plural('unit', $groupUnits->count()) }}</span>
-                        </div>
-                        <div class="flex items-center gap-4 text-[12px] font-semibold">
-                            <a href="{{ route('landlord.properties.show', $groupProperty) }}" class="text-[#B35A3D] hover:underline">View property</a>
-                            @unless(request('property'))
-                                <a href="{{ route('landlord.properties.units.create', $groupProperty) }}" class="text-[#B35A3D] hover:underline">+ Add unit</a>
-                            @endunless
-                        </div>
-                    </div>
-                @endunless
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[980px] text-left">
                         <thead>
@@ -347,7 +326,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#E2E4EC]">
-                            @foreach($groupUnits as $unit)
+                            @foreach($units as $unit)
                                 @php extract($derived[$unit->unit_id]); @endphp
                                 <tr class="hover:bg-[#F7F8FC]/70 transition-colors duration-200 cursor-pointer"
                                     x-on:click="if (! $event.target.closest('a, button, form, input') && ! window.getSelection().toString()) $el.querySelector('[data-view-unit]').click()">
@@ -460,9 +439,6 @@
                     </table>
                 </div>
             </x-card>
-            </section>
-            @endforeach
-            </div>
             </div>
 
             <div class="mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
