@@ -13,7 +13,7 @@
 @php
     $signedOnline = $reservation->agreed_at !== null;
     $backUrl = $isLandlordView
-        // Back to the lease modal for anything on the Leases page (Signed onward); earlier stages are reservations.
+        // Back to the rental page for anything on the Rentals list (Signed onward); earlier stages are reservations.
         ? (in_array($reservation->rental_status, ['Rental Agreement Signed', 'Reserved', 'Occupied', 'Completed'], true)
             ? route('landlord.contracts.index', ['open' => $reservation->reservation_id])
             : route('landlord.reservations.index'))

@@ -55,7 +55,7 @@ class UnitIndexController extends Controller
             // table; newest first within a property.
             ->orderBy(Property::select('title')->whereColumn('properties.property_id', 'property_units.property_id'))
             ->orderBy('property_id')
-            ->latest()->paginate(12)->withQueryString();
+            ->latest()->paginate(10)->withQueryString();
 
         $properties = Auth::user()->properties()
             ->where('verification_status', 'Approved')

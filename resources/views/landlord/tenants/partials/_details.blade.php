@@ -85,12 +85,16 @@
                         $isLease = in_array($reservation->rental_status, \App\Http\Controllers\Landlord\ContractController::CONTRACT_STATUSES, true);
                         $cs = $isLease ? $reservation->contractStatus() : null;
                     @endphp
-                    <li class="py-2.5">
-                        <div class="flex items-start justify-between gap-3">
-                            <p class="min-w-0 text-[13.5px] font-semibold text-[#060D26]">{{ $reservation->property->title }}<span class="font-normal text-[#5B6A8E]"> · {{ $reservation->unit->unit_label ?? 'No unit' }}</span></p>
-                            <span class="shrink-0 text-[12.5px] font-semibold {{ $cs ? $leasePill[$cs['tone']] : 'text-[#5B6A8E]' }}">{{ $cs['label'] ?? $reservation->rental_status }}</span>
-                        </div>
-                        <p class="mt-0.5 text-[12.5px] text-[#5B6A8E] tabular-nums">{{ $fmt($reservation->target_move_in_date) }} to {{ $fmt($reservation->target_move_out_date) }}</p>
+                    <li>
+                        {{-- A lease opens its rental details on top of this one (closing those returns here). --}}
+                        <{{ $isLease ? 'button type=button' : 'div' }} @if($isLease) @click="$dispatch('open-contract', { url: @js(route('landlord.contracts.show', $reservation)) })" title="View rental details" @endif
+                            class="block w-full py-2.5 text-left {{ $isLease ? 'cursor-pointer hover:bg-white/70 rounded-lg -mx-2 px-2 w-[calc(100%+1rem)] transition-colors duration-200' : '' }}">
+                            <span class="flex items-start justify-between gap-3">
+                                <span class="min-w-0 text-[13.5px] font-semibold text-[#060D26]">{{ $reservation->property->title }}<span class="font-normal text-[#5B6A8E]"> · {{ $reservation->unit->unit_label ?? 'No unit' }}</span></span>
+                                <span class="shrink-0 text-[12.5px] font-semibold {{ $cs ? $leasePill[$cs['tone']] : 'text-[#5B6A8E]' }}">{{ $cs['label'] ?? $reservation->rental_status }}</span>
+                            </span>
+                            <span class="block mt-0.5 text-[12.5px] text-[#5B6A8E] tabular-nums">{{ $fmt($reservation->target_move_in_date) }} to {{ $fmt($reservation->target_move_out_date) }}</span>
+                        </{{ $isLease ? 'button' : 'div' }}>
                     </li>
                 @endforeach
             </ul>

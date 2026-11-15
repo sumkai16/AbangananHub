@@ -44,17 +44,20 @@
         </x-page-header>
 
         {{-- Stat cards double as filters --}}
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+        <div data-swap-region="cards" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
             <x-stat-card label="Living there" :value="$stats['active']" :href="route('landlord.contracts.index', ['status' => 'active'])" sub="Occupied units" />
             <x-stat-card label="Awaiting move-in" :value="$stats['awaiting']" value-color="#B45309" :href="route('landlord.contracts.index', ['status' => 'awaiting'])" sub="Signed, not moved in" />
             <x-stat-card label="Ending soon" :value="$stats['ending']" value-color="{{ $stats['ending'] > 0 ? '#B45309' : '#060D26' }}"
-                sub="Within {{ config('rentals.renewal_window_days') }} days" :href="route('landlord.contracts.index', ['status' => 'active'])" />
+                sub="Within {{ config('rentals.renewal_window_days') }} days" :href="route('landlord.contracts.index', ['status' => 'active', 'ending' => 1])" />
             <x-stat-card label="Rental agreement missing" :value="$stats['lease_missing']" value-color="{{ $stats['lease_missing'] > 0 ? '#B45309' : '#060D26' }}"
                 sub="No rental agreement on file" :href="route('landlord.contracts.index', ['lease_missing' => 1])" />
         </div>
 
         {{-- Filters --}}
         <form method="GET" action="{{ route('landlord.contracts.index') }}" class="bg-white rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-4 mb-5">
+            {{-- The card filters (Ending soon, Agreement missing) survive a search or a dropdown change. --}}
+            @if(request()->boolean('ending'))<input type="hidden" name="ending" value="1">@endif
+            @if(request()->boolean('lease_missing'))<input type="hidden" name="lease_missing" value="1">@endif
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
                 <div class="relative flex-1 min-w-[200px]">
                     <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" /></svg>
@@ -67,11 +70,20 @@
                         class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26] max-w-[220px]" />
                     <x-styled-select name="status" :options="$statusOptions" :selected="$filter" autosubmit
                         class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26] max-w-[200px]" />
+                    @if(request()->boolean('ending') || request()->boolean('lease_missing'))
+                        <a href="{{ route('landlord.contracts.index', array_filter(['status' => $filter !== 'current' ? $filter : null, 'property' => request('property'), 'search' => request('search')])) }}"
+                            class="h-11 px-4 rounded-xl border border-[#FF8A66]/60 bg-[#FFF1EC] text-[13.5px] font-semibold text-[#060D26] inline-flex items-center gap-2 hover:bg-[#FFE4DA] transition-colors duration-200">
+                            {{ request()->boolean('ending') ? 'Ending soon' : 'Agreement missing' }}
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                            <span class="sr-only">Clear this filter</span>
+                        </a>
+                    @endif
                 </div>
             </div>
         </form>
 
-        @if($groups->isEmpty())
+        <div data-swap-region="results">
+        @if($contracts->isEmpty())
             <x-empty-state title="No rentals here yet"
                 message="Add a rental for a tenant on your list, or accept an online booking and it will show up here once the agreement is signed.">
                 <x-slot:icon>
@@ -81,17 +93,12 @@
         @endif
 
         <div class="space-y-5">
-            @foreach($groups as $propertyContracts)
-                @php $property = $propertyContracts->first()->property; @endphp
+            @if($contracts->isNotEmpty())
+                {{-- One table for every rental; the Property dropdown above narrows it. --}}
                 <x-card flush>
-                    <div class="flex items-center justify-between gap-3 px-5 py-3.5 border-b border-[#E2E4EC]">
-                        <h2 class="text-[14px] font-bold text-[#060D26] truncate">{{ $property->title }}</h2>
-                        <span class="text-[12px] text-[#5B6A8E] shrink-0">{{ $propertyContracts->count() }} {{ Str::plural('rental', $propertyContracts->count()) }}</span>
-                    </div>
-
                     {{-- Phone and tablet: one card per contract --}}
                     <ul class="lg:hidden divide-y divide-[#E2E4EC]">
-                        @foreach($propertyContracts as $contract)
+                        @foreach($contracts as $contract)
                             @php $status = $contract->contractStatus(); @endphp
                             <li>
                                 <button type="button" @click="$dispatch('open-contract', { url: @js(route('landlord.contracts.show', $contract)) })"
@@ -99,7 +106,7 @@
                                     <div class="flex items-start justify-between gap-3">
                                         <div class="min-w-0">
                                             <p class="text-[13.5px] font-bold text-[#060D26] truncate">{{ $contract->tenant->first_name }} {{ $contract->tenant->last_name }}</p>
-                                            <p class="text-[11.5px] text-[#5B6A8E]">{{ $codes[$contract->tenant_id] ?? '' }} · {{ $contract->unit->unit_label ?? 'No unit' }}</p>
+                                            <p class="text-[11.5px] text-[#5B6A8E]">{{ $codes[$contract->tenant_id] ?? '' }} · {{ $contract->unit->unit_label ?? 'No unit' }} · {{ $contract->property->title }}</p>
                                         </div>
                                         <span class="shrink-0 inline-flex items-center h-6 px-2.5 rounded-full border text-[11px] font-bold {{ $pill[$status['tone']] }}">{{ $status['label'] }}</span>
                                     </div>
@@ -119,7 +126,7 @@
                         <table class="w-full min-w-[1100px] table-fixed text-left">
                             <colgroup>
                                 <col>
-                                <col class="w-[120px]">
+                                <col class="w-[190px]">
                                 <col class="w-[230px]">
                                 <col class="w-[100px]">
                                 <col class="w-[80px]">
@@ -140,7 +147,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-[#E2E4EC]">
-                                @foreach($propertyContracts as $contract)
+                                @foreach($contracts as $contract)
                                     @php
                                         $status = $contract->contractStatus();
                                         $lease = $contract->leaseStatus();
@@ -153,7 +160,10 @@
                                                 {{ $codes[$contract->tenant_id] ?? '' }}
                                             </p>
                                         </td>
-                                        <td class="px-4 py-3 text-[13px] text-[#060D26] truncate">{{ $contract->unit->unit_label ?? 'No unit' }}</td>
+                                        <td class="px-4 py-3 min-w-0">
+                                            <p class="text-[13px] text-[#060D26] truncate">{{ $contract->unit->unit_label ?? 'No unit' }}</p>
+                                            <p class="text-[11.5px] text-[#5B6A8E] truncate" title="{{ $contract->property->title }}">{{ $contract->property->title }}</p>
+                                        </td>
                                         <td class="px-4 py-3 text-[13px] text-[#5B6A8E] whitespace-nowrap tabular-nums">{{ $fmt($contract->target_move_in_date) }} → {{ $fmt($contract->target_move_out_date) }}</td>
                                         <td class="px-4 py-3 text-[13px] font-semibold text-[#060D26] text-right tabular-nums">₱{{ number_format($contract->currentRent()) }}</td>
                                         <td class="px-4 py-3 text-[13px] text-[#5B6A8E] whitespace-nowrap">Day {{ $contract->rentDueDay() }}</td>
@@ -168,10 +178,6 @@
                                         </td>
                                         <td class="px-5 py-3">
                                           <div class="flex items-center justify-end gap-2">
-                                            @if($contract->rental_status === 'Occupied' && in_array($status['tone'], ['warn', 'bad'], true))
-                                                <button type="button" @click="$dispatch('open-contract', { url: @js(route('landlord.contracts.show', ['reservation' => $contract, 'renew' => 1])) })"
-                                                    class="inline-flex items-center justify-center h-9 px-3.5 rounded-full bg-[#FF8A66] text-[12px] font-bold text-[#060D26] hover:bg-[#E96F4F] transition-colors duration-200 cursor-pointer whitespace-nowrap">Renew</button>
-                                            @endif
                                             <button type="button" title="View rental" aria-label="View rental for {{ $contract->tenant->first_name }}"
                                                 @click="$dispatch('open-contract', { url: @js(route('landlord.contracts.show', $contract)) })"
                                                 class="h-9 w-9 inline-flex items-center justify-center rounded-full border border-[#5B6A8E]/30 text-[#060D26] hover:bg-white cursor-pointer transition-colors duration-200">
@@ -185,10 +191,18 @@
                         </table>
                     </div>
                 </x-card>
-            @endforeach
+                <div class="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <p class="text-[12.5px] text-[#5B6A8E]">
+                        Showing <span class="font-semibold text-[#060D26]">{{ $contracts->firstItem() }}–{{ $contracts->lastItem() }}</span> of
+                        <span class="font-semibold text-[#060D26]">{{ $contracts->total() }}</span> {{ Str::plural('rental', $contracts->total()) }}
+                    </p>
+                    {{ $contracts->links() }}
+                </div>
+            @endif
+        </div>
         </div>
 
-        @include('landlord.contracts.partials._view-modal', ['label' => 'Rental details', 'maxWidth' => '560px'])
+        @include('landlord.contracts.partials._view-modal', ['label' => 'Rental details', 'maxWidth' => '920px'])
         @include('landlord.contracts.partials._add-modal')
         @include('landlord.leases.partials._modal')
     </div>

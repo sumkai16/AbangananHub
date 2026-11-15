@@ -47,7 +47,7 @@ class TenantController extends Controller
     /** The Tenants dropdown. Former tenants are history, so the page starts on the current ones. */
     public const SHOW = ['current' => 'Current tenants', 'former' => 'Former tenants', 'all' => 'Everyone'];
 
-    private const PER_PAGE = 20;
+    private const PER_PAGE = 10;
 
     /** Old Tenants-page filters (Active / Pending) from before the merge. */
     private const OLD_STATUS = ['pending' => 'none'];
@@ -91,13 +91,11 @@ class TenantController extends Controller
 
         $filtered = $stage === '' ? $scoped : $scoped->filter(fn ($r) => $this->inStage($r, $stage))->values();
 
-        // The page shows one table per property, so keep each property's tenants together (tenants with no
-        // unit yet first, so they are the first thing seen). sortBy is stable, so the order inside a property is unchanged.
+        // Keep each property's tenants together in the single table (tenants with no unit yet first, so they
+        // are the first thing seen). sortBy is stable, so the order inside a property is unchanged.
         $filtered = $filtered
             ->sortBy(fn ($r) => $r['shown'] ? '1'.Str::lower($r['shown']->property->title).'|'.$r['shown']->property_id : '0')
             ->values();
-        // Whole-list total per property: a property cut across two pages still shows its real size.
-        $groupTotals = $filtered->countBy(fn ($r) => $r['shown']?->property_id ?? 0);
 
         $properties = Auth::user()->properties()->where('verification_status', 'Approved')
             ->orderBy('title')->get(['property_id', 'title']);
@@ -108,7 +106,6 @@ class TenantController extends Controller
         return view('landlord.tenants.index', [
             // Counts and chips above were taken over every tenant; only the rows shown are cut to a page.
             'rows' => Paging::collection($filtered, self::PER_PAGE),
-            'groupTotals' => $groupTotals,
             'counts' => $counts,
             'stage' => $stage,
             'show' => $show,

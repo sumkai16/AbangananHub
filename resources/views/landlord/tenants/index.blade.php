@@ -12,20 +12,13 @@
     ];
     $propertyOptions = ['' => 'All Properties'] + $properties->pluck('title', 'property_id')->all();
     $iconBtn = 'h-9 w-9 inline-flex items-center justify-center rounded-full border border-[#5B6A8E]/30 text-[#060D26] hover:bg-white transition-colors duration-200 cursor-pointer';
-    $iconOff = 'h-9 w-9 inline-flex items-center justify-center rounded-full border border-[#E2E4EC] text-[#CBD5E1] cursor-not-allowed';
     $smallBtn = 'inline-flex items-center justify-center h-9 px-3.5 rounded-full border border-[#5B6A8E]/30 bg-white text-[12px] font-bold text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer whitespace-nowrap';
-    $coralBtn = 'inline-flex items-center justify-center h-9 px-3.5 rounded-full bg-[#FF8A66] text-[12px] font-bold text-[#060D26] hover:bg-[#E96F4F] transition-colors duration-200 cursor-pointer whitespace-nowrap';
     $fmt = fn ($d) => $d ? \Illuminate\Support\Carbon::parse($d)->format('M j, Y') : '—';
     $editValues = fn ($r) => [
         'action' => route('landlord.tenants.update', $r['row']),
         'first_name' => $r['tenant']->first_name, 'last_name' => $r['tenant']->last_name,
         'email' => $r['tenant']->email, 'contact_number' => $r['tenant']->contact_number,
     ];
-    // Why the Message icon is off, when it is.
-    $messageOff = fn ($r) => $r['tenant']->is_walk_in
-        ? ($r['tenant']->email ? 'Invite pending: they have not set up their account' : 'Add an email to invite them')
-        : 'Available once they move in';
-
     // Chip links keep the search and property filter.
     $keep = array_filter(['search' => request('search'), 'property' => request('property'), 'show' => $show !== 'current' ? $show : null]);
     $showOptions = collect(\App\Http\Controllers\Landlord\TenantController::SHOW)
@@ -104,14 +97,6 @@
                     <x-styled-select name="property" :options="$propertyOptions" :selected="(string) request('property', '')" autosubmit
                         class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26] max-w-[220px]" />
 
-                    <button type="submit"
-                        class="h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 inline-flex items-center gap-1.5">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-                        </svg>
-                        Filter
-                    </button>
-
                     @if($keep !== [])
                         <a href="{{ route('landlord.tenants.index', $stage !== '' ? ['status' => $stage] : []) }}"
                             class="h-11 px-4 rounded-xl border border-[#5B6A8E]/25 text-[13.5px] text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 inline-flex items-center gap-1.5">
@@ -134,7 +119,7 @@
                 $cardGrid = 'sm:grid-cols-3';
             @endphp
             @if($show !== 'former')
-            <nav class="mt-4 grid grid-cols-2 gap-3 {{ $cardGrid }}" aria-label="Filter tenants by stage">
+            <nav data-swap-region="cards" class="mt-4 grid grid-cols-2 gap-3 {{ $cardGrid }}" aria-label="Filter tenants by stage">
                 @foreach($chips as $key => $label)
                     @php
                         $key = (string) $key;
@@ -157,6 +142,8 @@
             @endif
         </form>
 
+        {{-- The part a card or the stage filter changes; page-swap.js replaces just this and the cards. --}}
+        <div data-swap-region="results">
         @if($unsignedAgreements > 0)
             <p class="mb-4 text-[12.5px] text-[#5B6A8E]">
                 {{ $unsignedAgreements }} {{ Str::plural('agreement', $unsignedAgreements) }} sent and waiting for a signature.
@@ -172,23 +159,11 @@
                 </x-slot:icon>
             </x-empty-state>
         @else
-            {{-- One table per property, same band-and-table look as Units. The controller sorted the rows by property, so groupBy keeps that order. --}}
-            @php $groups = $rows->getCollection()->groupBy(fn ($r) => $r['shown']?->property_id ?? 0); @endphp
-            <div class="space-y-5">
-            @foreach($groups as $propertyId => $items)
-                @php
-                    $groupProperty = $propertyId ? $items->first()['shown']->property : null;
-                    $groupTotal = $groupTotals[$propertyId] ?? $items->count();
-                @endphp
+            {{-- One table for every tenant; the Property dropdown above narrows it. --}}
+            @php $items = $rows->getCollection(); @endphp
+            <div>
                 <section>
                     <x-card flush>
-                        {{-- Property name and count, the same header as the Leases tables. --}}
-                        <div class="flex items-center justify-between gap-3 px-5 py-3.5 border-b border-[#E2E4EC]">
-                            <h2 class="text-[14px] font-bold text-[#060D26] truncate">{{ $groupProperty?->title ?? 'No unit yet' }}</h2>
-                            <span class="text-[12px] text-[#5B6A8E] shrink-0">
-                                {{ $groupTotal }} {{ Str::plural('tenant', $groupTotal) }}@if($items->count() < $groupTotal) · {{ $items->count() }} on this page @endif
-                            </span>
-                        </div>
                         {{-- Phone and tablet: one card per tenant --}}
                         <ul class="lg:hidden divide-y divide-[#E2E4EC]">
                             @foreach($items as $r)
@@ -197,7 +172,7 @@
                                     <div class="flex items-start justify-between gap-3">
                                         <button type="button" class="min-w-0 text-left cursor-pointer" @click="$dispatch('open-tenant', { url: @js(route('landlord.tenants.show', $r['row'])) })">
                                             <p class="text-[14px] font-bold text-[#060D26] truncate">{{ $r['name'] }}</p>
-                                            <p class="text-[12px] text-[#5B6A8E]">{{ $r['code'] }}@if($r['shown']) · {{ $r['shown']->unit->unit_label ?? 'No unit' }}@else · {{ $r['tenant']->contact_number ?: ($r['tenant']->email ?: 'No contact') }}@endif</p>
+                                            <p class="text-[12px] text-[#5B6A8E]">{{ $r['code'] }}@if($r['shown']) · {{ $r['shown']->unit->unit_label ?? 'No unit' }} · {{ $r['shown']->property->title }}@else · {{ $r['tenant']->contact_number ?: ($r['tenant']->email ?: 'No contact') }}@endif</p>
                                         </button>
                                         <span class="shrink-0 inline-flex items-center h-6 px-2.5 rounded-full border text-[11px] font-bold {{ $pill[$st['tone']] }}">{{ $st['label'] }}</span>
                                     </div>
@@ -206,9 +181,6 @@
                                     </div>
                                     <div class="mt-3 flex flex-wrap items-center gap-2">
                                         @include('landlord.tenants.partials._row-actions', ['r' => $r])
-                                        @if($r['stage'] === 'none')
-                                            <button type="button" class="{{ $coralBtn }} ml-auto" @click="$dispatch('open-add-contract', { tenant: {{ $r['row']->landlord_tenant_id }} })">Add rental</button>
-                                        @endif
                                     </div>
                                 </li>
                             @endforeach
@@ -218,7 +190,7 @@
                         <div class="hidden lg:block overflow-x-auto">
                             <table class="w-full min-w-[960px] table-fixed text-left">
                                 <colgroup>
-                                    <col style="width:22%"><col style="width:24%"><col style="width:14%"><col style="width:16%"><col style="width:24%">
+                                    <col style="width:26%"><col style="width:26%"><col style="width:26%"><col style="width:22%"><col style="width:176px">
                                 </colgroup>
                                 <thead>
                                     <tr class="border-b border-[#E2E4EC]">
@@ -248,7 +220,8 @@
                                             </td>
                                             <td class="px-4 py-3 text-[13px] text-[#060D26]">
                                                 @if($c)
-                                                    {{ $c->unit->unit_label ?? '' }}
+                                                    <span class="block truncate">{{ $c->unit->unit_label ?? '' }}</span>
+                                                    <span class="block text-[11.5px] text-[#5B6A8E] truncate" title="{{ $c->property->title }}">{{ $c->property->title }}</span>
                                                 @else
                                                     <span class="text-[#5B6A8E]">None</span>
                                                 @endif
@@ -258,9 +231,6 @@
                                             </td>
                                             <td class="px-5 py-3">
                                                 <div class="flex items-center justify-end gap-2">
-                                                    @if($r['stage'] === 'none')
-                                                        <button type="button" class="{{ $coralBtn }}" @click="$dispatch('open-add-contract', { tenant: {{ $r['row']->landlord_tenant_id }} })">Add rental</button>
-                                                    @endif
                                                     @include('landlord.tenants.partials._row-actions', ['r' => $r])
                                                 </div>
                                             </td>
@@ -271,7 +241,6 @@
                         </div>
                     </x-card>
                 </section>
-            @endforeach
             </div>
 
             @if($rows->hasPages())
@@ -279,9 +248,10 @@
             @endif
         @endif
         </div>
+        </div>
 
         @include('landlord.contracts.partials._view-modal', ['event' => 'open-tenant', 'label' => 'Tenant details', 'maxWidth' => '480px'])
-        @include('landlord.contracts.partials._view-modal', ['event' => 'open-contract', 'label' => 'Rental details', 'maxWidth' => '560px'])
+        @include('landlord.contracts.partials._view-modal', ['event' => 'open-contract', 'label' => 'Rental details', 'maxWidth' => '920px'])
         @include('landlord.contracts.partials._add-modal')
         @include('landlord.tenants.partials._form-modal')
         @include('landlord.tenants.partials._added-modal')

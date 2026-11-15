@@ -46,7 +46,7 @@ class ContractController extends Controller
             ->whereIn('rental_status', self::CONTRACT_STATUSES);
     }
 
-    /** The Leases page: every lease on the landlord's properties, grouped by property. */
+    /** The Rentals page: every rental on the landlord's properties, 10 to a page. */
     public function index(Request $request)
     {
         $filter = array_key_exists($request->input('status'), self::FILTERS) ? $request->input('status') : 'current';
@@ -59,11 +59,16 @@ class ContractController extends Controller
                 ->orWhere('last_name', 'like', "%{$search}%")
                 ->orWhere('email', 'like', "%{$search}%")))
             ->when($request->boolean('lease_missing'), fn ($q) => $q->whereNull('lease_file_path')->whereNull('agreed_at'))
+            // The Ending soon card: running rentals whose end date is inside the renewal window (or already past).
+            ->when($request->boolean('ending'), fn ($q) => $q->where('rental_status', 'Occupied')
+                ->whereNotNull('target_move_out_date')
+                ->whereDate('target_move_out_date', '<=', now()->addDays((int) config('rentals.renewal_window_days', 60))))
             ->with(['tenant', 'unit', 'property', 'renewals', 'documents'])
             ->orderBy('property_id')
             ->orderByRaw("FIELD(rental_status, 'Rental Agreement Signed', 'Reserved', 'Occupied', 'Completed')")
             ->orderBy('target_move_out_date')
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         // Tenant IDs for every row in one query, keyed by tenant.
         $codes = LandlordTenant::where('landlord_id', Auth::id())
@@ -86,7 +91,7 @@ class ContractController extends Controller
             ->orderBy('title')->get(['property_id', 'title']);
 
         return view('landlord.contracts.index', [
-            'groups' => $contracts->groupBy('property_id'),
+            'contracts' => $contracts,
             'codes' => $codes,
             'stats' => $stats,
             'filter' => $filter,

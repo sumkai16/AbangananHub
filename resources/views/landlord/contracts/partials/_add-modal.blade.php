@@ -3,8 +3,8 @@
     landlord.contracts.store (LeaseContractCreator). Opened with $dispatch('open-add-contract'); a failed submit
     reopens it with the old values (old('_form') === 'contract').
 
-    Layout: one column (bottom sheet on phones, 600px dialog above), three groups separated by space and a hairline:
-    who and where → term and rent → paperwork and money. Fixed header and footer; only the fields scroll. No extra
+    Layout: one column on phones (bottom sheet), two columns from md in a 960px dialog: who and where on the left,
+    term and rent → paperwork and money on the right. Fixed header and footer; only the fields scroll. No extra
     terms field: the rental's wording and house rules come from the unit's policy (Policies page). Field names are
     unchanged.
 --}}
@@ -105,7 +105,7 @@
                 x-transition:enter-end="opacity-100 translate-y-0"
                 x-transition:leave="transition ease-in duration-150"
                 x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-                style="max-width: 600px; max-height: 94vh;"
+                style="max-width: 960px; max-height: 94vh;"
                 class="relative w-full flex flex-col bg-white rounded-t-2xl sm:rounded-2xl shadow-[0_20px_60px_rgba(6,13,38,0.18)] overflow-hidden">
 
                 <div class="shrink-0 flex items-start justify-between gap-4 px-5 sm:px-7 pt-6 pb-4 border-b border-[#E2E4EC]">
@@ -132,7 +132,7 @@
                     @csrf
                     <input type="hidden" name="_form" value="contract">
 
-                    <div class="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 sm:px-7 py-5 grid gap-5">
+                    <div class="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 sm:px-7 py-5 grid gap-5 md:grid-cols-2 md:gap-x-10 md:items-start">
 
                     {{-- Who and where: any tenant on the list (Pending or Active), then a property, then a free unit of it. --}}
                     <div class="grid gap-3" x-ref="unitBlock">
@@ -194,7 +194,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label class="{{ $label }}">Property</label>
-                                <x-styled-select name="_property" :options="$propertySelect" x-model="propertyId" placeholder="Choose a property"
+                                <x-styled-select name="_property" :options="$propertySelect" x-model="propertyId" placeholder="Choose a property" required
                                     class="{{ $input }} text-left" />
                             </div>
                             <div>
@@ -214,7 +214,10 @@
                         </div>
                     </div>
 
-                    @include('landlord.contracts.partials._contract-fields', ['idPrefix' => 'contract'])
+                    {{-- The paperwork and money sit in their own column beside who and where (stacked on a phone). --}}
+                    <div class="grid gap-5 md:border-l md:border-[#E2E4EC] md:pl-10">
+                        @include('landlord.contracts.partials._contract-fields', ['idPrefix' => 'contract'])
+                    </div>
                     </div>
 
                     {{-- Footer: always visible, so the submit never scrolls out of reach. The running total sits beside it. --}}

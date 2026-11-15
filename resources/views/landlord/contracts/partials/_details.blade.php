@@ -113,15 +113,15 @@
         <p class="mt-1 text-[13px] text-[#5B6A8E]">{{ $tenant->first_name }} {{ $tenant->last_name }} · {{ $reservation->unit->unit_label ?? 'No unit' }} · {{ $reservation->property->title }}</p>
     </div>
 
-    <div class="grid gap-5 px-6 py-4">
+    <div class="grid gap-5 px-6 py-4 md:grid-cols-2 md:gap-x-8">
         {{-- What needs doing comes first, as a plain banner. --}}
         @if($leaseStatus === 'missing')
-            <div class="{{ $banner }}" role="note">
+            <div class="{{ $banner }} md:col-span-2" role="note">
                 <span><span class="font-semibold">No rental agreement yet.</span> Print it, sign it together, then upload the signed copy.</span>
             </div>
         @endif
         @if($showTenantDetails && ! $hasEmergency)
-            <div class="{{ $banner }}" role="note">
+            <div class="{{ $banner }} md:col-span-2" role="note">
                 <span><span class="font-semibold">Emergency contact needed.</span> Add one for {{ $tenant->first_name }}.</span>
                 @if($landlordTenantId ?? null)
                     <a href="{{ route('landlord.tenants.index', ['edit' => $landlordTenantId]) }}" class="font-semibold underline underline-offset-2">Add contact</a>
@@ -153,7 +153,30 @@
             @endif
         </section>
 
-        <section aria-labelledby="contract-agreement">
+        <section aria-labelledby="contract-tenant">
+            <h3 id="contract-tenant" class="{{ $head }}">Tenant</h3>
+            <div class="{{ $inset }}">
+                <dl>
+                    <div class="{{ $rw }}"><dt class="{{ $dt }}">Name</dt><dd class="{{ $dd }}">{{ $tenant->first_name }} {{ $tenant->last_name }}</dd></div>
+                    <div class="{{ $rw }}"><dt class="{{ $dt }}">Mobile</dt><dd class="{{ $dd }}">@if($tenant->contact_number)<a href="tel:{{ preg_replace('/[^\d+]/', '', $tenant->contact_number) }}" class="{{ $link }}">{{ $tenant->contact_number }}</a>@else<span class="{{ $none }}">Not added</span>@endif</dd></div>
+                    <div class="{{ $rw }}"><dt class="{{ $dt }}">Email</dt><dd class="{{ $dd }} break-all">@if($tenant->email)<a href="mailto:{{ $tenant->email }}" class="{{ $link }}">{{ $tenant->email }}</a>@else<span class="{{ $none }}">Not added</span>@endif</dd></div>
+                    @if($showTenantDetails)
+                        <div class="{{ $rw }}"><dt class="{{ $dt }}">ID</dt><dd class="{{ $dd }}">@if($detail?->id_type){{ $detail->id_type }} <span class="{{ $none }} tabular-nums">{{ $detail->maskedIdNumber() }}</span>@else<span class="{{ $none }}">Not added</span>@endif</dd></div>
+                    @endif
+                    @if($showTenantDetails && $hasEmergency)
+                        <div class="{{ $rw }}">
+                            <dt class="{{ $dt }}">Emergency contact</dt>
+                            <dd class="{{ $dd }}">
+                                {{ $detail->emergency_contact_name }}@if($detail->emergency_contact_relationship) <span class="{{ $none }}">({{ $detail->emergency_contact_relationship }})</span>@endif
+                                @if($detail->emergency_contact_number)<a href="tel:{{ preg_replace('/[^\d+]/', '', $detail->emergency_contact_number) }}" class="block {{ $none }} {{ $link }}">{{ $detail->emergency_contact_number }}</a>@endif
+                            </dd>
+                        </div>
+                    @endif
+                </dl>
+            </div>
+        </section>
+
+        <section aria-labelledby="contract-agreement" class="md:col-span-2">
             <h3 id="contract-agreement" class="{{ $head }}">Rental agreement</h3>
             {{-- One compact row: the status on the left, the buttons on the right (they wrap under it on a narrow phone). --}}
             @php
@@ -201,31 +224,8 @@
             </form>
         </section>
 
-        <section aria-labelledby="contract-tenant">
-            <h3 id="contract-tenant" class="{{ $head }}">Tenant</h3>
-            <div class="{{ $inset }}">
-                <dl>
-                    <div class="{{ $rw }}"><dt class="{{ $dt }}">Name</dt><dd class="{{ $dd }}">{{ $tenant->first_name }} {{ $tenant->last_name }}</dd></div>
-                    <div class="{{ $rw }}"><dt class="{{ $dt }}">Mobile</dt><dd class="{{ $dd }}">@if($tenant->contact_number)<a href="tel:{{ preg_replace('/[^\d+]/', '', $tenant->contact_number) }}" class="{{ $link }}">{{ $tenant->contact_number }}</a>@else<span class="{{ $none }}">Not added</span>@endif</dd></div>
-                    <div class="{{ $rw }}"><dt class="{{ $dt }}">Email</dt><dd class="{{ $dd }} break-all">@if($tenant->email)<a href="mailto:{{ $tenant->email }}" class="{{ $link }}">{{ $tenant->email }}</a>@else<span class="{{ $none }}">Not added</span>@endif</dd></div>
-                    @if($showTenantDetails)
-                        <div class="{{ $rw }}"><dt class="{{ $dt }}">ID</dt><dd class="{{ $dd }}">@if($detail?->id_type){{ $detail->id_type }} <span class="{{ $none }} tabular-nums">{{ $detail->maskedIdNumber() }}</span>@else<span class="{{ $none }}">Not added</span>@endif</dd></div>
-                    @endif
-                    @if($showTenantDetails && $hasEmergency)
-                        <div class="{{ $rw }}">
-                            <dt class="{{ $dt }}">Emergency contact</dt>
-                            <dd class="{{ $dd }}">
-                                {{ $detail->emergency_contact_name }}@if($detail->emergency_contact_relationship) <span class="{{ $none }}">({{ $detail->emergency_contact_relationship }})</span>@endif
-                                @if($detail->emergency_contact_number)<a href="tel:{{ preg_replace('/[^\d+]/', '', $detail->emergency_contact_number) }}" class="block {{ $none }} {{ $link }}">{{ $detail->emergency_contact_number }}</a>@endif
-                            </dd>
-                        </div>
-                    @endif
-                </dl>
-            </div>
-        </section>
-
         @if(($others ?? collect())->isNotEmpty())
-            <section aria-labelledby="contract-others">
+            <section aria-labelledby="contract-others" class="md:col-span-2">
                 <h3 id="contract-others" class="{{ $head }}">Other rentals with you</h3>
                 <ul class="{{ $inset }} divide-y divide-[#E2E4EC]">
                     @foreach($others as $other)
