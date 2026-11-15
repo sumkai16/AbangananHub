@@ -11,8 +11,10 @@ use App\Models\Notification;
 use App\Models\Reservation;
 use App\Services\LeaseContractCreator;
 use App\Services\RentLedger;
+use App\Services\TenantCreator;
 use App\Support\ContractFormOptions;
 use App\Support\Images;
+use App\Support\TenantInvites;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -97,15 +99,31 @@ class ContractController extends Controller
     public function store(StoreContractRequest $request)
     {
         $data = $request->validated();
-        $row = LandlordTenant::where('landlord_id', Auth::id())->visible()->findOrFail($data['landlord_tenant_id']);
+        $newTenant = $request->addsNewTenant();
 
-        $reservation = LeaseContractCreator::create(Auth::id(), $row->tenant, $data, $request->file('lease_file'));
+        if ($newTenant) {
+            // The tenant and the rental are written together: if the rental is refused (a unit taken a moment ago),
+            // the tenant is not created either.
+            $row = DB::transaction(function () use ($request, $data, &$reservation) {
+                $row = TenantCreator::create($request->user(), $data);
+                $reservation = LeaseContractCreator::create(Auth::id(), $row->tenant, $data, $request->file('lease_file'));
+
+                return $row;
+            });
+        } else {
+            $row = LandlordTenant::where('landlord_id', Auth::id())->visible()->findOrFail($data['landlord_tenant_id']);
+            $reservation = LeaseContractCreator::create(Auth::id(), $row->tenant, $data, $request->file('lease_file'));
+        }
+
+        // Emailed after the commit, like Add tenant: only when an email was given.
+        $invited = $newTenant && TenantInvites::send($row->tenant, $request->user());
 
         return redirect()
             ->route('landlord.contracts.index', ['open' => $reservation->reservation_id])
-            ->with('success', $reservation->rental_status === 'Occupied'
+            ->with('success', ($newTenant ? $row->code().' added. ' : '').($reservation->rental_status === 'Occupied'
                 ? 'Rental added. The unit is now occupied.'
-                : 'Rental added. The unit is reserved until '.$row->tenant->first_name.' moves in.');
+                : 'Rental added. The unit is reserved until '.$row->tenant->first_name.' moves in.')
+                .($invited ? ' We emailed them an invite to set a password.' : ''));
     }
 
     /** The contract's details, rendered for the view modal (fetched when it opens, not embedded per row). */

@@ -2,6 +2,14 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 15 2026 — Add a rental can create a new tenant in the modal (branch `emman`)
+Why: the modal only listed existing tenants, so a landlord with a tenant not yet on the list had to leave, add them on the Tenants page, and come back. Plan: `plans/add-rental-inline-new-tenant.md`. **Not verified in a browser.**
+- **UI:** `contracts/partials/_add-modal.blade.php` has an Existing tenant / New tenant toggle. New tenant asks first name, last name, mobile, optional email (same rules as Add tenant). An empty tenant list opens on New tenant instead of the old dead-end message.
+- **Backend:** `ContractController::store` with `tenant_mode=new` creates the tenant and the rental in one transaction (a refused rental leaves no tenant), then sends the email invite if an email was given. `StoreContractRequest` swaps `landlord_tenant_id` for the name/contact rules in that mode.
+- **Shared code:** `App\Services\TenantCreator` was pulled out of `TenantController::store`; both pages use it.
+- **Duplicates:** a mobile number already on the landlord's own list (any format, `Phone::digits`) is refused with a "Use that tenant" button. Other landlords' tenants never block. Email duplicates keep the existing unique rule.
+- **Tests:** `tests/Feature/AddRentalNewTenantTest.php` (7 pass). 3 tests in `ContractsPageTest`/`TenantsPageTest` fail with and without this change.
+
 ## Nov 13 2026 — Online (PayMongo) move-in payment can be paid in parts (branch `emman`)
 Why: direct payment already let a reservation-fee tenant pay the fee first and the balance before move-in; online charged the full amount only. Plan: `plans/flexible-online-move-in-payment.md`. **Not verified in a browser or with real PayMongo.**
 - **Same rule as direct:** on a fee unit the tenant picks an amount from `minimumMoveInPayment()` (the fee) up to `moveInShortfall()`. Once the fee is in, the balance is paid in one go (less is refused), exactly like direct. Other units stay full amount.

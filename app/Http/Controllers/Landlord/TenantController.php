@@ -8,9 +8,10 @@ use App\Http\Requests\Landlord\TenantRequest;
 use App\Models\LandlordTenant;
 use App\Models\Reservation;
 use App\Models\TenantDetail;
-use App\Models\User;
 use App\Services\LeaseContractCreator;
+use App\Services\TenantCreator;
 use App\Support\ContractFormOptions;
+use App\Support\Csv;
 use App\Support\Paging;
 use App\Support\TenantInvites;
 use Illuminate\Http\Request;
@@ -18,7 +19,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
@@ -161,25 +161,10 @@ class TenantController extends Controller
         $reservation = null;
 
         $row = DB::transaction(function () use ($data, $landlord, $contract, $request, &$reservation) {
-            $tenant = User::create([
-                'first_name' => $data['first_name'],
-                'last_name' => $data['last_name'],
-                'email' => $data['email'] ?? null,
-                // Unknowable until the tenant accepts an invite and chooses their own.
-                'password' => Hash::make(Str::random(40)),
-                'contact_number' => $data['contact_number'] ?? null,
-                'account_status' => 'inactive',
-                'is_walk_in' => true,
-                'created_by_landlord_id' => $landlord->user_id,
-            ]);
-            $tenant->assignRole('Tenant');
-
-            TenantDetail::saveFor($tenant, $data);
-
-            $row = LandlordTenant::ensureFor($landlord->user_id, $tenant->user_id);
+            $row = TenantCreator::create($landlord, $data);
 
             if ($contract) {
-                $reservation = LeaseContractCreator::create($landlord->user_id, $tenant, $contract, $request->file('lease_file'));
+                $reservation = LeaseContractCreator::create($landlord->user_id, $row->tenant, $contract, $request->file('lease_file'));
             }
 
             return $row;
@@ -299,10 +284,10 @@ class TenantController extends Controller
 
         return response()->streamDownload(function () use ($rows) {
             $handle = fopen('php://output', 'w');
-            \App\Support\Csv::put($handle, ['Tenant ID', 'Tenant', 'Status', 'Email', 'Contact', 'Property', 'Unit', 'Has own login']);
+            Csv::put($handle, ['Tenant ID', 'Tenant', 'Status', 'Email', 'Contact', 'Property', 'Unit', 'Has own login']);
 
             foreach ($rows as $r) {
-                \App\Support\Csv::put($handle, [
+                Csv::put($handle, [
                     $r['code'], $r['name'], $r['status'], $r['tenant']->email ?? '', $r['tenant']->contact_number ?? '',
                     $r['current']?->property?->title ?? '', $r['current']?->unit?->unit_label ?? '',
                     $r['tenant']->is_walk_in ? 'No' : 'Yes',

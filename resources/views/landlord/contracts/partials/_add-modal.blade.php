@@ -1,5 +1,5 @@
 {{--
-    "Add rental": a tenant from the landlord's list, one free unit, the dates and the rent. Posts to
+    "Add rental": a tenant from the landlord's list or a new one typed here, one free unit, the dates and the rent. Posts to
     landlord.contracts.store (LeaseContractCreator). Opened with $dispatch('open-add-contract'); a failed submit
     reopens it with the old values (old('_form') === 'contract').
 
@@ -36,6 +36,9 @@
         show: false,
         units: @js((object) $unitInfo),
         tenantId: @js((string) old('landlord_tenant_id', request('tenant', ''))),
+        // 'existing' picks from the list; 'new' creates the tenant in the same submit. An empty list opens on 'new'.
+        tenantMode: @js(old('tenant_mode', empty($tenantSelect) ? 'new' : 'existing')),
+        duplicateId: @js((string) session('duplicate_tenant_id', '')),
         unitId: @js((string) old('unit_id', request('unit', ''))),
         propertyId: '',
         unitMissing: false,
@@ -85,6 +88,7 @@
         },
         // $dispatch('open-add-contract', { tenant: <landlord_tenant_id> }) opens it with that tenant picked.
         open(detail) { if (detail && detail.tenant) this.tenantId = String(detail.tenant); this.show = true; if (this.unitId && !this.rent) this.pickUnit(); },
+        useDuplicate() { this.tenantId = this.duplicateId; this.tenantMode = 'existing'; this.duplicateId = ''; },
         close() { this.show = false; },
      }"
      x-init="if (unit) propertyId = unit.property; $watch('unitId', () => pickUnit()); $watch('propertyId', () => pickProperty())"
@@ -115,14 +119,10 @@
                     </button>
                 </div>
 
-                @if(empty($tenantSelect) || empty($unitInfo))
+                @if(empty($unitInfo))
                     <div class="px-5 sm:px-7 pt-5 pb-7">
                         <p class="rounded-xl bg-[#ECEEF6] px-4 py-3 text-[13.5px] text-[#060D26]">
-                            @if(empty($tenantSelect))
-                                Add the tenant on the <a href="{{ route('landlord.tenants.index') }}" class="font-semibold underline underline-offset-2">Tenants page</a> first.
-                            @else
-                                None of your approved units is free right now.
-                            @endif
+                            None of your approved units is free right now.
                         </p>
                     </div>
                 @else
@@ -137,12 +137,60 @@
                     {{-- Who and where: any tenant on the list (Pending or Active), then a property, then a free unit of it. --}}
                     <div class="grid gap-3" x-ref="unitBlock">
                         <p class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">Tenant and unit</p>
-                        <div>
-                            <label class="{{ $label }}">Tenant</label>
-                            <x-styled-select name="landlord_tenant_id" :options="$tenantSelect" x-model="tenantId" placeholder="Choose a tenant" required
-                                class="{{ $input }} text-left" />
-                            @error('landlord_tenant_id')<p class="{{ $err }}">{{ $message }}</p>@enderror
-                        </div>
+                        <input type="hidden" name="tenant_mode" :value="tenantMode">
+
+                        {{-- Existing tenant or a new one. Only the picked side is rendered, so the other side posts nothing. --}}
+                        @if(! empty($tenantSelect))
+                            <div class="flex gap-1 rounded-xl bg-[#ECEEF6] p-1" role="group" aria-label="Tenant">
+                                <button type="button" @click="tenantMode = 'existing'" :aria-pressed="tenantMode === 'existing'"
+                                    :class="tenantMode === 'existing' ? 'bg-white text-[#060D26] shadow-[0_1px_3px_rgba(6,13,38,0.12)]' : 'text-[#5B6A8E] hover:text-[#060D26]'"
+                                    class="flex-1 h-10 rounded-[9px] text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30">Existing tenant</button>
+                                <button type="button" @click="tenantMode = 'new'" :aria-pressed="tenantMode === 'new'"
+                                    :class="tenantMode === 'new' ? 'bg-white text-[#060D26] shadow-[0_1px_3px_rgba(6,13,38,0.12)]' : 'text-[#5B6A8E] hover:text-[#060D26]'"
+                                    class="flex-1 h-10 rounded-[9px] text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30">New tenant</button>
+                            </div>
+                        @endif
+
+                        <template x-if="tenantMode === 'existing'">
+                            <div>
+                                <label class="{{ $label }}">Tenant</label>
+                                <x-styled-select name="landlord_tenant_id" :options="$tenantSelect" x-model="tenantId" placeholder="Choose a tenant" required
+                                    class="{{ $input }} text-left" />
+                                @error('landlord_tenant_id')<p class="{{ $err }}">{{ $message }}</p>@enderror
+                            </div>
+                        </template>
+
+                        <template x-if="tenantMode === 'new'">
+                            <div class="grid gap-3">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label for="contract-first-name" class="{{ $label }}">First name</label>
+                                        <input id="contract-first-name" type="text" name="first_name" value="{{ old('first_name') }}" maxlength="100" required autocomplete="off" class="{{ $input }}">
+                                        @error('first_name')<p class="{{ $err }}">{{ $message }}</p>@enderror
+                                    </div>
+                                    <div>
+                                        <label for="contract-last-name" class="{{ $label }}">Last name</label>
+                                        <input id="contract-last-name" type="text" name="last_name" value="{{ old('last_name') }}" maxlength="100" required autocomplete="off" class="{{ $input }}">
+                                        @error('last_name')<p class="{{ $err }}">{{ $message }}</p>@enderror
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="contract-phone" class="{{ $label }}">Mobile number</label>
+                                    <input id="contract-phone" type="tel" name="contact_number" value="{{ old('contact_number') }}" maxlength="20" inputmode="tel" autocomplete="off" placeholder="0917 123 4567" class="{{ $input }}">
+                                    @error('contact_number')
+                                        <p class="{{ $err }}">{{ $message }}</p>
+                                        <button type="button" x-show="duplicateId" x-cloak @click="useDuplicate()"
+                                            class="mt-2 h-11 px-5 rounded-full border border-[#060D26]/35 bg-white text-[13px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">Use that tenant</button>
+                                    @enderror
+                                </div>
+                                <div>
+                                    <label for="contract-email" class="{{ $label }}">Email <span class="font-normal text-[#5B6A8E]">(optional)</span></label>
+                                    <input id="contract-email" type="email" name="email" value="{{ old('email') }}" maxlength="255" autocomplete="off" placeholder="name@email.com" class="{{ $input }}">
+                                    @error('email')<p class="{{ $err }}">{{ $message }}</p>@enderror
+                                    <p class="{{ $hint }}">With an email, we send them an invite to set a password. Add their ID and address later on the Tenants page.</p>
+                                </div>
+                            </div>
+                        </template>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label class="{{ $label }}">Property</label>
