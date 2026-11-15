@@ -4,8 +4,14 @@
 
 <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16">
 
-    {{-- Back --}}
-    <x-back-link href="{{ route('landlord.properties.index') }}" to="properties" class="mb-6" />
+    {{-- Breadcrumb --}}
+    <nav aria-label="Breadcrumb" class="mb-6 flex flex-wrap items-center gap-1.5 text-sm text-[#5B6A8E]">
+        <a href="{{ route('landlord.properties.index') }}" class="hover:text-[#060D26] transition-colors duration-200">Properties</a>
+        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+        </svg>
+        <span aria-current="page" class="min-w-0 max-w-[24rem] truncate font-medium text-[#060D26]">{{ $property->title }}</span>
+    </nav>
 
     @php
         $images   = $property->media->where('media_type', 'Image')->values();

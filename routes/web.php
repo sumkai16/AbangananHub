@@ -356,6 +356,7 @@ Route::middleware('auth')->group(function () {
 
         // My Complaints — reports this landlord has filed (ACCOUNT).
         // Renamed from landlord.reports.* so "Reports" only ever means analytics.
+        Route::get('/concerns', [App\Http\Controllers\Landlord\ConcernController::class, 'index'])->name('concerns.index');
         Route::get('/complaints', [App\Http\Controllers\Landlord\ReportController::class, 'index'])->name('complaints.index');
         // Units (standalone index)
         Route::get('/units', [UnitIndexController::class, 'index'])->name('units.index');
