@@ -11,6 +11,7 @@
 @section('content')
 @php
     $docIcon = 'M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z';
+    $unitLabels = $properties->flatMap(fn ($p) => $p->units)->mapWithKeys(fn ($u) => [(string) $u->unit_id => $u->unit_label])->all();
     $propertySelect = $properties->mapWithKeys(fn ($p) => [(string) $p->property_id => $p->title])->all();
     $unitSelects = $properties->mapWithKeys(fn ($p) => [(string) $p->property_id => $p->units->mapWithKeys(fn ($u) => [(string) $u->unit_id => $u->unit_label])->all()])->all();
     $unitRents = $properties->flatMap(fn ($p) => $p->units)->mapWithKeys(fn ($u) => [(string) $u->unit_id => (float) $u->rental_fee])->all();
@@ -22,21 +23,24 @@
     $printIcon = 'M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z';
 @endphp
 
-<style>
-    .agr ::selection { background: rgba(255, 138, 102, .35); color: #060D26; }
-    .agr input, .agr textarea { caret-color: #FF8A66; accent-color: #FF8A66; }
-    @media print { .agr-screen { display: none !important; } }
-</style>
 
 <div class="agr max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 pb-16">
     <div class="agr-screen print:hidden">
-        <x-page-header title="Rental policies" subtitle="The rules and wording your tenants agree to, per property and unit." :icon-path="$docIcon" />
+        @include('landlord.leases.partials._header', ['docIcon' => $docIcon])
+    </div>
+    <div data-swap-region="tab">
+<style>
+    .agr-screen ::selection { background: rgba(255, 138, 102, .35); color: #060D26; }
+    .agr-screen input, .agr-screen textarea { caret-color: #FF8A66; accent-color: #FF8A66; }
+    @media print { .agr-screen { display: none !important; } }
+</style>
+    <div class="agr-screen print:hidden">
         @include('landlord.leases.partials._tabs', ['active' => 'agreement'])
 
         @if(empty($propertySelect))
             <x-card><p class="text-[13px] text-[#5B6A8E]">Add a property with a unit first, then you can generate an agreement for it.</p></x-card>
         @else
-        <form method="GET" action="{{ route('landlord.leases.agreement') }}" class="max-w-2xl grid gap-5"
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start"
             x-data="{
                 tenants: @js($tenants),
                 name: @js((string) request('tenant_name', '')),
@@ -59,8 +63,13 @@
                 move(step) { if (!this.suggest) { this.suggest = this.matches.length > 0; return; } this.active = (this.active + step + this.matches.length) % this.matches.length; },
                 get minMoveOut() { if (!this.moveIn) return null; const d = new Date(this.moveIn + 'T00:00:00'); d.setMonth(d.getMonth() + 1); return d.toISOString().slice(0, 10); },
                 get policy() { return this.unitId ? (this.policies[this.unitId] ?? '') : ''; },
+                titles: @js((object) $propertySelect),
+                unitLabels: @js((object) $unitLabels),
+                day(iso) { return iso ? new Date(iso + 'T00:00:00').toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) : ''; },
+                peso(n) { return '₱' + Number(n).toLocaleString('en-PH', { maximumFractionDigits: 2 }); },
             }"
             x-init="$watch('propertyId', (v, old) => { if (old) unitId = ''; }); $watch('unitId', v => { if (v && rents[v] !== undefined) rent = rents[v]; })">
+        <form method="GET" action="{{ route('landlord.leases.agreement') }}" class="min-w-0 grid gap-5 bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5 sm:p-6">
 
             <div class="relative" @click.outside="suggest = false">
                 <label for="agr-tenant" class="{{ $label }}">Tenant</label>
@@ -148,11 +157,50 @@
 
             <div class="flex flex-col-reverse sm:flex-row sm:items-center gap-3 sm:justify-between">
                 <p class="text-[12.5px] text-[#5B6A8E] sm:flex-1">
-                    <span x-show="policy" x-cloak>Worded by <span class="font-semibold text-[#060D26]" x-text="policy"></span>. </span>Nothing is saved.
+                    <span x-show="policy" x-cloak>Worded by <span class="font-semibold text-[#060D26]" x-text="policy"></span>.</span>
                 </p>
                 <button type="submit" class="h-12 w-full sm:w-auto sm:px-7 rounded-full bg-[#FF8A66] text-[14px] font-semibold text-[#060D26] hover:bg-[#E96F4F] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30 transition-colors duration-200 cursor-pointer">Generate agreement</button>
             </div>
         </form>
+
+        {{-- Right column: the deal as typed, then what happens next (same pattern as My Complaints). --}}
+        <aside class="hidden lg:flex flex-col gap-4 lg:sticky lg:top-24" aria-label="Summary">
+            <div class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5">
+                <h3 class="text-[13px] font-normal text-[#060D26] mb-3.5">Your agreement</h3>
+                <dl class="grid gap-3.5 text-[13px]">
+                    <div>
+                        <dt class="text-[11.5px] text-[#5B6A8E]">Tenant</dt>
+                        <dd class="mt-0.5 font-semibold text-[#060D26] break-words" :class="!name.trim() && '!font-normal text-[#94A3B8]'" x-text="name.trim() || 'Not set yet'"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-[11.5px] text-[#5B6A8E]">Unit</dt>
+                        <dd class="mt-0.5 font-semibold text-[#060D26]" :class="!unitId && '!font-normal text-[#94A3B8]'" x-text="unitId ? (titles[propertyId] + ' · ' + unitLabels[unitId]) : 'Not set yet'"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-[11.5px] text-[#5B6A8E]">Move-in</dt>
+                        <dd class="mt-0.5 font-semibold text-[#060D26]" :class="!moveIn && '!font-normal text-[#94A3B8]'" x-text="moveIn ? day(moveIn) + (moveOut ? ' to ' + day(moveOut) : '') : 'Not set yet'"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-[11.5px] text-[#5B6A8E]">Rent</dt>
+                        <dd class="mt-0.5 font-semibold text-[#060D26] tabular-nums" :class="!(Number(rent) > 0) && '!font-normal text-[#94A3B8]'" x-text="Number(rent) > 0 ? peso(rent) + ' a month' : 'From the unit'"></dd>
+                    </div>
+                    <div class="border-t border-[#5B6A8E]/10 pt-3.5">
+                        <dt class="text-[11.5px] text-[#5B6A8E]">Worded by</dt>
+                        <dd class="mt-0.5 font-semibold text-[#060D26]" :class="!policy && '!font-normal text-[#94A3B8]'" x-text="policy || 'Set by the unit you pick'"></dd>
+                    </div>
+                </dl>
+            </div>
+            <div class="rounded-2xl bg-[#060D26] p-5">
+                <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center mb-3">
+                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" /></svg>
+                </div>
+                <p class="text-[12.5px] font-semibold text-white leading-snug">Print it and sign on paper</p>
+                <p class="text-[11.5px] text-white/60 leading-relaxed mt-1.5">
+                    Nothing is saved here. To track the rental in AbangananHub, add it from the Rentals page.
+                </p>
+            </div>
+        </aside>
+        </div>
         @endif
     </div>
 
@@ -186,6 +234,7 @@
             </x-print-document>
         </div>
     @endif
+    </div>
 </div>
 
 <script src="{{ asset('js/date-picker.js') }}"></script>

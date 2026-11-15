@@ -114,7 +114,7 @@
                     </button>
                     <div x-show="moreOpen" x-cloak @click.outside="moreOpen = false"
                          class="absolute right-0 bottom-11 w-52 bg-white rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/5 py-1 z-20">
-                        <a href="{{ route('landlord.properties.documents.index', $property) }}"
+                        <a href="{{ route('landlord.properties.show', $property) . '#documents' }}"
                            class="flex items-center justify-between gap-2 px-4 py-2.5 text-sm text-[#060D26] hover:bg-[#ECEEF6] transition-colors">
                             Documents
                             @if($documentNudgeCount > 0)
@@ -180,7 +180,7 @@
             $attention[] = ['No photos yet — listings with photos get far more views.', route('properties.edit', $property), 'Add photos'];
         }
         if ($documentNudgeCount > 0) {
-            $attention[] = [$documentNudgeCount . ' ' . Str::plural('document', $documentNudgeCount) . ' rejected or requested by admin.', route('landlord.properties.documents.index', $property), 'Open documents'];
+            $attention[] = [$documentNudgeCount . ' ' . Str::plural('document', $documentNudgeCount) . ' rejected or requested by admin.', route('landlord.properties.show', $property) . '#documents', 'Open documents'];
         }
         if ($property->publication_status === 'Unpublished') {
             $attention[] = ['This listing is unpublished and hidden from tenants.', null, null];
@@ -281,8 +281,8 @@
          TABS
     ══════════════════════════════════════════════════════════ --}}
     <div x-data="{
-            tabs: ['overview', 'units', 'amenities', 'photos', 'reviews', 'activity_log'],
-            tab: @js($initialTab),
+            tabs: ['overview', 'units', 'amenities', 'photos', 'documents', 'reviews', 'activity_log'],
+            tab: @js($errors->hasAny(['file', 'document_type', 'document_number', 'expiry_date', 'document']) ? 'documents' : $initialTab),
             unitPayloads: @js($unitPayloads),
             init() { this.syncTab(false); },
             // #units / #activity_log open that tab: a link from the rail, or back from editing a unit.
@@ -305,6 +305,7 @@
                 ['key' => 'units',        'label' => 'Units (' . $property->units->count() . ')'],
                 ['key' => 'amenities',    'label' => 'Amenities'],
                 ['key' => 'photos',       'label' => 'Photos (' . $images->count() . ')'],
+                ['key' => 'documents',    'label' => 'Documents (' . $property->documents->count() . ')'],
                 ['key' => 'reviews',      'label' => 'Reviews (' . $reviews->count() . ')'],
                 ['key' => 'activity_log', 'label' => 'Activity Log'],
             ] as $t)
@@ -675,6 +676,8 @@
                 </div>
             @endif
         </div>
+
+        @include('landlord.properties._documents-tab')
 
         {{-- ─── Reviews tab ─────────────────────────────────────── --}}
         <div x-show="tab === 'reviews'" x-cloak>

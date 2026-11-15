@@ -114,12 +114,12 @@ function syncFilterState(main, next) {
     });
 }
 
-async function go(url, push, inPage = false) {
+async function go(url, push, inPage = false, only = null) {
     const main = document.getElementById('main');
     if (!main) return fallback(url);
 
     // What dims while loading: just the results for an in-page filter, else the whole work area.
-    const dim = inPage ? [...main.querySelectorAll('[data-swap-region="results"]')] : [];
+    const dim = only ? [...main.querySelectorAll(`[data-swap-region="${only}"]`)] : inPage ? [...main.querySelectorAll('[data-swap-region="results"]')] : [];
     if (!dim.length) dim.push(main);
 
     pending?.abort();
@@ -168,12 +168,17 @@ async function go(url, push, inPage = false) {
             el.remove();
         });
 
-        const byRegion = inPage && sameRegions(main, next);
+        const regionHere = (name) => main.querySelector(`[data-swap-region="${name}"]`);
+        const regionThere = (name) => next.querySelector(`[data-swap-region="${name}"]`);
+        // `only` names the one region a link replaces (the Rental policies tabs and property list); otherwise every region.
+        const byRegion = inPage && (only ? !!regionHere(only) && !!regionThere(only) : sameRegions(main, next));
         if (byRegion) {
-            syncFilterState(main, next);
-            for (const name of regionNames(next)) {
-                const old = main.querySelector(`[data-swap-region="${name}"]`);
-                const fresh = next.querySelector(`[data-swap-region="${name}"]`);
+            if (!only) syncFilterState(main, next);
+            for (const name of only ? [only] : regionNames(next)) {
+                const old = regionHere(name);
+                const fresh = regionThere(name);
+                // A region nested in one already swapped moved with it: nothing left to do.
+                if (!old || !fresh) continue;
                 for (const child of [...old.children]) window.Alpine?.destroyTree(child);
                 old.replaceChildren(...document.adoptNode(fresh).childNodes);
                 if (name === 'results') {
@@ -200,7 +205,7 @@ async function go(url, push, inPage = false) {
         document.title = doc.title || document.title;
         if (!byRegion) window.scrollTo(0, 0);
         // Keep keyboard and screen reader users on the tab strip, now showing the new current tab.
-        main.querySelector('a[data-page-swap][aria-current="page"]')?.focus({ preventScroll: true });
+        if (!only || only === 'tab') main.querySelector('a[data-page-swap][aria-current="page"]')?.focus({ preventScroll: true });
         // Self-contained page scripts run in their own function scope, so running a page twice cannot redeclare anything.
         doc.querySelectorAll('#page-scripts script[data-swap-safe]').forEach((script) => new Function(script.textContent)());
         document.dispatchEvent(new CustomEvent('live:swapped'));
@@ -240,8 +245,13 @@ document.addEventListener('click', (event) => {
     event.preventDefault();
     const nav = link.dataset.pageSwap === 'nav';
     // Already on this tab: nothing to load. A sidebar link still reloads, which resets the page's filters.
-    if (url.pathname === shownPath && !nav) return;
+    // A link with data-swap-only="name" (Rental policies: the tabs and the property list) replaces just that region,
+    // even on the same path or across paths. Clicking where you already are does nothing.
+    const only = link.dataset.swapOnly || null;
+    if (only) {
+        if (url.href === window.location.href) return;
+    } else if (url.pathname === shownPath && !nav) return;
     // A card or tab inside the page (not the sidebar) that stays on this path only changes the list.
     const main = document.getElementById('main');
-    go(url, url.href !== window.location.href, nav && url.pathname === shownPath && !!main?.contains(link));
+    go(url, url.href !== window.location.href, !!only || (nav && url.pathname === shownPath && !!main?.contains(link)), only);
 });

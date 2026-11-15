@@ -253,11 +253,6 @@
                     'Rentals & Payments' => [
                         ['label' => 'Reservations', 'href' => route('landlord.reservations.index'), 'active' => str_starts_with($current, 'landlord.reservations'), 'badge' => $navInquiries,
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />'],
-                        ['label' => 'Tenants', 'href' => route('landlord.tenants.index'), 'active' => str_starts_with($current, 'landlord.tenants'),
-                            'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />'],
-                        // What tenants reported from their chat; the badge counts the ones still open or in progress.
-                        ['label' => 'Concerns', 'href' => route('landlord.concerns.index'), 'active' => str_starts_with($current, 'landlord.concerns'), 'badge' => $navConcerns,
-                            'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />'],
                         // Also lit for the per-tenancy page (ledger, lease).
                         ['label' => 'Rentals', 'href' => route('landlord.contracts.index'),
                             'active' => str_starts_with($current, 'landlord.contracts') || str_starts_with($current, 'landlord.tenancies'),
@@ -266,6 +261,11 @@
                         ['label' => 'Policies', 'href' => route('landlord.leases.index'),
                             'active' => in_array($current, ['landlord.leases.index', 'landlord.leases.agreement'], true) || str_starts_with($current, 'landlord.lease-templates'),
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />'],
+                        ['label' => 'Tenants', 'href' => route('landlord.tenants.index'), 'active' => str_starts_with($current, 'landlord.tenants'),
+                            'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />'],
+                        // What tenants reported from their chat; the badge counts the ones still open or in progress.
+                        ['label' => 'Concerns', 'href' => route('landlord.concerns.index'), 'active' => str_starts_with($current, 'landlord.concerns'), 'badge' => $navConcerns,
+                            'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />'],
                         ['label' => 'Payments', 'href' => route('landlord.payments.index'), 'active' => str_starts_with($current, 'landlord.payments') || str_starts_with($current, 'landlord.payouts'), 'badge' => $navPaymentsDue,
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />'],
                     ],
@@ -290,14 +290,55 @@
             @endphp
 
             <nav class="flex-1 overflow-y-auto overflow-x-hidden px-3 py-5 scrollbar-thin" aria-label="Landlord navigation">
+                {{-- Each section folds. The open/closed choice is remembered per browser; the section holding the current page
+                     is always open (also after a sidebar click that swaps the page without a reload). A folded section still
+                     shows its waiting count, and a dot when it holds the current page. The icon-only rail shows every item. --}}
                 @foreach($navSections as $sectionTitle => $navItems)
-                    <p data-sidebar-label x-show="!sidebarCollapsed"
-                        class="px-3 text-[11px] font-semibold text-white/50 uppercase tracking-widest mb-2 whitespace-nowrap {{ $loop->first ? '' : 'mt-6' }}">
-                        {{ $sectionTitle }}</p>
-                    @unless($loop->first)
-                        <div x-show="sidebarCollapsed" x-cloak class="mx-3 mb-3 mt-4 border-t border-white/[0.08]"></div>
-                    @endunless
+                    @php
+                        $sectionActive = collect($navItems)->contains(fn ($i) => $i['active']);
+                        $sectionBadge = (int) collect($navItems)->filter(fn ($i) => empty($i['badgeKey']))->sum(fn ($i) => $i['badge'] ?? 0);
+                        $sectionLive = collect($navItems)->contains(fn ($i) => ($i['badgeKey'] ?? null) === 'messages');
+                    @endphp
+                    <div class="{{ $loop->first ? '' : 'mt-3' }}"
+                        x-data="{
+                            title: @js($sectionTitle),
+                            open: true,
+                            active: @js($sectionActive),
+                            init() {
+                                let saved = {};
+                                try { saved = JSON.parse(localStorage.getItem('landlordNavOpen') || '{}'); } catch (e) {}
+                                this.open = this.active ? true : saved[this.title] !== false;
+                            },
+                            toggle() {
+                                this.open = !this.open;
+                                try {
+                                    const saved = JSON.parse(localStorage.getItem('landlordNavOpen') || '{}');
+                                    saved[this.title] = this.open;
+                                    localStorage.setItem('landlordNavOpen', JSON.stringify(saved));
+                                } catch (e) {}
+                            },
+                            refresh() {
+                                this.active = !!this.$refs.items.querySelector('[aria-current=page]');
+                                if (this.active) this.open = true;
+                            },
+                        }"
+                        @live:swapped.document="setTimeout(() => refresh(), 60)">
+                        @unless($loop->first)
+                            <div x-show="sidebarCollapsed" x-cloak class="mx-3 mb-3 border-t border-white/[0.08]"></div>
+                        @endunless
 
+                        <button type="button" data-sidebar-label x-show="!sidebarCollapsed" @click="toggle()" :aria-expanded="open"
+                            class="group flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-widest whitespace-nowrap transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/60 cursor-pointer"
+                            :class="!open && active ? 'text-white' : 'text-white/50 hover:text-white/80'">
+                            <span class="flex-1">{{ $sectionTitle }}</span>
+                            <span x-show="!open && active" x-cloak class="h-1.5 w-1.5 rounded-full bg-[#FF8A66]" aria-hidden="true"></span>
+                            <span x-show="!open && ({{ $sectionBadge }}{{ $sectionLive ? ' + ($store.navBadges.messages || 0)' : '' }}) > 0" x-cloak
+                                class="min-w-[18px] rounded-full bg-[#FF8A66] px-1.5 text-center text-[10px] font-bold leading-[18px] text-[#060D26] tabular-nums normal-case tracking-normal"
+                                x-text="{{ $sectionBadge }}{{ $sectionLive ? ' + ($store.navBadges.messages || 0)' : '' }}"></span>
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="shrink-0 transition-transform duration-200" :class="open ? '' : '-rotate-90'" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" /></svg>
+                        </button>
+
+                    <div x-ref="items" x-show="open || sidebarCollapsed" x-transition.opacity.duration.150ms>
                     @foreach($navItems as $item)
                         @php $badge = $item['badge'] ?? 0; $badgeKey = $item['badgeKey'] ?? null; @endphp
                         <a href="{{ $item['href'] }}" @if($item['active']) aria-current="page" @endif
@@ -332,6 +373,8 @@
                             </span>
                         </a>
                     @endforeach
+                    </div>
+                    </div>
                 @endforeach
             </nav>
 

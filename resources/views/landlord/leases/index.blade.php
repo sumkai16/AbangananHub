@@ -9,16 +9,9 @@
     @endphp
 
     <div class="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 pb-16">
-        <x-page-header title="Rental policies" subtitle="The rules and wording your tenants agree to, per property and unit." :icon-path="$docIcon">
-            <x-slot:actions>
-                <a href="{{ route('landlord.lease-templates.create') }}"
-                    class="inline-flex h-10 items-center gap-1.5 rounded-xl bg-[#FF8A66] px-4 text-[13px] font-bold text-[#060D26] transition-colors hover:bg-[#E96F4F]">
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                    New policy
-                </a>
-            </x-slot:actions>
-        </x-page-header>
-        @include('landlord.leases.partials._tabs', ['active' => 'policies'])
+        @include('landlord.leases.partials._header', ['docIcon' => $docIcon])
+        <div data-swap-region="tab">
+            @include('landlord.leases.partials._tabs', ['active' => 'policies'])
 
         @if($properties->isEmpty())
             <x-card><p class="text-[13px] text-[#5B6A8E]">Add a property first, then choose its policy here.</p></x-card>
@@ -73,7 +66,7 @@
                     <h2 id="assign-title" class="text-[16px] font-semibold text-[#060D26]">Where they apply</h2>
                     <p class="mt-0.5 text-[13px] text-[#5B6A8E]">Pick a property, choose its policy, then give any unit a different one if it needs it.</p>
 
-                    <div class="mt-4 grid grid-cols-1 gap-5 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
+                    <div data-swap-region="assign" class="mt-4 grid grid-cols-1 gap-5 lg:grid-cols-[380px_minmax(0,1fr)] lg:items-start">
 
                         {{-- Phone and tablet: the dropdown --}}
                         <form method="GET" action="{{ route('landlord.leases.index') }}" class="lg:hidden">
@@ -91,7 +84,7 @@
                                         $ownUnits = $p->units->whereNotNull('lease_template_id')->count();
                                     @endphp
                                     <li>
-                                        <a href="{{ route('landlord.leases.index', ['property' => $p->property_id]) }}" @if($isSelected) aria-current="true" @endif
+                                        <a href="{{ route('landlord.leases.index', ['property' => $p->property_id]) }}" data-page-swap data-swap-only="assign" @if($isSelected) aria-current="true" @endif
                                             class="block rounded-xl px-3.5 py-2.5 transition-colors duration-150 focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30 {{ $isSelected ? 'bg-[#ECEEF6]' : 'hover:bg-[#F7F8FC]' }}">
                                             <span class="block text-[13.5px] leading-snug text-[#060D26] {{ $isSelected ? 'font-semibold' : 'font-medium' }}">{{ $p->title }}</span>
                                             <span class="mt-0.5 block truncate text-[12px] text-[#5B6A8E]">
@@ -103,13 +96,26 @@
                             </ul>
                         </nav>
 
-                        {{-- The chosen property --}}
-                        <div class="min-w-0 rounded-2xl border border-[#E2E4EC] bg-white">
-                            <div class="p-4 sm:p-6">
-                                <h3 class="text-[17px] font-semibold leading-snug text-[#060D26]">{{ $selected->title }}</h3>
-                                <p class="mt-0.5 text-[13px] text-[#5B6A8E]">{{ $selected->units->count() }} {{ \Illuminate\Support\Str::plural('unit', $selected->units->count()) }}</p>
+                        {{-- The chosen property: a header bar (who and which policy), then the units as a table --}}
+                        <div class="min-w-0 overflow-hidden rounded-2xl border border-[#E2E4EC] bg-white">
+                            <div class="flex flex-col gap-5 p-4 sm:p-6 xl:flex-row xl:items-start xl:justify-between">
+                                <div class="min-w-0">
+                                    <h3 class="text-[18px] font-semibold leading-snug text-[#060D26]">{{ $selected->title }}</h3>
+                                    <p class="mt-0.5 text-[13px] text-[#5B6A8E]">{{ $selected->units->count() }} {{ \Illuminate\Support\Str::plural('unit', $selected->units->count()) }}</p>
 
-                                <form method="POST" action="{{ route('landlord.lease-templates.assign') }}" class="mt-5 max-w-md">
+                                    @if($propertyPolicy)
+                                        <div class="mt-3 flex flex-wrap items-center gap-1.5">
+                                            @foreach($propertyPolicy->summaryChips() as $chip)
+                                                <span class="rounded-full bg-[#ECEEF6] px-2.5 py-0.5 text-[12px] font-medium text-[#060D26]">{{ $chip }}</span>
+                                            @endforeach
+                                            <a href="{{ route('landlord.lease-templates.edit', $propertyPolicy) }}" class="ml-1 inline-flex h-9 items-center text-[13px] font-semibold text-[#B35A3D] underline-offset-2 hover:underline">Edit this policy</a>
+                                        </div>
+                                    @else
+                                        <p class="mt-3 max-w-md text-[13px] leading-relaxed text-[#5B6A8E]">The built-in wording, filled in with this property's rent and house rules.</p>
+                                    @endif
+                                </div>
+
+                                <form method="POST" action="{{ route('landlord.lease-templates.assign') }}" class="w-full xl:w-80 xl:shrink-0">
                                     @csrf @method('PATCH')
                                     <input type="hidden" name="target" value="property">
                                     <input type="hidden" name="id" value="{{ $selected->property_id }}">
@@ -117,33 +123,23 @@
                                     <x-styled-select name="lease_template_id" id="policy-for-property" autosubmit
                                         :options="['' => 'Standard policy'] + $templateOptions" :selected="(string) ($selected->lease_template_id ?? '')" class="{{ $selectClass }} !h-11 !text-[14px]" />
                                 </form>
-
-                                @if($propertyPolicy)
-                                    <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-                                        @foreach($propertyPolicy->summaryChips() as $chip)
-                                            <span class="rounded-full bg-[#ECEEF6] px-2.5 py-0.5 text-[12px] font-medium text-[#060D26]">{{ $chip }}</span>
-                                        @endforeach
-                                        <a href="{{ route('landlord.lease-templates.edit', $propertyPolicy) }}" class="inline-flex h-9 items-center text-[13px] font-semibold text-[#B35A3D] underline-offset-2 hover:underline">Edit this policy</a>
-                                    </div>
-                                @else
-                                    <p class="mt-3 text-[13px] leading-relaxed text-[#5B6A8E]">The built-in wording, filled in with this property's rent and house rules.</p>
-                                @endif
                             </div>
 
+                            {{-- Units table: Unit | Policy | Status. Header row from sm up; on a phone each row stacks. --}}
                             <div class="border-t border-[#E2E4EC]">
-                                <div class="flex items-baseline justify-between gap-3 px-4 pt-4 sm:px-6">
-                                    <h4 class="text-[14px] font-semibold text-[#060D26]">Units</h4>
-                                    <p class="text-[12px] text-[#5B6A8E]">A unit can follow the property or have its own.</p>
+                                <div class="hidden grid-cols-[minmax(0,1fr)_280px] gap-4 bg-[#F7F8FC] px-6 py-2.5 text-[12px] font-semibold text-[#5B6A8E] sm:grid">
+                                    <span>Unit</span>
+                                    <span>Policy</span>
                                 </div>
-                                <div class="mt-2 grid grid-cols-1 xl:grid-cols-2">
+                                <div class="divide-y divide-[#E2E4EC]">
                                     @forelse($selected->units as $unit)
-                                        <form method="POST" action="{{ route('landlord.lease-templates.assign') }}" class="flex flex-col gap-2 border-t border-[#E2E4EC] px-4 py-3 sm:flex-row sm:items-center sm:gap-4 sm:px-6 xl:[&:nth-child(odd)]:border-r">
+                                        <form method="POST" action="{{ route('landlord.lease-templates.assign') }}" class="grid grid-cols-1 gap-2 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_280px] sm:items-center sm:gap-4 sm:px-6">
                                             @csrf @method('PATCH')
                                             <input type="hidden" name="target" value="unit">
                                             <input type="hidden" name="id" value="{{ $unit->unit_id }}">
-                                            <p class="min-w-0 flex-1 truncate text-[14px] font-semibold text-[#060D26]">{{ $unit->unit_label }}</p>
+                                            <p class="min-w-0 truncate text-[14px] font-semibold text-[#060D26]">{{ $unit->unit_label }}</p>
                                             <label class="sr-only" for="policy-unit-{{ $unit->unit_id }}">Policy for {{ $unit->unit_label }}</label>
-                                            <div class="sm:w-64">
+                                            <div>
                                                 <x-styled-select name="lease_template_id" id="policy-unit-{{ $unit->unit_id }}" autosubmit
                                                     :options="['' => 'Same as property'] + $templateOptions" :selected="(string) ($unit->lease_template_id ?? '')" class="{{ $selectClass }} !h-10" />
                                             </div>
@@ -158,5 +154,6 @@
                 </section>
             </div>
         @endif
+        </div>
     </div>
 @endsection
