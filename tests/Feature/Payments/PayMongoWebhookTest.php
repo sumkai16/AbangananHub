@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Payments;
 
+use Tests\Support\PaidAmount;
 use App\Models\Notification;
 use App\Models\Payment;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -35,7 +36,7 @@ class PayMongoWebhookTest extends TestCase
                 'id'         => $sessionId,
                 'attributes' => [
                     'payment_intent'      => ['id' => 'pi_' . $sessionId],
-                    'payments'            => [['id' => 'pay_' . $sessionId]],
+                    'payments'            => [['id' => 'pay_' . $sessionId, 'attributes' => ['amount' => PaidAmount::centavos($sessionId)]]],
                     'payment_method_used' => 'gcash',
                 ],
             ],
@@ -274,6 +275,35 @@ class PayMongoWebhookTest extends TestCase
         $timestamp = time();
 
         return "t={$timestamp},te=,li=" . hash_hmac('sha256', $timestamp . '.' . $body, $secret);
+    }
+
+    public function test_a_paid_event_without_an_amount_is_not_settled_and_the_admins_are_told(): void
+    {
+        $t = $this->makeTenancy(['rental_status' => 'Rental Agreement Signed']);
+        $payment = $this->makePendingCheckout($t['reservation'], 'cs_no_amount');
+        $admin = $this->makeUserWithRole('Admin');
+        $event = json_decode($this->paidEvent('cs_no_amount'), true);
+        unset($event['data']['attributes']['data']['attributes']['payments'][0]['attributes']['amount']);
+        $body = json_encode($event);
+
+        $this->deliver($body, $this->signature($body))->assertOk();
+
+        $this->assertSame('Pending', $payment->fresh()->status, 'Money we cannot check is not settled.');
+        $this->assertTrue(
+            Notification::where('user_id', $admin->user_id)->where('title', 'Online payment amount does not match')->exists(),
+            'The admins are told.'
+        );
+    }
+
+    public function test_the_webhook_is_throttled(): void
+    {
+        $body = $this->paidEvent('cs_flood');
+
+        for ($i = 0; $i < 120; $i++) {
+            $this->deliver($body, 't=1,te=bad,li=')->assertForbidden();
+        }
+
+        $this->deliver($body, 't=1,te=bad,li=')->assertStatus(429);
     }
 
     public function test_a_live_event_signed_in_the_li_field_settles_the_payment(): void

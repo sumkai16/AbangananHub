@@ -114,16 +114,18 @@ class PaymongoCheckout
      * stays Pending and the admins are told.
      *
      * PayMongo reports the paid amount in centavos at `payments[].attributes.amount`. A payload without one
-     * cannot be checked; that is logged and let through, because the signature has already vouched for it.
+     * cannot be checked, so it is treated as a mismatch: it stays Pending and the admins are told.
      */
     public static function paidAmountMatches(array $sessionPayments, Payment $payment): bool
     {
         $paid = self::paidPayment($sessionPayments)['attributes']['amount'] ?? null;
 
         if (! is_numeric($paid)) {
-            Log::warning('PayMongo paid amount missing; settling without an amount check', ['payment_id' => $payment->payment_id]);
+            // Fail closed: money we cannot check is not settled. It stays Pending and the admins are told.
+            Log::error('PayMongo paid amount missing; not settling', ['payment_id' => $payment->payment_id]);
+            $payment->alertAdminsAmountMismatch(null);
 
-            return true;
+            return false;
         }
 
         $expected = Payment::toCentavos($payment->checkoutTotal());

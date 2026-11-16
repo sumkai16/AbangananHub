@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Payments;
 
+use Tests\Support\PaidAmount;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Models\User;
@@ -57,7 +58,7 @@ class CheckoutResumeTest extends TestCase
 
     private function paidPayments(): array
     {
-        return [['id' => 'pay_resume', 'attributes' => ['status' => 'paid', 'source' => ['type' => 'gcash']]]];
+        return [['id' => 'pay_resume', 'attributes' => ['status' => 'paid', 'source' => ['type' => 'gcash'], 'amount' => PaidAmount::centavos(self::SESSION)]]];
     }
 
     private function rowsLeft(Reservation $reservation): int
@@ -109,8 +110,8 @@ class CheckoutResumeTest extends TestCase
 
     public function test_continue_settles_a_checkout_that_was_paid_after_all(): void
     {
-        $this->fakeSession('active', null, $this->paidPayments());
         $t = $this->signedWithOpenCheckout();
+        $this->fakeSession('active', null, $this->paidPayments());
 
         $this->actingAs($t['tenant'])->post(route('payments.continue', $t['reservation']), ['type' => 'Initial'])
             ->assertRedirect(route('payments.success', $t['reservation']));
@@ -170,8 +171,8 @@ class CheckoutResumeTest extends TestCase
 
     public function test_cancel_never_throws_away_a_checkout_that_was_paid(): void
     {
-        $this->fakeSession('active', null, $this->paidPayments());
         $t = $this->signedWithOpenCheckout();
+        $this->fakeSession('active', null, $this->paidPayments());
 
         $this->actingAs($t['tenant'])->post(route('payments.cancel', $t['reservation']), ['type' => 'Initial'])
             ->assertSessionHasErrors('payment');

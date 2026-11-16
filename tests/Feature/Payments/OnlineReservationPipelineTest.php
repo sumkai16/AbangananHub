@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Payments;
 
+use Tests\Support\PaidAmount;
 use App\Http\Controllers\Landlord\ReservationController;
 use App\Models\Reservation;
 use App\Services\ImageUploader;
@@ -107,7 +108,7 @@ class OnlineReservationPipelineTest extends TestCase
         $body = json_encode(['data' => ['attributes' => [
             'type' => 'checkout_session.payment.paid',
             'data' => ['id' => 'cs_hook', 'attributes' => [
-                'payment_intent' => ['id' => 'pi_hook'], 'payments' => [['id' => 'pay_hook']], 'payment_method_used' => 'gcash',
+                'payment_intent' => ['id' => 'pi_hook'], 'payments' => [['id' => 'pay_hook', 'attributes' => ['amount' => PaidAmount::centavos('cs_hook')]]], 'payment_method_used' => 'gcash',
             ]],
         ]]]);
         $time = time();
@@ -124,7 +125,7 @@ class OnlineReservationPipelineTest extends TestCase
         $this->makePendingCheckout($this->signed(), 'cs_poll');
         Http::fake(['api.paymongo.com/v1/checkout_sessions/cs_poll' => Http::response(['data' => ['id' => 'cs_poll', 'attributes' => [
             'status' => 'paid', 'payment_intent' => ['id' => 'pi_poll'],
-            'payments' => [['id' => 'pay_poll', 'attributes' => ['source' => ['type' => 'gcash']]]], 'payment_method_used' => 'gcash',
+            'payments' => [['id' => 'pay_poll', 'attributes' => ['source' => ['type' => 'gcash'], 'amount' => PaidAmount::centavos('cs_poll')]]], 'payment_method_used' => 'gcash',
         ]]])]);
 
         $this->actingAs($this->t['tenant'])->get(route('payments.success', $this->signed()));

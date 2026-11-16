@@ -316,7 +316,7 @@ class Payment extends Model
      * PayMongo took a different amount from the one this checkout asked for, so the payment is left Pending
      * instead of being settled. One alert per payment per day: the poll fallback runs on every page load.
      */
-    public function alertAdminsAmountMismatch(int $paidCentavos): void
+    public function alertAdminsAmountMismatch(?int $paidCentavos): void
     {
         if (! Cache::add('paymongo-amount-mismatch:'.$this->payment_id, true, now()->addDay())) {
             return;
@@ -328,12 +328,17 @@ class Payment extends Model
                 $adminId,
                 'payment',
                 'Online payment amount does not match',
-                sprintf(
-                    'Payment #%d expected ₱%s but PayMongo took ₱%s. It was not settled; check the checkout in the PayMongo dashboard.',
-                    $this->payment_id,
-                    number_format($this->checkoutTotal(), 2),
-                    number_format($paidCentavos / 100, 2),
-                ),
+                $paidCentavos === null
+                    ? sprintf(
+                        'Payment #%d was paid but PayMongo did not report the amount. It was not settled; check the checkout in the PayMongo dashboard.',
+                        $this->payment_id,
+                    )
+                    : sprintf(
+                        'Payment #%d expected ₱%s but PayMongo took ₱%s. It was not settled; check the checkout in the PayMongo dashboard.',
+                        $this->payment_id,
+                        number_format($this->checkoutTotal(), 2),
+                        number_format($paidCentavos / 100, 2),
+                    ),
                 route('admin.payments.index', ['status' => 'Pending']),
             ));
     }

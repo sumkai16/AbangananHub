@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Payments;
 
+use Tests\Support\PaidAmount;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Payment;
@@ -54,7 +55,7 @@ class SettleOnceTest extends TestCase
     {
         Http::fake([self::BASE.'/'.$sessionId => Http::response(['data' => ['attributes' => [
             'status'         => 'paid',
-            'payments'       => [['id' => 'pay_1', 'attributes' => ['source' => ['type' => 'gcash']]]],
+            'payments'       => [['id' => 'pay_1', 'attributes' => ['source' => ['type' => 'gcash'], 'amount' => PaidAmount::centavos($sessionId)]]],
             'payment_intent' => ['id' => 'pi_1'],
         ]]], 200)]);
     }
@@ -65,7 +66,7 @@ class SettleOnceTest extends TestCase
             'type' => 'checkout_session.payment.paid',
             'data' => ['id' => $sessionId, 'attributes' => [
                 'payment_intent'      => ['id' => 'pi_'.$sessionId],
-                'payments'            => [['id' => 'pay_'.$sessionId]],
+                'payments'            => [['id' => 'pay_'.$sessionId, 'attributes' => ['amount' => PaidAmount::centavos($sessionId)]]],
                 'payment_method_used' => 'gcash',
             ]],
         ]]]);
