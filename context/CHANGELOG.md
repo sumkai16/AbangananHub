@@ -2,6 +2,36 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 16 2026 — Add a rental: property and unit are photo cards (branch `axci`)
+**View only, no migration, field names unchanged. Needs a manual check in the browser** (checklist in the reply that shipped it).
+- **Step 2** of `landlord/contracts/partials/_add-modal.blade.php` no longer has Property and Unit dropdowns. Property cards (cover photo, title, area, "N free") sit on top; the picked property's unit cards (photo, label, rent, floor, occupant limit) show below them. Dates and terms stay in the right column.
+- **Modal** is 1080px wide from `sm` up (was 760px); still a bottom sheet on phones, cards 2 across.
+- **Data:** nothing new; `ContractFormOptions::units()` already carried each property's cover photo and each unit's first photo. A card with no photo draws a plain icon.
+- **Kept:** `unit_id` posts from a hidden input; a landlord with one property gets it preselected (and its unit if it has just one); Next still says "Choose a property / unit".
+- **Tests:** 3 tests in `ContractsPageTest` / `TenantsPageTest` (move-out date required) fail with and without this change.
+
+## Nov 16 2026 — Add a rental modal: fixed frame, compact properties (branch `axci`)
+`resources/views/landlord/contracts/partials/_add-modal.blade.php`. Desktop only (`md:` up); phones keep the bottom-sheet.
+- **Same size on every step:** the frame is `md:h-[46rem]` (still capped by `max-height: 94vh`), so it no longer jumps between Tenant, Unit and terms, and Agreement and payment. Each step scrolls inside it.
+- **Step 2:** properties are compact rows (small photo, title, area, "N free"), five at first with "See N more properties" / "Show fewer". The picked property always shows, even past the first five. Unit cards sit under them. The left column (property + units) and the right column (dates + terms) scroll on their own.
+- **Pre-existing failures, not from this:** `ContractsPageTest` (upload from modal), `LeaseTest` (signed online), `StaleReservationsTest`, `TenantsPageTest` (refused contract) fail the same on the untouched file.
+
+## Nov 16 2026 — Payment webhook hardening (branch `axci`)
+From a payment-flow security review. Plan: `plans/payment-security-hardening.md`.
+- **Fail closed on a missing amount:** `PaymongoCheckout::paidAmountMatches()` used to log a warning and settle when a paid payload carried no `payments[].attributes.amount`. It now leaves the payment Pending and alerts the admins (`Payment::alertAdminsAmountMismatch(null)`, once a day), on both the webhook and the poll fallback. Money we cannot check is not settled.
+- **Throttle:** `POST /webhooks/paymongo` is `throttle:120,1`, so a flood of bad signatures cannot burn CPU on HMAC work.
+- **Tests:** paid fixtures now carry the amount through `tests/Support/PaidAmount.php`; new tests for the missing amount and the throttle in `PayMongoWebhookTest`.
+- **Not done (config, Axcee on the server):** `APP_DEBUG=false`, `SESSION_ENCRYPT=true`, `CSP_MODE=enforce`, live webhook secret. See the plan's checklist.
+
+## Nov 16 2026 — Listing page mobile pass (branch `axci`)
+Found while recording the promo video at 375px. Plan: `plans/listing-page-mobile-pass.md`. Desktop (`md:` up) is unchanged.
+- **Phone gallery:** below `md`, one full-width swipeable photo (scroll-snap, no library) with one overlay per corner: Verified pill, heart, `1 / N` counter that opens the lightbox. The desktop bento is wrapped `hidden md:block`.
+- **Shared partials:** `properties/partials/verified-pill.blade.php` and `favorite-button.blade.php` (44px, optimistic toggle with rollback, hearts stay in sync through a `favorite-changed` event).
+- **"Verified landlord"** on the contact card now means the landlord's own ID + selfie check is Approved (`verificationApplication->isApproved()`), not the property's ownership documents ("Verified Property" on the photo is unchanged). The business row wraps on phones so the name is no longer cut off.
+- **Directions:** the address box is visible from the start with "Use my location" as the secondary action (`resources/js/maps/property-map.js`), instead of appearing only after the location request failed.
+- **Login panel:** "Protected agreements / your deposit is held until move-in" became "Clear agreements" (held payments are off by default).
+- **Also added:** `database/seeders/PromoSeeder.php` (Rosa, Mika, Abellana Apartments for the promo video; run on its own, re-running resets it).
+
 ## Nov 15 2026 — Tenant payment holds and duplicate-account alerts (branch `axci`)
 **Run `php artisan migrate`** (`tenant_holds`, `hold_match_alerts`). Design and build plan: `plans/tenant-payment-holds.md`.
 - **Report, confirm, hold:** a landlord reports a tenant with overdue rent (reason, 10+ characters) from the contract panel on the tenant page; an **admin confirms** on the new Tenant holds page (Pending / On hold / Possible duplicates / History). Only an `active` hold restricts anything; `account_status` is never touched, so the tenant can always sign in and pay.

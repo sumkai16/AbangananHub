@@ -1267,3 +1267,8 @@ Extends §37 ("No page transition"). A scan of every layout, view, script and th
 - **Admin charts are drawn at once.** Ratings, Users and the three Report analytics donuts have `animation: false`, like the Dashboard chart. New admin charts do the same. Landlord analytics charts were not changed.
 - **Live search and filters swap in place** (`data-live`, RULES.md § List search and filters), so a search does not reload the page, flash the sidebar or play any bar. The swap itself has no fade.
 - **Kept on purpose:** hover and focus transitions, dropdowns, modals and popovers opening and closing, the reject-reason reveal, the spinner in the notification bell, the floating chips on the login panel, and the collapse button's own animation.
+
+## 42. Listing page on phones: one swipeable photo, and what "Verified landlord" means (Nov 16 2026)
+- Below `md`, `properties/show` shows one full-width swipeable photo (`#hero-strip`) instead of the desktop bento squeezed to 375px. One overlay per corner: Verified pill (top-left), heart (top-right), `1 / N` counter (bottom-right, opens the lightbox). No arrows on phones. The pill and heart are shared partials with the bento (`properties/partials/verified-pill`, `favorite-button`); the heart is a 44px target, optimistic, and syncs through the `favorite-changed` window event.
+- "Verified landlord" (contact card) = the landlord's own ID + selfie check was approved. "Verified Property" (photo) = ownership documents verified (§14). Two different claims, two different places.
+- "What's nearby": the address box is shown from the start; "Use my location" is the secondary action. Never hide the working path behind a permission prompt that can time out.
