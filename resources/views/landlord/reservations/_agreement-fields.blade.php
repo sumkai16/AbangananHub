@@ -36,6 +36,9 @@
             <x-styled-select name="advance_months" :options="['0' => 'None', '1' => '1 month', '2' => '2 months', '3' => '3 months']"
                 x-model="agreement.advance" class="{{ $input }} text-left" />
         </div>
+        <div class="col-span-2 -mt-1 empty:hidden">
+            @include('landlord.partials._rent-control-note', ['rent' => 'agreement.rent', 'deposit' => 'agreement.deposit', 'advance' => 'agreement.advance'])
+        </div>
         <div>
             <label for="{{ $p }}_due" class="{{ $label }}">Rent due day</label>
             <input id="{{ $p }}_due" type="number" name="rent_due_day" x-model="agreement.due_day" min="1" max="28" placeholder="Move-in day" class="{{ $input }}">

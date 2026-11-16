@@ -55,6 +55,7 @@ class PropertyUnitController extends Controller
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
             // Every monthly rental carries a deposit — no longer optional.
             'security_deposit'    => 'required|numeric|min:0|max:999999.99',
+            'advance_months'      => 'required|integer|in:0,1,2',
             'payment_arrangement'    => 'required|in:reservation_fee,advance_deposit,full_payment',
             'reservation_fee_amount' => 'nullable|required_if:payment_arrangement,reservation_fee|numeric|min:1|max:999999.99',
             'payment_deadline_days'  => 'nullable|integer|min:1|max:7',
@@ -98,6 +99,7 @@ class PropertyUnitController extends Controller
                 'furnishing_status'   => $validated['furnishing_status'] ?? null,
                 'rental_fee'          => $validated['rental_fee'],
                 'security_deposit'    => $validated['security_deposit'] ?? null,
+                'advance_months'      => (int) $validated['advance_months'],
                 'payment_arrangement'    => $validated['payment_arrangement'],
                 'reservation_fee_amount' => $validated['payment_arrangement'] === 'reservation_fee' ? $validated['reservation_fee_amount'] : null,
                 'payment_deadline_days'  => $validated['payment_deadline_days'] ?? null,
@@ -178,6 +180,7 @@ class PropertyUnitController extends Controller
             // every new unit. A unit that genuinely charges no deposit needs a
             // way to say so after creation; see SCHEMA.md.
             'security_deposit'    => 'nullable|numeric|min:0|max:999999.99',
+            'advance_months'      => 'nullable|integer|in:0,1,2',
             'payment_arrangement'    => 'required|in:reservation_fee,advance_deposit,full_payment',
             'reservation_fee_amount' => 'nullable|required_if:payment_arrangement,reservation_fee|numeric|min:1|max:999999.99',
             'payment_deadline_days'  => 'nullable|integer|min:1|max:7',
@@ -243,6 +246,7 @@ class PropertyUnitController extends Controller
                 // silently null it (ARCHITECTURE.md documents this exact
                 // shape once already, for this same edit page).
                 'security_deposit'    => array_key_exists('security_deposit', $validated) ? $validated['security_deposit'] : $unit->security_deposit,
+                'advance_months'      => isset($validated['advance_months']) ? (int) $validated['advance_months'] : $unit->advance_months,
                 'payment_arrangement'    => $validated['payment_arrangement'],
                 'reservation_fee_amount' => $validated['payment_arrangement'] === 'reservation_fee' ? $validated['reservation_fee_amount'] : null,
                 'payment_deadline_days'  => $validated['payment_deadline_days'] ?? null,

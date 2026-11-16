@@ -64,6 +64,7 @@
                 floor: @js(old('floor', '')),
                 rentalFee: @js(old('rental_fee', '')),
                 securityDeposit: @js(old('security_deposit', '')),
+                advanceMonths: @js((int) old('advance_months', 1)),
                 // A monthly rental always carries a deposit now (required
                 // below). Mirroring the rent into it as it's typed means the
                 // landlord confirms a number instead of inventing one from a
@@ -177,12 +178,14 @@
                                     x-on:input="securityDepositTouched = true"
                                     class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
                                 <p class="text-[11.5px] text-[#5B6A8E] mt-1">Enter 0 if you don't collect a deposit.</p>
+                                @include('landlord.partials._rent-control-note', ['rent' => 'rentalFee', 'deposit' => 'securityDeposit'])
                                 @error('security_deposit')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
 
                             <div class="sm:col-span-2">
+                                @include('landlord.units.partials._advance-rent')
                                 @include('landlord.units.partials._payment-arrangement', ['unit' => null])
                             </div>
 

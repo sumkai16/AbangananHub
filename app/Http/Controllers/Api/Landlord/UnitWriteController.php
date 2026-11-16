@@ -37,6 +37,7 @@ class UnitWriteController extends Controller
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
             // Every monthly rental carries a deposit — no longer optional.
             'security_deposit'    => 'required|numeric|min:0|max:999999.99',
+            'advance_months'      => 'nullable|integer|in:0,1,2',
             'occupancy_limit'     => 'required|integer|min:1|max:100',
             'availability_status' => 'required|in:Available,Reserved,Occupied,Maintenance',
             'description'         => 'nullable|string|max:300',
@@ -68,6 +69,7 @@ class UnitWriteController extends Controller
                 'floor_area_sqm'      => $validated['floor_area_sqm'] ?? null,
                 'rental_fee'          => $validated['rental_fee'],
                 'security_deposit'    => $validated['security_deposit'] ?? null,
+                'advance_months'      => (int) ($validated['advance_months'] ?? 1),
                 'occupancy_limit'     => $validated['occupancy_limit'],
                 'availability_status' => $validated['availability_status'],
                 'description'         => $validated['description'] ?? null,
@@ -120,6 +122,7 @@ class UnitWriteController extends Controller
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
             // Every monthly rental carries a deposit — no longer optional.
             'security_deposit'    => 'required|numeric|min:0|max:999999.99',
+            'advance_months'      => 'nullable|integer|in:0,1,2',
             'occupancy_limit'     => 'required|integer|min:1|max:100',
             'availability_status' => 'required|in:Available,Reserved,Occupied,Maintenance',
             'description'         => 'nullable|string|max:300',
@@ -154,6 +157,7 @@ class UnitWriteController extends Controller
                 'floor_area_sqm'      => $validated['floor_area_sqm'] ?? null,
                 'rental_fee'          => $validated['rental_fee'],
                 'security_deposit'    => $validated['security_deposit'] ?? null,
+                'advance_months'      => isset($validated['advance_months']) ? (int) $validated['advance_months'] : $unit->advance_months,
                 'occupancy_limit'     => $validated['occupancy_limit'],
                 'availability_status' => $validated['availability_status'],
                 'description'         => $validated['description'] ?? null,

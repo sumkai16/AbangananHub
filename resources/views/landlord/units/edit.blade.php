@@ -110,6 +110,8 @@
                 capacity: @js(old('occupancy_limit', $unit->occupancy_limit)),
                 floorArea: @js(old('floor_area_sqm', $unit->floor_area_sqm)),
                 rentalFee: @js(old('rental_fee', $unit->rental_fee)),
+                securityDeposit: @js(old('security_deposit', $unit->security_deposit)),
+                advanceMonths: @js((int) old('advance_months', $unit->advance_months)),
                 status: @js(old('availability_status', $unit->availability_status)),
                 amenities: @js($preselectedAmenities),
                 exclusiveAmenities: @js($exclusiveAmenityIds),
@@ -225,12 +227,14 @@
                                 </div>
                                 <div>
                                     <label for="security_deposit" class="{{ $label }}">Security deposit (₱) <span class="font-normal text-[#5B6A8E]">(optional)</span></label>
-                                    <input type="number" id="security_deposit" name="security_deposit" value="{{ old('security_deposit', $unit->security_deposit) }}" min="0"
+                                    <input type="number" id="security_deposit" name="security_deposit" x-model="securityDeposit" min="0"
                                         max="999999.99" step="0.01" placeholder="Leave blank if no deposit" class="{{ $input }}">
+                                    @include('landlord.partials._rent-control-note', ['rent' => 'rentalFee', 'deposit' => 'securityDeposit'])
                                     @error('security_deposit')<p class="{{ $error }}">{{ $message }}</p>@enderror
                                 </div>
                             </div>
 
+                            @include('landlord.units.partials._advance-rent')
                             @include('landlord.units.partials._payment-arrangement', ['unit' => $unit])
 
                             <div>

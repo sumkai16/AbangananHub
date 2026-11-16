@@ -176,4 +176,11 @@ return [
      * tenant their landlord has not answered yet.
      */
     'claim_reminder_days' => [1, 3],
+
+    /*
+     * Rent Control Act of 2009 (RA 9653): for covered units, at most 1 month advance and 2 months deposit. Covered means
+     * monthly rent up to PHP 10,000 in Metro Manila or PHP 5,000 elsewhere. We do not know the area here, so the note
+     * uses the higher ceiling and says "may apply". A note only: it never blocks a save. Confirm the law is still in force.
+     */
+    'rent_control' => ['ceiling' => 10000, 'max_deposit_months' => 2, 'max_advance_months' => 1],
 ];

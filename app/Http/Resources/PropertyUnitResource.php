@@ -18,6 +18,7 @@ class PropertyUnitResource extends ApiResource
             'description'          => $this->attr('description'),
             'rental_fee'           => $this->attr('rental_fee'),
             'security_deposit'     => $this->attr('security_deposit'),
+            'advance_months'       => $this->attr('advance_months'),
             'occupancy_limit'      => $this->attr('occupancy_limit'),
             'availability_status'  => $this->attr('availability_status'),
             'verification_status'  => $this->attr('verification_status'),

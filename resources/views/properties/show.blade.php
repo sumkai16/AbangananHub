@@ -68,6 +68,7 @@
                 'rentRaw' => (float) $unit->rental_fee,
                 'depositRaw' => $unit->security_deposit !== null ? (float) $unit->security_deposit : null,
                 'deposit' => $unit->security_deposit !== null ? number_format($unit->security_deposit) : null,
+                'advanceMonths' => (int) $unit->advance_months,
                 'floorArea' => $unit->floor_area_label,
                 'furnishing' => $unit->furnishing_status,
                 'floor' => $unit->floor,
@@ -547,6 +548,9 @@
                         </template>
                         <template x-if="selected && !selected.deposit">
                             <span>No security deposit required</span>
+                        </template>
+                        <template x-if="selected && selected.advanceMonths > 0">
+                            <span> · <span class="font-semibold text-[#060D26]" x-text="selected.advanceMonths + (selected.advanceMonths === 1 ? ' month' : ' months')"></span> advance rent</span>
                         </template>
                     </p>
 

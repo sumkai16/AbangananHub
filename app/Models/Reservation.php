@@ -1259,7 +1259,8 @@ class Reservation extends Model
         return [
             'rent' => (float) ($this->agreed_monthly_rent ?? $this->unit?->rental_fee ?? 0),
             'deposit' => (float) ($this->unit?->security_deposit ?? 0),
-            'advance' => 1,
+            // The unit's own setting (0, 1 or 2 months); one month when the unit is gone, as before.
+            'advance' => $this->unit ? (int) $this->unit->advance_months : 1,
             'move_in' => $this->target_move_in_date?->toDateString() ?? '',
             'move_out' => $this->target_move_out_date?->toDateString() ?? '',
             'due_day' => $this->rent_due_day ?? '',
