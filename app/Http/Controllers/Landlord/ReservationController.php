@@ -206,6 +206,20 @@ class ReservationController extends Controller
         return back()->with('success', 'Reservation rejected.');
     }
 
+    /** Take back an unsigned agreement. The tenant stays in the conversation and a new one can be sent. */
+    public function withdrawAgreement(Reservation $reservation)
+    {
+        Gate::authorize('reject', $reservation);
+
+        if (! $reservation->withdrawAgreement()) {
+            return back()->withErrors(['reservation' => $reservation->cancellationBlockedReason() ?? 'This agreement can no longer be withdrawn.']);
+        }
+
+        $reservation->postSystemMessage(Auth::user()->name . ' withdrew the rental agreement. You can keep talking, and a new one can be sent.');
+
+        return back()->with('success', 'Agreement withdrawn. The conversation is still open.');
+    }
+
     public function cancel(Reservation $reservation)
     {
         Gate::authorize('cancel', $reservation);

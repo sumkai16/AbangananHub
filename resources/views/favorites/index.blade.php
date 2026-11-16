@@ -18,38 +18,6 @@
         </div>
     </div>
 
-    {{-- Search & Filter Bar --}}
-    <x-card class="mb-8">
-    <form data-live method="GET" action="{{ route('favorites.index') }}" class="flex flex-col sm:flex-row gap-3">
-        <div class="relative flex-1">
-            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8] pointer-events-none"
-                fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input type="text" name="search" value="{{ request('search') }}"
-                placeholder="Search saved properties…" aria-label="Search saved properties"
-                x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                class="w-full h-10 pl-9 pr-4 text-[13.5px] text-[#060D26] bg-[#F7F8FC] border border-[#E2E4EC] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition placeholder-[#94A3B8]" />
-        </div>
-        <x-styled-select name="type" :options="\App\Enums\PropertyType::options('Any type')"
-            :selected="request('type', '')" aria-label="Filter by property type"
-            class="px-4 py-2.5 text-sm font-semibold text-[#060D26] bg-[#F7F8FC] border border-[#E2E4EC] rounded-xl" />
-        <x-styled-select name="availability" :options="['' => 'Any status', 'Available' => 'Available', 'Unavailable' => 'Unavailable']"
-            :selected="request('availability', '')" aria-label="Filter by availability"
-            class="px-4 py-2.5 text-sm font-semibold text-[#060D26] bg-[#F7F8FC] border border-[#E2E4EC] rounded-xl" />
-        <button type="submit"
-            class="px-5 py-2.5 text-sm font-bold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] rounded-xl shadow-sm transition-all duration-200 active:scale-[0.98]">
-            Search
-        </button>
-        @if(request()->hasAny(['search', 'type', 'availability']))
-            <a href="{{ route('favorites.index') }}"
-                class="px-4 py-2.5 text-sm font-semibold text-[#060D26] bg-white border border-[#E2E4EC] hover:bg-[#F7F8FC] rounded-xl transition-all duration-200 text-center">
-                Clear
-            </a>
-        @endif
-    </form>
-    </x-card>
-
     @if($favorites->count() > 0)
 
         <p class="text-[13px] text-[#5B6A8E] font-medium mb-6">

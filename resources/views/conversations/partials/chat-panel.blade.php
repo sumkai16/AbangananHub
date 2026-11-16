@@ -311,6 +311,17 @@
 
                 @elseif($rentalStatus === 'Pending Rental Agreement')
                     <p class="text-[12px] text-[#5B6A8E] font-medium text-center py-1">Waiting for {{ $otherParty->first_name }} to sign the agreement</p>
+                    @if($blockedCancel = $reservation->cancellationBlockedReason())
+                        <p class="text-center text-[11.5px] leading-snug text-[#5B6A8E]">{{ $blockedCancel }}</p>
+                    @else
+                        <form action="{{ route('landlord.reservations.withdrawAgreement', $reservation) }}" method="POST" class="text-center"
+                            data-confirm="Cancel sending this agreement?" data-confirm-type="warning"
+                            data-confirm-message="{{ $otherParty->first_name }} will no longer be able to sign it. The conversation stays open and you can send a new agreement."
+                            data-confirm-button="Cancel agreement" data-confirm-cancel="Keep it">
+                            @csrf @method('PATCH')
+                            <button type="submit" class="text-[12px] font-semibold text-[#EF4444] hover:underline cursor-pointer">Cancel agreement</button>
+                        </form>
+                    @endif
 
                 @elseif($rentalStatus === 'Rental Agreement Signed')
                     @if($heldPayment)

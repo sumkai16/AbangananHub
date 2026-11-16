@@ -46,6 +46,8 @@ const loadScript = ({ src, type }) =>
 const SHELLS = {
     'landlord-sidebar': { active: ['bg-white/[0.10]', 'text-white', 'font-semibold'], inactive: ['text-white/65', 'hover:bg-white/[0.06]', 'hover:text-[#FF8A66]'] },
     'admin-sidebar': { active: ['bg-white/[0.10]', 'text-white'], inactive: ['text-white/60', 'hover:bg-white/[0.06]', 'hover:text-white'] },
+    // The tenant site shell: a top bar instead of a sidebar. Its primary links swap like the sidebar's.
+    'site-header': { active: ['text-[#B35A3D]', 'bg-[#ECEEF6]'], inactive: ['text-[#060D26]', 'hover:bg-[#F7F8FC]', 'hover:text-[#B35A3D]'] },
 };
 const shellId = () => Object.keys(SHELLS).find((id) => document.getElementById(id)) ?? null;
 const squash = (el) => el.textContent.replace(/\s+/g, ' ').trim();
@@ -54,6 +56,9 @@ const squash = (el) => el.textContent.replace(/\s+/g, ' ').trim();
 function needsFullLoad(doc) {
     const shell = shellId();
     if (shell && !doc.getElementById(shell)) return true;
+    // Tenant shell: the search band above the page differs between pages (Home and Browse have it, most others do not),
+    // and it sits outside the swapped area, so a change of band means a normal load.
+    if (shell === 'site-header' && !!document.getElementById('header-search-expanded') !== !!doc.getElementById('header-search-expanded')) return true;
     // A pushed script is fine when it can be run again: a library file (src, loaded once), data-swap-safe (a
     // self-contained function, run after the swap) or data-swap-global (declares functions the page's x-data needs,
     // run before the swap). Any other inline script means a normal load.

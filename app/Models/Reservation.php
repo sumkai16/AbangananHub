@@ -1042,11 +1042,19 @@ class Reservation extends Model
     /** Why an agreement cannot be sent for this reservation right now because of its unit, or null. */
     public function agreementBlockedReason(): ?string
     {
-        if ($this->rental_status !== 'Under Negotiation' || ! $this->unitHeldByAnother()) {
+        $holder = $this->rental_status === 'Under Negotiation' ? $this->unitHeldByAnother() : null;
+
+        if (! $holder) {
             return null;
         }
 
-        return 'Another reservation on this unit already has an agreement in progress, or the unit is occupied. Cancel or complete that one first.';
+        $name = trim(($holder->tenant->first_name ?? '').' '.($holder->tenant->last_name ?? '')) ?: 'Another tenant';
+
+        return match ($holder->rental_status) {
+            'Pending Rental Agreement' => $name."'s agreement for this unit is waiting for a signature. Cancel it to send this one.",
+            'Rental Agreement Signed' => $name.' has signed an agreement for this unit and has not paid yet. Cancel or complete it first.',
+            default => $name.' already holds this unit ('.strtolower($holder->rental_status).'). Cancel or complete that one first.',
+        };
     }
 
     /**
@@ -1675,6 +1683,37 @@ class Reservation extends Model
             if ($saved) {
                 $this->cancelLinkedConversation();
                 $this->releaseUnitIfUnclaimed();
+            }
+
+            return $saved;
+        });
+    }
+
+    /**
+     * Take back an agreement the tenant has not signed: the request goes back to Under Negotiation and the chat stays
+     * open, so the landlord can change the terms and send it again. The reservation itself is not cancelled.
+     */
+    public function withdrawAgreement(): bool
+    {
+        if ($this->rental_status !== 'Pending Rental Agreement') {
+            return false;
+        }
+
+        return DB::transaction(function () {
+            static::whereKey($this->getKey())->lockForUpdate()->first();
+            $this->refresh();
+            $this->unsetRelation('payments');
+
+            if ($this->rental_status !== 'Pending Rental Agreement' || $this->cancellationBlockedReason() !== null) {
+                return false;
+            }
+
+            $this->rental_status = 'Under Negotiation';
+            $saved = $this->save();
+
+            if ($saved) {
+                // Requirements the tenant has not met are rebuilt from the new lease when it is sent again.
+                $this->documents()->where('status', 'Requested')->delete();
             }
 
             return $saved;

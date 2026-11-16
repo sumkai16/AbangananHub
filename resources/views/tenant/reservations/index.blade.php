@@ -78,7 +78,7 @@
             ] as $key => $label)
                 {{-- Empty tabs are noise: keep All, the active tab, and any tab with results. --}}
                 @continue($key !== 'all' && $status !== $key && ($counts[$key] ?? 0) === 0)
-                <a href="{{ route('reservations.index', $key === 'all' ? [] : ['status' => $key]) }}"
+                <a href="{{ route('reservations.index', $key === 'all' ? [] : ['status' => $key]) }}" data-page-swap="nav"
                     class="px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors duration-150 whitespace-nowrap
                               {{ $status === $key ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#5B6A8E] hover:text-[#060D26]' }}">
                     {{ $label }}
@@ -108,7 +108,7 @@
                             Browse properties
                         </a>
                     @else
-                        <a href="{{ route('reservations.index') }}"
+                        <a href="{{ route('reservations.index') }}" data-page-swap="nav"
                             class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13px] font-semibold text-[#060D26] bg-white ring-1 ring-[#5B6A8E]/15 hover:bg-[#ECEEF6] transition-all">
                             View all reservations
                         </a>

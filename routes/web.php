@@ -233,6 +233,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/reservations/viewings/blocked-days/{blockedDate}', [App\Http\Controllers\Landlord\ViewingController::class, 'unblock'])->name('viewings.unblock');
         Route::patch('/reservations/{reservation}/reject', [App\Http\Controllers\Landlord\ReservationController::class, 'reject'])->name('reservations.reject');
         Route::patch('/reservations/{reservation}/cancel', [App\Http\Controllers\Landlord\ReservationController::class, 'cancel'])->name('reservations.cancel');
+        Route::patch('/reservations/{reservation}/withdraw-agreement', [App\Http\Controllers\Landlord\ReservationController::class, 'withdrawAgreement'])->name('reservations.withdrawAgreement');
         Route::post('/reservations/{reservation}/settle-payment', [App\Http\Controllers\Landlord\ReservationController::class, 'settleMoveInMoney'])->name('reservations.settlePayment');
         Route::patch('/reservations/{reservation}/advance-negotiation', [App\Http\Controllers\Landlord\ReservationController::class, 'advanceToNegotiation'])->name('reservations.advanceNegotiation');
         Route::patch('/reservations/{reservation}/accept-and-send', [App\Http\Controllers\Landlord\ReservationController::class, 'acceptAndSendAgreement'])->name('reservations.acceptAndSend');

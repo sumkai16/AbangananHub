@@ -22,6 +22,16 @@ class ReportController extends Controller
     public function create(Request $request)
     {
         $userId = Auth::id();
+
+        // Tenants file reports from the modal on My Reports, so this page is only a way in with the target kept.
+        if ($request->user()->hasRole('Tenant') && ! $request->user()->hasRole('Landlord')) {
+            return redirect()->route('tenant.reports.index', array_filter([
+                'report' => 1,
+                'property_id' => $request->integer('property_id') ?: null,
+                'user_id' => $request->integer('user_id') ?: null,
+            ]));
+        }
+
         $prefillPropertyId = $request->integer('property_id') ?: null;
         $prefillUserId = $request->integer('user_id') ?: null;
 
@@ -102,6 +112,10 @@ class ReportController extends Controller
         // The landlord's "File a report" modal on My Complaints: back to the list, where the new report now shows.
         if ($request->input('return_to') === 'complaints' && $request->user()->hasRole('Landlord')) {
             return redirect()->route('landlord.complaints.index')->with('success', $message);
+        }
+
+        if ($request->user()->hasRole('Tenant') && ! $request->user()->hasRole('Landlord')) {
+            return redirect()->route('tenant.reports.index')->with('success', $message);
         }
 
         return redirect()->route('reports.create')->with('success', $message);
