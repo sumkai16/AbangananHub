@@ -32,6 +32,7 @@
                         'Payment records: amounts, dates and status of rent or fees paid through the platform. Card and wallet details are handled by our payment provider and are not stored by us.',
                         'Your location, only if you search “near me”: your browser shares your position for that one search so places can be sorted by distance. It is used once, is not saved, and is not sent to the AI service.',
                         'Technical data: device and browser type, IP address, pages visited and error logs, collected automatically to run and protect the service.',
+                        'Unpaid rent reports: if a landlord reports that rent is unpaid and an administrator confirms it, we record the report, the amount and the reason while the rent is owed. While a report is active, the details you gave when signing up (name, phone number, device and network address) may be compared with new sign-ups, so that someone cannot avoid a debt by opening a second account. A match only alerts an administrator, who decides what to do. Nobody is blocked automatically.',
                     ]],
                 ],
             ],

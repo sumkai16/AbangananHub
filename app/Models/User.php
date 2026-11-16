@@ -193,6 +193,18 @@ class User extends Authenticatable
         return $this->two_factor_confirmed_at !== null;
     }
 
+    /** Unpaid-rent holds against this user as the tenant. */
+    public function holds(): HasMany
+    {
+        return $this->hasMany(TenantHold::class, 'tenant_id', 'user_id');
+    }
+
+    /** True while an admin-confirmed hold is in force. A hold still waiting for review restricts nothing. */
+    public function isOnHold(): bool
+    {
+        return $this->holds()->active()->exists();
+    }
+
     public function hasRole(string $role): bool
     {
         // Reads the (cached) relation rather than running an EXISTS per call —

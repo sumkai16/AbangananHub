@@ -8,6 +8,7 @@ use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureLandlord;
 use App\Http\Middleware\EnsureTwoFactor;
 use App\Http\Middleware\RequireRecentPassword;
+use App\Http\Middleware\EnsureNotOnHold;
 use App\Http\Middleware\EnsureTenant;
 use App\Http\Middleware\ForceJsonResponse;
 use App\Http\Middleware\SecurityHeaders;
@@ -40,6 +41,8 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'admin'    => EnsureAdmin::class,
             'two-factor'      => EnsureTwoFactor::class,
             'recent.password' => RequireRecentPassword::class,
+            // Tenants on an unpaid-rent hold cannot start anything new (plans/tenant-payment-holds.md).
+            'tenant.hold' => EnsureNotOnHold::class,
             // Landlord pages that can open inside the page panel (an iframe) without the sidebar and top bar.
             'embeddable' => EmbeddedPage::class,
             // Aliased for the API, where it must run *after* auth:sanctum has

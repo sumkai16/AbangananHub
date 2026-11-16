@@ -75,6 +75,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/settings', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // A tenant whose account is on an unpaid-rent hold: what is owed, how to pay, and a note to the admin.
+    Route::get('/account/on-hold', [\App\Http\Controllers\Account\OnHoldController::class, 'show'])->name('account.on-hold');
+    Route::post('/account/on-hold/{hold}/dispute', [\App\Http\Controllers\Account\OnHoldController::class, 'dispute'])->middleware('throttle:5,1')->name('account.on-hold.dispute');
     Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo');
     Route::patch('/profile/tenant-details', [TenantDetailController::class, 'update'])->name('profile.tenantDetails.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -116,7 +120,7 @@ Route::middleware('auth')->group(function () {
     // Unit viewings — symmetric like the handover: the tenant requests from
     // the chat, either party reschedules or cancels, the other one confirms.
     // The landlord's Viewings tab posts here too.
-    Route::post('/reservations/{reservation}/viewings', [ViewingController::class, 'store'])->name('viewings.store');
+    Route::post('/reservations/{reservation}/viewings', [ViewingController::class, 'store'])->middleware('tenant.hold')->name('viewings.store');
     Route::get('/reservations/{reservation}/viewing-slots', [ViewingController::class, 'slots'])->name('viewings.slots');
     Route::post('/viewings/{viewing}/reschedule', [ViewingController::class, 'reschedule'])->name('viewings.reschedule');
     Route::post('/viewings/{viewing}/confirm', [ViewingController::class, 'confirm'])->name('viewings.confirm');
@@ -162,7 +166,7 @@ Route::middleware('auth')->group(function () {
     // Tenant-specific routes
     Route::middleware('tenant')->prefix('tenant')->group(function () {
         Route::get('/reservations', [ReservationController::class, 'index'])->name('reservations.index');
-        Route::post('/reservations', [ReservationController::class, 'store'])->name('reservations.store');
+        Route::post('/reservations', [ReservationController::class, 'store'])->middleware('tenant.hold')->name('reservations.store');
         Route::patch('/reservations/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel');
 
         Route::get('/reservations/{reservation}/agreement', [AgreementController::class, 'show'])->name('agreements.show');
@@ -275,6 +279,10 @@ Route::middleware('auth')->group(function () {
         Route::patch('/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'update'])->name('profile.update');
         // Settings > Payments: which ways tenants may pay (online, QR, cash).
         Route::patch('/payment-methods', [PaymentMethodController::class, 'update'])->name('paymentMethods.update');
+
+        // Unpaid-rent holds: report a tenant (an admin confirms), or lift a hold you raised. See plans/tenant-payment-holds.md.
+        Route::post('/reservations/{reservation}/hold', [\App\Http\Controllers\Landlord\TenantHoldController::class, 'store'])->middleware('throttle:10,1')->name('holds.store');
+        Route::post('/holds/{hold}/release', [\App\Http\Controllers\Landlord\TenantHoldController::class, 'release'])->name('holds.release');
 
         // Tenant Ratings
         Route::get('/reservations/{reservation}/rate-tenant', [TenantRatingController::class, 'create'])->name('reservations.rateTenant');
@@ -461,6 +469,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/step-up', [\App\Http\Controllers\Admin\StepUpController::class, 'status'])->name('stepUp.status');
         Route::post('/step-up', [\App\Http\Controllers\Admin\StepUpController::class, 'confirm'])->middleware('throttle:5,1')->name('stepUp.confirm');
         Route::post('/users/{user}/sign-out-everywhere', \App\Http\Controllers\Admin\UserSessionController::class)->middleware('recent.password')->name('users.signOutEverywhere');
+        // Tenant payment holds and the duplicate-account alerts (confirm, release and put-on-hold need the password again).
+        Route::get('/tenant-holds', [\App\Http\Controllers\Admin\TenantHoldController::class, 'index'])->name('tenant-holds.index');
+        Route::post('/tenant-holds/{hold}/confirm', [\App\Http\Controllers\Admin\TenantHoldController::class, 'confirm'])->middleware('recent.password')->name('tenant-holds.confirm');
+        Route::post('/tenant-holds/{hold}/reject', [\App\Http\Controllers\Admin\TenantHoldController::class, 'reject'])->name('tenant-holds.reject');
+        Route::post('/tenant-holds/{hold}/release', [\App\Http\Controllers\Admin\TenantHoldController::class, 'release'])->middleware('recent.password')->name('tenant-holds.release');
+        Route::post('/hold-alerts/{alert}/dismiss', [\App\Http\Controllers\Admin\TenantHoldController::class, 'dismissAlert'])->name('hold-alerts.dismiss');
+        Route::post('/hold-alerts/{alert}/hold', [\App\Http\Controllers\Admin\TenantHoldController::class, 'holdAlert'])->middleware('recent.password')->name('hold-alerts.hold');
         Route::get('/security-events', [\App\Http\Controllers\Admin\SecurityEventController::class, 'index'])->name('security-events.index');
         Route::get('/security-events/export', [\App\Http\Controllers\Admin\SecurityEventController::class, 'export'])->middleware('throttle:5,1')->name('security-events.export');
 
@@ -473,7 +488,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/conversations/unread-count', [ConversationController::class, 'unreadCount'])->middleware('throttle:60,1')->name('conversations.unreadCount');
     Route::get('/conversations/recent-messages', [ConversationController::class, 'recentMessages'])->name('conversations.recentMessages');
     Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
-    Route::post('/conversations', [ConversationController::class, 'store'])->name('conversations.store');
+    Route::post('/conversations', [ConversationController::class, 'store'])->middleware('tenant.hold')->name('conversations.store');
     Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
     Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
 

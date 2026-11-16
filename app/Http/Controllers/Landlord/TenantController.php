@@ -157,6 +157,9 @@ class TenantController extends Controller
             return $row;
         });
 
+        // The landlord's own browser and network say nothing about the tenant, so only name and phone can match.
+        \App\Services\Holds\HoldMatcher::inspectAfterResponse($row->tenant, null, null, 'walk-in');
+
         $invited = TenantInvites::send($row->tenant, $landlord);
         $note = $invited ? ' We emailed them an invite to set a password.' : ' Add their email later to invite them.';
 

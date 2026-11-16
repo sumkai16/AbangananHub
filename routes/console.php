@@ -2,6 +2,7 @@
 
 use App\Models\AiSearchLog;
 use App\Models\AuthEvent;
+use App\Models\HoldMatchAlert;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -33,7 +34,8 @@ Schedule::command('reservations:purge-tenant-documents')->dailyAt('03:30')->time
 
 // AI search logs are kept 30 days (App\Models\AiSearchLog::prunable()).
 // Account & security events are kept 90 days (config security.auth_events_retention_days).
-Schedule::command('model:prune', ['--model' => [AiSearchLog::class, AuthEvent::class]])->dailyAt('03:00')->timezone(config('rentals.timezone'));
+// Dismissed duplicate-account alerts are kept 90 days (config security.hold_match.dismissed_retention_days).
+Schedule::command('model:prune', ['--model' => [AiSearchLog::class, AuthEvent::class, HoldMatchAlert::class]])->dailyAt('03:00')->timezone(config('rentals.timezone'));
 // Landlord payouts: the immediate job (SendLandlordPayout) does the work as money becomes payable; this sweep
 // polls transfers PayMongo has not confirmed and sends anything still owed (hold over, wallet was short, job missed).
 Schedule::command('payouts:send')->hourly()->withoutOverlapping()->onOneServer()->timezone(config('rentals.timezone'));
@@ -46,3 +48,6 @@ Schedule::command('payment-claims:remind')->dailyAt('08:45')->timezone(config('r
 
 // Audit log tamper check: re-walks the hash chain, caches the result for the Activity Logs badge, alerts admins on a break.
 Schedule::command('audit:verify')->dailyAt('03:30')->timezone(config('rentals.timezone'));
+
+// Tenant holds: lift the ones whose overdue rent has been paid. Also checked when the tenant opens their hold page.
+Schedule::command('holds:release-paid')->dailyAt('09:00')->timezone(config('rentals.timezone'));

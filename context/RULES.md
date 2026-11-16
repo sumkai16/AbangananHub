@@ -259,6 +259,13 @@ Full procedure: `plans/hostinger-vps-deployment.md`. The rules that generalize b
 - Tests that need 2FA or step-up turn it on per test with `config(['security.admin_two_factor' => 'required'])` / `config(['security.step_up_enabled' => true])`; phpunit defaults both off.
 - Several agents or terminals running tests together collide on the one MySQL test database. Run them through `flock /tmp/ah-phpunit.lock php artisan test ...`.
 
+## Tenant holds and duplicate matching (established Nov 15 2026)
+- A hold never touches `users.account_status` and never blocks paying rent. Add `tenant.hold` only to routes that **start something new**; never to an existing tenancy's ledger, payment, receipt or notification routes.
+- A new place that lists or counts conversations uses `HoldRestrictions::partyScope()`; a new place that opens or writes to one uses `canUseConversation()`.
+- Duplicate matching **never blocks automatically.** It only alerts an admin. IP alone and name alone must never alert (shared Wi-Fi, common names); the rule lives in `config/security.php`.
+- The reporting landlord is told only that a possible duplicate of *their* tenant exists. Never show them, or the new account, the other person's name, email, phone or which hold matched.
+- Change holds only through `HoldService`, and matches through `HoldMatcher`. Matcher hooks run after the response and must swallow their own failures.
+
 ## Forms: validation (established Oct 8 2026)
 - **Auth and profile forms carry `novalidate`** (login, register, forgot/reset password, profile edit, password change, delete account). The server's Laravel validation decides, and its messages show inline under the field that failed, so the browser's native popup never appears. Server rules already cover every field, so nothing relies on `required` / `type=email` in the HTML.
 - **Show errors per field**: `<x-input-error :messages="$errors->get('email')" />` (or an `@error` block). A single `$errors->first()` banner is not enough once `novalidate` is on. Login used one; it now shows the email and password errors under their own fields.

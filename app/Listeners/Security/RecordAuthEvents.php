@@ -40,6 +40,28 @@ class RecordAuthEvents
         $recorded = $this->recorder()->record('login', $event->user, channel: $this->channel());
 
         $this->alertOnNewDevice($event->user, $recorded);
+        $this->checkHeldTenantMatch($event->user, $recorded);
+    }
+
+    /**
+     * A sign-in from a browser this account has not used lately is compared with tenants on hold, in case someone
+     * is back under a new account. Never blocks and never shows anything: an admin reviews any match.
+     */
+    private function checkHeldTenantMatch(\App\Models\User $user, ?\App\Models\AuthEvent $recorded): void
+    {
+        try {
+            if (! $recorded || ! \App\Models\TenantHold::active()->exists()) {
+                return;
+            }
+
+            if (! app(NewDeviceDetector::class)->isNew($user, $recorded->device_id, $recorded->event_id)) {
+                return;
+            }
+
+            \App\Services\Holds\HoldMatcher::inspectAfterResponse($user, $recorded->device_id, $recorded->ip_address, 'sign-in');
+        } catch (Throwable $e) {
+            Log::warning('Could not check a sign-in against held tenants', ['error' => $e->getMessage()]);
+        }
     }
 
     /**

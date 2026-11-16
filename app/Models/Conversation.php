@@ -167,7 +167,13 @@ class Conversation extends Model
      */
     public static function unreadCountFor(int $userId): int
     {
-        return static::where(fn ($q) => $q->where('tenant_id', $userId)->orWhere('landlord_id', $userId))
+        // A tenant on an unpaid-rent hold only counts the chats they may still open (the landlord they owe).
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $party = $user && (int) $user->user_id === $userId
+            ? \App\Services\Holds\HoldRestrictions::partyScope($user)
+            : fn ($q) => $q->where('tenant_id', $userId)->orWhere('landlord_id', $userId);
+
+        return static::where($party)
             ->whereNotIn('status', ['Cancelled', 'Resolved'])
             ->whereHas('latestMessage', fn ($q) => $q->where('sender_id', '!=', $userId)->where('is_read', false))
             ->count();

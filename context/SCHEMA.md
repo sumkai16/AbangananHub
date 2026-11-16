@@ -886,6 +886,45 @@ Account and security events: sign-ins, failures, lockouts, password and email ch
 
 New event type: add its key to `AuthEvent::EVENTS` (the filter reads it) and record it through `AuthEventRecorder::record()`.
 
+### tenant_holds
+A landlord's report that a tenant has not paid, and what happened next. Status flow: `pending_admin` -> `active` -> `released`, or `pending_admin` -> `rejected`. Only an `active` hold restricts the tenant (no new reservations, viewings or chats; they can still pay and chat with the landlord who reported them). `account_status` is never touched, so a held tenant can always sign in and pay. Changed only through `HoldService`, which writes the `hold.*` audit rows. See `plans/tenant-payment-holds.md`.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| hold_id | bigint unsigned | NN | PK | |
+| tenant_id | bigint unsigned | NN | FK → users, cascade; index `(tenant_id, status)` | The tenant on hold |
+| landlord_id | bigint unsigned | null | FK → users, set null; index `(landlord_id, status)` | The landlord who reported; null for a hold an admin made on a duplicate account |
+| reservation_id | bigint unsigned | null | FK → reservations, set null | The tenancy the unpaid rent belongs to |
+| source_hold_id | bigint unsigned | null | FK → tenant_holds, set null | Set when an admin put a duplicate account on hold; it lifts with the source |
+| amount_owed | decimal(12,2) | NN, default 0 | | Snapshot of the overdue rent when flagged |
+| reason | text | NN | | The landlord's reason (min 10 characters) |
+| status | varchar(20) | NN, default `pending_admin` | index | `TenantHold::STATUSES` |
+| tenant_note | text | null | | The tenant's side, from the hold page |
+| flagged_at | timestamp | null | | When the landlord reported |
+| confirmed_by | bigint unsigned | null | FK → users, set null | The admin who confirmed |
+| confirmed_at | timestamp | null | | |
+| rejected_note | text | null | | Required when an admin rejects |
+| released_by | bigint unsigned | null | FK → users, set null | Null when the hold lifted by itself |
+| released_at | timestamp | null | | |
+| release_reason | varchar(20) | null | | `TenantHold::RELEASE_REASONS`: `paid`, `landlord`, `admin`, `source_released`, `debt_dropped` |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+### hold_match_alerts
+"This new account looks like a tenant on hold." A prompt for an admin to look, never a verdict; nothing is blocked because of it. Written by `HoldMatcher` on sign-up, new-device sign-in and walk-in creation. The rule is `security.hold_match`: a phone or device match alerts alone, name + IP together, never IP or name alone. Dismissed rows are pruned after 90 days (`model:prune`). The signals list never contains the other person's details.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| alert_id | bigint unsigned | NN | PK | |
+| hold_id | bigint unsigned | NN | FK → tenant_holds, cascade; unique `(hold_id, user_id)` | |
+| user_id | bigint unsigned | NN | FK → users, cascade | The new account |
+| signals | json | NN | | e.g. `["phone","device"]` |
+| status | varchar(20) | NN, default `open` | index | `open`, `dismissed`, `held` |
+| reviewed_by | bigint unsigned | null | FK → users, set null | |
+| reviewed_at | timestamp | null | | |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
 ### property_activities
 A property's Activity Log (Landlord > property > Activity Log tab, and Overview's recent activity). One line per thing that happened on the listing: who did it (as a role), what, when. Written by observers (`PropertyObserver`, `PropertyUnitObserver`, `PropertyMediaObserver`, `UnitMediaObserver`, `PropertyDocumentObserver`, `ReviewObserver`, `ReservationActivityObserver`, `PaymentActivityObserver`) through `PropertyActivity::record()` / `recordMerged()`, inside the acting transaction, so a rollback leaves no line. A failed write is logged and never blocks the action. Separate from `audit_logs` (admin's consequential-actions record) and `occupancy_activities` (Analytics reads it).
 
@@ -1017,3 +1056,4 @@ Laravel's own, not documented column by column: `cache`, `cache_locks`, `failed_
 
 - `AmenitySeeder` — 33 amenities, idempotent via `updateOrCreate` on `amenity_name` (an `amenity_id` never shifts); also sets `scope` and `category`. Runs before `PropertySeeder`.
 - Dev fixtures: `php artisan ratings:scenarios` (`--clean`) seeds `tenant_ratings` and `reviews`.
+- `PromoSeeder` — cast for the promo video, run on its own (`php artisan db:seed --class=PromoSeeder`, not in `DatabaseSeeder`): landlady `rosa@abangananhub.com` (approved, payout QR, "Abellana Apartments, Minglanilla" with 5 units: 3 rented with paid / overdue / due-on-the-20th ledgers via `TenantSeeder::rent()`, Room 2B and 3A free) and tenant `mika@abangananhub.com` (complete `tenant_details`, nothing else). Re-running it is the reset between takes: it deletes Mika's account (cascades her chats, reservations, payments, favorites), clears Rosa's notifications, deletes any property or unit Rosa added on camera, and frees the two free rooms. No profile photos, so no real faces on screen.

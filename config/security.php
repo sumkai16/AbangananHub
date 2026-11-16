@@ -43,4 +43,16 @@ return [
 
     // Key for the audit log's hash chain (AuditChain). Separate from APP_KEY so rotating APP_KEY never breaks the chain.
     'audit_chain_key' => env('AUDIT_CHAIN_KEY', env('APP_KEY')),
+
+    /*
+     * Tenant payment holds and duplicate-account alerts. See plans/tenant-payment-holds.md.
+     * A new account alerts the admins when it matches a tenant on hold by any single signal in `alone`, or by every
+     * signal of one group in `together`. IP alone and name alone never alert: shared Wi-Fi and common names.
+     */
+    'hold_match' => [
+        'alone'                    => ['phone', 'device'],
+        'together'                 => [['name', 'ip']],
+        'dismissed_retention_days' => 90,
+        'min_reason_length'        => 10,
+    ],
 ];

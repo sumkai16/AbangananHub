@@ -206,6 +206,9 @@
     </div>
 @endif
 
+{{-- Unpaid rent: report it (an admin confirms) or see the state of a report. --}}
+@include('landlord.tenants._hold', ['reservation' => $reservation])
+
 <div class="sticky bottom-0 z-10 flex flex-wrap items-center justify-end gap-2 border-t border-[#E2E4EC] bg-white px-6 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
     @if($canInvite ?? false)
         <form method="POST" action="{{ $inviteUrl }}" class="mr-auto">

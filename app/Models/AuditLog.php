@@ -64,6 +64,13 @@ class AuditLog extends Model
         'user.password_reset_link'  => 'Password reset link sent',
         'user.sign_out_everywhere'  => 'User signed out everywhere',
         'activity.export'           => 'Activity log exported',
+        'hold.flagged'              => 'Tenant reported for unpaid rent',
+        'hold.confirmed'            => 'Tenant hold confirmed',
+        'hold.rejected'             => 'Tenant hold rejected',
+        'hold.released'             => 'Tenant hold released',
+        'hold.duplicate_flagged'    => 'Possible duplicate account found',
+        'hold.duplicate_dismissed'  => 'Duplicate alert dismissed',
+        'hold.duplicate_held'       => 'Duplicate account put on hold',
         'security.two_factor_enabled'   => 'Admin two-factor turned on',
         'security.two_factor_disabled'  => 'Admin two-factor turned off',
         'security.two_factor_codes'     => 'Admin recovery codes regenerated',
@@ -105,7 +112,7 @@ class AuditLog extends Model
      *
      * Call this inside the same DB::transaction() as the mutation it describes.
      * `$auditable` is the record acted upon; pass null for actions with no
-     * surviving target (a hard delete).
+     * surviving target (a hard delete). Pass `asSystem: true` for an automatic action.
      */
     public static function record(
         string $action,
@@ -113,8 +120,11 @@ class AuditLog extends Model
         ?Model $auditable = null,
         ?string $reason = null,
         array $metadata = [],
+        bool $asSystem = false,
     ): self {
-        $actor = Auth::user();
+        // $asSystem: the platform acted (an automatic check), even if a user happens to be signed in on this
+        // request, e.g. the person who just registered. Without it the row would blame them.
+        $actor = $asSystem ? null : Auth::user();
 
         $attributes = [
             'actor_id'       => $actor?->user_id,

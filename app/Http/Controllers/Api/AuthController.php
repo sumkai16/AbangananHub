@@ -49,6 +49,9 @@ class AuthController extends Controller
 
         event(new Registered($user));
 
+        // Quietly checks whether this looks like a tenant on hold. Runs after the response; the app sees nothing.
+        \App\Services\Holds\HoldMatcher::inspectAfterResponse($user, $request->cookies->get(config('security.device_cookie', 'ah_device')), $request->ip(), 'signup');
+
         return response()->json([
             'user'  => new UserResource($user),
             'token' => $user->createToken($request->device_name)->plainTextToken,

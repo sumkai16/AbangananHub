@@ -281,6 +281,11 @@ button anywhere, by design. Retention/pruning is deliberately unimplemented — 
 
 **Export.** `CsvExport` streams UTF-8 with a BOM, prefixes formula-looking cells with `'`, and caps at `security.export_row_cap`. `index` and `export` share one `filtered()` builder per controller so they cannot disagree; each export writes an `activity.export` audit row first.
 
+### Tenant payment holds (Nov 15 2026)
+A hold is its own record (`tenant_holds`), not a user status: `suspended` stays a hard lock, a hold never stops a tenant from signing in or paying. Flow `pending_admin` -> `active` -> `released` (or `rejected`), changed only by `HoldService` (every step in a transaction with an `AuditLog::record()` row). Only `active` restricts; `HoldRestrictions::isRestricted()` is the single check. Enforcement is a **short block-list** (`tenant.hold` middleware on reservations.store, viewings.store, conversations.store and the API twins), never a lock on the whole tenant area, so paying can never be blocked. Chat is the exception: a restricted tenant may only use conversations whose `landlord_id` holds a pending/active hold on them (`HoldRestrictions::partyScope()` for lists and counts, `canUseConversation()` for show/send/concerns).
+
+**Duplicates.** `HoldMatcher` compares a new account with tenants who have an *active* hold, using data already stored (`users`, `auth_events`): phone (last 10 digits), `ah_device`, name, IP. The rule is `config('security.hold_match')`: phone or device alone, name + IP together, never IP or name alone (shared Wi-Fi, common names). The hooks run after the response (`inspectAfterResponse`) and swallow failures, so sign-up and sign-in never break or reveal the match. A match writes a `hold_match_alerts` row and alerts admins; the admin dismisses or copies the hold onto the new account (`source_hold_id`, lifts with the source). Nothing is ever blocked automatically.
+
 ### System Settings (July 26 2026)
 The escrow and rent-ledger clocks are admin-editable at `admin/settings` instead of needing a deploy.
 

@@ -2,6 +2,17 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 15 2026 — Tenant payment holds and duplicate-account alerts (branch `axci`)
+**Run `php artisan migrate`** (`tenant_holds`, `hold_match_alerts`). Design and build plan: `plans/tenant-payment-holds.md`.
+- **Report, confirm, hold:** a landlord reports a tenant with overdue rent (reason, 10+ characters) from the contract panel on the tenant page; an **admin confirms** on the new Tenant holds page (Pending / On hold / Possible duplicates / History). Only an `active` hold restricts anything; `account_status` is never touched, so the tenant can always sign in and pay.
+- **What a hold blocks:** new reservations, viewing requests and new chats (`tenant.hold` middleware, 403 `account_on_hold` on the API). Paying, ledger, receipts, notifications and **chat with the landlord who reported them** stay open. A hold an admin made for a duplicate account allows no chat.
+- **Lifting:** automatic when the overdue rent is paid (daily `holds:release-paid` and a check when the tenant opens `/account/on-hold`), or released by the landlord or an admin. A Cancelled or Rejected tenancy releases it; a **Completed** tenancy that still owes stays held.
+- **Duplicate alerts:** `HoldMatcher` runs on sign-up (web and API), a sign-in from a new browser and walk-in creation. Phone (last 10 digits) or device cookie alerts alone; name + IP together; IP or name alone never. It only alerts admins, who dismiss or put the new account on hold; nothing is auto-blocked. The reporting landlord gets no details of the new account.
+- **Audit:** `hold.*` rows through `AuditLog::record()` (the duplicate flag is attributed to System). Privacy page now says unpaid-rent reports may be compared with new sign-ups.
+- **Chat closed on all doors:** inbox, bell dropdown, unread counts, concerns and the API use `HoldRestrictions::partyScope()` / `canUseConversation()`.
+- Read: `app/Services/Holds/*`, `app/Http/Middleware/EnsureNotOnHold.php`, `app/Models/TenantHold.php`, `HoldMatchAlert.php`, `config/security.php` (`hold_match`).
+- Not built: a native-app screen for the hold (the API already refuses blocked actions); a release when the landlord stops collecting (that action does not exist yet).
+
 ## Nov 15 2026 — Security hardening, phases 2 to 4 (branch `axci`)
 **Run `php artisan migrate`** (2FA columns on `users`; hash columns on `audit_logs`). **Admins are forced to set up two-factor on the next admin page load** (`ADMIN_TWO_FACTOR=required`) and are asked for their password before risky actions (`STEP_UP_ENABLED=true`); both are off under phpunit. Automated: `tests/Feature/Security/*` and the full suite pass. **Browser-checked:** leaked-password block, 2FA setup page. **Not yet checked by hand:** new sign-in email, sessions list, security alerts, 2FA sign-in and recovery code, password re-entry, sign out everywhere, audit badge, CSV export. Plan: `plans/security-audit-hardening.md`.
 - **Leaked passwords:** `Password::defaults()` rejects passwords found in public breach lists (k-anonymity; passes when the service is down). Covers sign-up, reset, change, tenant invite and admin create-user.

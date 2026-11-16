@@ -84,6 +84,9 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
+        // Quietly checks whether this looks like a tenant on hold. Runs after the response; the person sees nothing.
+        \App\Services\Holds\HoldMatcher::inspectAfterResponse($user, $request->cookies->get(config('security.device_cookie', 'ah_device')), $request->ip(), 'signup');
+
         // A landlord sign-up continues into the verification wizard; the account stays a Tenant until an admin approves.
         $destination = $request->boolean('as_landlord') ? route('register.landlord') : $user->homeRoute();
 
