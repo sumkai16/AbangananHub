@@ -18,6 +18,9 @@
 
         {{-- 1. Greeting row --}}
         <div class="mb-6">
+        @push('mobile-title')
+            <span class="truncate text-[15px] font-semibold tracking-tight text-[#060D26]">{{ $greeting }}, {{ auth()->user()->first_name }}!</span>
+        @endpush
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div class="flex items-center gap-3.5 min-w-0">
                     {{-- Same icon tile as the other landlord page headers (x-page-header) --}}
@@ -35,7 +38,7 @@
                     {{-- Phones already have the toggle in the top bar --}}
                     <x-theme-toggle class="hidden lg:flex w-10 h-10 rounded-xl border border-[#E2E4EC] bg-white text-[#060D26] hover:bg-[#ECEEF6]" />
                     <a href="{{ route('properties.create') }}"
-                        class="flex-1 sm:flex-none shrink-0 inline-flex items-center justify-center gap-1.5 bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold rounded-xl px-4 py-2.5 hover:bg-[#E96F4F] transition-colors duration-200">
+                        class="flex-1 sm:flex-none shrink-0 inline-flex items-center justify-center gap-1.5 bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold rounded-xl px-4 min-h-11 hover:bg-[#E96F4F] transition-colors duration-200">
                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
@@ -82,7 +85,7 @@
                                 </svg>
                             </span>
                             <p class="min-w-0 flex-1 text-[14px] font-medium text-[#060D26]">{{ $alert['text'] }}</p>
-                            <span class="inline-flex min-h-[36px] shrink-0 items-center gap-1 rounded-full px-3.5 text-[12.5px] font-semibold transition-colors duration-200 {{ $button }}">
+                            <span class="inline-flex min-h-[36px] shrink-0 items-center gap-1 rounded-xl px-3.5 text-[12.5px] font-semibold transition-colors duration-200 {{ $button }}">
                                 {{ $alert['cta'] }}
                                 <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
@@ -301,7 +304,7 @@
                             <p class="text-[14px] font-semibold text-[#060D26]">List your first property</p>
                             <p class="text-[13px] text-[#5B6A8E] mt-1 mb-4">Approved properties will show up here with live occupancy stats.</p>
                             <a href="{{ route('properties.create') }}"
-                                class="inline-flex items-center gap-1.5 bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold rounded-xl px-4 py-2.5 hover:bg-[#E96F4F] transition-colors duration-200">
+                                class="inline-flex items-center gap-1.5 bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold rounded-xl px-4 min-h-11 hover:bg-[#E96F4F] transition-colors duration-200">
                                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                                 </svg>

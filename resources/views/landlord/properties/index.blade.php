@@ -65,7 +65,7 @@
                     </svg>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by property name or address..." aria-label="Search by property name or address"
                         x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                        class="w-full h-10 pl-10 pr-4 text-[16px] sm:text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
+                        class="w-full h-11 pl-10 pr-4 text-[16px] sm:text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
                 </div>
 
                 <div class="filter-row flex flex-wrap items-center gap-2.5">
@@ -124,34 +124,21 @@
 
         {{-- Empty state --}}
         @if($properties->isEmpty())
-            <div class="flex flex-col items-center justify-center py-24 text-center">
-                <div class="w-16 h-16 rounded-2xl bg-[#ECEEF6] flex items-center justify-center mb-4">
-                    <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"
-                        class="text-[#5B6A8E]">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
-                    </svg>
-                </div>
-                @if(request()->hasAny(['search', 'status', 'type']))
-                    <p class="text-[15px] font-semibold text-[#060D26]">No properties match your filters</p>
-                    <p class="text-sm text-[#5B6A8E] mt-1 max-w-xs">Try a different search, status or type.</p>
+            @php $filtered = request()->hasAny(['search', 'status', 'type']); @endphp
+            <x-empty-state flat
+                :title="$filtered ? 'No properties match your filters' : 'No properties yet'"
+                :note="$filtered ? 'Try a different search, status or type.' : 'Add your first property to start receiving reservations from tenants.'">
+                <x-slot:icon>
+                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" /></svg>
+                </x-slot:icon>
+                @if($filtered)
                     <a href="{{ route('landlord.properties.index') }}"
-                        class="mt-5 inline-flex items-center gap-2 h-10 px-5 rounded-xl border border-[#060D26]/25 text-[#060D26] text-sm font-semibold hover:border-[#060D26] hover:bg-[#F7F8FC] transition-colors duration-200">
-                        Clear filters
-                    </a>
+                        class="inline-flex items-center gap-2 h-11 px-5 rounded-xl border border-[#060D26]/25 text-[#060D26] text-sm font-semibold hover:border-[#060D26] hover:bg-[#F7F8FC] transition-colors duration-200">Clear filters</a>
                 @else
-                    <p class="text-[15px] font-semibold text-[#060D26]">No properties yet</p>
-                    <p class="text-sm text-[#5B6A8E] mt-1 max-w-xs">Add your first property to start receiving reservations from
-                        tenants.</p>
                     <a href="{{ route('properties.create') }}"
-                        class="mt-5 inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                        </svg>
-                        Add Property
-                    </a>
+                        class="inline-flex items-center gap-2 h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-colors duration-200">Add Property</a>
                 @endif
-            </div>
+            </x-empty-state>
 
             {{-- Property list (grid / table toggle) --}}
         @else

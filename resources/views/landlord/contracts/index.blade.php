@@ -30,7 +30,7 @@
             </x-slot:icon>
             <x-slot:actions>
                 <button type="button" @click="$dispatch('open-add-contract')"
-                    class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
+                    class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                     Add rental
                 </button>
@@ -48,7 +48,7 @@
         </div>
 
         {{-- Filters --}}
-        <form method="GET" action="{{ route('landlord.contracts.index') }}" class="bg-white rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-4 mb-5">
+        <form method="GET" action="{{ route('landlord.contracts.index') }}" class="mb-5">
             {{-- The card filters (Ending soon, Agreement missing) survive a search or a dropdown change. --}}
             @if(request()->boolean('ending'))<input type="hidden" name="ending" value="1">@endif
             @if(request()->boolean('lease_missing'))<input type="hidden" name="lease_missing" value="1">@endif

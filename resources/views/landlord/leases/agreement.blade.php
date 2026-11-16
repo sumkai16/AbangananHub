@@ -159,7 +159,7 @@
                 <p class="text-[12.5px] text-[#5B6A8E] sm:flex-1">
                     <span x-show="policy" x-cloak>Worded by <span class="font-semibold text-[#060D26]" x-text="policy"></span>.</span>
                 </p>
-                <button type="submit" class="h-12 w-full sm:w-auto sm:px-7 rounded-full bg-[#FF8A66] text-[14px] font-semibold text-[#060D26] hover:bg-[#E96F4F] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30 transition-colors duration-200 cursor-pointer">Generate agreement</button>
+                <button type="submit" class="h-12 w-full sm:w-auto sm:px-7 rounded-xl bg-[#FF8A66] text-[14px] font-semibold text-[#060D26] hover:bg-[#E96F4F] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30 transition-colors duration-200 cursor-pointer">Generate agreement</button>
             </div>
         </form>
 

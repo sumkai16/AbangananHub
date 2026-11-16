@@ -63,7 +63,7 @@
 
         {{-- Whose turn it is. Each cell narrows the list to what it counts. --}}
         @php $stageUrl = fn ($s) => route('landlord.reservations.index', array_filter(['stage' => $s] + request()->only('search', 'property', 'from', 'to'))); @endphp
-        <x-stat-strip data-swap-region="cards" class="mb-4" :cells="[
+        <x-stat-strip data-swap-region="cards" class="mb-4 max-lg:hidden" :cells="[
             ['label' => 'Needs your reply', 'value' => $strip['reply'], 'note' => 'New inquiries', 'dot' => $strip['reply'] > 0 ? '#FF8A66' : null, 'href' => $stageUrl('new'), 'active' => $stage === 'new'],
             ['label' => 'Discussing', 'value' => $strip['discussing'], 'note' => 'Send the agreement once agreed', 'href' => $stageUrl('discussing'), 'active' => $stage === 'discussing'],
             ['label' => 'Waiting on tenant', 'value' => $strip['waiting'], 'note' => 'To sign or to pay', 'href' => $stageUrl('agreement'), 'active' => $stage === 'agreement'],
@@ -200,18 +200,13 @@
 
         {{-- Reservations table --}}
         @if($reservations->isEmpty())
-            <div class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] flex flex-col items-center justify-center py-10 px-6 text-center">
-                <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] flex items-center justify-center mb-4">
-                    <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.5">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                    </svg>
-                </div>
-                <p class="text-sm font-semibold text-[#060D26] mb-1">
-                    {{ $stage !== 'open' || request()->hasAny(['search', 'property', 'from', 'to']) ? 'No requests match' : 'No open requests' }}
-                </p>
-                <p class="text-[13px] text-[#5B6A8E]">New inquiries from tenants show up here. Signed and paid ones are on <a href="{{ route('landlord.tenants.index') }}" class="font-semibold text-[#060D26] underline underline-offset-2">Tenants</a>.</p>
-            </div>
+            <x-card flush>
+                <x-empty-state flat symbol="inbox"
+                    :title="$stage !== 'open' || request()->hasAny(['search', 'property', 'from', 'to']) ? 'No requests match' : 'No open requests'"
+                    note="New inquiries from tenants show up here.">
+                    <a href="{{ route('landlord.tenants.index') }}" class="inline-flex h-11 items-center rounded-xl border border-[#060D26]/25 px-5 text-[13px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] transition-colors duration-200">Signed and paid ones are on Tenants</a>
+                </x-empty-state>
+            </x-card>
         @else
             @php
                 $stageTones = [
@@ -408,7 +403,7 @@
                             </div>
 
                             {{-- What they asked for --}}
-                            <div class="grid grid-cols-3 gap-2 text-[11.5px]">
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11.5px]">
                                 <div class="rounded-lg border border-[#E2E4EC] px-2.5 py-1.5">
                                     <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E]">Move in</p>
                                     <p class="font-semibold text-[#060D26] mt-0.5">{{ $moveIn?->format('M d, Y') ?? 'Not decided yet' }}</p>
@@ -417,7 +412,7 @@
                                     <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E]">Move out</p>
                                     <p class="font-semibold text-[#060D26] mt-0.5">{{ $reservation->target_move_out_date?->format('M d, Y') ?? 'Open' }}</p>
                                 </div>
-                                <div class="rounded-lg border border-[#E2E4EC] px-2.5 py-1.5">
+                                <div class="col-span-2 sm:col-span-1 rounded-lg border border-[#E2E4EC] px-2.5 py-1.5">
                                     <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E]">People</p>
                                     <p class="font-semibold text-[#060D26] mt-0.5">{{ $reservation->occupants_count ?? '—' }}</p>
                                 </div>

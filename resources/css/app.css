@@ -174,6 +174,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .scrollbar-thin-light::-webkit-scrollbar {
     height: 6px;
+    width: 6px;
 }
 
 .scrollbar-thin-light::-webkit-scrollbar-track {
@@ -536,3 +537,13 @@ html.dark .route-line {
 .swap-in { animation: swap-in 260ms ease-out; }
 @keyframes swap-in { from { opacity: 0.35; transform: translateY(6px); } }
 @media (prefers-reduced-motion: reduce) { .swap-in { animation: none; } }
+
+/* Scrolls as normal but draws no scrollbar (wheel, touch and keyboard still work). */
+.scrollbar-hidden {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+}

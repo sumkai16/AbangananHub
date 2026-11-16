@@ -8,13 +8,13 @@
         $selectClass = 'h-10 w-full pl-3.5 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13px] text-[#060D26]';
     @endphp
 
-    <div class="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 pb-16">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
         @include('landlord.leases.partials._header', ['docIcon' => $docIcon])
         <div data-swap-region="tab">
             @include('landlord.leases.partials._tabs', ['active' => 'policies'])
 
         @if($properties->isEmpty())
-            <x-card><p class="text-[13px] text-[#5B6A8E]">Add a property first, then choose its policy here.</p></x-card>
+            <x-card flush><x-empty-state flat symbol="document" title="No properties yet" note="Add a property first, then choose its policy here."><a href="{{ route('properties.create') }}" class="inline-flex h-11 items-center rounded-xl bg-[#FF8A66] px-5 text-[13px] font-semibold text-[#060D26] hover:bg-[#E96F4F] transition-colors duration-200">Add a property</a></x-empty-state></x-card>
         @else
             @php
                 $propertyPolicy = $templateById->get($selected->lease_template_id);
@@ -76,7 +76,7 @@
                         </form>
 
                         {{-- Desktop: every property at a glance, with the policy it follows --}}
-                        <nav class="hidden lg:block lg:sticky lg:top-6 max-h-[70vh] overflow-y-auto rounded-2xl border border-[#E2E4EC] bg-white p-1.5" aria-label="Properties">
+                        <nav class="scrollbar-hidden hidden lg:block lg:sticky lg:top-6 max-h-[70vh] overflow-y-auto rounded-2xl border border-[#E2E4EC] bg-white p-1.5" aria-label="Properties">
                             <ul class="grid gap-0.5">
                                 @foreach($properties as $p)
                                     @php
@@ -98,7 +98,7 @@
 
                         {{-- The chosen property: a header bar (who and which policy), then the units as a table --}}
                         <div class="min-w-0 overflow-hidden rounded-2xl border border-[#E2E4EC] bg-white">
-                            <div class="flex flex-col gap-5 p-4 sm:p-6 xl:flex-row xl:items-start xl:justify-between">
+                            <div class="flex flex-col gap-4 p-4 sm:p-6">
                                 <div class="min-w-0">
                                     <h3 class="text-[18px] font-semibold leading-snug text-[#060D26]">{{ $selected->title }}</h3>
                                     <p class="mt-0.5 text-[13px] text-[#5B6A8E]">{{ $selected->units->count() }} {{ \Illuminate\Support\Str::plural('unit', $selected->units->count()) }}</p>
@@ -115,7 +115,7 @@
                                     @endif
                                 </div>
 
-                                <form method="POST" action="{{ route('landlord.lease-templates.assign') }}" class="w-full xl:w-80 xl:shrink-0">
+                                <form method="POST" action="{{ route('landlord.lease-templates.assign') }}" class="w-full max-w-sm">
                                     @csrf @method('PATCH')
                                     <input type="hidden" name="target" value="property">
                                     <input type="hidden" name="id" value="{{ $selected->property_id }}">
@@ -127,13 +127,13 @@
 
                             {{-- Units table: Unit | Policy | Status. Header row from sm up; on a phone each row stacks. --}}
                             <div class="border-t border-[#E2E4EC]">
-                                <div class="hidden grid-cols-[minmax(0,1fr)_280px] gap-4 bg-[#F7F8FC] px-6 py-2.5 text-[12px] font-semibold text-[#5B6A8E] sm:grid">
+                                <div class="hidden grid-cols-[minmax(0,1fr)_240px] gap-4 bg-[#F7F8FC] px-6 py-2.5 text-[12px] font-semibold text-[#5B6A8E] 2xl:grid">
                                     <span>Unit</span>
                                     <span>Policy</span>
                                 </div>
                                 <div class="divide-y divide-[#E2E4EC]">
                                     @forelse($selected->units as $unit)
-                                        <form method="POST" action="{{ route('landlord.lease-templates.assign') }}" class="grid grid-cols-1 gap-2 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_280px] sm:items-center sm:gap-4 sm:px-6">
+                                        <form method="POST" action="{{ route('landlord.lease-templates.assign') }}" class="grid grid-cols-1 gap-2 px-4 py-3 sm:px-6 2xl:grid-cols-[minmax(0,1fr)_240px] 2xl:items-center 2xl:gap-4">
                                             @csrf @method('PATCH')
                                             <input type="hidden" name="target" value="unit">
                                             <input type="hidden" name="id" value="{{ $unit->unit_id }}">

@@ -396,8 +396,8 @@
                             <div class="flex gap-2 w-full sm:w-auto sm:ml-auto">
                                 <button type="button" x-show="step === 1" @click="close()" class="flex-1 sm:flex-none h-11 px-5 rounded-full border border-[#060D26]/35 bg-white text-[14px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">Cancel</button>
                                 <button type="button" x-show="step > 1" x-cloak @click="back()" class="flex-1 sm:flex-none h-11 px-5 rounded-full border border-[#060D26]/35 bg-white text-[14px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">Back</button>
-                                <button type="button" x-show="step < 3" @click="next()" class="flex-[2] sm:flex-none h-11 px-7 rounded-full bg-[#FF8A66] text-[14px] font-semibold text-[#060D26] hover:bg-[#E96F4F] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30 transition-colors duration-200 cursor-pointer">Next</button>
-                                <button type="submit" x-show="step === 3" x-cloak class="flex-[2] sm:flex-none h-11 px-7 rounded-full bg-[#FF8A66] text-[14px] font-semibold text-[#060D26] hover:bg-[#E96F4F] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30 transition-colors duration-200 cursor-pointer">Create rental</button>
+                                <button type="button" x-show="step < 3" @click="next()" class="flex-[2] sm:flex-none h-11 px-7 rounded-xl bg-[#FF8A66] text-[14px] font-semibold text-[#060D26] hover:bg-[#E96F4F] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30 transition-colors duration-200 cursor-pointer">Next</button>
+                                <button type="submit" x-show="step === 3" x-cloak class="flex-[2] sm:flex-none h-11 px-7 rounded-xl bg-[#FF8A66] text-[14px] font-semibold text-[#060D26] hover:bg-[#E96F4F] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30 transition-colors duration-200 cursor-pointer">Create rental</button>
                             </div>
                         </div>
                     </div>

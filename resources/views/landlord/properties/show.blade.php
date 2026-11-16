@@ -437,7 +437,7 @@
                     <p class="text-sm font-semibold text-[#060D26]">No units added yet</p>
                     <p class="text-xs text-[#5B6A8E] mt-1 mb-4">Add units so tenants can reserve specific spaces.</p>
                     <a href="{{ route('landlord.properties.units.create', [$property, 'return_to' => 'property']) }}"
-                       class="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-[#FF8A66] text-[#060D26] text-xs font-semibold hover:bg-[#E96F4F] transition-all duration-200">
+                       class="inline-flex items-center gap-1.5 h-11 px-4 rounded-xl bg-[#FF8A66] text-[#060D26] text-xs font-semibold hover:bg-[#E96F4F] transition-all duration-200">
                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                         </svg>

@@ -331,7 +331,7 @@
                             Cancel
                         </button>
                         <button type="submit"
-                            class="h-11 px-6 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
+                            class="h-11 px-6 rounded-xl bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
                             Record payment
                         </button>
                     </div>

@@ -367,7 +367,7 @@
                                 Cancel
                             </a>
                             <button type="submit"
-                                class="ml-auto h-11 px-7 inline-flex items-center justify-center rounded-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-sm font-semibold shadow-sm transition-colors duration-200 cursor-pointer">
+                                class="ml-auto h-11 px-7 inline-flex items-center justify-center rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-sm font-semibold shadow-sm transition-colors duration-200 cursor-pointer">
                                 Save changes
                             </button>
                         </div>
@@ -406,7 +406,7 @@
             </div>
             <div id="location-picker-modal-slot" class="flex-1 relative min-h-0"></div>
             <div class="px-5 py-4 border-t border-[#E2E4EC] shrink-0 flex items-center justify-end">
-                <button type="button" id="location-picker-modal-done" class="h-11 px-6 rounded-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] font-semibold text-sm shadow-sm transition-colors duration-200 cursor-pointer">
+                <button type="button" id="location-picker-modal-done" class="h-11 px-6 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] font-semibold text-sm shadow-sm transition-colors duration-200 cursor-pointer">
                     Done
                 </button>
             </div>

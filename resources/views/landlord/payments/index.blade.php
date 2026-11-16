@@ -80,7 +80,7 @@
                         @csrf
                         @if($propertyId)<input type="hidden" name="property" value="{{ $propertyId }}">@endif
                         <button type="submit"
-                            class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-sm font-semibold transition-all duration-200 cursor-pointer">
+                            class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-sm font-semibold transition-all duration-200 cursor-pointer">
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" /></svg>
                             Remind overdue ({{ $totals['overdueCount'] }})
                         </button>
@@ -270,21 +270,12 @@
 
         {{-- Collections --}}
         @if($displayRows->isEmpty())
-            <x-card class="flex flex-col items-center justify-center py-10 px-6 text-center">
-                <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] flex items-center justify-center mb-4">
-                    <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.5">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
-                    </svg>
-                </div>
-                <p class="text-[14px] font-semibold text-[#060D26]">Nothing to collect yet</p>
-                <p class="text-[13px] text-[#5B6A8E] mt-1 max-w-md">
-                    Rent tracking starts once a unit is occupied, either through an online booking or a rental you add.
-                </p>
-                <a href="{{ route('landlord.tenants.index', ['new' => 1]) }}"
-                    class="mt-5 inline-flex items-center justify-center h-11 px-5 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
-                    Add a rental
-                </a>
+            <x-card flush>
+                <x-empty-state flat symbol="wallet" title="Nothing to collect yet"
+                    note="Rent tracking starts once a unit is occupied, either through an online booking or a rental you add.">
+                    <a href="{{ route('landlord.tenants.index', ['new' => 1]) }}"
+                        class="inline-flex items-center justify-center h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-colors duration-200 cursor-pointer">Add a rental</a>
+                </x-empty-state>
             </x-card>
         @elseif($view === 'calendar')
             @include('landlord.payments._calendar')
