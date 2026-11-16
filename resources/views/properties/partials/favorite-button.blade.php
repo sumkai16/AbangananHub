@@ -1,36 +1,36 @@
 {{-- Heart on the listing photo. Used by the phone strip and the desktop bento, so the two stay in sync:
-     a tap dispatches `favorite-changed` and every heart for the same property follows it.
-     Optimistic: it flips on tap and rolls back if the save fails.
+     every heart for the same property follows the `favorite-changed` window event.
+     The toggle is ONE plain global function (window.toggleListingFavorite) with its own in-flight guard, not Alpine
+     component state: a click used to fire the Alpine handler several times in one page (three save requests that
+     cancelled each other out, so the heart looked dead). Optimistic: flips on tap, rolls back if the save fails.
      Props: $property, $isFavorited, $class (position classes). 44px touch target. --}}
 @if(auth()->check() && ! $isOwner && auth()->user()->hasRole('Tenant'))
-    <div class="{{ $class }}" x-data="{
-            fav: @js($isFavorited ?? false),
-            busy: false,
-            async toggleFav() {
-                if (this.busy) return;
-                const before = this.fav;
-                this.busy = true;
-                this.fav = !before;
-                window.dispatchEvent(new CustomEvent('favorite-changed', { detail: { id: {{ $property->property_id }}, fav: this.fav } }));
-                try {
-                    const res = await fetch('{{ route('favorites.toggle', $property->property_id) }}', {
-                        method: 'POST',
-                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-                    });
-                    if (!res.ok) throw new Error('toggle failed');
-                    const d = await res.json();
-                    this.fav = d.favorited;
-                } catch (e) {
-                    this.fav = before;
-                } finally {
-                    this.busy = false;
-                    window.dispatchEvent(new CustomEvent('favorite-changed', { detail: { id: {{ $property->property_id }}, fav: this.fav } }));
-                }
-            }
-        }"
+    @once
+        <script>
+            window.__fav = window.__fav || { state: {}, busy: {} };
+            window.__fav.state[{{ $property->property_id }}] = @js((bool) ($isFavorited ?? false));
+            window.toggleListingFavorite = function (id, url, csrf) {
+                const f = window.__fav;
+                if (f.busy[id]) return;
+                f.busy[id] = true;
+                const before = !!f.state[id];
+                const announce = (v) => { f.state[id] = v; window.dispatchEvent(new CustomEvent('favorite-changed', { detail: { id: id, fav: v } })); };
+                announce(!before);
+                fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' } })
+                    .then(function (res) { if (!res.ok) throw new Error('toggle failed ' + res.status); return res.json(); })
+                    .then(function (d) { announce(!!d.favorited); })
+                    .catch(function () { announce(before); })
+                    .finally(function () { f.busy[id] = false; });
+            };
+        </script>
+    @endonce
+
+    <div class="{{ $class }}"
+        x-data="{ fav: @js((bool) ($isFavorited ?? false)) }"
         @favorite-changed.window="if ($event.detail.id === {{ $property->property_id }}) fav = $event.detail.fav"
         @click.stop>
-        <button type="button" @click="toggleFav()"
+        <button type="button"
+            onclick="window.toggleListingFavorite({{ $property->property_id }}, '{{ route('favorites.toggle', $property->property_id) }}', '{{ csrf_token() }}')"
             :aria-pressed="fav"
             class="w-11 h-11 rounded-full bg-white/90 hover:brightness-95 active:scale-95 flex items-center justify-center shadow-sm transition-all cursor-pointer touch-manipulation">
             <span class="sr-only" x-text="fav ? 'Remove from favorites' : 'Add to favorites'"></span>
