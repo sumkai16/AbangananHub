@@ -9,14 +9,10 @@
 --}}
 @php
     $tenantSelect = $tenantOptions->mapWithKeys(fn ($t) => [$t['id'] => $t['label']])->all();
-    // Property first, then a unit of that property: one unit dropdown per property, only the picked one rendered.
-    $propertySelect = [];
-    $unitSelects = [];
+    // Property first, then a unit of that property: both are photo cards (no dropdowns), the unit cards shown for the picked property only.
     $unitInfo = [];
     foreach ($unitOptions as $property) {
-        $propertySelect[$property['id']] = $property['title'].' ('.count($property['units']).' free)';
         foreach ($property['units'] as $unit) {
-            $unitSelects[$property['id']][$unit['id']] = $unit['label'];
             $unitInfo[$unit['id']] = $unit + ['property' => (string) $property['id']];
         }
     }
@@ -57,6 +53,7 @@
         duplicateId: @js((string) session('duplicate_tenant_id', '')),
         unitId: @js((string) old('unit_id', request('unit', ''))),
         propertyId: '',
+        showAllProperties: false,
         unitMissing: false,
         moveIn: @js(old('move_in_date')),
         moveOut: @js(old('move_out_date')),
@@ -134,7 +131,7 @@
         useDuplicate() { this.tenantId = this.duplicateId; this.tenantMode = 'existing'; this.duplicateId = ''; },
         close() { this.show = false; },
      }"
-     x-init="if (unit) propertyId = unit.property; $watch('unitId', () => pickUnit()); $watch('propertyId', () => pickProperty())"
+     x-init="if (unit) propertyId = unit.property; else if (Object.keys(propertyTitles).length === 1) { propertyId = Object.keys(propertyTitles)[0]; pickProperty(); } $watch('unitId', () => pickUnit()); $watch('propertyId', () => pickProperty())"
      x-on:open-add-contract.window="open($event.detail)"
      x-on:keydown.escape.window="close()">
 
@@ -148,8 +145,9 @@
                 x-transition:enter-end="opacity-100 translate-y-0"
                 x-transition:leave="transition ease-in duration-150"
                 x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-                style="max-width: 760px; max-height: 94vh;"
-                class="relative w-full flex flex-col bg-white rounded-t-2xl sm:rounded-2xl shadow-[0_20px_60px_rgba(6,13,38,0.18)] overflow-hidden">
+                style="max-width: 1080px; max-height: 94vh;"
+                {{-- md and up: one fixed height for all three steps (capped by max-height on short screens) so the frame never jumps; each step scrolls inside it. --}}
+                class="relative w-full flex flex-col md:h-[46rem] bg-white rounded-t-2xl sm:rounded-2xl shadow-[0_20px_60px_rgba(6,13,38,0.18)] overflow-hidden">
 
                 <div class="shrink-0 flex items-start justify-between gap-4 px-5 sm:px-7 pt-6 pb-4 border-b border-[#E2E4EC]">
                     <div>
@@ -285,31 +283,87 @@
                         </template>
                     </div>
 
-                    {{-- Step 2. Where and when: property and unit on the left, dates and terms on the right. --}}
-                    <div x-show="step === 2" x-cloak x-ref="stepTwo" class="md:min-h-[27rem] grid gap-5 md:grid-cols-2 md:gap-x-8 md:items-start">
-                        <div class="grid gap-3" x-ref="unitBlock">
-                            <p class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">Property and unit</p>
+                    {{-- Step 2. Where and when: property and unit on the left, dates and terms on the right. On md and up each column scrolls by itself inside the fixed frame. --}}
+                    <div x-show="step === 2" x-cloak x-ref="stepTwo" class="grid gap-5 md:h-full md:min-h-0 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:gap-x-8">
+                        <div class="grid gap-5 content-start md:min-h-0 md:overflow-y-auto md:overscroll-contain md:p-1.5 md:-m-1.5" x-ref="unitBlock">
                             <div>
-                                <label class="{{ $label }}">Property</label>
-                                <x-styled-select name="_property" :options="$propertySelect" x-model="propertyId" placeholder="Choose a property" required
-                                    class="{{ $input }} text-left" />
+                                <p class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">Property</p>
+                                {{-- Compact rows, five at first. The picked property always shows, even if it is further down. --}}
+                                <div role="radiogroup" aria-label="Property" class="mt-2.5 grid gap-2">
+                                    @foreach($unitOptions as $property)
+                                        <button type="button" role="radio" :aria-checked="propertyId === '{{ $property['id'] }}'"
+                                            x-show="showAllProperties || {{ $loop->index }} < 5 || propertyId === '{{ $property['id'] }}'"
+                                            @click="propertyId = '{{ $property['id'] }}'; stepError = ''"
+                                            class="relative flex w-full items-center gap-3 rounded-xl border-2 bg-white p-2 pr-3 text-left transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30"
+                                            :class="propertyId === '{{ $property['id'] }}' ? 'border-[#FF8A66] ring-4 ring-[#FF8A66]/20' : 'border-[#E2E4EC] hover:border-[#5B6A8E]/40'">
+                                            <span class="block h-12 w-16 shrink-0 overflow-hidden rounded-lg bg-[#ECEEF6]">
+                                                @if($property['photo'])
+                                                    <img src="{{ $property['photo'] }}" alt="" loading="lazy" class="h-full w-full object-cover">
+                                                @else
+                                                    <span class="flex h-full w-full items-center justify-center text-[#94A3B8]" aria-hidden="true">
+                                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+                                                    </span>
+                                                @endif
+                                            </span>
+                                            <span class="min-w-0 flex-1">
+                                                <span class="block truncate text-[14px] font-semibold text-[#060D26]">{{ $property['title'] }}</span>
+                                                <span class="block truncate text-[12.5px] text-[#5B6A8E]">{{ $property['area'] ?: 'No address yet' }}</span>
+                                            </span>
+                                            <span class="shrink-0 text-[12px] font-semibold text-[#15803D]">{{ count($property['units']) }} free</span>
+                                            <span x-show="propertyId === '{{ $property['id'] }}'" x-cloak class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#FF8A66] text-[#060D26]" aria-hidden="true">
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                            </span>
+                                        </button>
+                                    @endforeach
+                                </div>
+                                @if(count($unitOptions) > 5)
+                                    <button type="button" @click="showAllProperties = !showAllProperties" :aria-expanded="showAllProperties"
+                                        class="mt-2 h-10 px-1 text-[13px] font-semibold text-[#B35A3D] hover:underline underline-offset-2 cursor-pointer focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30 rounded-lg">
+                                        <span x-show="!showAllProperties">See {{ count($unitOptions) - 5 }} more properties</span>
+                                        <span x-show="showAllProperties" x-cloak>Show fewer</span>
+                                    </button>
+                                @endif
                             </div>
+
                             <div>
-                                <label class="{{ $label }}">Unit</label>
-                                <p x-show="!propertyId" class="h-11 flex items-center px-3.5 rounded-xl border border-dashed border-[#E2E4EC] text-[13.5px] text-[#94A3B8]">Pick a property first</p>
-                                @foreach($unitSelects as $pid => $options)
-                                    <template x-if="propertyId === '{{ $pid }}'">
-                                        <div>
-                                            <x-styled-select name="unit_id" :options="$options" x-model="unitId" placeholder="Choose a unit" required
-                                                class="{{ $input }} text-left" />
-                                        </div>
-                                    </template>
+                                <p class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">Unit</p>
+                                <input type="hidden" name="unit_id" :value="unitId">
+                                <p x-show="!propertyId" class="mt-2.5 flex min-h-[44px] items-center rounded-xl border border-dashed border-[#E2E4EC] px-3.5 text-[13.5px] text-[#94A3B8]">Pick a property to see its free units</p>
+                                @foreach($unitOptions as $property)
+                                    <div x-show="propertyId === '{{ $property['id'] }}'" x-cloak role="radiogroup" aria-label="Unit in {{ $property['title'] }}" class="mt-2.5 grid grid-cols-2 gap-3 lg:grid-cols-3">
+                                        @foreach($property['units'] as $u)
+                                            <button type="button" role="radio" :aria-checked="unitId === '{{ $u['id'] }}'"
+                                                @click="unitId = '{{ $u['id'] }}'; unitMissing = false; stepError = ''"
+                                                class="relative block w-full overflow-hidden rounded-xl border-2 bg-white text-left transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30"
+                                                :class="unitId === '{{ $u['id'] }}' ? 'border-[#FF8A66] ring-4 ring-[#FF8A66]/20' : 'border-[#E2E4EC] hover:border-[#5B6A8E]/40'">
+                                                <span class="block aspect-[4/3] w-full bg-[#ECEEF6]">
+                                                    @if($u['photo'])
+                                                        <img src="{{ $u['photo'] }}" alt="" loading="lazy" class="h-full w-full object-cover">
+                                                    @else
+                                                        <span class="flex h-full w-full items-center justify-center text-[#94A3B8]" aria-hidden="true">
+                                                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12M2 20h20M9 12h6"/></svg>
+                                                        </span>
+                                                    @endif
+                                                </span>
+                                                <span class="block px-3 py-2.5">
+                                                    <span class="block truncate text-[14px] font-semibold text-[#060D26]">{{ $u['label'] }}</span>
+                                                    <span class="mt-0.5 block text-[13px] font-semibold text-[#060D26] tabular-nums">₱{{ number_format($u['rent'], 0) }}<span class="font-normal text-[#5B6A8E]"> / month</span></span>
+                                                    <span class="mt-0.5 block truncate text-[12px] text-[#5B6A8E]">
+                                                        @if($u['floor']) Floor {{ $u['floor'] }} · @endif Up to {{ $u['limit'] ?: 1 }} {{ ($u['limit'] ?: 1) === 1 ? 'person' : 'people' }}
+                                                    </span>
+                                                </span>
+                                                <span x-show="unitId === '{{ $u['id'] }}'" x-cloak class="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#FF8A66] text-[#060D26]" aria-hidden="true">
+                                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                </span>
+                                            </button>
+                                        @endforeach
+                                    </div>
                                 @endforeach
                                 @error('unit_id')<p class="{{ $err }}">{{ $message }}</p>@enderror
                                 <p x-show="unitMissing && !unitId" x-cloak class="{{ $err }}">Choose a unit.</p>
                             </div>
                         </div>
-                        <div class="grid gap-5 md:border-l md:border-[#E2E4EC] md:pl-8">
+                        <div class="grid gap-5 content-start md:min-h-0 md:overflow-y-auto md:overscroll-contain md:border-l md:border-[#E2E4EC] md:p-1.5 md:-m-1.5 md:pl-8">
                             @include('landlord.contracts.partials._contract-fields', ['idPrefix' => 'contract', 'parts' => ['dates', 'terms']])
                         </div>
                     </div>
