@@ -817,7 +817,10 @@
         </section>
     @endif
 
-    <x-platform-rating />
+    {{-- Home only: not on the Browse rentals (/properties) page. --}}
+    @if($heroStats)
+        <x-platform-rating />
+    @endif
 
     @push('scripts')
         @vite(['resources/js/maps/browse-map.js', 'resources/js/browse-live.js'])
