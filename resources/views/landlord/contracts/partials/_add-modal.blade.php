@@ -136,7 +136,7 @@
      x-on:keydown.escape.window="close()">
 
     <template x-teleport="body">
-        <div x-show="show" x-cloak class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="add-contract-title">
+        <div x-show="show" x-cloak style="height: 100vh; height: 100dvh;" class="fixed inset-x-0 top-0 z-50 flex items-end sm:items-center justify-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="add-contract-title">
             <div x-show="show" x-transition.opacity @click="close()" class="absolute inset-0 bg-[#060D26]/40 backdrop-blur-sm"></div>
 
             <div x-show="show"
@@ -145,7 +145,7 @@
                 x-transition:enter-end="opacity-100 translate-y-0"
                 x-transition:leave="transition ease-in duration-150"
                 x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-                style="max-width: 1080px; max-height: 94vh;"
+                style="max-width: 1080px; max-height: 94vh; max-height: 94dvh;"
                 {{-- md and up: one fixed height for all three steps (capped by max-height on short screens) so the frame never jumps; each step scrolls inside it. --}}
                 class="relative w-full flex flex-col md:h-[46rem] bg-white rounded-t-2xl sm:rounded-2xl shadow-[0_20px_60px_rgba(6,13,38,0.18)] overflow-hidden">
 
