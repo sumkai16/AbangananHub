@@ -24,6 +24,7 @@ use App\Http\Controllers\Landlord\AnalyticsController;
 use App\Http\Controllers\Landlord\ContractController;
 use App\Http\Controllers\Landlord\DashboardController;
 use App\Http\Controllers\Landlord\DepositChargeController;
+use App\Http\Controllers\Landlord\LeaseAgreementDraftController;
 use App\Http\Controllers\Landlord\LeaseTemplateController;
 use App\Http\Controllers\Landlord\LedgerController;
 use App\Http\Controllers\Landlord\PaymentClaimController;
@@ -66,6 +67,7 @@ Route::get('/areas', [PropertyController::class, 'areas'])->name('properties.are
 Route::post('/search/interpret', [AiSearchController::class, 'interpret'])->middleware('throttle:60,1')->name('search.interpret');
 Route::post('/search/results', [AiSearchController::class, 'results'])->middleware('throttle:60,1')->name('search.results');
 Route::get('/about', fn () => view('about'))->name('about');
+Route::post('/platform-rating', [App\Http\Controllers\PlatformRatingController::class, 'store'])->middleware('auth')->name('platform-rating.store');
 Route::view('/privacy', 'legal.privacy')->name('privacy');
 Route::view('/terms', 'legal.terms')->name('terms');
 
@@ -168,6 +170,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/reservations', [ReservationController::class, 'index'])->name('reservations.index');
         Route::post('/reservations', [ReservationController::class, 'store'])->middleware('tenant.hold')->name('reservations.store');
         Route::patch('/reservations/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel');
+        Route::post('/reservations/{reservation}/request-refund', [ReservationController::class, 'requestRefund'])->name('reservations.requestRefund');
 
         Route::get('/reservations/{reservation}/agreement', [AgreementController::class, 'show'])->name('agreements.show');
         Route::post('/reservations/{reservation}/agreement/sign', [AgreementController::class, 'sign'])->name('agreements.sign');
@@ -216,7 +219,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/landlord/{user}/profile/properties', [App\Http\Controllers\Landlord\ProfileController::class, 'properties'])->name('landlord.profile.properties');
 
     // Landlord-specific prefix routes
-    Route::middleware(['landlord', 'embeddable'])->prefix('landlord')->name('landlord.')->group(function () {
+    Route::middleware(['landlord', 'property.scope', 'embeddable'])->prefix('landlord')->name('landlord.')->group(function () {
+        // The sidebar's Property dropdown (see LandlordPropertyScope).
+        Route::post('/property-scope', [\App\Http\Controllers\Landlord\PropertyScopeController::class, 'update'])->name('property-scope.update');
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         // Property management
         Route::get('/properties', [LandlordPropertyController::class, 'index'])->name('properties.index');
@@ -236,14 +241,17 @@ Route::middleware('auth')->group(function () {
         Route::delete('/reservations/viewings/blocked-days/{blockedDate}', [App\Http\Controllers\Landlord\ViewingController::class, 'unblock'])->name('viewings.unblock');
         Route::patch('/reservations/{reservation}/reject', [App\Http\Controllers\Landlord\ReservationController::class, 'reject'])->name('reservations.reject');
         Route::patch('/reservations/{reservation}/cancel', [App\Http\Controllers\Landlord\ReservationController::class, 'cancel'])->name('reservations.cancel');
+        Route::patch('/reservations/{reservation}/withdraw-agreement', [App\Http\Controllers\Landlord\ReservationController::class, 'withdrawAgreement'])->name('reservations.withdrawAgreement');
+        Route::post('/reservations/{reservation}/settle-payment', [App\Http\Controllers\Landlord\ReservationController::class, 'settleMoveInMoney'])->name('reservations.settlePayment');
         Route::patch('/reservations/{reservation}/advance-negotiation', [App\Http\Controllers\Landlord\ReservationController::class, 'advanceToNegotiation'])->name('reservations.advanceNegotiation');
         Route::patch('/reservations/{reservation}/accept-and-send', [App\Http\Controllers\Landlord\ReservationController::class, 'acceptAndSendAgreement'])->name('reservations.acceptAndSend');
-        // Leases page: lease template library and where each template is used (plans/lease-templates-page.md)
-        Route::get('/leases', [LeaseTemplateController::class, 'index'])->name('leases.index');
-        Route::get('/leases/panel', [LeaseTemplateController::class, 'panel'])->name('leases.panel');
-        Route::patch('/leases/assign', [LeaseTemplateController::class, 'assign'])->name('lease-templates.assign');
-        Route::post('/leases/templates/preview', [LeaseTemplateController::class, 'preview'])->name('lease-templates.preview');
-        Route::resource('leases/templates', LeaseTemplateController::class)
+        // Lease policies (URL /landlord/lease-policies): lease template library and where each template is used (plans/lease-templates-page.md)
+        Route::get('/lease-policies', [LeaseTemplateController::class, 'index'])->name('leases.index');
+        Route::get('/lease-policies/agreement', [LeaseAgreementDraftController::class, 'show'])->name('leases.agreement');
+        Route::get('/lease-policies/panel', [LeaseTemplateController::class, 'panel'])->name('leases.panel');
+        Route::patch('/lease-policies/assign', [LeaseTemplateController::class, 'assign'])->name('lease-templates.assign');
+        Route::post('/lease-policies/templates/preview', [LeaseTemplateController::class, 'preview'])->name('lease-templates.preview');
+        Route::resource('lease-policies/templates', LeaseTemplateController::class)
             ->only(['create', 'store', 'edit', 'update', 'destroy'])
             ->parameters(['templates' => 'leaseTemplate'])
             ->names('lease-templates');
@@ -290,11 +298,13 @@ Route::middleware('auth')->group(function () {
 
         // Tenants
         Route::get('/tenants', [TenantController::class, 'index'])->name('tenants.index');
-        // Contracts: the old list URL redirects to Tenants; add, view and renew stay here.
-        Route::get('/contracts', [ContractController::class, 'index'])->name('contracts.index');
-        Route::post('/contracts', [ContractController::class, 'store'])->name('contracts.store');
-        Route::get('/contracts/{reservation}', [ContractController::class, 'show'])->name('contracts.show');
-        Route::post('/contracts/{reservation}/renew', [ContractController::class, 'renew'])->name('contracts.renew');
+        // Leases: the list, add, view and renew. The URL used to be /contracts; the old addresses still redirect (query kept).
+        Route::get('/leases', [ContractController::class, 'index'])->name('contracts.index');
+        Route::get('/contracts', fn (\Illuminate\Http\Request $request) => redirect()->route('landlord.contracts.index', $request->query()));
+        Route::get('/contracts/{reservation}', fn (Reservation $reservation) => redirect()->route('landlord.contracts.show', $reservation));
+        Route::post('/leases', [ContractController::class, 'store'])->name('contracts.store');
+        Route::get('/leases/{reservation}', [ContractController::class, 'show'])->name('contracts.show');
+        Route::post('/leases/{reservation}/renew', [ContractController::class, 'renew'])->name('contracts.renew');
         Route::get('/tenants/export', [TenantController::class, 'export'])->name('tenants.export');
 
         // The old walk-in wizard was replaced by Add Tenant + Add contract (Oct 2026). Old links land on Add contract.
@@ -312,6 +322,9 @@ Route::middleware('auth')->group(function () {
         // initial payment. The GET is the removed tenancy page's address: it now opens the lease modal.
         Route::get('/tenancies/{reservation}', [App\Http\Controllers\Landlord\TenancyController::class, 'show'])->name('tenancies.show');
         Route::post('/tenancies/{reservation}/end', [App\Http\Controllers\Landlord\TenancyController::class, 'endTenancy'])->name('tenancies.end');
+        Route::post('/tenancies/{reservation}/deposit-return', [App\Http\Controllers\Landlord\TenancyController::class, 'returnDeposit'])->name('tenancies.depositReturn');
+        Route::post('/tenancies/{reservation}/stop-collecting', [App\Http\Controllers\Landlord\TenancyController::class, 'stopCollecting'])->name('tenancies.stopCollecting');
+        Route::post('/tenancies/{reservation}/resume-collecting', [App\Http\Controllers\Landlord\TenancyController::class, 'resumeCollecting'])->name('tenancies.resumeCollecting');
         Route::patch('/tenancies/{reservation}/tenant-details', [App\Http\Controllers\Landlord\TenancyController::class, 'updateTenantDetails'])->name('tenancies.tenantDetails.update');
         Route::get('/tenancies/{reservation}/tenant-details/id', [App\Http\Controllers\Landlord\TenancyController::class, 'revealTenantId'])
             ->middleware('throttle:20,1')->name('tenancies.tenantDetails.id');
@@ -356,6 +369,7 @@ Route::middleware('auth')->group(function () {
 
         // My Complaints — reports this landlord has filed (ACCOUNT).
         // Renamed from landlord.reports.* so "Reports" only ever means analytics.
+        Route::get('/concerns', [App\Http\Controllers\Landlord\ConcernController::class, 'index'])->name('concerns.index');
         Route::get('/complaints', [App\Http\Controllers\Landlord\ReportController::class, 'index'])->name('complaints.index');
         // Units (standalone index)
         Route::get('/units', [UnitIndexController::class, 'index'])->name('units.index');
@@ -369,6 +383,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/listings/approval', [ListingController::class, 'approval'])->name('listings.approval');
         Route::post('/listings/{property_id}/approve', [ListingController::class, 'approve'])->name('listings.approve');
         Route::post('/listings/{property_id}/reject', [ListingController::class, 'reject'])->name('listings.reject');
+        Route::post('/listings/{property_id}/suspend', [ListingController::class, 'suspend'])->name('listings.suspend');
         Route::post('/listings/{property_id}/unsuspend', [ListingController::class, 'unsuspend'])->name('listings.unsuspend');
 
         Route::get('/verifications', [AdminVerificationController::class, 'index'])->name('verifications.index');

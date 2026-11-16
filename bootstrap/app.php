@@ -9,6 +9,7 @@ use App\Http\Middleware\EnsureLandlord;
 use App\Http\Middleware\EnsureTwoFactor;
 use App\Http\Middleware\RequireRecentPassword;
 use App\Http\Middleware\EnsureNotOnHold;
+use App\Http\Middleware\LandlordPropertyScope;
 use App\Http\Middleware\EnsureTenant;
 use App\Http\Middleware\ForceJsonResponse;
 use App\Http\Middleware\SecurityHeaders;
@@ -38,6 +39,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'tenant'   => EnsureTenant::class,
             'landlord' => EnsureLandlord::class,
+            'property.scope' => LandlordPropertyScope::class,
             'admin'    => EnsureAdmin::class,
             'two-factor'      => EnsureTwoFactor::class,
             'recent.password' => RequireRecentPassword::class,

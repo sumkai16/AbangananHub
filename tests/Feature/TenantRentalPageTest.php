@@ -37,7 +37,7 @@ class TenantRentalPageTest extends TestCase
 
         $r->assertSee('Balance due')
             ->assertSee('Monthly rent')->assertSee('Oldest unpaid')->assertSee('Paid to date')->assertSee('Deposit held')
-            ->assertSee('Lease')->assertSee('Month 3 of 12')
+            ->assertSee('Rental')->assertSee('Month 3 of 12')
             ->assertSee('Payments')->assertSee('My Rentals');
     }
 

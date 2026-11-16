@@ -10,7 +10,8 @@
     {{-- Tenants get the same 1400px column as the site header and every other tenant page; the landlord's sidebar shell keeps the full width. --}}
     <div class="{{ auth()->user()->usesLandlordShell() ? 'max-w-none' : auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-5 min-h-[calc(100vh-72px)]" x-data="inboxApp()" x-cloak>
 
-        <div class="flex flex-col {{ $wide ? 'gap-4' : 'overflow-hidden '.$cardClass }}"
+        {{-- The landlord shell has no top bar on desktop (sidebar only), so only the 40px page padding is reserved there. --}}
+        <div class="flex flex-col {{ $wide ? 'gap-4' : 'overflow-hidden '.$cardClass }} {{ auth()->user()->usesLandlordShell() ? 'lg:!h-[calc(100dvh-40px)]' : '' }}"
             style="height: calc(100vh - 110px); height: calc(100dvh - 110px); min-height: 560px;">
 
         {{-- A refused action (e.g. "Send agreement" while another reservation holds the unit) redirects back here
@@ -93,7 +94,7 @@
                         <div class="grid grid-cols-2 gap-1 rounded-xl bg-[#ECEEF6] p-1">
                             @foreach ([['inquiry', 'Inquiries'], ['tenancy', $isLandlord ? 'Tenants' : 'My home']] as [$boxKey, $boxLabel])
                                 <a href="{{ route('conversations.index', array_filter(['box' => $boxKey === 'tenancy' ? 'tenancy' : null, 'property_id' => $propertyId])) }}"
-                                    @if($box === $boxKey) aria-current="page" @endif
+                                    data-page-swap="nav" @if($box === $boxKey) aria-current="page" @endif
                                     class="flex h-9 items-center justify-center gap-1.5 rounded-lg text-[13px] font-semibold transition-colors {{ $box === $boxKey ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E] hover:text-[#060D26]' }}">
                                     {{ $boxLabel }}
                                     @if(($boxUnread[$boxKey] ?? 0) > 0)
@@ -120,6 +121,7 @@
                     @endphp
                     @foreach ($tabs as $key => $tab)
                                 <a href="{{ route('conversations.index', array_filter(['box' => $box === 'tenancy' ? 'tenancy' : null, 'status' => $key, 'search' => request('search'), 'property_id' => $propertyId])) }}"
+                                    data-page-swap="nav"
                                     class="flex-1 whitespace-nowrap border-b-2 px-1 py-3 text-center text-[13px] font-semibold transition-colors
                                         {{ $status === $key ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
                                     {{ $tab['label'] }}
@@ -328,7 +330,9 @@
         <script src="{{ asset('js/datetime-picker.js') }}"></script>
         {{-- The Send-agreement form's move-in and move-out pickers (landlord.reservations._agreement-fields). --}}
         <script src="{{ asset('js/date-picker.js') }}"></script>
-        <script>
+        {{-- data-swap-global: page-swap.js runs this before the inbox is shown when arriving by swap (the x-data below
+             needs inboxApp to exist). It only declares functions plus one guarded listener, so running it twice is safe. --}}
+        <script data-swap-global>
             function inboxApp() {
                 return {
                     activeId: null,
@@ -350,17 +354,18 @@
                         // work as a normal page rather than dying in init().
                         if (!window.Echo) return;
 
-                        window.Echo.private('user.{{ auth()->id() }}')
-                            .listen('.ReservationStatusUpdated', (e) => {
+                        // Kept by reference so destroy() can remove exactly these, and not the bell's or the chat bubble's.
+                        this.userHandlers = {
+                            '.ReservationStatusUpdated': (e) => {
                                 if (e.conversation_id !== this.activeId) {
                                     this.updateListStage(e.conversation_id, e.status);
                                 }
-                            })
-                            .listen('.MessageSent', (e) => {
+                            },
+                            '.MessageSent': (e) => {
                                 if (e.conversation_id === this.activeId) return;
                                 this.updateListPreview(e.conversation_id, e.message, e.is_system);
-                            })
-                            .listen('.PaymentStatusUpdated', (e) => {
+                            },
+                            '.PaymentStatusUpdated': (e) => {
                                 // Same split as ReservationStatusUpdated above: this
                                 // channel owns the list rows for threads you are not
                                 // looking at, the conversation channel owns the open
@@ -370,7 +375,22 @@
                                 if (e.conversation_id !== this.activeId) {
                                     this.updateListStage(e.conversation_id, e.stage);
                                 }
-                            });
+                            },
+                        };
+                        const channel = window.Echo.private('user.{{ auth()->id() }}');
+                        Object.entries(this.userHandlers).forEach(([event, handler]) => channel.listen(event, handler));
+                    },
+
+                    // Leaving the inbox by a page swap: stop listening and let go of the open thread's channel.
+                    destroy() {
+                        if (window.Echo) {
+                            const channel = window.Echo.private('user.{{ auth()->id() }}');
+                            Object.entries(this.userHandlers || {}).forEach(([event, handler]) => channel.stopListening(event, handler));
+                            if (this.echoListener) window.Echo.leave('conversation.' + this.echoListener);
+                        }
+                        this.echoListener = null;
+                        window.activeConversationId = null;
+                        window.refreshInboxPanel = undefined;
                     },
 
                     updateListPreview(conversationId, message, isSystem) {
@@ -778,7 +798,9 @@
             // hover, so tapping a bubble pins its time instead. Delegated from
             // document because the panel markup is replaced wholesale whenever
             // a conversation loads or a status change refreshes it.
-            document.addEventListener('click', (e) => {
+            // Bound once: the script can run again when the inbox is opened by a page swap, and two listeners would
+            // toggle the pin twice, which cancels it.
+            if (!window.bubblePinBound) window.bubblePinBound = true, document.addEventListener('click', (e) => {
                 const bubble = e.target.closest('[data-bubble]');
                 const list = e.target.closest('#message-list');
                 if (!list) return;

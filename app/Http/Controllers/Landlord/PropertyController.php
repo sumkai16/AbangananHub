@@ -45,7 +45,7 @@ class PropertyController extends Controller
             $query->where('property_type', $type);
         }
 
-        $properties = $query->latest()->paginate(9)->withQueryString();
+        $properties = $query->latest()->paginate(10)->withQueryString();
 
         // Account-wide totals for the summary cards — deliberately unfiltered
         // by the search/status/type toolbar above, since "how many units do
@@ -107,7 +107,7 @@ class PropertyController extends Controller
         $activities = (clone $history)
             ->when($roles, fn ($q) => $q->whereIn('actor_role', $roles))
             ->orderByDesc('created_at')->orderByDesc('activity_id')
-            ->paginate(20, ['*'], 'activity_page')
+            ->paginate(10, ['*'], 'activity_page')
             ->withQueryString()
             ->fragment('activity_log');
 

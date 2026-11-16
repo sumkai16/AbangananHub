@@ -1,5 +1,5 @@
 {{--
-    The Lease policies modal on the Tenants page. Opened with $dispatch('open-lease-policies', { url }), where url is
+    The Rental policies modal on the Rentals page. Opened with $dispatch('open-lease-policies', { url }), where url is
     landlord.leases.panel. The body (_panel.blade.php) is fetched when it opens and fetched again after each save, so
     a dropdown or switch changes the policy without leaving the page. Open rows and the scroll position are kept
     across a save. The full page (landlord.leases.index) is still there for the links from the property and unit pages.
@@ -66,7 +66,7 @@
      x-on:keydown.escape.window="close()">
 
     <template x-teleport="body">
-        <div x-show="show" x-cloak class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" role="dialog" aria-modal="true" aria-label="Lease policies">
+        <div x-show="show" x-cloak class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" role="dialog" aria-modal="true" aria-label="Rental policies">
             <div x-show="show" x-transition.opacity @click="close()" class="absolute inset-0 bg-[#060D26]/40 backdrop-blur-sm"></div>
 
             <div x-show="show" x-ref="dialog" tabindex="-1"
@@ -82,7 +82,7 @@
                         <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
                     </div>
                     <div class="min-w-0">
-                        <h2 class="text-[18px] font-bold leading-tight tracking-tight text-[#060D26]">Lease policies</h2>
+                        <h2 class="text-[18px] font-bold leading-tight tracking-tight text-[#060D26]">Rental policies</h2>
                         <p class="mt-0.5 text-[12.5px] text-[#5B6A8E]">The rules and wording your tenants agree to, per property and unit.</p>
                     </div>
                     <button type="button" @click="close()" aria-label="Close"
@@ -102,6 +102,9 @@
                     <a href="{{ route('landlord.leases.index') }}" class="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-[#5B6A8E] underline-offset-2 hover:text-[#060D26] hover:underline">
                         Open full page
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+                    </a>
+                    <a href="{{ route('landlord.leases.agreement') }}" class="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-[#B35A3D] underline-offset-2 hover:underline">
+                        Generate an agreement
                     </a>
                     <p role="status" aria-live="polite" x-text="status" x-show="status" x-cloak
                         :class="bad ? 'text-[#B91C1C]' : 'text-[#15803D]'" class="min-w-0 flex-1 text-[12.5px] font-semibold sm:text-right"></p>

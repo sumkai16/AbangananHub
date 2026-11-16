@@ -53,7 +53,7 @@
             $summary[] = ['label' => $label, 'value' => $counts[$key], 'note' => $pct($counts[$key]).$suffix, 'dot' => $dot, 'href' => $cellHref($label), 'active' => $availability === $label];
         }
     @endphp
-    <x-stat-strip :cells="$summary" class="mb-4" />
+    <x-stat-strip data-swap-region="cards" :cells="$summary" class="mb-4" />
 
     {{-- The approval queue lives here now (it was its own page, Unit Approvals). Highlighted while something waits. --}}
     @php $needs = ($filters['needs'] ?? '') === 'approval'; @endphp
@@ -112,6 +112,7 @@
         </div>
     </form>
 
+    <div data-swap-region="results">
     @if($units->isEmpty())
         <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#5B6A8E]/30 bg-white py-16 text-center">
             <p class="text-sm font-semibold text-[#060D26]">{{ $needs ? 'No units need a decision' : 'No units found' }}</p>
@@ -311,6 +312,7 @@
             @endif
         </div>
     @endif
+    </div>
 
     {{-- One reason dialog for every Reject button; the landlord sees the reason. --}}
     <x-modal name="reject-unit" focusable>

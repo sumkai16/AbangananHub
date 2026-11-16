@@ -18,7 +18,7 @@ class Notification extends Model
     public const RESERVATION_TYPES = [
         'reservation', 'agreement', 'payment', 'payment_released', 'rent_due', 'payment_to_confirm',
         'move_in_confirmation_due', 'move_in_confirmation_reminder', 'move_in_disputed',
-        'turnover_overdue', 'concern',
+        'turnover_overdue', 'concern', 'rent_written_off',
     ];
 
     /**

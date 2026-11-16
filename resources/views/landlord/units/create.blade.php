@@ -182,6 +182,10 @@
                                 @enderror
                             </div>
 
+                            <div class="sm:col-span-2">
+                                @include('landlord.units.partials._payment-arrangement', ['unit' => null])
+                            </div>
+
                             <div>
                                 <label class="block text-[12px] font-semibold text-[#060D26] mb-1.5">
                                     Capacity <span class="text-[#EF4444]">*</span>

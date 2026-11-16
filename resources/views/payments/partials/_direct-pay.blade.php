@@ -10,8 +10,9 @@
     $isMoveIn = $type === 'MoveIn';
     $share = \App\Models\PaymentQrShare::latestFor($reservation);
 
+    // The fee first under a reservation-fee unit, then whatever balance is left; the full amount otherwise.
     $defaultAmount = $isMoveIn
-        ? $reservation->moveInDue()
+        ? ($reservation->minimumMoveInPayment() ?: $reservation->moveInDue())
         : (float) ($period['balance'] ?? 0);
     $periodKey = $isMoveIn ? null : $period['period']->copy()->startOfMonth();
 
@@ -31,12 +32,28 @@
     </h3>
 
     @if($isMoveIn)
+        @if($reservation->reservationFee() > 0)
+            <p class="mt-3 rounded-lg bg-[#F7F8FC] px-3 py-2 text-[12.5px] text-[#060D26]">
+                @if($reservation->reservationFeePaid())
+                    Your reservation fee is paid and the unit is held for you. Pay the balance of &#8369;{{ number_format($reservation->moveInShortfall(), 2) }} before you move in.
+                @else
+                    This unit is held with a reservation fee of &#8369;{{ number_format($reservation->reservationFee(), 2) }}. The remaining &#8369;{{ number_format($reservation->moveInBalanceAfterFee(), 2) }} is due before you move in.
+                @endif
+            </p>
+        @endif
         <dl class="mt-3 space-y-1 text-[13px]">
-            @if($reservation->advanceMonths() > 0)
-                <div class="flex justify-between"><dt class="text-[#5B6A8E]">{{ $reservation->advanceMonths() === 1 ? 'First month’s rent' : $reservation->advanceMonths().' months’ rent in advance' }}</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($reservation->advanceMonths() * $reservation->monthlyRent(), 2) }}</dd></div>
-            @endif
-            @if($reservation->agreedDeposit() > 0)
-                <div class="flex justify-between"><dt class="text-[#5B6A8E]">Security deposit</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($reservation->agreedDeposit(), 2) }}</dd></div>
+            @if($reservation->reservationFee() > 0)
+                {{-- Reservation-fee unit: the lines add up to what is paid now (the fee, then the balance). --}}
+                @foreach($reservation->moveInPayLines() as [$label, $amount])
+                    <div class="flex justify-between"><dt class="text-[#5B6A8E]">{{ $label }}</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($amount, 2) }}</dd></div>
+                @endforeach
+            @else
+                @if($reservation->advanceMonths() > 0)
+                    <div class="flex justify-between"><dt class="text-[#5B6A8E]">{{ $reservation->advanceMonths() === 1 ? 'First month’s rent' : $reservation->advanceMonths().' months’ rent in advance' }}</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($reservation->advanceMonths() * $reservation->monthlyRent(), 2) }}</dd></div>
+                @endif
+                @if($reservation->agreedDeposit() > 0)
+                    <div class="flex justify-between"><dt class="text-[#5B6A8E]">Security deposit</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($reservation->agreedDeposit(), 2) }}</dd></div>
+                @endif
             @endif
             <div class="flex justify-between border-t border-[#E2E4EC] pt-1.5"><dt class="font-bold text-[#060D26]">Total</dt><dd class="font-bold tabular-nums text-[#060D26]">&#8369;{{ number_format($defaultAmount, 2) }}</dd></div>
         </dl>

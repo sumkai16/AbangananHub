@@ -70,7 +70,7 @@
                     'href' => $cellHref($label), 'active' => request('status') === $label];
             }
         @endphp
-        <x-stat-strip :cells="$summary" class="mb-6" />
+        <x-stat-strip data-swap-region="cards" :cells="$summary" class="mb-6" />
 
         {{-- Filters --}}
         <form data-live method="GET" class="mb-6">
@@ -107,14 +107,6 @@
                     @else
                     <x-styled-select name="status" :options="$unitsStatusOptions" :selected="request('status', '')" :autosubmit="true"
                         class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26]" />
-
-                    <button type="submit"
-                        class="h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 inline-flex items-center gap-1.5">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-                        </svg>
-                        Filter
-                    </button>
                     @endif
 
                     @if(request()->hasAny(['search', 'status']) || (! $scopedProperty && request()->has('property')))
@@ -162,6 +154,7 @@
             @endif
         </form>
 
+        <div data-swap-region="results">
         {{-- Empty state --}}
         @if($units->isEmpty())
             <div
@@ -311,29 +304,8 @@
 
             {{-- Table view --}}
             <div @if($scopedProperty) class="hidden lg:block" @else x-show="view === 'table'" x-cloak @endif>
-            <div class="space-y-8">
-            {{-- One table per property. Scoped to a single property the heading is redundant (it's the page title). --}}
-            @foreach($units->groupBy('property_id') as $groupUnits)
-            @php
-                $groupProperty = $groupUnits->first()->property;
-            @endphp
-            <section>
+            {{-- One table for every unit; the Property dropdown above narrows it. --}}
             <x-card flush class="!rounded-none">
-                {{-- Property label: a soft tinted bar on top of its table --}}
-                @unless($scopedProperty)
-                    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-0.5 px-5 py-2.5 bg-[#ECEEF6] border-b border-[#E2E4EC] border-l-4 border-l-[#FF8A66]">
-                        <div class="min-w-0 flex items-baseline gap-2">
-                            <h2 class="text-[13.5px] font-bold text-[#060D26] truncate">{{ $groupProperty->title }}</h2>
-                            <span class="text-[11.5px] text-[#5B6A8E] whitespace-nowrap">{{ $groupUnits->count() }} {{ Str::plural('unit', $groupUnits->count()) }}</span>
-                        </div>
-                        <div class="flex items-center gap-4 text-[12px] font-semibold">
-                            <a href="{{ route('landlord.properties.show', $groupProperty) }}" class="text-[#B35A3D] hover:underline">View property</a>
-                            @unless(request('property'))
-                                <a href="{{ route('landlord.properties.units.create', $groupProperty) }}" class="text-[#B35A3D] hover:underline">+ Add unit</a>
-                            @endunless
-                        </div>
-                    </div>
-                @endunless
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[980px] text-left">
                         <thead>
@@ -347,7 +319,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#E2E4EC]">
-                            @foreach($groupUnits as $unit)
+                            @foreach($units as $unit)
                                 @php extract($derived[$unit->unit_id]); @endphp
                                 <tr class="hover:bg-[#F7F8FC]/70 transition-colors duration-200 cursor-pointer"
                                     x-on:click="if (! $event.target.closest('a, button, form, input') && ! window.getSelection().toString()) $el.querySelector('[data-view-unit]').click()">
@@ -460,9 +432,6 @@
                     </table>
                 </div>
             </x-card>
-            </section>
-            @endforeach
-            </div>
             </div>
 
             <div class="mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -473,6 +442,7 @@
                 {{ $units->links() }}
             </div>
         @endif
+        </div>
 
         {{-- One modal for every card and row; each View button dispatches `open-unit-detail`. --}}
         @include('landlord.units.partials._detail-modal')

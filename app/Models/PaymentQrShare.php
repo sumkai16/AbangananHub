@@ -6,6 +6,7 @@ use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -51,6 +52,32 @@ class PaymentQrShare extends Model
     }
 
     /**
+     * False when the payload cannot be decrypted: the row was written under a different APP_KEY (data copied
+     * between machines, or the key was rotated). Such a QR is unrecoverable, so callers skip it rather than
+     * let one bad row crash the whole chat page.
+     */
+    public function isReadable(): bool
+    {
+        try {
+            $this->payload;
+
+            return true;
+        } catch (DecryptException) {
+            return false;
+        }
+    }
+
+    /** The landlord's newest QR that can still be read (any chat), or null. */
+    public static function lastReadableBy(int $landlordId): ?self
+    {
+        return static::where('shared_by', $landlordId)
+            ->latest('payment_qr_share_id')
+            ->limit(10)
+            ->get()
+            ->first(fn (self $share) => $share->isReadable());
+    }
+
+    /**
      * The newest QR this landlord has shared with this tenant for this property, in any thread between
      * them (the inquiry thread before move-in, the tenancy thread after). Null when none was shared.
      */
@@ -65,7 +92,9 @@ class PaymentQrShare extends Model
                 ->where('property_id', $reservation->property_id))
             ->with('sharedBy')
             ->latest('payment_qr_share_id')
-            ->first();
+            ->limit(10)
+            ->get()
+            ->first(fn (self $share) => $share->isReadable());
     }
 
     /** What the mobile app needs to draw the QR itself and say who it pays. */

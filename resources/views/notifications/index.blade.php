@@ -49,7 +49,7 @@
                 $isActive = $tab === $key;
                 $params = array_merge(request()->except(['tab', 'page', 'selected']), $key !== 'all' ? ['tab' => $key] : []);
             @endphp
-            <a href="{{ route('notifications.index', $params) }}"
+            <a href="{{ route('notifications.index', $params) }}" data-page-swap="nav"
                 class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold transition-colors
                     {{ $isActive ? 'bg-[#FF8A66] text-[#060D26] shadow-sm' : 'bg-white text-[#060D26] ring-1 ring-[#5B6A8E]/15 hover:bg-[#F7F8FC]' }}">
                 {{ $label }}
@@ -108,7 +108,7 @@
                             default => ['bg' => 'bg-[#060D26]', 'icon' => 'M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0'],
                         };
                     @endphp
-                    <a href="{{ route('notifications.index', array_merge(request()->except(['selected', 'page']), ['selected' => $n->notification_id])) }}"
+                    <a href="{{ route('notifications.index', array_merge(request()->except(['selected', 'page']), ['selected' => $n->notification_id])) }}" data-page-swap="nav"
                         class="block p-4 transition-all duration-200 hover:bg-[#ECEEF6] {{ $isSelected ? 'bg-[#ECEEF6] border-l-[3px] border-l-[#FF8A66]' : 'border-l-[3px] border-l-transparent' }} {{ $n->is_read && !$isSelected ? 'opacity-70' : '' }}">
                         <div class="flex items-center gap-3">
                             @if($isReview)

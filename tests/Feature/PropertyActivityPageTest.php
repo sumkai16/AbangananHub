@@ -114,10 +114,11 @@ class PropertyActivityPageTest extends TestCase
         $url = route('landlord.properties.show', $property);
 
         $first = $this->actingAs($landlord)->get($url)->assertOk();
-        $first->assertSee('Line number 25')->assertDontSee('Line number 5<')->assertSee('activity_page=2', false);
+        // Ten to a page: 25..16 on the first, 15..6 on the second, 5..1 on the third.
+        $first->assertSee('Line number 25')->assertDontSee('Line number 15<', false)->assertSee('activity_page=2', false);
 
-        $second = $this->actingAs($landlord)->get($url.'?activity_page=2')->assertOk();
-        $second->assertSee('Line number 1<', false)->assertSee("tab: 'activity_log'", false);
+        $third = $this->actingAs($landlord)->get($url.'?activity_page=3')->assertOk();
+        $third->assertSee('Line number 1<', false)->assertSee("tab: 'activity_log'", false);
     }
 
     public function test_the_overview_shows_the_latest_three(): void

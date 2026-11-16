@@ -281,7 +281,7 @@
     </style>
 
     @push('scripts')
-        <script>
+        <script data-swap-safe>
             (function () {
                 const pick = document.getElementById('avatar-pick');
                 const input = document.getElementById('avatar-input');

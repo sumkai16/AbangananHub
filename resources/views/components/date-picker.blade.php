@@ -39,6 +39,8 @@
     'disabledExpr' => null,
     'placeholder' => 'mm / dd / yyyy',
     'autosubmit' => false,
+    'required' => false,
+    'alignRight' => false,
 ])
 
 @php
@@ -58,7 +60,7 @@
 >
     <input type="hidden" name="{{ $name }}" :value="date">
 
-    <button type="button" id="{{ $inputId }}" @click="toggle()" :disabled="fieldDisabled"
+    <button type="button" id="{{ $inputId }}" @if($required) data-fv-required @endif @click="toggle()" :disabled="fieldDisabled"
         :aria-expanded="open" aria-haspopup="dialog"
         class="w-full text-left rounded-xl bg-white border px-3.5 h-10 flex items-center transition-all focus:outline-none focus:border-[#FF8A66]/60 focus:ring-4 focus:ring-[#FF8A66]/10 disabled:cursor-not-allowed disabled:bg-[#F7F8FC] border-[#E2E4EC]">
         <span class="text-sm font-semibold" :class="date ? 'text-[#060D26]' : 'text-[#94A3B8] font-normal'"
@@ -66,9 +68,9 @@
     </button>
 
     <div x-show="open" x-cloak x-transition
-        class="absolute z-30 mt-2 w-[300px] rounded-2xl bg-[#060D26] ring-1 ring-white/10 shadow-2xl overflow-hidden">
-        <div class="px-4 pt-4 pb-3">
-            <div class="flex items-center justify-between mb-3">
+        class="absolute z-30 mt-1.5 w-[252px] max-w-[calc(100vw-2rem)] {{ $alignRight ? 'right-0' : '' }} rounded-xl bg-[#060D26] ring-1 ring-white/10 shadow-xl overflow-hidden">
+        <div class="px-3 pt-3 pb-2">
+            <div class="flex items-center justify-between mb-2">
                 <button type="button" @click="shiftMonth(-1)" :disabled="!canGoBack"
                     class="w-7 h-7 rounded-lg flex items-center justify-center text-white/50 hover:bg-white/10 hover:text-white disabled:opacity-25 disabled:cursor-not-allowed transition-colors">
                     <span class="sr-only">Previous month</span>
@@ -77,7 +79,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
                     </svg>
                 </button>
-                <p class="text-[13.5px] font-bold text-white" x-text="monthLabel" aria-live="polite"></p>
+                <p class="text-[13px] font-bold text-white" x-text="monthLabel" aria-live="polite"></p>
                 <button type="button" @click="shiftMonth(1)" :disabled="!canGoForward"
                     class="w-7 h-7 rounded-lg flex items-center justify-center text-white/50 hover:bg-white/10 hover:text-white disabled:opacity-25 disabled:cursor-not-allowed transition-colors">
                     <span class="sr-only">Next month</span>
@@ -90,17 +92,17 @@
 
             <div class="grid grid-cols-7" aria-hidden="true">
                 @foreach (['S', 'M', 'T', 'W', 'T', 'F', 'S'] as $dow)
-                    <span class="h-7 flex items-center justify-center text-[11px] font-semibold text-white/40">{{ $dow }}</span>
+                    <span class="h-6 flex items-center justify-center text-[10.5px] font-semibold text-white/40">{{ $dow }}</span>
                 @endforeach
             </div>
 
-            <div class="grid grid-cols-7 gap-y-1">
+            <div class="grid grid-cols-7 gap-y-0.5">
                 <template x-for="cell in grid" :key="cell.key">
                     <div class="flex items-center justify-center">
                         <template x-if="cell.iso">
                             <button type="button" @click="select(cell.iso)" :disabled="cell.disabled"
                                 :aria-pressed="date === cell.iso" :aria-label="cell.label"
-                                class="w-9 h-9 rounded-full text-[13px] font-semibold transition-colors disabled:opacity-25 disabled:cursor-not-allowed"
+                                class="w-8 h-8 rounded-full text-[12.5px] font-semibold transition-colors disabled:opacity-25 disabled:cursor-not-allowed"
                                 :class="date === cell.iso
                                     ? 'bg-[#FF8A66] text-[#060D26]'
                                     : (cell.isToday
@@ -111,23 +113,23 @@
                         </template>
 
                         <template x-if="cell.adjacent">
-                            <span class="w-9 h-9 flex items-center justify-center text-[13px] font-medium text-white/25"
+                            <span class="w-8 h-8 flex items-center justify-center text-[12.5px] font-medium text-white/25"
                                 x-text="cell.day" aria-hidden="true"></span>
                         </template>
 
                         <template x-if="cell.blank">
-                            <span class="w-9 h-9 block"></span>
+                            <span class="w-8 h-8 block"></span>
                         </template>
                     </div>
                 </template>
             </div>
         </div>
 
-        <div class="px-4 py-3 border-t border-white/10 flex items-center justify-between">
-            <button type="button" @click="clear()" class="text-[12.5px] font-semibold text-white/50 hover:text-white transition-colors">
+        <div class="px-3 py-2 border-t border-white/10 flex items-center justify-between">
+            <button type="button" @click="clear()" class="text-[12px] font-semibold text-white/50 hover:text-white transition-colors">
                 Clear
             </button>
-            <button type="button" @click="today()" class="text-[12.5px] font-bold text-[#FF8A66] hover:brightness-110 transition-all">
+            <button type="button" @click="today()" class="text-[12px] font-bold text-[#FF8A66] hover:brightness-110 transition-all">
                 Today
             </button>
         </div>

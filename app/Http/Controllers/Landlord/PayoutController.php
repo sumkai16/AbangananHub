@@ -40,7 +40,7 @@ class PayoutController extends Controller
         $paidOut = (clone $query)->paidOut()
             ->with('payout')
             ->orderByDesc(Payout::select('paid_out_at')->whereColumn('payouts.payout_id', 'payments.payout_id'))
-            ->paginate(15);
+            ->paginate(10);
 
         return view('landlord.payouts.index', [
             'pending' => $pending,

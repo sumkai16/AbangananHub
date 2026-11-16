@@ -34,11 +34,11 @@ class PropertyObserver
         'barangay'                     => 'address',
         'latitude'                     => 'map pin',
         'longitude'                    => 'map pin',
-        'default_lease_terms'          => 'lease terms',
+        'default_lease_terms'          => 'rental terms',
         'rent_grace_days'              => 'rent rules',
         'late_fee_type'                => 'rent rules',
         'late_fee_value'               => 'rent rules',
-        'lease_template_id'            => 'lease policy',
+        'lease_template_id'            => 'rental policy',
     ];
 
     public function created(Property $property): void

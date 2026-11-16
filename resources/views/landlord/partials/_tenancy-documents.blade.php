@@ -1,5 +1,5 @@
 {{--
-    The landlord's side of the documents a lease asked for: open each file, approve it, send it back with a reason,
+    The landlord's side of the documents a rental asked for: open each file, approve it, send it back with a reason,
     or excuse the tenant from it. Needs $reservation. Narrow on purpose: it sits in the chat's side card.
     Approval is the landlord's record only; it never blocks the tenant's payment or move-in.
 --}}

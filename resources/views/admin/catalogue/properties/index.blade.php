@@ -61,7 +61,7 @@
             ['label' => 'Needs attention', 'value' => $counts['needs_attention'], 'note' => 'No photos, pin or units, or 90+ days old', 'dot' => '#94A3B8', 'href' => $needsAttention ? $cellHref([]) : $cellHref(['health' => 'no-media']), 'active' => $needsAttention],
         ];
     @endphp
-    <x-stat-strip :cells="$summary" class="mb-6" />
+    <x-stat-strip data-swap-region="cards" :cells="$summary" class="mb-6" />
 
 
     {{-- Search + filters + view toggle --}}
@@ -121,6 +121,7 @@
         </div>
     </form>
 
+    <div data-swap-region="results">
     {{-- Empty state --}}
     @if($properties->isEmpty())
         <x-card flush><x-admin.empty title="No properties found" :note="$search || array_filter($filters) ? 'Try a different search or filter.' : null" /></x-card>
@@ -241,6 +242,7 @@
             {{ $properties->links() }}
         </div>
     @endif
+    </div>
 
 </div>
 @endsection

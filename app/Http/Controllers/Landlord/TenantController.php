@@ -8,9 +8,10 @@ use App\Http\Requests\Landlord\TenantRequest;
 use App\Models\LandlordTenant;
 use App\Models\Reservation;
 use App\Models\TenantDetail;
-use App\Models\User;
 use App\Services\LeaseContractCreator;
+use App\Services\TenantCreator;
 use App\Support\ContractFormOptions;
+use App\Support\Csv;
 use App\Support\Paging;
 use App\Support\TenantInvites;
 use Illuminate\Http\Request;
@@ -18,7 +19,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
@@ -36,24 +36,30 @@ class TenantController extends Controller
 
     /** The stage chips, in order. 'ending' and 'no-agreement' overlap the others, so they are flags on a row. */
     public const STAGES = [
+        'active' => 'Active',
         'living' => 'Living there',
         'moving' => 'Moving in',
         'ending' => 'Ending soon',
         'no-agreement' => 'No agreement',
-        'none' => 'No contract',
-        'former' => 'Former',
+        'none' => 'No rental',
     ];
 
-    private const PER_PAGE = 20;
+    /** The Tenants dropdown. Former tenants are history, so the page starts on the current ones. */
+    public const SHOW = ['current' => 'Current tenants', 'former' => 'Former tenants', 'all' => 'Everyone'];
+
+    private const PER_PAGE = 10;
 
     /** Old Tenants-page filters (Active / Pending) from before the merge. */
-    private const OLD_STATUS = ['active' => 'living', 'pending' => 'none'];
+    private const OLD_STATUS = ['pending' => 'none'];
 
     public function index(Request $request)
     {
         $rows = $this->rows();
         $stage = $request->input('status');
         $stage = self::OLD_STATUS[$stage] ?? $stage;
+        // The old Former chip is now a choice in the Tenants dropdown; old links to it still work.
+        $show = $request->input('show', $stage === 'former' ? 'former' : 'current');
+        $show = array_key_exists($show, self::SHOW) ? $show : 'current';
         $stage = array_key_exists($stage, self::STAGES) ? $stage : '';
         $search = trim((string) $request->input('search'));
 
@@ -70,12 +76,26 @@ class TenantController extends Controller
             })
             ->values();
 
+        // Former tenants are counted for the dropdown, then kept out unless asked for.
+        $formerCount = $scoped->where('stage', 'former')->count();
+        $scoped = match ($show) {
+            'former' => $scoped->where('stage', 'former')->values(),
+            'all' => $scoped,
+            default => $scoped->where('stage', '!=', 'former')->values(),
+        };
+
         $counts = ['all' => $scoped->count()];
         foreach (array_keys(self::STAGES) as $key) {
             $counts[$key] = $scoped->filter(fn ($r) => $this->inStage($r, $key))->count();
         }
 
         $filtered = $stage === '' ? $scoped : $scoped->filter(fn ($r) => $this->inStage($r, $stage))->values();
+
+        // Keep each property's tenants together in the single table (tenants with no unit yet first, so they
+        // are the first thing seen). sortBy is stable, so the order inside a property is unchanged.
+        $filtered = $filtered
+            ->sortBy(fn ($r) => $r['shown'] ? '1'.Str::lower($r['shown']->property->title).'|'.$r['shown']->property_id : '0')
+            ->values();
 
         $properties = Auth::user()->properties()->where('verification_status', 'Approved')
             ->orderBy('title')->get(['property_id', 'title']);
@@ -88,8 +108,12 @@ class TenantController extends Controller
             'rows' => Paging::collection($filtered, self::PER_PAGE),
             'counts' => $counts,
             'stage' => $stage,
+            'show' => $show,
+            'formerCount' => $formerCount,
             'properties' => $properties,
             'waiting' => $waiting,
+            // ?edit=<landlord_tenant_id> (the lease modal's Add contact button) opens that tenant's edit form on load.
+            'editTarget' => $request->filled('edit') ? $rows->first(fn ($r) => $r['row']->landlord_tenant_id === $request->integer('edit')) : null,
             // Sent but not yet signed: those are not contracts (or on this list) until signed, so they stay on Reservations.
             'unsignedAgreements' => Reservation::whereHas('property', fn ($q) => $q->where('landlord_id', Auth::id()))
                 ->where('rental_status', 'Pending Rental Agreement')->count(),
@@ -105,6 +129,7 @@ class TenantController extends Controller
     private function inStage(array $r, string $stage): bool
     {
         return match ($stage) {
+            'active' => in_array($r['stage'], ['living', 'moving'], true),
             'ending' => $r['ending'],
             'no-agreement' => $r['noAgreement'],
             default => $r['stage'] === $stage,
@@ -133,25 +158,10 @@ class TenantController extends Controller
         $reservation = null;
 
         $row = DB::transaction(function () use ($data, $landlord, $contract, $request, &$reservation) {
-            $tenant = User::create([
-                'first_name' => $data['first_name'],
-                'last_name' => $data['last_name'],
-                'email' => $data['email'] ?? null,
-                // Unknowable until the tenant accepts an invite and chooses their own.
-                'password' => Hash::make(Str::random(40)),
-                'contact_number' => $data['contact_number'] ?? null,
-                'account_status' => 'inactive',
-                'is_walk_in' => true,
-                'created_by_landlord_id' => $landlord->user_id,
-            ]);
-            $tenant->assignRole('Tenant');
-
-            TenantDetail::saveFor($tenant, $data);
-
-            $row = LandlordTenant::ensureFor($landlord->user_id, $tenant->user_id);
+            $row = TenantCreator::create($landlord, $data);
 
             if ($contract) {
-                $reservation = LeaseContractCreator::create($landlord->user_id, $tenant, $contract, $request->file('lease_file'));
+                $reservation = LeaseContractCreator::create($landlord->user_id, $row->tenant, $contract, $request->file('lease_file'));
             }
 
             return $row;
@@ -166,11 +176,17 @@ class TenantController extends Controller
         if ($reservation) {
             return redirect()->route('landlord.tenants.index', ['open' => $reservation->reservation_id])
                 ->with('success', $row->code().' added. '.($reservation->rental_status === 'Occupied'
-                    ? 'The lease is in and the unit is now occupied.'
-                    : 'The lease is in and the unit is reserved until '.$row->tenant->first_name.' moves in.').$note);
+                    ? 'The rental is in and the unit is now occupied.'
+                    : 'The rental is in and the unit is reserved until '.$row->tenant->first_name.' moves in.').$note);
         }
 
-        return redirect()->route('landlord.tenants.index')->with('success', $row->code().' added as Pending.'.$note);
+        // The "tenant added" popup (tenants/partials/_added-modal) offers Add lease with this tenant picked.
+        return redirect()->route('landlord.tenants.index')->with('tenant_added', [
+            'name' => trim($row->tenant->first_name.' '.$row->tenant->last_name),
+            'code' => $row->code(),
+            'invited' => (bool) $invited,
+            'lease_url' => route('landlord.contracts.index', ['new' => 1, 'tenant' => $row->landlord_tenant_id]),
+        ]);
     }
 
     /** The view modal's body, fetched when it opens so emergency contacts are not embedded in the list. */
@@ -178,18 +194,7 @@ class TenantController extends Controller
     {
         Gate::authorize('view', $landlordTenant);
 
-        // One modal: a tenant with a contract opens on it (the contract view carries their details and other
-        // contracts); a tenant without one gets their details and an Add contract button.
-        $shown = $landlordTenant->reservations()
-            ->whereIn('rental_status', ContractController::CONTRACT_STATUSES)
-            ->orderByRaw("FIELD(rental_status, 'Occupied', 'Reserved', 'Rental Agreement Signed', 'Completed')")
-            ->latest('reservation_date')
-            ->first();
-
-        if ($shown) {
-            return view('landlord.contracts.partials._details', ContractController::detailsData($shown));
-        }
-
+        // The tenant's own details only. Lease details open from the Leases page (ContractController::show).
         $landlordTenant->load('tenant.tenantDetail');
         $reservations = $landlordTenant->reservations()->with(['unit', 'property'])->latest('reservation_date')->get();
 
@@ -266,9 +271,9 @@ class TenantController extends Controller
         });
 
         return match ($result) {
-            'live' => back()->with('error', 'This tenant has a lease or booking in progress. End or cancel it on the Tenants page first.'),
+            'live' => back()->with('error', 'This tenant has a rental or booking in progress. End or cancel it on the Tenants page first.'),
             'deleted' => back()->with('success', 'Tenant deleted.'),
-            default => back()->with('success', 'Tenant removed from your list. Their past leases and payments stay in your records.'),
+            default => back()->with('success', 'Tenant removed from your list. Their past rentals and payments stay in your records.'),
         };
     }
 
@@ -279,10 +284,10 @@ class TenantController extends Controller
 
         return response()->streamDownload(function () use ($rows) {
             $handle = fopen('php://output', 'w');
-            \App\Support\Csv::put($handle, ['Tenant ID', 'Tenant', 'Status', 'Email', 'Contact', 'Property', 'Unit', 'Has own login']);
+            Csv::put($handle, ['Tenant ID', 'Tenant', 'Status', 'Email', 'Contact', 'Property', 'Unit', 'Has own login']);
 
             foreach ($rows as $r) {
-                \App\Support\Csv::put($handle, [
+                Csv::put($handle, [
                     $r['code'], $r['name'], $r['status'], $r['tenant']->email ?? '', $r['tenant']->contact_number ?? '',
                     $r['current']?->property?->title ?? '', $r['current']?->unit?->unit_label ?? '',
                     $r['tenant']->is_walk_in ? 'No' : 'Yes',

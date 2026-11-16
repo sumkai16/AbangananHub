@@ -36,13 +36,17 @@
                 'paid'         => $oldestUnpaid['paid'] ?? 0.0,
                 'monthsLabel'  => $summary['unpaidMonthCount'] > 1 ? $summary['unpaidMonthCount'] . ' months' : null,
                 // Reminders go to an app account, so not walk-ins or inactive users, and only while rent is owed.
-                'canRemind'    => $tenant && ! $tenant->is_walk_in && $tenant->account_status === 'active' && $summary['outstanding'] > 0,
+                'canRemind'    => $reservation->rental_status === 'Occupied' && $tenant && ! $tenant->is_walk_in && $tenant->account_status === 'active' && $summary['outstanding'] > 0,
                 'isOverdue'    => $row['paymentStatus'] === 'overdue',
+                'isEnded'      => $reservation->rental_status === 'Completed',
+                'writtenOff'   => $row['paymentStatus'] === 'written_off',
+                // Shown in the Balance column. A balance the landlord stopped collecting still shows (in grey), it just is not counted as owed.
+                'balance'      => $row['paymentStatus'] === 'written_off' ? (float) $summary['writtenOffAmount'] : (float) $summary['outstanding'],
             ];
         });
 
         // The summary strip and counts above read every tenancy; only the rows listed below are cut to a page.
-        $pageRows = \App\Support\Paging::collection($displayRows, 20);
+        $pageRows = \App\Support\Paging::collection($displayRows, 10);
     @endphp
 
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
@@ -275,11 +279,11 @@
                 </div>
                 <p class="text-[14px] font-semibold text-[#060D26]">Nothing to collect yet</p>
                 <p class="text-[13px] text-[#5B6A8E] mt-1 max-w-md">
-                    Rent tracking starts once a unit is occupied, either through an online booking or a lease you add.
+                    Rent tracking starts once a unit is occupied, either through an online booking or a rental you add.
                 </p>
                 <a href="{{ route('landlord.tenants.index', ['new' => 1]) }}"
                     class="mt-5 inline-flex items-center justify-center h-11 px-5 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
-                    Add a contract
+                    Add a rental
                 </a>
             </x-card>
         @elseif($view === 'calendar')
@@ -324,17 +328,18 @@
                             </div>
                             <div>
                                 <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wide">Balance</p>
-                                <p class="text-[13px] font-semibold {{ $summary['outstanding'] > 0 ? 'text-[#DC2626]' : 'text-[#060D26]' }} mt-0.5">
-                                    ₱{{ number_format($summary['outstanding'], 2) }}
+                                <p class="text-[13px] font-semibold {{ $item['writtenOff'] ? 'text-[#5B6A8E]' : ($summary['outstanding'] > 0 ? 'text-[#DC2626]' : 'text-[#060D26]') }} mt-0.5">
+                                    ₱{{ number_format($item['balance'], 2) }}@if($item['writtenOff']) <span class="block text-[11px] font-normal text-[#94A3B8]">Written off</span>@endif
                                 </p>
                             </div>
                         </div>
 
                         <div class="mt-3 flex gap-2">
-                            <a href="{{ route('landlord.payments.ledger', $reservation) }}" data-page-panel data-page-panel-back="Payments"
+                            <a href="{{ route('landlord.payments.ledger', $reservation) }}"
                                 class="flex-1 flex items-center justify-center h-10 rounded-xl border border-[#FF8A66] text-[#B35A3D] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">
                                 Open Ledger
                             </a>
+                            @include('landlord.payments.partials._ended-actions', ['item' => $item, 'reservation' => $reservation])
                             @if($item['canRemind'])
                                 <form method="POST" action="{{ route('landlord.tenancies.remind', $reservation) }}"
                                     data-confirm="Send {{ $reservation->tenant->first_name }} a rent reminder?"
@@ -438,7 +443,8 @@
                                     </td>
                                     <td
                                         class="px-4 py-4 text-[13px] text-right tabular-nums whitespace-nowrap {{ $summary['outstanding'] > 0 ? 'font-semibold text-[#DC2626]' : 'text-[#5B6A8E]' }}">
-                                        ₱{{ number_format($summary['outstanding'], 2) }}
+                                        ₱{{ number_format($item['balance'], 2) }}
+                                        @if($item['writtenOff'])<p class="text-[11px] font-normal text-[#94A3B8]">Written off</p>@endif
                                         @if($item['monthsLabel'])
                                             <p class="text-[11px] font-normal text-[#94A3B8]">{{ $item['monthsLabel'] }}</p>
                                         @endif
@@ -463,7 +469,8 @@
                                                     </button>
                                                 </form>
                                             @endif
-                                            <a href="{{ route('landlord.payments.ledger', $reservation) }}" data-page-panel data-page-panel-back="Payments"
+                                            @include('landlord.payments.partials._ended-actions', ['item' => $item, 'reservation' => $reservation])
+                                            <a href="{{ route('landlord.payments.ledger', $reservation) }}"
                                                 class="inline-flex items-center gap-1 text-[#060D26] text-[12.5px] font-semibold hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer whitespace-nowrap">
                                                 Open ledger
                                                 <span aria-hidden="true">→</span>

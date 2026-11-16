@@ -23,7 +23,7 @@
                 $tag = ! empty($cell['href']) ? 'a' : 'div';
                 $isActive = ! empty($cell['active']);
             @endphp
-            <{{ $tag }} @if($tag === 'a') href="{{ $cell['href'] }}" @endif @if($isActive) aria-current="true" @endif
+            <{{ $tag }} @if($tag === 'a') href="{{ $cell['href'] }}" data-page-swap="nav" @endif @if($isActive) aria-current="true" @endif
                 class="stat-strip-cell block px-5 py-4 sm:px-6 sm:py-5 {{ $isActive ? 'bg-[#F7F8FC]' : 'bg-white' }} {{ $tag === 'a' ? 'transition-colors duration-200 hover:bg-[#F7F8FC]' : '' }}">
                 <p class="ss-label flex items-center gap-2 text-[13px] font-semibold text-[#5B6A8E]">
                     @if(! empty($cell['dot']))<span class="h-2 w-2 rounded-full" style="background: {{ $cell['dot'] }}" aria-hidden="true"></span>@endif

@@ -10,6 +10,7 @@ use App\Models\Reservation;
 use App\Services\RentLedger;
 use App\Support\Payments;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
@@ -26,7 +27,7 @@ class PaymentController extends Controller
 {
     use ReconcilesPaymongoCheckout;
 
-    public function pay(Reservation $reservation): JsonResponse
+    public function pay(Request $request, Reservation $reservation): JsonResponse
     {
         Gate::authorize('sign', $reservation);
 
@@ -51,6 +52,9 @@ class PaymentController extends Controller
             throw ValidationException::withMessages(['payment' => ['The initial payment for this reservation has already been made.']]);
         }
 
+        $request->validate(['amount' => ['nullable', 'numeric', 'min:1', 'max:10000000']]);
+        $amount = $request->filled('amount') ? round((float) $request->input('amount'), 2) : null;
+
         if ($message = $this->clearStaleCheckouts($reservation, 'Initial')) {
             throw ValidationException::withMessages(['payment' => [$message]]);
         }
@@ -66,6 +70,7 @@ class PaymentController extends Controller
             successUrl: route('payments.success', $reservation),
             cancelUrl: route('agreements.show', $reservation),
             busyMessage: 'A payment session is already in progress.',
+            moveInAmount: $amount,
         );
 
         return response()->json([
@@ -88,7 +93,7 @@ class PaymentController extends Controller
         $reservation->loadMissing(['unit', 'tenant']);
 
         $latestPayment = Payment::where('reservation_id', $reservation->reservation_id)
-            ->where('payment_type', 'Initial')
+            ->whereIn('payment_type', ['Initial', 'Reservation Fee'])
             ->latest('payment_id')
             ->first();
 

@@ -163,6 +163,17 @@
                         @csrf
                         <button type="submit" class="h-9 w-full rounded-lg bg-[#FF8A66] text-[13px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#E96F4F] cursor-pointer">Unsuspend</button>
                     </form>
+                @elseif(! $isPending)
+                    <details class="mt-4 rounded-xl border border-[#E2E4EC] p-3">
+                        <summary class="cursor-pointer text-[13px] font-semibold text-[#DC2626]">Suspend listing</summary>
+                        <form method="POST" action="{{ route('admin.listings.suspend', $property->property_id) }}" class="mt-3 space-y-2"
+                            data-confirm="Suspend this listing?" data-confirm-message="It is hidden from tenants immediately and the landlord sees your reason.">
+                            @csrf
+                            <textarea name="reason" required minlength="5" maxlength="500" rows="3" placeholder="Why is it being suspended? The landlord will see this."
+                                class="w-full rounded-lg border border-[#E2E4EC] px-3 py-2 text-[13px]"></textarea>
+                            <button type="submit" class="h-9 w-full rounded-lg bg-[#DC2626] text-[13px] font-semibold text-white transition-colors duration-200 hover:bg-[#B91C1C] cursor-pointer">Suspend</button>
+                        </form>
+                    </details>
                 @endif
 
                 @if(! $isPending)

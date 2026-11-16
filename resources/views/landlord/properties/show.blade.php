@@ -4,8 +4,14 @@
 
 <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16">
 
-    {{-- Back --}}
-    <x-back-link href="{{ route('landlord.properties.index') }}" to="properties" class="mb-6" />
+    {{-- Breadcrumb --}}
+    <nav aria-label="Breadcrumb" class="mb-6 flex flex-wrap items-center gap-1.5 text-sm text-[#5B6A8E]">
+        <a href="{{ route('landlord.properties.index') }}" class="hover:text-[#060D26] transition-colors duration-200">Properties</a>
+        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+        </svg>
+        <span aria-current="page" class="min-w-0 max-w-[24rem] truncate font-medium text-[#060D26]">{{ $property->title }}</span>
+    </nav>
 
     @php
         $images   = $property->media->where('media_type', 'Image')->values();
@@ -108,7 +114,7 @@
                     </button>
                     <div x-show="moreOpen" x-cloak @click.outside="moreOpen = false"
                          class="absolute right-0 bottom-11 w-52 bg-white rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/5 py-1 z-20">
-                        <a href="{{ route('landlord.properties.documents.index', $property) }}"
+                        <a href="{{ route('landlord.properties.show', $property) . '#documents' }}"
                            class="flex items-center justify-between gap-2 px-4 py-2.5 text-sm text-[#060D26] hover:bg-[#ECEEF6] transition-colors">
                             Documents
                             @if($documentNudgeCount > 0)
@@ -119,7 +125,7 @@
                         @if($unitStats['available'] > 0)
                             <a href="{{ route('landlord.tenants.index', ['new' => 1]) }}"
                                class="flex items-center px-4 py-2.5 text-sm text-[#060D26] hover:bg-[#ECEEF6] transition-colors">
-                                Add lease
+                                Add rental
                             </a>
                         @endif
                         <div class="h-px bg-[#5B6A8E]/10 mx-3 my-1"></div>
@@ -174,7 +180,7 @@
             $attention[] = ['No photos yet — listings with photos get far more views.', route('properties.edit', $property), 'Add photos'];
         }
         if ($documentNudgeCount > 0) {
-            $attention[] = [$documentNudgeCount . ' ' . Str::plural('document', $documentNudgeCount) . ' rejected or requested by admin.', route('landlord.properties.documents.index', $property), 'Open documents'];
+            $attention[] = [$documentNudgeCount . ' ' . Str::plural('document', $documentNudgeCount) . ' rejected or requested by admin.', route('landlord.properties.show', $property) . '#documents', 'Open documents'];
         }
         if ($property->publication_status === 'Unpublished') {
             $attention[] = ['This listing is unpublished and hidden from tenants.', null, null];
@@ -275,8 +281,8 @@
          TABS
     ══════════════════════════════════════════════════════════ --}}
     <div x-data="{
-            tabs: ['overview', 'units', 'amenities', 'photos', 'reviews', 'activity_log'],
-            tab: @js($initialTab),
+            tabs: ['overview', 'units', 'amenities', 'photos', 'documents', 'reviews', 'activity_log'],
+            tab: @js($errors->hasAny(['file', 'document_type', 'document_number', 'expiry_date', 'document']) ? 'documents' : $initialTab),
             unitPayloads: @js($unitPayloads),
             init() { this.syncTab(false); },
             // #units / #activity_log open that tab: a link from the rail, or back from editing a unit.
@@ -299,6 +305,7 @@
                 ['key' => 'units',        'label' => 'Units (' . $property->units->count() . ')'],
                 ['key' => 'amenities',    'label' => 'Amenities'],
                 ['key' => 'photos',       'label' => 'Photos (' . $images->count() . ')'],
+                ['key' => 'documents',    'label' => 'Documents (' . $property->documents->count() . ')'],
                 ['key' => 'reviews',      'label' => 'Reviews (' . $reviews->count() . ')'],
                 ['key' => 'activity_log', 'label' => 'Activity Log'],
             ] as $t)
@@ -669,6 +676,8 @@
                 </div>
             @endif
         </div>
+
+        @include('landlord.properties._documents-tab')
 
         {{-- ─── Reviews tab ─────────────────────────────────────── --}}
         <div x-show="tab === 'reviews'" x-cloak>

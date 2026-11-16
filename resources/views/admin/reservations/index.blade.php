@@ -50,7 +50,7 @@
 
     <x-admin.header title="Reservations" />
 
-    <x-stat-strip :cells="$summary" class="mb-3" />
+    <x-stat-strip data-swap-region="cards" :cells="$summary" class="mb-3" />
 
     {{-- Search + filters, same bar as Properties --}}
     <form data-live method="GET" action="{{ route('admin.reservations.index') }}" class="mb-3">
@@ -96,6 +96,7 @@
         </div>
     </form>
 
+    <div data-swap-region="results">
     {{-- Table --}}
     @if($reservations->isEmpty())
         <x-card flush><x-admin.empty title="No reservations found" :note="($search || $type) ? 'Try a different search or filter.' : null" /></x-card>
@@ -191,6 +192,7 @@
         @if($reservations->hasPages())
             <div class="mt-3">{{ $reservations->links() }}</div>
         @endif
+    </div>
     @endif
 
 </div>

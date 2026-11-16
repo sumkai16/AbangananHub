@@ -46,7 +46,7 @@
         <p class="mb-5 text-[13px] text-[#060D26]">
             <span class="text-[#5B6A8E]">Policy:</span> {{ $unitLease?->name ?? 'Standard policy' }}
             @if($unit->lease_template_id === null && $unitLease) <span class="text-[#5B6A8E]">(from the property)</span> @endif
-            <a href="{{ route('landlord.leases.index', ['property' => $property->property_id]) }}" class="ml-1 font-semibold underline underline-offset-2">Change in Lease policies</a>
+            <a href="{{ route('landlord.leases.index', ['property' => $property->property_id]) }}" class="ml-1 font-semibold underline underline-offset-2">Change in Rental policies</a>
         </p>
 
         {{-- Flash / errors --}}
@@ -230,6 +230,8 @@
                                     @error('security_deposit')<p class="{{ $error }}">{{ $message }}</p>@enderror
                                 </div>
                             </div>
+
+                            @include('landlord.units.partials._payment-arrangement', ['unit' => $unit])
 
                             <div>
                                 <p class="{{ $label }}">Status <span class="text-[#EF4444]">*</span></p>

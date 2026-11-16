@@ -38,7 +38,7 @@ class TenancyDocumentsTest extends TestCase
         $prop = $this->makeProperty($landlord);
         $unit = $this->makeUnit($prop, ['rental_fee' => 3000]);
         $template = new LeaseTemplate([
-            'name' => 'Docs lease',
+            'name' => 'Docs rental',
             'required_documents' => $required ?? [['key' => 'valid_id'], ['key' => 'other', 'label' => 'Letter from employer']],
         ]);
         $template->landlord_id = $landlord->user_id;

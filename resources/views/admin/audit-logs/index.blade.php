@@ -27,7 +27,7 @@
         @endif
     </div>
 
-    <x-stat-strip class="mb-5" :cells="[
+    <x-stat-strip data-swap-region="cards" class="mb-5" :cells="[
         ['label' => 'Actions', 'value' => number_format($stats['total']), 'note' => 'Matching these filters'],
         ['label' => 'Today', 'value' => number_format($stats['today']), 'note' => 'Last 24 hours'],
         ['label' => 'Actors', 'value' => number_format($stats['actors']), 'note' => 'Distinct actors'],
@@ -79,6 +79,7 @@
         </div>
     </form>
 
+    <div data-swap-region="results">
     @if($logs->isEmpty())
         <x-card flush><x-admin.empty title="No audit entries found" :note="$search || $action || $role || $from || $to ? 'Try a different search or filter.' : null" /></x-card>
     @else
@@ -144,6 +145,7 @@
             </div>
         </x-card>
     @endif
+    </div>
 
 </div>
 

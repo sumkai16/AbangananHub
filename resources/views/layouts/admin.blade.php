@@ -18,6 +18,14 @@
         })();
     </script>
     <style>
+        /* A page that has to load in full (one with its own script) cross-fades instead of flashing, with the sidebar held
+           still through it. Browsers without cross-document transitions ignore this. */
+        @view-transition { navigation: auto; }
+        #admin-sidebar { view-transition-name: admin-sidebar; }
+        ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 140ms; }
+        ::view-transition-group(admin-sidebar) { animation-duration: 0s; }
+        @media (prefers-reduced-motion: reduce) { ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; } }
+
         /* Paint the sidebar and the content offset on first byte at desktop width, before Alpine boots, so nothing
            moves when a page loads (same as the landlord layout). The collapse toggle still animates. */
         @media (min-width: 1024px) {
@@ -264,7 +272,7 @@
                 </button>
 
                 @hasSection('page-title')
-                    <h1 class="text-[14px] font-semibold text-[#060D26]">@yield('page-title')</h1>
+                    <h1 id="mobile-title" class="text-[14px] font-semibold text-[#060D26]">@yield('page-title')</h1>
                 @endif
 
                 <div class="flex items-center gap-2">
@@ -292,6 +300,7 @@
     @include('partials.flash-modal')
     @include('admin._step-up-modal')
 
-    @stack('scripts')
+    {{-- Page scripts. A page that pushes one is opened with a normal load, never swapped (see page-swap.js). --}}
+    <div id="page-scripts">@stack('scripts')</div>
 </body>
 </html>

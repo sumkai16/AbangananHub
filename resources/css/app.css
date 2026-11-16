@@ -97,6 +97,12 @@ h1, h2, h3, h4, h5, h6 {
         page: doc;
     }
 
+    /* On landlord pages the toasts, confirm dialog, chat bubble and slide-over panel sit after the page shell in the
+       body. None of them belongs on paper, and left in they can print an extra blank sheet after the document. */
+    .landlord-shell ~ * {
+        display: none !important;
+    }
+
     .print-doc-table {
         display: table;
         width: 100%;
@@ -525,3 +531,8 @@ html.dark .route-line {
     stroke-opacity: 0.95;
     filter: drop-shadow(0 0 1.5px rgba(6, 13, 38, 0.95));
 }
+
+/* A list that was just filtered in place (page-swap.js, data-swap-region="results") eases in. */
+.swap-in { animation: swap-in 260ms ease-out; }
+@keyframes swap-in { from { opacity: 0.35; transform: translateY(6px); } }
+@media (prefers-reduced-motion: reduce) { .swap-in { animation: none; } }

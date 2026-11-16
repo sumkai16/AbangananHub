@@ -21,6 +21,10 @@ class PropertyUnit extends Model
         'description',
         'rental_fee',
         'security_deposit',
+        'payment_arrangement',
+        'reservation_fee_amount',
+        'payment_deadline_days',
+        'reservation_conditions',
         'occupancy_limit',
         'availability_status',
         'verification_status',
@@ -32,6 +36,7 @@ class PropertyUnit extends Model
     {
         return [
             'rental_fee'        => 'decimal:2',
+            'reservation_fee_amount' => 'decimal:2',
             'floor_area_sqm'    => 'decimal:2',
             'vacated_at'        => 'datetime',
         ];

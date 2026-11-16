@@ -408,8 +408,9 @@
 
 @push('scripts')
     @vite('resources/js/charts.js')
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
+    <script data-swap-safe>
+        // Draws now when the page was swapped in (the DOM is ready and Chart is loaded), or after load otherwise.
+        const drawAnalytics = () => {
             if (typeof Chart === 'undefined') return;
 
             const peso = (v) => '₱' + Number(v).toLocaleString(undefined, { maximumFractionDigits: 0 });
@@ -514,6 +515,7 @@
                     options: donut,
                 });
             }
-        });
+        };
+        document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', drawAnalytics) : drawAnalytics();
     </script>
 @endpush

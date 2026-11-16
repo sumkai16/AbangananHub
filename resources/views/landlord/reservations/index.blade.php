@@ -63,7 +63,7 @@
 
         {{-- Whose turn it is. Each cell narrows the list to what it counts. --}}
         @php $stageUrl = fn ($s) => route('landlord.reservations.index', array_filter(['stage' => $s] + request()->only('search', 'property', 'from', 'to'))); @endphp
-        <x-stat-strip class="mb-4" :cells="[
+        <x-stat-strip data-swap-region="cards" class="mb-4" :cells="[
             ['label' => 'Needs your reply', 'value' => $strip['reply'], 'note' => 'New inquiries', 'dot' => $strip['reply'] > 0 ? '#FF8A66' : null, 'href' => $stageUrl('new'), 'active' => $stage === 'new'],
             ['label' => 'Discussing', 'value' => $strip['discussing'], 'note' => 'Send the agreement once agreed', 'href' => $stageUrl('discussing'), 'active' => $stage === 'discussing'],
             ['label' => 'Waiting on tenant', 'value' => $strip['waiting'], 'note' => 'To sign or to pay', 'href' => $stageUrl('agreement'), 'active' => $stage === 'agreement'],
@@ -136,13 +136,6 @@
                         </div>
                     </div>
                 </div>
-                <button type="submit"
-                        class="h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 inline-flex items-center gap-1.5">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-                        </svg>
-                        Filter
-                    </button>
                 @if(request()->hasAny(['search', 'property', 'from', 'to']))
                     <a href="{{ route('landlord.reservations.index', $stage === 'open' ? [] : ['stage' => $stage]) }}"
                         class="h-11 px-4 rounded-xl border border-[#5B6A8E]/25 text-[13.5px] text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 inline-flex items-center gap-1.5">
@@ -175,6 +168,7 @@
             </div>
         </form>
 
+        <div data-swap-region="results">
         {{-- Stage tabs: the request pipeline only. Signed and paid requests continue on the Tenants page. --}}
         <div class="flex items-center gap-0.5 border-b border-[#E2E4EC] mb-5 overflow-x-auto overflow-y-hidden">
             @foreach([
@@ -185,7 +179,7 @@
                 'payment' => 'Awaiting payment',
                 'closed' => 'Closed',
             ] as $key => $label)
-                <a href="{{ route('landlord.reservations.index', array_filter([
+                <a data-page-swap="nav" href="{{ route('landlord.reservations.index', array_filter([
                         'stage' => $key === 'open' ? null : $key,
                         'search' => request('search'),
                         'property' => request('property'),
@@ -452,6 +446,7 @@
                 </div>
             </div>
         @endif
+        </div>
 
         {{-- Details modal --}}
         <template x-teleport="body">
@@ -610,7 +605,7 @@
                         <div class="p-3 bg-[#ECEEF6] rounded-xl border border-[#FF8A66]/20">
                             @include('landlord.reservations._agreement-fields', ['idPrefix' => 'agreement_modal'])
                             <p class="mb-3 text-xs leading-relaxed text-[#5B6A8E]">
-                                Sends your lease template, or the standard rental agreement if you have not written one.
+                                Sends your rental template, or the standard rental agreement if you have not written one.
                                 <a x-show="agreement.chat_url" :href="agreement.chat_url" class="font-bold text-[#060D26] underline underline-offset-2">Edit the agreement for this tenant in the chat</a>
                             </p>
                             {{-- Asked once per payment route (LandlordTerms), the same as the chat's Send agreement. --}}

@@ -1,5 +1,5 @@
 {{--
-    The Lease strip: one bar per rent month, filled by how much of it is paid, grouped by year. Shared by the landlord's
+    The Rental strip: one bar per rent month, filled by how much of it is paid, grouped by year. Shared by the landlord's
     rent ledger and the tenant's rental page so both read the same.
     Needs: $reservation, $periods (RentLedger::periods()), $periodStyles, $periodKeyFor (closure), $periodDetails
     (month => detail payload for the period popup), $peso (closure), $tile (card classes).
@@ -69,7 +69,7 @@
                 @endphp
                 <section aria-labelledby="lease-title" x-data="{ moreYears: false }" class="col-span-2 lg:col-span-4 {{ $tile }} p-4 sm:p-5 flex flex-col">
                     <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                        <h2 id="lease-title" class="text-[14px] font-semibold text-[#060D26]">Lease</h2>
+                        <h2 id="lease-title" class="text-[14px] font-semibold text-[#060D26]">Rental</h2>
                         <p class="text-[12px] text-[#5B6A8E] tabular-nums">Month {{ $monthsElapsed }} of {{ $leaseMonths }}{{ $reservation->target_move_out_date ? '' : '+' }}</p>
                     </div>
                     <p class="mt-0.5 text-[12.5px] text-[#5B6A8E]">

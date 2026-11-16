@@ -12,6 +12,7 @@
         $storedDocs = collect(old('required_documents') !== null || old('custom_documents') !== null ? [] : ($template->required_documents ?? []));
         $assigned = $exists ? $properties->where('lease_template_id', $template->lease_template_id)->pluck('property_id')->all() : [];
         $state = [
+            'name' => (string) old('name', $template->name),
             'welcome' => (string) old('welcome_message', $template->welcome_message),
             'grace' => (string) old('rent_grace_days', $template->rent_grace_days),
             'feeType' => (string) old('late_fee_type', $template->late_fee_type),
@@ -21,6 +22,7 @@
             'suggested' => \App\Support\HouseRules::SUGGESTED,
             'docs' => array_values(old('required_documents', $storedDocs->pluck('key')->filter(fn ($k) => $k !== 'other')->values()->all())),
             'custom' => array_values(old('custom_documents', $storedDocs->where('key', 'other')->pluck('label')->values()->all())),
+            'askDocs' => old('required_documents') !== null || old('custom_documents') !== null || $storedDocs->isNotEmpty() || ! empty($template->required_documents),
             'ids' => array_map('intval', old('assigned_properties', $assigned)),
             'all' => $properties->pluck('property_id')->map(fn ($id) => (int) $id)->all(),
             'docLabels' => \App\Support\RequiredDocuments::TYPES,
@@ -41,7 +43,7 @@
         $chev = 'text-[11px] text-[#5B6A8E]';
     @endphp
 
-    <div class="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 pb-24"
+    <div class="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 pb-24"
         x-data="{
             ...@js($state),
             open: @js($openOnError),
@@ -67,6 +69,7 @@
             addSection(title = '', rules = ['']) { this.sections.push({ title, rules: [...rules], hidden: false }); },
             addSuggested(title) { if (!this.sections.some(s => s.title === title)) this.addSection(title, this.suggested[title]); },
             get docsSummary() {
+                if (!this.askDocs) return 'Off, tenants upload nothing';
                 const names = [...this.docs.map(k => this.docLabels[k]).filter(Boolean), ...this.custom.filter(c => c.trim())];
                 return names.length ? names.join(', ') : 'None required';
             },
@@ -97,12 +100,12 @@
         }">
 
         <nav aria-label="Breadcrumb" class="mb-3 flex items-center gap-1.5 text-sm text-[#5B6A8E]">
-            <a href="{{ route('landlord.leases.index') }}" class="hover:text-[#060D26]">Policies</a>
+            <a href="{{ route('landlord.leases.index') }}" data-page-swap="nav" class="hover:text-[#060D26]">Policies</a>
             <span aria-hidden="true">/</span>
             <span class="truncate font-medium text-[#060D26]">{{ $exists ? $template->name : 'New policy' }}</span>
         </nav>
 
-        <x-page-header :title="$exists ? 'Edit policy' : 'New policy'" subtitle="Changes apply to agreements you send from now on. Agreements already sent don't change.">
+        <x-page-header :title="$exists ? 'Edit policy' : 'New policy'" subtitle="Changes apply to agreements you send from now on. Agreements already sent don't change." icon-path="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z">
             @if($exists)
                 <x-slot:badge>
                     <span class="rounded-full bg-[#ECEEF6] px-2.5 py-0.5 text-[11px] font-bold text-[#060D26]">Version {{ $template->version }}</span>
@@ -110,13 +113,15 @@
             @endif
         </x-page-header>
 
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+        <div class="min-w-0">
         @if($starter)
             {{-- Where a new policy starts: the standard wording with a clause for the property type, or a blank page --}}
             <div class="mb-5">
                 <p class="mb-2 text-[13px] font-semibold text-[#060D26]">Start from</p>
                 <div class="flex gap-2 overflow-x-auto pb-1">
                     @foreach(\App\Support\LeaseBody::STARTERS as $key => $starterLabel)
-                        <a href="{{ route('landlord.lease-templates.create', ['starter' => $key]) }}"
+                        <a href="{{ route('landlord.lease-templates.create', ['starter' => $key]) }}" data-page-swap="nav"
                             @if($starter === $key) aria-current="true" @endif
                             class="shrink-0 rounded-full border px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors {{ $starter === $key ? 'border-[#060D26] bg-[#060D26] text-white' : 'border-[#E2E4EC] bg-white text-[#060D26] hover:bg-[#F7F8FC]' }}">{{ $starterLabel }}</a>
                     @endforeach
@@ -131,7 +136,7 @@
 
             <div>
                 <label for="lease-name" class="{{ $label }}">Policy name</label>
-                <input id="lease-name" name="name" value="{{ old('name', $template->name) }}" required maxlength="100"
+                <input id="lease-name" name="name" x-model="name" value="{{ old('name', $template->name) }}" required maxlength="100"
                     placeholder="e.g. Bedspace policy" class="{{ $input }}">
                 <p class="{{ $hint }}">Only you see this name.</p>
                 @error('name')<p class="{{ $error }}">{{ $message }}</p>@enderror
@@ -155,14 +160,14 @@
                 <div>
                     <button type="button" @click="toggle('welcome')" :aria-expanded="open === 'welcome'" class="{{ $row }}">
                         <span class="min-w-0 flex-1"><span class="block text-[14px] font-semibold text-[#060D26]">Welcome message</span><span class="block truncate text-[12.5px] text-[#5B6A8E]" x-text="welcomeSummary"></span></span>
-                        <span class="{{ $chev }}" x-text="open === 'welcome' ? '▴' : '▾'" aria-hidden="true"></span>
+                        <svg class="shrink-0 text-[#5B6A8E] transition-transform duration-200" :class="open === 'welcome' ? 'rotate-180' : ''" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" /></svg>
                     </button>
                     <div x-show="open === 'welcome'" x-cloak class="border-t border-[#E2E4EC] bg-[#FBFBFE] px-4 pb-4 pt-3">
                         <label for="lease-welcome" class="sr-only">Welcome message</label>
                         <textarea id="lease-welcome" name="welcome_message" x-model="welcome" rows="3" maxlength="1500"
                             placeholder="e.g. Welcome to our boarding house! Please read the rules below and message us anytime."
                             class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3.5 py-3 text-[14px] leading-relaxed text-[#060D26] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/25"></textarea>
-                        <p class="{{ $hint }}">Shown at the top of the lease, after the names of both parties.</p>
+                        <p class="{{ $hint }}">Shown at the top of the rental, after the names of both parties.</p>
                         @error('welcome_message')<p class="{{ $error }}">{{ $message }}</p>@enderror
                     </div>
                 </div>
@@ -171,11 +176,11 @@
                 <div>
                     <button type="button" @click="toggle('houserules')" :aria-expanded="open === 'houserules'" class="{{ $row }}">
                         <span class="min-w-0 flex-1"><span class="block text-[14px] font-semibold text-[#060D26]">House rules</span><span class="block truncate text-[12.5px] text-[#5B6A8E]" x-text="houseRulesSummary"></span></span>
-                        <span class="{{ $chev }}" x-text="open === 'houserules' ? '▴' : '▾'" aria-hidden="true"></span>
+                        <svg class="shrink-0 text-[#5B6A8E] transition-transform duration-200" :class="open === 'houserules' ? 'rotate-180' : ''" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" /></svg>
                     </button>
                     <div x-show="open === 'houserules'" x-cloak class="border-t border-[#E2E4EC] bg-[#FBFBFE] px-4 pb-5 pt-4" x-data="{ listed: false }">
                         <p class="text-[12.5px] leading-relaxed text-[#5B6A8E]">
-                            The lease prints only the rules you write here, grouped under headings. Your listing's rules are shown to tenants when they browse, not on the lease, so add any you want them to sign.
+                            The rental prints only the rules you write here, grouped under headings. Your listing's rules are shown to tenants when they browse, not on the rental, so add any you want them to sign.
                             <button type="button" x-show="ids.length" @click="listed = !listed" class="ml-1 font-semibold text-[#060D26] underline underline-offset-2" x-text="listed ? 'Hide listing rules' : 'See listing rules'"></button>
                         </p>
 
@@ -217,12 +222,12 @@
                                         <span class="shrink-0 text-[12px] font-semibold text-[#5B6A8E]" x-text="section.rules.filter(r => r.trim()).length + ' rules' + (section.hidden ? ' · hidden' : '')"></span>
                                         <input type="hidden" :name="'house_rule_sections[' + i + '][hidden]'" :value="section.hidden ? 1 : 0">
                                         <button type="button" @click="section.hidden = !section.hidden" :aria-pressed="!!section.hidden" class="shrink-0 text-[12px] font-semibold text-[#5B6A8E] hover:text-[#060D26]"
-                                            x-text="section.hidden ? 'Show' : 'Hide'" :aria-label="(section.hidden ? 'Show ' : 'Hide ') + (section.title || 'section') + ' on the lease'"></button>
+                                            x-text="section.hidden ? 'Show' : 'Hide'" :aria-label="(section.hidden ? 'Show ' : 'Hide ') + (section.title || 'section') + ' on the rental'"></button>
                                         <button type="button" x-show="section.hidden" x-cloak @click="sections.splice(i, 1)" class="shrink-0 text-[12px] font-semibold text-[#5B6A8E] hover:text-[#DC2626]" :aria-label="'Delete ' + (section.title || 'section')">Delete</button>
                                     </div>
                                     {{-- Rules: numbered, one per row. Folded (not removed) so every field still posts. --}}
                                     <div x-show="!section.collapsed">
-                                        <p x-show="section.hidden" x-cloak class="border-t border-[#E2E4EC] px-4 py-2 text-[12px] text-[#5B6A8E]">Kept here but left off the lease.</p>
+                                        <p x-show="section.hidden" x-cloak class="border-t border-[#E2E4EC] px-4 py-2 text-[12px] text-[#5B6A8E]">Kept here but left off the rental.</p>
                                         <ol class="flex flex-col">
                                             <template x-for="(rule, j) in section.rules" :key="j">
                                                 <li class="group flex items-center gap-3 border-t border-[#E2E4EC] px-4">
@@ -262,7 +267,7 @@
                 <div>
                     <button type="button" @click="toggle('rules')" :aria-expanded="open === 'rules'" class="{{ $row }}">
                         <span class="min-w-0 flex-1"><span class="block text-[14px] font-semibold text-[#060D26]">Rent rules</span><span class="block truncate text-[12.5px] text-[#5B6A8E]" x-text="rulesSummary"></span></span>
-                        <span class="{{ $chev }}" x-text="open === 'rules' ? '▴' : '▾'" aria-hidden="true"></span>
+                        <svg class="shrink-0 text-[#5B6A8E] transition-transform duration-200" :class="open === 'rules' ? 'rotate-180' : ''" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" /></svg>
                     </button>
                     <div x-show="open === 'rules'" x-cloak class="border-t border-[#E2E4EC] bg-[#FBFBFE] px-4 pb-4 pt-3">
                         <p class="mb-3 text-[12px] text-[#5B6A8E]">Leave a box empty to use the property's setting.</p>
@@ -302,9 +307,16 @@
                 <div>
                     <button type="button" @click="toggle('docs')" :aria-expanded="open === 'docs'" class="{{ $row }}">
                         <span class="min-w-0 flex-1"><span class="block text-[14px] font-semibold text-[#060D26]">Documents tenants upload</span><span class="block truncate text-[12.5px] text-[#5B6A8E]" x-text="docsSummary"></span></span>
-                        <span class="{{ $chev }}" x-text="open === 'docs' ? '▴' : '▾'" aria-hidden="true"></span>
+                        <svg class="shrink-0 text-[#5B6A8E] transition-transform duration-200" :class="open === 'docs' ? 'rotate-180' : ''" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" /></svg>
                     </button>
                     <div x-show="open === 'docs'" x-cloak class="border-t border-[#E2E4EC] bg-[#FBFBFE] px-4 pb-4 pt-3">
+                        <label class="mb-3 flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-[#E2E4EC] bg-white px-3 py-2.5">
+                            <span class="text-[13px] font-semibold text-[#060D26]">Ask tenants to upload documents</span>
+                            <input type="checkbox" role="switch" x-model="askDocs" class="peer sr-only">
+                            <span aria-hidden="true" class="relative h-6 w-11 shrink-0 rounded-full bg-[#C9CDD9] transition-colors peer-checked:bg-[#060D26] peer-focus-visible:ring-2 peer-focus-visible:ring-[#FF8A66] after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5"></span>
+                        </label>
+                        <p x-show="!askDocs" class="text-[12px] text-[#5B6A8E]">Off: tenants can sign without uploading anything.</p>
+                        <fieldset x-show="askDocs" :disabled="!askDocs" class="min-w-0">
                         <p class="mb-2 text-[12px] text-[#5B6A8E]">The tenant cannot sign until each one is uploaded. Only you and the tenant can see them, and they are deleted 30 days after the tenancy ends.</p>
                         <div class="flex flex-col gap-1">
                             @foreach(\App\Support\RequiredDocuments::TYPES as $key => $docLabel)
@@ -326,6 +338,7 @@
                             class="mt-2 text-[12.5px] font-bold text-[#060D26] underline underline-offset-2">Add another document</button>
                         @error('required_documents.*')<p class="{{ $error }}">{{ $message }}</p>@enderror
                         @error('custom_documents.*')<p class="{{ $error }}">{{ $message }}</p>@enderror
+                        </fieldset>
                     </div>
                 </div>
 
@@ -334,11 +347,11 @@
                     <input type="hidden" name="assign_present" value="1">
                     <button type="button" @click="toggle('applies')" :aria-expanded="open === 'applies'" class="{{ $row }}">
                         <span class="min-w-0 flex-1"><span class="block text-[14px] font-semibold text-[#060D26]">Applies to</span><span class="block truncate text-[12.5px] text-[#5B6A8E]" x-text="appliesSummary"></span></span>
-                        <span class="{{ $chev }}" x-text="open === 'applies' ? '▴' : '▾'" aria-hidden="true"></span>
+                        <svg class="shrink-0 text-[#5B6A8E] transition-transform duration-200" :class="open === 'applies' ? 'rotate-180' : ''" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" /></svg>
                     </button>
                     <div x-show="open === 'applies'" x-cloak class="border-t border-[#E2E4EC] bg-[#FBFBFE] px-4 pb-4 pt-3">
                         <div class="flex items-center justify-between gap-2">
-                            <p class="text-[12px] text-[#5B6A8E]">Units with their own policy keep it. Set units on the Lease policies page.</p>
+                            <p class="text-[12px] text-[#5B6A8E]">Units with their own policy keep it. Set units on the Rental policies page.</p>
                             @if($properties->isNotEmpty())
                                 <div class="flex shrink-0 gap-3 text-[12px] font-semibold">
                                     <button type="button" @click="ids = [...all]" class="text-[#060D26] underline underline-offset-2">Select all</button>
@@ -372,7 +385,7 @@
                     <span></span>
                 @endif
                 <div class="flex items-center gap-2">
-                    <a href="{{ route('landlord.leases.index') }}" class="inline-flex h-10 items-center rounded-xl px-3 text-[13px] font-semibold text-[#5B6A8E] hover:text-[#060D26]">Cancel</a>
+                    <a href="{{ route('landlord.leases.index') }}" data-page-swap="nav" class="inline-flex h-10 items-center rounded-xl px-3 text-[13px] font-semibold text-[#5B6A8E] hover:text-[#060D26]">Cancel</a>
                     <button type="submit" class="h-10 rounded-xl bg-[#FF8A66] px-6 text-[13px] font-bold text-[#060D26] hover:bg-[#E96F4F]">Save policy</button>
                 </div>
             </div>
@@ -380,7 +393,7 @@
 
         @if($exists)
             <div class="mt-4 flex flex-wrap items-center gap-4 text-[13px]">
-                <a href="{{ route('landlord.lease-templates.create', ['from' => $template->lease_template_id]) }}" class="font-semibold text-[#060D26] underline underline-offset-2">Duplicate this policy</a>
+                <a href="{{ route('landlord.lease-templates.create', ['from' => $template->lease_template_id]) }}" data-page-swap="nav" class="font-semibold text-[#060D26] underline underline-offset-2">Duplicate this policy</a>
                 <form method="POST" action="{{ route('landlord.lease-templates.destroy', $template) }}"
                     data-confirm="Delete &quot;{{ $template->name }}&quot;?"
                     data-confirm-message="Properties and units using it will send the standard policy instead. Agreements already sent don't change."
@@ -390,6 +403,47 @@
                 </form>
             </div>
         @endif
+        </div>
+
+        {{-- Right column: the policy at a glance, as it is typed, then how to check it before saving. --}}
+        <aside class="hidden lg:flex flex-col gap-4 lg:sticky lg:top-24" aria-label="Summary">
+            <div class="rounded-2xl border border-[#E2E4EC] bg-white p-5 shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
+                <h3 class="mb-3.5 text-[13px] font-normal text-[#060D26]">At a glance</h3>
+                <dl class="grid gap-3.5 text-[13px]">
+                    <div>
+                        <dt class="text-[11.5px] text-[#5B6A8E]">Name</dt>
+                        <dd class="mt-0.5 break-words font-semibold text-[#060D26]" :class="!name.trim() && '!font-normal text-[#94A3B8]'" x-text="name.trim() || 'Not named yet'"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-[11.5px] text-[#5B6A8E]">Welcome message</dt>
+                        <dd class="mt-0.5 text-[#060D26]" x-text="welcomeSummary"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-[11.5px] text-[#5B6A8E]">House rules</dt>
+                        <dd class="mt-0.5 text-[#060D26]" x-text="houseRulesSummary"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-[11.5px] text-[#5B6A8E]">Rent rules</dt>
+                        <dd class="mt-0.5 text-[#060D26]" x-text="rulesSummary"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-[11.5px] text-[#5B6A8E]">Documents tenants upload</dt>
+                        <dd class="mt-0.5 text-[#060D26]" x-text="docsSummary"></dd>
+                    </div>
+                    <div class="border-t border-[#5B6A8E]/10 pt-3.5">
+                        <dt class="text-[11.5px] text-[#5B6A8E]">Applies to</dt>
+                        <dd class="mt-0.5 font-semibold text-[#060D26]" x-text="appliesSummary"></dd>
+                    </div>
+                </dl>
+            </div>
+            <div class="rounded-2xl bg-[#060D26] p-5">
+                <p class="text-[12.5px] font-semibold leading-snug text-white">Check it before you save</p>
+                <p class="mt-1.5 text-[11.5px] leading-relaxed text-white/60">
+                    "Preview as tenant" shows the agreement the way a tenant reads it, with a sample name. Agreements already sent never change.
+                </p>
+            </div>
+        </aside>
+        </div>
 
         {{-- Preview: the lease as a tenant reads it, with a sample tenant --}}
         <div x-show="previewOpen" x-cloak class="fixed inset-0 z-[80] flex items-stretch justify-center bg-[#060D26]/60 sm:p-6" role="dialog" aria-modal="true" aria-label="Policy preview"
