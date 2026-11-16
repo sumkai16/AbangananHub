@@ -38,6 +38,9 @@ return [
     // required: every Admin must set up and pass two-factor. off: the middleware is a no-op (tests, emergencies).
     'admin_two_factor' => env('ADMIN_TWO_FACTOR', 'required'),
     // Re-enter the password before the risky admin actions, fresh for this many seconds.
+    // "Remember this browser" after the 2FA code (TrustedDevices). Wiped on password / 2FA / recovery-code changes.
+    'trusted_device_cookie' => 'ah_2fa_trusted',
+    'trusted_device_days'   => 30,
     'step_up_enabled' => env('STEP_UP_ENABLED', true),
     'step_up_seconds' => 900,
 

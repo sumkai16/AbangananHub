@@ -74,6 +74,9 @@ class AuditLog extends Model
         'security.two_factor_enabled'   => 'Admin two-factor turned on',
         'security.two_factor_disabled'  => 'Admin two-factor turned off',
         'security.two_factor_codes'     => 'Admin recovery codes regenerated',
+        'auth.login'                    => 'Signed in',
+        'auth.logout'                   => 'Signed out',
+        'auth.two_factor_passed'        => 'Passed two-factor',
         'user.delete'               => 'User deleted',
         'review.visibility_change'  => 'Review visibility changed',
         'report.resolve'            => 'Report resolved',
@@ -121,10 +124,11 @@ class AuditLog extends Model
         ?string $reason = null,
         array $metadata = [],
         bool $asSystem = false,
+        ?User $actor = null,
     ): self {
         // $asSystem: the platform acted (an automatic check), even if a user happens to be signed in on this
         // request, e.g. the person who just registered. Without it the row would blame them.
-        $actor = $asSystem ? null : Auth::user();
+        $actor = $asSystem ? null : ($actor ?? Auth::user());
 
         $attributes = [
             'actor_id'       => $actor?->user_id,

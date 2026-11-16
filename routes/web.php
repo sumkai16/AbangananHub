@@ -480,6 +480,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/security/two-factor', [\App\Http\Controllers\Admin\TwoFactorSetupController::class, 'show'])->name('security.two-factor');
         Route::post('/security/two-factor', [\App\Http\Controllers\Admin\TwoFactorSetupController::class, 'store'])->name('security.two-factor.store');
         Route::post('/security/two-factor/recovery-codes', [\App\Http\Controllers\Admin\TwoFactorSetupController::class, 'regenerateCodes'])->name('security.two-factor.codes');
+        Route::delete('/security/two-factor/trusted/{device?}', [\App\Http\Controllers\Admin\TwoFactorSetupController::class, 'revokeTrusted'])->whereNumber('device')->name('security.two-factor.trusted.revoke');
         Route::delete('/security/two-factor', [\App\Http\Controllers\Admin\TwoFactorSetupController::class, 'destroy'])->middleware('recent.password')->name('security.two-factor.destroy');
         Route::get('/step-up', [\App\Http\Controllers\Admin\StepUpController::class, 'status'])->name('stepUp.status');
         Route::post('/step-up', [\App\Http\Controllers\Admin\StepUpController::class, 'confirm'])->middleware('throttle:5,1')->name('stepUp.confirm');

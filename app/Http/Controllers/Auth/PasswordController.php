@@ -25,6 +25,7 @@ class PasswordController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
+        app(\App\Services\Security\TrustedDevices::class)->revokeAll($request->user());
         $events->record('password_changed', $request->user());
 
         return back()->with('success', 'Your password has been updated.');

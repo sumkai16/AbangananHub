@@ -79,6 +79,7 @@ class SessionManager
         $count += $user->tokens()->delete();
 
         $this->cycleRememberToken($user);
+        app(TrustedDevices::class)->revokeAll($user);
         $this->events->record('sessions_revoked', $user, metadata: ['count' => $count]);
 
         return $count;
@@ -91,6 +92,7 @@ class SessionManager
             $count = DB::table('sessions')->where('user_id', $user->user_id)->delete();
             $count += $user->tokens()->delete();
             $this->cycleRememberToken($user);
+            app(TrustedDevices::class)->revokeAll($user);
 
             AuditLog::record('user.sign_out_everywhere', "Signed out {$user->email} everywhere.", $user, metadata: ['count' => $count]);
 

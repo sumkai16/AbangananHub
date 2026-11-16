@@ -24,6 +24,11 @@
                 <x-input-error :messages="$errors->get('code')" class="mt-1.5" role="alert" id="code-error" />
             </div>
 
+            <label class="flex items-center gap-2.5 text-[14px] text-[#5B6A8E] cursor-pointer">
+                <input type="checkbox" name="remember_device" value="1" class="h-4 w-4 rounded border-[#E2E4EC] text-[#FF8A66] focus:ring-[#FF8A66]">
+                Don't ask again on this browser for {{ config('security.trusted_device_days', 30) }} days
+            </label>
+
             <button type="submit" class="w-full font-jakarta bg-[#FF8A66] text-[#060D26] font-bold py-3.5 rounded-xl hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
                 Verify
             </button>

@@ -29,6 +29,10 @@ class EnsureTwoFactor
                 return $next($request);
             }
 
+            if (app(\App\Services\Security\TrustedDevices::class)->passSession($user, $request)) {
+                return $next($request);
+            }
+
             // No exemptions here: until the challenge is passed, even the setup page (recovery codes, turn off) is closed.
             return $this->block($request, 'two-factor.challenge', null);
         }

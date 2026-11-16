@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Services\Security\AuthEventRecorder;
+use App\Models\AuditLog;
+use App\Services\Security\TrustedDevices;
 use App\Services\Security\TwoFactor;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,7 +33,7 @@ class TwoFactorChallengeController extends Controller
         return view('auth.two-factor-challenge');
     }
 
-    public function store(Request $request, TwoFactor $twoFactor, AuthEventRecorder $events): RedirectResponse
+    public function store(Request $request, TwoFactor $twoFactor, AuthEventRecorder $events, TrustedDevices $trusted): RedirectResponse
     {
         $user = $request->user();
 
@@ -51,6 +53,12 @@ class TwoFactorChallengeController extends Controller
         }
 
         $request->session()->put('auth.two_factor_passed', $user->user_id);
+
+        $remember = $request->boolean('remember_device');
+        if ($remember) {
+            $trusted->trust($user, $request);
+        }
+        AuditLog::record('auth.two_factor_passed', $remember ? 'Passed two-factor and remembered this browser' : 'Passed two-factor', $user, actor: $user);
 
         return redirect()->intended(route('admin.dashboard'));
     }

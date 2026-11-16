@@ -38,6 +38,7 @@ class RecordAuthEvents
         }
 
         $recorded = $this->recorder()->record('login', $event->user, channel: $this->channel());
+        $this->audit('auth.login', 'Signed in', $event->user);
 
         $this->alertOnNewDevice($event->user, $recorded);
         $this->checkHeldTenantMatch($event->user, $recorded);
@@ -137,11 +138,27 @@ class RecordAuthEvents
         }
 
         $this->recorder()->record('logout', $event->user, channel: $this->channel());
+        $this->audit('auth.logout', 'Signed out', $event->user);
     }
 
     public function onPasswordReset(PasswordReset $event): void
     {
         $this->recorder()->record('password_reset', $event->user, channel: $this->channel());
+        app(\App\Services\Security\TrustedDevices::class)->revokeAll($event->user);
+    }
+
+    /** Sign-in and sign-out rows for Admin and Landlord accounts in the tamper-evident admin trail. Never breaks a login. */
+    private function audit(string $action, string $summary, ?\App\Models\User $user): void
+    {
+        try {
+            if (! $user || ! ($user->hasRole('Admin') || $user->hasRole('Landlord'))) {
+                return;
+            }
+
+            \App\Models\AuditLog::record($action, $summary, $user, actor: $user);
+        } catch (Throwable $e) {
+            Log::warning('Could not write a sign-in audit row', ['action' => $action, 'error' => $e->getMessage()]);
+        }
     }
 
     private function recorder(): AuthEventRecorder

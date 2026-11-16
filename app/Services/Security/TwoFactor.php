@@ -87,6 +87,8 @@ class TwoFactor
             'two_factor_confirmed_at'   => null,
             'two_factor_last_step'      => null,
         ])->save();
+
+        app(TrustedDevices::class)->revokeAll($user);
     }
 
     /** Replaces the stored hashes with fresh ones. Returns the plain codes: the only time they exist. */
@@ -100,6 +102,8 @@ class TwoFactor
         $user->forceFill([
             'two_factor_recovery_codes' => array_map(fn (string $c) => Hash::make($c), $plain),
         ])->save();
+
+        app(TrustedDevices::class)->revokeAll($user);
 
         return $plain;
     }

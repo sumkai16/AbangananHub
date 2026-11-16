@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Services\Security\AuthEventRecorder;
+use App\Services\Security\TrustedDevices;
 use App\Services\Security\TwoFactor;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\RedirectResponse;
@@ -21,7 +22,7 @@ class TwoFactorSetupController extends Controller
 {
     private const PENDING_KEY = 'two_factor.pending_secret';
 
-    public function __construct(private TwoFactor $twoFactor, private AuthEventRecorder $events)
+    public function __construct(private TwoFactor $twoFactor, private AuthEventRecorder $events, private TrustedDevices $trusted)
     {
     }
 
@@ -38,6 +39,8 @@ class TwoFactorSetupController extends Controller
                 'recoveryCodes' => session('two_factor_codes'),
                 'qrSvg'         => null,
                 'secret'        => null,
+                'trusted'       => $this->trusted->forUser($user),
+                'currentTrustedId' => $this->trusted->current($user, $request)?->id,
             ]);
         }
 
@@ -110,6 +113,20 @@ class TwoFactorSetupController extends Controller
 
         return redirect()->route('admin.security.two-factor')
             ->with('two_factor_codes', $plain);
+    }
+
+    public function revokeTrusted(Request $request, ?int $device = null): RedirectResponse
+    {
+        $user = $request->user();
+
+        if ($device === null) {
+            $this->trusted->revokeAll($user);
+            $message = 'All remembered browsers were removed.';
+        } else {
+            $message = $this->trusted->revoke($user, $device) ? 'That browser will ask for a code next time.' : 'That browser was already removed.';
+        }
+
+        return redirect()->route('admin.security.two-factor')->with('success', $message);
     }
 
     public function destroy(Request $request): RedirectResponse

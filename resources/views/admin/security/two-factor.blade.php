@@ -54,6 +54,39 @@
             </form>
         </x-card>
 
+        <x-card class="mb-5">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <h2 class="font-jakarta text-[16px] font-bold text-[#060D26]">Remembered browsers</h2>
+                    <p class="mt-1 text-[14px] text-[#5B6A8E]">These browsers skip the sign-in code for {{ config('security.trusted_device_days', 30) }} days. Your password is still needed for risky actions.</p>
+                </div>
+                @if ($trusted->isNotEmpty())
+                    <form method="POST" action="{{ route('admin.security.two-factor.trusted.revoke') }}">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="shrink-0 text-[13px] font-semibold text-[#DC2626] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DC2626] rounded">Remove all</button>
+                    </form>
+                @endif
+            </div>
+
+            @forelse ($trusted as $device)
+                <div class="mt-3 flex items-center justify-between gap-3 rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] px-4 py-3">
+                    <div class="min-w-0">
+                        <p class="truncate text-[14px] font-semibold text-[#060D26]">
+                            {{ \App\Support\UserAgentSummary::from($device->user_agent) }}
+                            @if ($device->id === $currentTrustedId)<span class="ml-1.5 rounded-full bg-white border border-[#E2E4EC] px-2 py-0.5 text-[11px] font-bold">This browser</span>@endif
+                        </p>
+                        <p class="text-[12.5px] text-[#5B6A8E]">{{ $device->ip_address }} · last used {{ $device->last_used_at?->diffForHumans() ?? 'never' }} · expires {{ $device->expires_at->format('M j') }}</p>
+                    </div>
+                    <form method="POST" action="{{ route('admin.security.two-factor.trusted.revoke', $device->id) }}">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="text-[13px] font-semibold text-[#060D26] hover:text-[#DC2626] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] rounded">Remove</button>
+                    </form>
+                </div>
+            @empty
+                <p class="mt-3 text-[14px] text-[#5B6A8E]">None. Tick "Don't ask again" on the code prompt to add one.</p>
+            @endforelse
+        </x-card>
+
         <x-card>
             <h2 class="font-jakarta text-[16px] font-bold text-[#060D26]">Turn off two-factor</h2>
             @if ($required)
