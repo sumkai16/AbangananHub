@@ -23,10 +23,28 @@ From a payment-flow security review. Plan: `plans/payment-security-hardening.md`
 - **Tests:** paid fixtures now carry the amount through `tests/Support/PaidAmount.php`; new tests for the missing amount and the throttle in `PayMongoWebhookTest`.
 - **Not done (config, Axcee on the server):** `APP_DEBUG=false`, `SESSION_ENCRYPT=true`, `CSP_MODE=enforce`, live webhook secret. See the plan's checklist.
 
+## Nov 16 2026 — Advance rent option on the unit form (branch `axci`)
+**Run `php artisan migrate`** (`property_units.advance_months`). Plan: `plans/unit-advance-rent-option.md`. Asked for by the PM. **Not yet checked by hand** (browser-checked with Playwright on the edit form).
+- **Unit form:** "Require advance rent" checkbox with a 1 or 2 month choice, under the deposit (create and edit). Stored as `advance_months` (0 none, 1, 2; default 1 so existing units behave as before).
+- **Agreements:** the Send-agreement form starts from the unit's value (`Reservation::agreementDefaults`); the landlord can still change it for one tenant (0 to 3).
+- **Listing page** shows "· N months advance rent" beside the deposit. Rent Control note also fires for a 2 month advance on units at or below ₱10,000.
+- **Mobile API:** optional `advance_months` on unit create and update, returned in the unit resource.
+- **Known:** 14 older tests (ListingPhotosTest, PropertyActivityTest, StaleReservationsTest and others) were already failing before this change because their posted fields predate the required `payment_arrangement`.
+
+## Nov 16 2026 — Rent Control Act note on rent forms (branch `axci`)
+A soft note, never a block. When the rent is ₱10,000 or less and the deposit is over 2 months' rent (or the advance is over 1 month), the form shows an amber "may fall under RA 9653, you can still save" line. Shown on the unit create and edit forms (deposit) and the Send-agreement form (deposit and advance). The ceiling is the higher Metro Manila one (₱10,000) because the area is not known; limits live in `config/rentals.php` (`rent_control`). **Not confirmed with a lawyer or the current HSAC resolution that the Act is still in force.** Partial: `landlord/partials/_rent-control-note.blade.php`.
+
+## Nov 16 2026 — Admin: remember this browser for 2FA; sign-in and sign-out in Admin actions (branch `axci`)
+**Run `php artisan migrate`** (`trusted_devices`). Plan: `plans/admin-remember-device-and-login-audit.md`. **Not yet checked by hand** (checklist in the plan).
+- **Remember this browser:** the 2FA code prompt has "Don't ask again on this browser for 30 days". It stores a sha256 of a random token in `trusted_devices` and sets an `ah_2fa_trusted` cookie (httpOnly, 30 days). `EnsureTwoFactor` accepts a valid cookie. Only the sign-in code is skipped; the step-up password for risky actions still applies.
+- **Trust is wiped** on Sign out everywhere, sign out other devices, password change or reset, 2FA turned on or off, and new recovery codes. The 2FA settings page lists remembered browsers with Remove and Remove all.
+- **Admin actions tab:** new actions `auth.login`, `auth.logout`, `auth.two_factor_passed` (Signed in, Signed out, Passed two-factor) for Admin and Landlord accounts only, successful events only. Failures stay in Account & security. `AuditLog::record()` takes an optional `$actor` so a logout can name the user.
+- Read: `Services/Security/TrustedDevices`, `Models/TrustedDevice`, `Http/Middleware/EnsureTwoFactor`, `Listeners/Security/RecordAuthEvents`, `config/security.php` (`trusted_device_*`).
+
 ## Nov 16 2026 — Listing page mobile pass (branch `axci`)
 Found while recording the promo video at 375px. Plan: `plans/listing-page-mobile-pass.md`. Desktop (`md:` up) is unchanged.
 - **Phone gallery:** below `md`, one full-width swipeable photo (scroll-snap, no library) with one overlay per corner: Verified pill, heart, `1 / N` counter that opens the lightbox. The desktop bento is wrapped `hidden md:block`.
-- **Shared partials:** `properties/partials/verified-pill.blade.php` and `favorite-button.blade.php` (44px, optimistic toggle with rollback, hearts stay in sync through a `favorite-changed` event).
+- **Shared partials:** `properties/partials/verified-pill.blade.php` and `favorite-button.blade.php` (44px, optimistic toggle with rollback, hearts stay in sync through a `favorite-changed` event). **Bug fixed:** the old Alpine heart sent three save requests per click (they cancelled each other out, so it looked dead, worst in the phone-frame extension); the toggle is now one global `window.toggleListingFavorite` with an in-flight guard.
 - **"Verified landlord"** on the contact card now means the landlord's own ID + selfie check is Approved (`verificationApplication->isApproved()`), not the property's ownership documents ("Verified Property" on the photo is unchanged). The business row wraps on phones so the name is no longer cut off.
 - **Directions:** the address box is visible from the start with "Use my location" as the secondary action (`resources/js/maps/property-map.js`), instead of appearing only after the location request failed.
 - **Login panel:** "Protected agreements / your deposit is held until move-in" became "Clear agreements" (held payments are off by default).

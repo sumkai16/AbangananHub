@@ -307,6 +307,7 @@ The atomic rentable thing: a room, bedspace or whole apartment.
 | description | text | null | | |
 | rental_fee | decimal(10,2) | NN | | |
 | security_deposit | decimal(8,2) | null | | Null = "no deposit", never ₱0. Required on create; optional on edit |
+| advance_months | tinyint unsigned | NN, default 1 | | Months of advance rent asked at move-in: 0 (none), 1 or 2. Seeds the Send-agreement form (`Reservation::agreementDefaults`); the agreement may still use 0 to 3 |
 | payment_arrangement | varchar(20) | NN | advance_deposit | `reservation_fee` / `advance_deposit` / `full_payment` |
 | reservation_fee_amount | decimal(10,2) | null | | Required when arrangement is `reservation_fee` |
 | payment_deadline_days | tinyint unsigned | null | | 1-7; null = platform default (`rentals.stale_reservations`) |
@@ -900,6 +901,20 @@ Account and security events: sign-ins, failures, lockouts, password and email ch
 | created_at | timestamp | null | index | No `updated_at` (`UPDATED_AT = null`) |
 
 New event type: add its key to `AuthEvent::EVENTS` (the filter reads it) and record it through `AuthEventRecorder::record()`.
+
+### trusted_devices
+Browsers an admin chose to remember after passing two-factor ("Don't ask again for 30 days"). Written only by `TrustedDevices`. The cookie `ah_2fa_trusted` holds a random token; only its sha256 is stored. Wiped for a user on password change/reset, Sign out everywhere, 2FA on/off and new recovery codes.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| id | bigint unsigned | NN | PK | |
+| user_id | bigint unsigned | NN | FK → users, cascade; index `(user_id, expires_at)` | |
+| token_hash | char(64) | NN | unique | sha256 of the cookie token |
+| user_agent | varchar(255) | null | | Shown as "Chrome on Android" |
+| ip_address | varchar(45) | null | | At the time it was remembered |
+| last_used_at | timestamp | null | | Updated at most once an hour |
+| expires_at | timestamp | NN | | `security.trusted_device_days` (30) after creation |
+| created_at | timestamp | null | | No `updated_at` |
 
 ### tenant_holds
 A landlord's report that a tenant has not paid, and what happened next. Status flow: `pending_admin` -> `active` -> `released`, or `pending_admin` -> `rejected`. Only an `active` hold restricts the tenant (no new reservations, viewings or chats; they can still pay and chat with the landlord who reported them). `account_status` is never touched, so a held tenant can always sign in and pay. Changed only through `HoldService`, which writes the `hold.*` audit rows. See `plans/tenant-payment-holds.md`.
