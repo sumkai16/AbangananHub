@@ -8,14 +8,14 @@
     $report = $status === 'Rental Agreement Signed'
         ? $reservation->paymentClaims->where('status', 'Pending')->where('claim_type', 'MoveIn')->first()
         : null;
-    $primary = 'h-8 px-3 rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] cursor-pointer transition-colors duration-200 whitespace-nowrap';
-    $iconBtn = 'h-8 w-8 flex items-center justify-center rounded-lg border border-[#5B6A8E]/25 text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 shrink-0';
-    $quiet = 'h-8 px-2.5 rounded-lg text-[12px] font-semibold text-[#5B6A8E] hover:text-[#DC2626] hover:bg-[#EF4444]/[0.06] cursor-pointer transition-colors duration-200 whitespace-nowrap';
+    $primary = 'h-11 lg:h-8 px-3 rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] cursor-pointer transition-colors duration-200 whitespace-nowrap';
+    $iconBtn = 'h-11 w-11 lg:h-8 lg:w-8 flex items-center justify-center rounded-lg border border-[#5B6A8E]/25 text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 shrink-0';
+    $quiet = 'h-11 lg:h-8 px-2.5 rounded-lg text-[12px] font-semibold text-[#5B6A8E] hover:text-[#DC2626] hover:bg-[#EF4444]/[0.06] cursor-pointer transition-colors duration-200 whitespace-nowrap';
     $tenantName = $reservation->tenant->first_name ?? 'the tenant';
 @endphp
 
 <button type="button" @click="openModal({{ Js::from($modalData) }})"
-    class="h-8 px-3 inline-flex items-center rounded-lg bg-[#ECEEF6] text-[#060D26] text-[12px] font-semibold hover:bg-[#E2E4EC] cursor-pointer transition-colors duration-200 whitespace-nowrap">
+    class="h-11 lg:h-8 px-3 inline-flex items-center rounded-lg bg-[#ECEEF6] text-[#060D26] text-[12px] font-semibold hover:bg-[#E2E4EC] cursor-pointer transition-colors duration-200 whitespace-nowrap">
     Details
 </button>
 

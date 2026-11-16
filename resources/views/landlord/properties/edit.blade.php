@@ -94,7 +94,7 @@
                                 <div>
                                     <span class="{{ $label }}">Rent and deposit</span>
                                     <p class="text-[13px] text-[#5B6A8E] leading-snug">Set per unit, not per property. Change them on each unit's own edit page.</p>
-                                    <a href="{{ route('landlord.properties.show', $property) }}" class="inline-block mt-1 text-[13px] font-semibold text-[#FF8A66] hover:underline">Open units</a>
+                                    <a href="{{ route('landlord.properties.show', $property) }}" class="inline-block mt-1 text-[13px] font-semibold text-[#B35A3D] hover:underline">Open units</a>
                                 </div>
                             </div>
 

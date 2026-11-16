@@ -16,7 +16,7 @@
             </x-slot:icon>
             <x-slot:actions>
             <a href="{{ route('properties.create') }}"
-                class="inline-flex items-center justify-center gap-2 h-11 max-sm:h-9 px-5 max-sm:px-4 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[14px] font-semibold transition-colors duration-200 shrink-0">
+                class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[14px] font-semibold transition-colors duration-200 shrink-0">
                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
@@ -90,7 +90,7 @@
                     @endif
 
                     {{-- View toggle --}}
-                    <div class="flex items-center gap-0.5 h-11 p-1 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] ml-auto">
+                    <div class="max-lg:hidden flex items-center gap-0.5 h-11 p-1 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] ml-auto">
                         <button type="button" x-on:click="setView('grid')" aria-label="Grid view"
                             :class="view === 'grid' ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E] hover:text-[#060D26]'"
                             class="h-9 w-9 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
@@ -170,7 +170,7 @@
                 }
             @endphp
 
-            <div x-show="view === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div x-show="view === 'grid'" class="max-lg:!grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 @foreach($properties as $property)
                     @php extract($derived[$property->property_id]); @endphp
 
@@ -303,7 +303,7 @@
             </div>
 
             {{-- Table view --}}
-            <x-card flush x-show="view === 'table'" x-cloak>
+            <x-card flush x-show="view === 'table'" x-cloak class="max-lg:!hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[980px] text-left">
                         <thead>
@@ -356,8 +356,8 @@
                                         <div class="flex items-center gap-3 text-[12px] whitespace-nowrap">
                                             <span class="font-bold text-[#060D26]">{{ $property->units_count }} total</span>
                                             <span class="text-[#15803D] font-semibold">{{ $property->available_units_count }} avail</span>
-                                            <span class="text-[#B45309] font-semibold">{{ $property->reserved_units_count }} rsvd</span>
-                                            <span class="text-[#EF4444] font-semibold">{{ $property->occupied_units_count }} occ</span>
+                                            <span class="text-[#B45309] font-semibold">{{ $property->reserved_units_count }} reserved</span>
+                                            <span class="text-[#DC2626] font-semibold">{{ $property->occupied_units_count }} occupied</span>
                                         </div>
                                     </td>
 

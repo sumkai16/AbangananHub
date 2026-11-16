@@ -88,7 +88,7 @@
                         <button type="button" role="tab" id="tab-{{ $key }}" aria-controls="panel-{{ $key }}"
                             :aria-selected="tab === '{{ $key }}'" @click="go('{{ $key }}')"
                             :class="tab === '{{ $key }}' ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#5B6A8E] hover:text-[#060D26]'"
-                            class="whitespace-nowrap border-b-2 pb-3 text-[13.5px] font-bold transition-colors duration-200 cursor-pointer">{{ $label }}</button>
+                            class="whitespace-nowrap border-b-2 pb-3 min-h-11 text-[13.5px] font-bold transition-colors duration-200 cursor-pointer">{{ $label }}</button>
                     @endforeach
                 </div>
             </div>

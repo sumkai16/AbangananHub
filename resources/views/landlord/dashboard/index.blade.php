@@ -55,7 +55,7 @@
                         [$box, $iconBox, $iconPath, $button] = match($alert['level']) {
                             'danger' => [
                                 'border-[#EF4444]/25 bg-[#EF4444]/[0.06]',
-                                'bg-[#EF4444]/12 text-[#B91C1C]',
+                                'bg-[#EF4444]/10 text-[#B91C1C]',
                                 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z',
                                 'bg-[#FF8A66] text-[#060D26] hover:bg-[#E96F4F]',
                             ],
@@ -339,7 +339,7 @@
                                                     title="{{ $property['available_units'] }} available, {{ $property['reserved_units'] }} reserved, {{ $property['occupied_units'] }} occupied"
                                                     aria-label="{{ $property['available_units'] }} available, {{ $property['reserved_units'] }} reserved, {{ $property['occupied_units'] }} occupied">
                                                     @if($property['occupied_units'] > 0)
-                                                        <span class="h-full bg-[#060D26]" style="width: {{ $rowOccupiedPct }}%"></span>
+                                                        <span class="h-full bg-[#EF4444]" style="width: {{ $rowOccupiedPct }}%"></span>
                                                     @endif
                                                     @if($property['reserved_units'] > 0)
                                                         <span class="h-full bg-[#FBBF24]" style="width: {{ $rowReservedPct }}%"></span>

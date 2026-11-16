@@ -94,17 +94,17 @@
 
             <div class="flex flex-wrap items-center gap-2 sm:shrink-0">
                 <a href="{{ route('properties.edit', $property) }}"
-                   class="inline-flex items-center h-11 sm:h-9 px-4 rounded-lg bg-white/20 backdrop-blur-sm text-white text-[13px] font-semibold hover:bg-white/30 transition-colors duration-200">
+                   class="inline-flex items-center h-11 px-4 rounded-lg bg-white/20 backdrop-blur-sm text-white text-[13px] font-semibold hover:bg-white/30 transition-colors duration-200">
                     Edit property
                 </a>
                 <a href="{{ route('landlord.properties.units.create', [$property, 'return_to' => 'property']) }}"
-                   class="inline-flex items-center gap-1 h-11 sm:h-9 px-4 rounded-lg bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] transition-colors duration-200">
+                   class="inline-flex items-center gap-1 h-11 px-4 rounded-lg bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] transition-colors duration-200">
                     + Add unit
                 </a>
                 {{-- Everything the old toolbar held that the design has no slot for: documents, units, walk-in, delete --}}
                 <div class="relative">
                     <button type="button" @click="moreOpen = !moreOpen" aria-label="More actions" :aria-expanded="moreOpen"
-                            class="relative inline-flex items-center justify-center h-11 w-11 sm:h-9 sm:w-9 rounded-lg bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-colors duration-200">
+                            class="relative inline-flex items-center justify-center h-11 w-11 rounded-lg bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-colors duration-200">
                         <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
                         </svg>

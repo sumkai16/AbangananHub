@@ -146,7 +146,7 @@
                         x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
                         x-transition:leave="transition ease-in duration-100"
                         x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                        class="absolute top-[calc(100%+10px)] left-0 w-[calc(100vw-2rem)] max-w-[360px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#5B6A8E]/15 z-50 overflow-hidden">
+                        class="absolute top-[calc(100%+10px)] max-lg:-left-[180px] lg:left-0 w-[calc(100vw-2rem)] max-w-[360px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#5B6A8E]/15 z-50 overflow-hidden">
                         <div x-ref="dropdownBody">
                             <div class="px-4 py-8 text-center">
                                 <div
@@ -203,7 +203,7 @@
                             </svg>
                         </div>
                         <span
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-lg">
+                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#060D26] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-lg">
                             Notifications
                         </span>
                     </button>
@@ -328,7 +328,7 @@
                         @endunless
 
                         <button type="button" data-sidebar-label x-show="!sidebarCollapsed" @click="toggle()" :aria-expanded="open"
-                            class="group flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-widest whitespace-nowrap transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/60 cursor-pointer"
+                            class="group flex w-full items-center gap-2 rounded-lg px-3 py-2 min-h-11 text-left text-[11px] font-semibold uppercase tracking-widest whitespace-nowrap transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/60 cursor-pointer"
                             :class="!open && active ? 'text-white' : 'text-white/50 hover:text-white/80'">
                             <span class="flex-1">{{ $sectionTitle }}</span>
                             <span x-show="!open && active" x-cloak class="h-1.5 w-1.5 rounded-full bg-[#FF8A66]" aria-hidden="true"></span>
@@ -344,7 +344,7 @@
                         <a href="{{ $item['href'] }}" @if($item['active']) aria-current="page" @endif
                             data-page-swap="nav" @click="sidebarOpen = false"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
-                            class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium mb-0.5 transition-colors duration-200
+                            class="group relative flex items-center gap-3 px-3 py-2.5 min-h-11 rounded-xl text-[14px] font-medium mb-0.5 transition-colors duration-200
                                 {{ $item['active'] ? 'bg-white/[0.10] text-white font-semibold' : 'text-white/65 hover:bg-white/[0.06] hover:text-[#FF8A66]' }}">
                             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"
                                 class="shrink-0 {{ $item['active'] ? 'text-[#FF8A66]' : '' }}" aria-hidden="true">{!! $item['icon'] !!}</svg>
@@ -368,7 +368,7 @@
                                     class="absolute top-0.5 right-1 min-w-[16px] h-4 px-1 rounded-full bg-[#FF8A66] text-[#060D26] text-[10px] font-bold flex items-center justify-center tabular-nums border-2 border-[#060D26] box-content" aria-hidden="true">{{ $badge > 99 ? '99+' : $badge }}</span>
                             @endif
                             <span x-show="sidebarCollapsed" x-cloak
-                                class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                                class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#060D26] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                                 {{ $item['label'] }}
                             </span>
                         </a>
@@ -391,7 +391,7 @@
                     </svg>
                     <span data-sidebar-label x-show="!sidebarCollapsed" class="whitespace-nowrap">View public rentals</span>
                     <span x-show="sidebarCollapsed" x-cloak
-                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#060D26] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                         View public rentals
                     </span>
                 </a>
@@ -423,7 +423,7 @@
                                     d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
                             </svg>
                             <span x-show="sidebarCollapsed" x-cloak
-                                class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover/so:opacity-100 transition-opacity z-50 shadow-xl">
+                                class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#060D26] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover/so:opacity-100 transition-opacity z-50 shadow-xl">
                                 Sign out
                             </span>
                         </button>
@@ -441,8 +441,8 @@
             {{-- Mobile-only slim bar --}}
             <div
                 class="lg:hidden print:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-[#E2E4EC] sticky top-0 z-30">
-                <button @click="sidebarOpen = !sidebarOpen"
-                    class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#E2E4EC] text-[#060D26] transition-colors duration-200">
+                <button @click="sidebarOpen = !sidebarOpen" aria-label="Open menu"
+                    class="w-11 h-11 flex items-center justify-center rounded-lg hover:bg-[#E2E4EC] text-[#060D26] transition-colors duration-200">
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
@@ -453,7 +453,7 @@
                 <div id="mobile-title" class="flex min-w-0 flex-1 items-center gap-2 px-3">@stack('mobile-title')</div>
 
                 <div class="flex shrink-0 items-center gap-2">
-                    <x-theme-toggle class="w-9 h-9 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26] hover:bg-[#ECEEF6]" />
+                    <x-theme-toggle class="w-11 h-11 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26] hover:bg-[#ECEEF6]" />
 
                     {{-- Messages — mobile equivalent of the floating chat bubble,
                          which is desktop-only (see partials.message-notifications).
@@ -461,7 +461,7 @@
                     @auth
                         <a href="{{ route('conversations.index') }}"
                             aria-label="Messages"
-                            class="relative flex items-center justify-center w-9 h-9 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26]/70 hover:bg-[#ECEEF6] transition-colors duration-200">
+                            class="relative flex items-center justify-center w-11 h-11 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26]/70 hover:bg-[#ECEEF6] transition-colors duration-200">
                             <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                             </svg>
@@ -473,10 +473,11 @@
 
                     <div class="relative" x-data="notificationDropdown()" @click.away="close()"
                     @keydown.escape.window="close()">
-                    <button type="button" @click="toggle()"
-                        class="relative flex items-center justify-center w-9 h-9 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26]/70 hover:bg-[#E2E4EC] transition-colors duration-200">
+                    <button type="button" @click="toggle()" aria-label="Notifications"
+                        class="relative flex items-center justify-center w-11 h-11 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26]/70 hover:bg-[#E2E4EC] transition-colors duration-200">
                         <span x-show="unreadCount > 0" x-cloak
-                            class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#EF4444] border-2 border-white"></span>
+                            class="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold ring-2 ring-white"
+                            x-text="unreadCount > 99 ? '99+' : unreadCount"></span>
                         <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                             stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round"
