@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('user_agent', 255)->nullable();
             $table->string('ip_address', 45)->nullable();
             $table->timestamp('last_used_at')->nullable();
-            $table->timestamp('expires_at');
+            $table->timestamp('expires_at')->nullable();
             $table->timestamp('created_at')->nullable();
 
             $table->index(['user_id', 'expires_at']);
