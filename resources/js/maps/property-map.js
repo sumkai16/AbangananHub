@@ -291,11 +291,12 @@ function wireDirections(map, destLat, destLng) {
 
     function resetButton() {
         btn.disabled = false;
-        btn.textContent = 'Get directions';
+        btn.lastChild.textContent = ' Use my location';
     }
 
+    // The address box is always visible now; when location is refused or unavailable, send the tenant straight to it.
     function showManualInput() {
-        manualForm?.classList.remove('hidden');
+        manualInput?.focus();
     }
 
     async function routeTo(fromLat, fromLng) {
@@ -336,7 +337,7 @@ function wireDirections(map, destLat, destLng) {
             return;
         }
         btn.disabled = true;
-        btn.textContent = 'Finding your location…';
+        btn.lastChild.textContent = ' Finding your location…';
 
         navigator.geolocation.getCurrentPosition(
             (pos) => routeTo(pos.coords.latitude, pos.coords.longitude),

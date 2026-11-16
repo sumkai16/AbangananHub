@@ -6,6 +6,7 @@
 
     @php
         $isOwner = auth()->check() && (int) auth()->id() === (int) $property->landlord_id;
+        $landlordVerified = (bool) optional($property->landlord->verificationApplication)->isApproved();
 
         // Owner previewing their own listing sees all of their units, Pending
         // included — otherwise a unit that just got edited (which flips
@@ -272,7 +273,36 @@
                 };
             @endphp
             @if($mediaCount > 0)
-                <div class="relative">
+                {{-- ===== PHONE GALLERY (below md, Nov 16 2026) — one full-width photo you swipe, instead of the desktop
+                     bento squeezed into 375px. One overlay per corner: Verified (top-left), heart (top-right), counter
+                     (bottom-right, opens the lightbox). Native scroll-snap, no library, no arrows. ===== --}}
+                <div class="relative md:hidden -mx-4 sm:mx-0">
+                    <div id="hero-strip"
+                        class="flex overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                        style="-webkit-overflow-scrolling: touch">
+                        @foreach($property->media as $i => $m)
+                            <button type="button" onclick="openLightbox({{ $i }})"
+                                class="relative shrink-0 w-full snap-center aspect-[4/3] bg-[#E2E4EC] cursor-pointer"
+                                aria-label="Open photo {{ $i + 1 }} of {{ $mediaCount }}">
+                                <img src="{{ \App\Support\Images::src($m->media_url, 'gallery') }}"
+                                    alt="{{ $property->title }} photo {{ $i + 1 }}"
+                                    class="w-full h-full object-cover"
+                                    @if($i > 0) loading="lazy" decoding="async" @endif>
+                            </button>
+                        @endforeach
+                    </div>
+                    @include('properties.partials.verified-pill', ['property' => $property, 'class' => 'absolute top-3 left-4 sm:left-3 z-20'])
+                    @include('properties.partials.favorite-button', ['property' => $property, 'isFavorited' => $isFavorited ?? false, 'class' => 'absolute top-2 right-3 sm:right-2 z-20'])
+                    @if($mediaCount > 1)
+                        <button type="button" onclick="openLightboxAtHero()"
+                            class="absolute bottom-3 right-4 sm:right-3 z-10 inline-flex items-center gap-1.5 bg-[#060D26]/75 text-white text-[12px] font-bold px-3 py-1.5 rounded-full tabular-nums"
+                            aria-label="View all {{ $mediaCount }} photos">
+                            <span id="hero-strip-counter">1</span> / {{ $mediaCount }}
+                        </button>
+                    @endif
+                </div>
+
+                <div class="relative hidden md:block">
                     <div class="{{ $galleryGridClass }}">
 
                         {{-- Big tile: same #hero-img element, same overlays,
@@ -309,83 +339,9 @@
                                 Show all photos
                             </button>
 
-                            {{-- Verified status now lives on the image itself
-                                 (top-left) rather than only in the badges row
-                                 below — a document-verified property gets the
-                                 fuller popover version it always had; every
-                                 other listed property still gets a plain
-                                 "Verified" badge with a checkmark, since the
-                                 badges-row pill this replaced was unconditional
-                                 too. --}}
-                            @if($property->hasVerifiedDocuments())
-                                <div class="absolute top-3 left-3 z-20" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
-                                    <button type="button" @click="open = !open"
-                                        class="inline-flex items-center gap-1.5 bg-[#FF8A66] text-[#060D26] text-[11px] font-bold px-2.5 py-1.5 rounded-full shadow-sm hover:bg-[#E96F4F] transition-all">
-                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        Verified Property
-                                    </button>
-
-                                    <div x-show="open" x-cloak
-                                         x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
-                                         class="absolute top-full left-0 mt-2 w-64 bg-white text-left rounded-xl shadow-lg border border-[#E2E4EC] p-3.5">
-                                        <p class="font-bold text-[#060D26] text-[12px] mb-1">Verified Property</p>
-                                        <p class="text-[#5B6A8E] text-[12px] leading-snug">Our team has reviewed and confirmed this property's ownership documents — title, tax declaration, or business permit.</p>
-                                    </div>
-                                </div>
-                            @else
-                                <span class="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 bg-[#FF8A66] text-[#060D26] text-[11px] font-bold px-2.5 py-1.5 rounded-full shadow-sm">
-                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    Verified
-                                </span>
-                            @endif
-
-                            {{-- ===== FAVORITE (heart) — moved here from the contact
-                                 card's action row (Sept 2026), which had it beside
-                                 a flex-1 "Send Inquiry" button (the aspect-square +
-                                 h-full overflow bug fixed earlier). Top-right corner
-                                 of the hero photo is the conventional spot for a
-                                 save/favorite toggle on a rental listing (Airbnb,
-                                 Booking.com, Zillow all place it here) — the other
-                                 three corners are already taken (Verified badge
-                                 top-left, "Show all photos" bottom-right, bottom-left
-                                 open), and it fully decouples favoriting from
-                                 whatever width the price/CTA row happens to need. --}}
-                            @if(auth()->check() && ! $isOwner && auth()->user()->hasRole('Tenant'))
-                                <div class="absolute top-3 right-3 z-20" x-data="{
-                                        fav: @js($isFavorited ?? false),
-                                        busy: false,
-                                        async toggleFav() {
-                                            if (this.busy) return;
-                                            this.busy = true;
-                                            try {
-                                                const res = await fetch('{{ route('favorites.toggle', $property->property_id) }}', {
-                                                    method: 'POST',
-                                                    headers: {
-                                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                                        'Accept': 'application/json',
-                                                    },
-                                                });
-                                                if (res.ok) { const d = await res.json(); this.fav = d.favorited; }
-                                            } finally { this.busy = false; }
-                                        }
-                                    }">
-                                    <button type="button" x-on:click="toggleFav()" :disabled="busy"
-                                        :aria-pressed="fav"
-                                        class="w-10 h-10 rounded-full bg-white/90 hover:brightness-95 flex items-center justify-center shadow-sm transition-all disabled:opacity-50 cursor-pointer">
-                                        <span class="sr-only" x-text="fav ? 'Remove from favorites' : 'Add to favorites'"></span>
-                                        <svg class="w-5 h-5 transition-colors" :class="fav ? 'text-[#EF4444]' : 'text-[#5B6A8E]'"
-                                            :fill="fav ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"
-                                            stroke-width="2" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            @endif
+                            {{-- Verified pill and heart: shared partials, also used by the phone strip above (md:hidden). --}}
+                            @include('properties.partials.verified-pill', ['property' => $property, 'class' => 'absolute top-3 left-3 z-20'])
+                            @include('properties.partials.favorite-button', ['property' => $property, 'isFavorited' => $isFavorited ?? false, 'class' => 'absolute top-3 right-3 z-20'])
                         </div>
 
                         {{-- Small tiles: photos 1 and 2 (0-indexed) — index 0
@@ -597,24 +553,26 @@
                     {{-- ===== LANDLORD ROW — the rental business, not the person (User::publicName()).
                          Personal name, photo, email and number stay off public pages; see
                          plans/business-first-identity-and-name-search.md. ===== --}}
-                    <div class="mt-6 pt-6 border-t border-[#E2E4EC] flex items-center gap-3">
+                    <div class="mt-6 pt-6 border-t border-[#E2E4EC] flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-2">
                         <x-business-avatar :landlord="$property->landlord" />
                         <div class="min-w-0 flex-1">
                             <p class="flex items-center gap-1 text-[14px] font-bold text-[#060D26] truncate">
                                 {{ $property->landlord->publicName() }}
-                                @if($property->hasVerifiedDocuments())
+                                {{-- "Verified landlord" = the landlord's own ID + selfie check was approved by an admin.
+                                     (Not the property's ownership documents: that is the separate "Verified Property" badge on the photo.) --}}
+                                @if($landlordVerified)
                                     <svg class="w-3.5 h-3.5 text-[#B35A3D] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 @endif
                             </p>
-                            <p class="text-[12px] text-[#5B6A8E]">{{ $property->hasVerifiedDocuments() ? 'Verified landlord' : 'Landlord' }} &middot; Listed since {{ $property->created_at->format('Y') }}</p>
+                            <p class="text-[12px] text-[#5B6A8E]">{{ $landlordVerified ? 'Verified landlord' : 'Landlord' }} &middot; Listed since {{ $property->created_at->format('Y') }}</p>
                             <p class="text-[12px] text-[#5B6A8E]">Usually responds within a few hours</p>
                         </div>
                         {{-- A listing page only opens while the property is live, and a live listing makes the
                              business page public (User::hasPublicBusinessPage()), so this link never dead-ends. --}}
                         <a href="{{ route('landlord.profile.show', $property->landlord_id) }}"
-                            class="shrink-0 text-[14px] font-bold text-[#060D26] hover:text-[#B35A3D] transition-colors duration-200">
+                            class="shrink-0 basis-full sm:basis-auto pl-[60px] sm:pl-0 text-[14px] font-bold text-[#060D26] hover:text-[#B35A3D] transition-colors duration-200">
                             View business &rarr;
                         </a>
                     </div>
@@ -1112,33 +1070,33 @@
                             class="w-full h-64 sm:h-72 bg-[#E2E4EC] border-y border-[#E2E4EC] relative">
                         </div>
 
-                        {{-- Summary bar --}}
+                        {{-- Summary bar. The address box is the main control and is visible from the start; "Use my
+                             location" is the shortcut. (Nov 16 2026: it used to appear only after the location request
+                             failed or timed out, which on a phone is a dead wait.) --}}
                         <div class="px-4 sm:px-5 py-4">
-                            <div class="flex flex-wrap items-center justify-between gap-3">
-                                <div id="directions-panel" class="min-w-0">
-                                    <p class="text-[14px] text-[#5B6A8E]">See how far this is from you.</p>
-                                </div>
-
-                                <button type="button" id="get-directions-btn"
-                                    class="shrink-0 inline-flex items-center gap-2 bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[13px] font-bold px-5 py-2.5 rounded-xl shadow-sm transition-all">
-                                    Get directions
-                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="2.5" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                                    </svg>
-                                </button>
+                            <div id="directions-panel" class="min-w-0">
+                                <p class="text-[14px] text-[#5B6A8E]">See how far this is from you.</p>
                             </div>
 
-                            <form id="manual-origin-form" class="hidden mt-3 flex gap-2">
-                                <label for="manual-origin-input" class="sr-only">Your starting address in Cebu</label>
+                            <form id="manual-origin-form" class="mt-3 flex gap-2">
+                                <label for="manual-origin-input" class="sr-only">Your starting address or landmark in Cebu</label>
                                 <input type="text" id="manual-origin-input"
-                                    placeholder="Enter your starting address in Cebu"
-                                    class="flex-1 min-w-0 border border-[#E2E4EC] rounded-xl px-4 py-2 text-sm text-[#060D26] bg-white focus:outline-none focus:ring-4 focus:ring-[#FF8A66]/10 focus:border-[#FF8A66] transition-all">
+                                    placeholder="Address or landmark"
+                                    autocomplete="street-address"
+                                    class="flex-1 min-w-0 border border-[#E2E4EC] rounded-xl px-4 py-2.5 text-[14px] text-[#060D26] bg-white focus:outline-none focus:ring-4 focus:ring-[#FF8A66]/10 focus:border-[#FF8A66] transition-all">
                                 <button type="submit"
-                                    class="shrink-0 bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-xs font-bold px-4 py-2 rounded-xl transition">
+                                    class="shrink-0 bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[13px] font-bold px-5 py-2.5 rounded-xl shadow-sm transition-all">
                                     Go
                                 </button>
                             </form>
+
+                            <button type="button" id="get-directions-btn"
+                                class="mt-3 inline-flex items-center gap-1.5 text-[13px] font-bold text-[#B35A3D] hover:text-[#060D26] disabled:opacity-60 transition-colors">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m0 13.5V21m9-9h-2.25M5.25 12H3m14.25 0a5.25 5.25 0 11-10.5 0 5.25 5.25 0 0110.5 0z" />
+                                </svg>
+                                Use my location
+                            </button>
                         </div>
                     </div>
                 </section>
@@ -2105,7 +2063,34 @@
                     }
 
                     if (heroBadge) heroBadge.textContent = index + 1;
+                    syncStrip(index);
                 };
+
+                // Phone strip: keep the counter and the lightbox index in step with the swipe, and follow
+                // setHero() when the lightbox changes photo. strip.scrollTo only runs when it is not already there.
+                const strip = document.getElementById('hero-strip');
+                const stripCounter = document.getElementById('hero-strip-counter');
+                function stripIndex() {
+                    return strip && strip.clientWidth ? Math.round(strip.scrollLeft / strip.clientWidth) : 0;
+                }
+                function syncStrip(index) {
+                    if (!strip || !strip.clientWidth) return;
+                    if (stripCounter) stripCounter.textContent = index + 1;
+                    if (stripIndex() !== index) strip.scrollTo({ left: index * strip.clientWidth, behavior: 'auto' });
+                }
+                if (strip) {
+                    let ticking = false;
+                    strip.addEventListener('scroll', function () {
+                        if (ticking) return;
+                        ticking = true;
+                        requestAnimationFrame(function () {
+                            ticking = false;
+                            const i = Math.min(stripIndex(), total - 1);
+                            currentIndex = i;
+                            if (stripCounter) stripCounter.textContent = i + 1;
+                        });
+                    }, { passive: true });
+                }
 
                 window.shiftHero = function (dir) {
                     setHero((currentIndex + dir + total) % total);
