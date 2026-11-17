@@ -9,6 +9,7 @@ use App\Models\Property;
 use App\Models\PropertyMedia;
 use App\Models\PropertyUnit;
 use App\Models\RentalBusiness;
+use App\Models\Review;
 use App\Models\TenantDetail;
 use App\Models\UnitMedia;
 use App\Models\User;
@@ -18,11 +19,12 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Cast for the promo video (plans/promo-video-storyboard.md): landlady Rosa Abellana and tenant Mika Dela Cruz.
+ * Cast for the promo video: landlady Rosa Abellana and tenant Mika Dela Cruz.
  *
  *  - Rosa: approved landlord with a payout QR and one Minglanilla apartment. 3 units are rented by seeded tenants
  *    (paid, overdue, due soon) for the ledger and analytics shots; 2 are free, and Mika reserves Room 2B on camera.
  *  - Mika: a clean tenant account. Favorites, chat, reservation, payment and move-in all happen live while recording.
+ *  - Carlo and Trisha: past tenants with a review each (one with Rosa's reply), so the listing shows ratings.
  *
  * Not part of DatabaseSeeder. Run on its own, after the base seed:
  *     php artisan db:seed --class=PromoSeeder
@@ -78,6 +80,19 @@ class PromoSeeder extends TenantSeeder
         ],
     ];
 
+    /**
+     * Two former tenants who reviewed the building after moving out, so the listing shows real ratings on camera.
+     * [first, last, email, contact, rating, comment, Rosa's reply or null, months since the review]
+     */
+    private const PAST_TENANTS = [
+        ['Carlo', 'Mendoza', 'carlo.promo@abangananhub.com', '09173340214', 5,
+            'Stayed 10 months. Rosa answers fast, the room was exactly like the photos, and the gate rule kept the place quiet.',
+            'Salamat, Carlo! Good luck sa bago nimo nga trabaho.', 2],
+        ['Trisha', 'Villarin', 'trisha.promo@abangananhub.com', '09173340215', 4,
+            'Clean building, short walk to the highway. Electricity is sub-metered, so watch your usage. Rosa gave receipts every month.',
+            null, 5],
+    ];
+
     public function run(): void
     {
         $admin = User::where('email', 'admin@abangananhub.com')->firstOrFail();
@@ -88,7 +103,38 @@ class PromoSeeder extends TenantSeeder
 
         $property = $this->property($rosa);
         $this->units($property);
+        $this->reviews($property, $rosa);
         $this->mika();
+    }
+
+    /** Idempotent: one review per past tenant per property (the table's own UNIQUE), updated in place on re-run. */
+    private function reviews(Property $property, User $rosa): void
+    {
+        foreach (self::PAST_TENANTS as [$first, $last, $email, $contact, $rating, $comment, $reply, $monthsAgo]) {
+            $tenant = User::firstOrCreate(['email' => $email], [
+                'first_name'         => $first,
+                'last_name'          => $last,
+                'password'           => Hash::make('password'),
+                'contact_number'     => $contact,
+                'profile_visibility' => 'public',
+                'account_status'     => 'active',
+            ]);
+            UserRole::firstOrCreate(['user_id' => $tenant->user_id, 'role' => 'Tenant']);
+
+            $at = now()->subMonths($monthsAgo);
+            $review = Review::updateOrCreate(
+                ['tenant_id' => $tenant->user_id, 'property_id' => $property->property_id],
+                [
+                    'landlord_id'         => $rosa->user_id,
+                    'rating'              => $rating,
+                    'review_comment'      => $comment,
+                    'landlord_reply'      => $reply,
+                    'landlord_replied_at' => $reply ? $at->copy()->addDay() : null,
+                    'is_hidden'           => false,
+                ]
+            );
+            $review->forceFill(['created_at' => $at, 'updated_at' => $at])->saveQuietly();
+        }
     }
 
     /** Deleting the account cascades her conversations, messages, reservations, payments, claims and favorites. */

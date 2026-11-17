@@ -736,7 +736,7 @@
             <x-section-texture compact />
             <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16 grid gap-10 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] md:items-center lg:gap-16">
                 <div>
-                    <p class="font-jakarta text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#B35A3D]">For property owners</p>
+                    <p class="font-jakarta text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#B35A3D]">For landlords</p>
                     <h2 id="landlord-cta-title" class="mt-2 font-jakarta text-[26px] sm:text-[34px] font-extrabold leading-[1.15] tracking-tight text-[#060D26] text-balance">Have a room or unit to rent out?</h2>
                     <ul class="mt-7 grid gap-3 sm:grid-cols-2">
                         @foreach($ownerPerks as [$perk, $icon])
