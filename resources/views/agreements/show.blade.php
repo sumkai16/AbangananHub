@@ -158,7 +158,7 @@
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-8">
                     <div>
                         <p class="text-[14px] text-[#5B6A8E]">Landlord</p>
-                        <p class="text-[17px] font-bold text-[#060D26]">{{ $landlord->first_name }} {{ $landlord->last_name }}</p>
+                        <p class="text-[17px] font-bold text-[#060D26]"><x-person-link :user="$landlord" /></p>
                         @if($reservation->landlord_tc_accepted_at)
                             <p class="mt-1 flex items-center gap-1.5 text-[14px] font-semibold text-[#15803D]">{!! $tick !!} Accepted {{ $reservation->landlord_tc_accepted_at->format('F j, Y \a\t g:i A') }}</p>
                         @else

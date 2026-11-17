@@ -208,7 +208,7 @@
                         <div class="px-5 py-4">
                             <p class="text-[12.5px] text-[#5B6A8E]">{{ $role }}</p>
                             @if($person)
-                                <a href="{{ route('admin.users.show', $person) }}" class="mt-0.5 block text-[14px] font-semibold text-[#060D26] underline-offset-2 hover:underline">{{ trim($person->first_name.' '.$person->last_name) }}</a>
+                                <x-person-link :user="$person" class="mt-0.5 block text-[14px] font-semibold text-[#060D26]" />
                                 <p class="break-words text-[12.5px] text-[#5B6A8E]">{{ $person->email ?: '—' }}</p>
                                 @if($person->contact_number)<p class="text-[12.5px] tabular-nums text-[#5B6A8E]">{{ $person->contact_number }}</p>@endif
                             @else

@@ -70,7 +70,7 @@
                         @php $tenant = $payment->reservation?->tenant; @endphp
                         <div class="px-5 py-3.5">
                             <div class="flex items-center justify-between gap-2">
-                                <p class="text-[13.5px] font-semibold text-[#060D26] truncate">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</p>
+                                <p class="text-[13.5px] font-semibold text-[#060D26] truncate">@if($tenant)<x-person-link :user="$tenant" />@else — @endif</p>
                                 <p class="text-[13.5px] font-semibold text-[#060D26] shrink-0">₱{{ number_format($payment->amount, 2) }}</p>
                             </div>
                             <p class="mt-0.5 text-[12px] text-[#5B6A8E]">{{ $payment->reservation?->unit?->unit_label ?? '—' }} · {{ $payment->payment_type }}@if ($payment->payout?->isProcessing()) · <span class="font-semibold text-[#B45309]">Sending to your GCash</span>@endif</p>
@@ -94,7 +94,7 @@
                             @foreach ($pending as $payment)
                                 @php $tenant = $payment->reservation?->tenant; @endphp
                                 <tr class="transition-colors duration-150 hover:bg-[#ECEEF6]">
-                                    <td class="px-5 py-3 text-[13px] font-medium text-[#060D26] sm:px-6">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</td>
+                                    <td class="px-5 py-3 text-[13px] font-medium text-[#060D26] sm:px-6">@if($tenant)<x-person-link :user="$tenant" />@else — @endif</td>
                                     <td class="px-5 py-3 text-[13px] text-[#5B6A8E] sm:px-6">{{ $payment->reservation?->unit?->unit_label ?? '—' }}</td>
                                     <td class="px-5 py-3 text-[13px] text-[#5B6A8E] sm:px-6">{{ $payment->payment_type }}</td>
                                     <td class="px-5 py-3 text-[13px] font-semibold text-[#060D26] sm:px-6">₱{{ number_format($payment->amount, 2) }}@if ($payment->payout?->isProcessing())<span class="block text-[11px] font-semibold text-[#B45309]">Sending to your GCash</span>@endif</td>
@@ -126,7 +126,7 @@
                         @php $tenant = $payment->reservation?->tenant; @endphp
                         <div class="px-5 py-3.5">
                             <div class="flex items-center justify-between gap-2">
-                                <p class="text-[13.5px] font-semibold text-[#060D26] truncate">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</p>
+                                <p class="text-[13.5px] font-semibold text-[#060D26] truncate">@if($tenant)<x-person-link :user="$tenant" />@else — @endif</p>
                                 <p class="text-[13.5px] font-semibold text-[#060D26] shrink-0">₱{{ number_format($payment->amount, 2) }}</p>
                             </div>
                             <p class="mt-0.5 text-[12px] text-[#5B6A8E]">Ref: {{ $payment->payout?->payout_reference }}</p>
@@ -149,7 +149,7 @@
                             @foreach ($paidOut as $payment)
                                 @php $tenant = $payment->reservation?->tenant; @endphp
                                 <tr class="transition-colors duration-150 hover:bg-[#ECEEF6]">
-                                    <td class="px-5 py-3 text-[13px] font-medium text-[#060D26] sm:px-6">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</td>
+                                    <td class="px-5 py-3 text-[13px] font-medium text-[#060D26] sm:px-6">@if($tenant)<x-person-link :user="$tenant" />@else — @endif</td>
                                     <td class="px-5 py-3 text-[13px] font-semibold text-[#060D26] sm:px-6">₱{{ number_format($payment->amount, 2) }}</td>
                                     <td class="px-5 py-3 text-[13px] text-[#5B6A8E] sm:px-6">{{ $payment->payout?->payout_reference }}</td>
                                     <td class="px-5 py-3 text-[13px] text-[#5B6A8E] sm:px-6">{{ $payment->payout?->paid_out_at?->format('M d, Y') }}</td>

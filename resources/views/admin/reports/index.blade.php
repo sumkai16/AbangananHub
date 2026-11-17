@@ -61,14 +61,14 @@
                             @foreach ($reports as $report)
                                 <tr class="hover:bg-[#F7F8FC] transition-colors duration-200">
                                     <td class="px-4 py-3">
-                                        <p class="text-[13.5px] font-semibold text-[#060D26]">{{ $report->reporter ? $report->reporter->first_name . ' ' . $report->reporter->last_name : '—' }}</p>
+                                        <p class="text-[13.5px] font-semibold text-[#060D26]">@if($report->reporter)<x-person-link :user="$report->reporter" />@else — @endif</p>
                                         <p class="text-[12.5px] text-[#5B6A8E]">{{ $report->reporter->email ?? '' }}</p>
                                     </td>
                                     <td class="px-4 py-3 text-[13.5px] text-[#060D26]">
                                         @if($report->property)
                                             Listing: {{ $report->property->title }}
                                         @elseif($report->reportedUser)
-                                            User: {{ $report->reportedUser->first_name }} {{ $report->reportedUser->last_name }}
+                                            User: <x-person-link :user="$report->reportedUser" />
                                         @else
                                             <span class="text-[#5B6A8E]">—</span>
                                         @endif

@@ -209,6 +209,33 @@ class TenantController extends Controller
         ]);
     }
 
+    /**
+     * The tenant's own page: what the details drawer shows, as a full page a name link can open in a new tab
+     * (ProfileLinks). Same access rule as the drawer: only the landlord whose tenant this is.
+     */
+    public function profile(LandlordTenant $landlordTenant)
+    {
+        Gate::authorize('view', $landlordTenant);
+
+        $landlordTenant->load('tenant.tenantDetail');
+        $tenant = $landlordTenant->tenant;
+        abort_unless($tenant, 404);
+
+        $reservations = $landlordTenant->reservations()->with(['unit', 'property'])->latest('reservation_date')->get();
+        $visible = $reservations->where('rental_status', '!=', 'Cancelled')->values();
+
+        return view('landlord.tenants.profile', [
+            'row' => $landlordTenant,
+            'tenant' => $tenant,
+            'reservations' => $visible,
+            'status' => LandlordTenant::statusFrom($reservations->pluck('rental_status')),
+            'chatWith' => $tenant->is_walk_in ? null
+                : $reservations->first(fn ($r) => in_array($r->rental_status, ['Occupied', 'Completed'], true)),
+            'canEdit' => Gate::allows('update', $landlordTenant),
+            'canInvite' => Gate::allows('invite', $landlordTenant),
+        ]);
+    }
+
     public function update(TenantRequest $request, LandlordTenant $landlordTenant)
     {
         Gate::authorize('update', $landlordTenant);

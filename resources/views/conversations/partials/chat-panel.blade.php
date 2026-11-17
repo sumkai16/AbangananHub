@@ -53,12 +53,14 @@
     {{-- Chat header --}}
     <div class="px-5 py-3.5 border-b border-[#E2E4EC] flex items-center justify-between gap-3 flex-shrink-0">
         <div class="flex items-center gap-3 min-w-0">
-            <div class="w-9 h-9 rounded-full bg-[#060D26] text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
-                {{ strtoupper(substr($otherParty->first_name, 0, 1)) }}
-            </div>
+            <x-person-link :user="$otherParty" :name="$otherParty->first_name.' '.$otherParty->last_name" class="flex-shrink-0 rounded-full">
+                <div class="w-9 h-9 rounded-full bg-[#060D26] text-white flex items-center justify-center font-bold text-xs">
+                    {{ strtoupper(substr($otherParty->first_name, 0, 1)) }}
+                </div>
+            </x-person-link>
             <div class="min-w-0">
                 <h2 class="text-[13px] font-normal text-[#060D26] truncate">
-                    {{ $otherParty->first_name }} {{ $otherParty->last_name }}
+                    <x-person-link :user="$otherParty" />
                 </h2>
                 <p class="text-[11px] text-[#5B6A8E] truncate">
                     @if($isLandlord)
@@ -584,6 +586,7 @@
     @php $msgs = $conversation->messages->values(); @endphp
     <div id="message-list" class="flex-1 px-5 py-4 overflow-y-auto flex flex-col gap-1 scroll-smooth bg-[#F7F8FC]"
         data-other-avatar="{{ $otherParty->profile_picture }}"
+        data-other-profile="{{ \App\Support\ProfileLinks::url($otherParty) }}"
         data-other-initial="{{ strtoupper(substr($otherParty->first_name, 0, 1)) }}">
         @foreach ($msgs as $i => $message)
             @if($message->is_inquiry_summary)
@@ -595,16 +598,16 @@
                 @endphp
                 <div class="flex items-end gap-2 self-start max-w-[85%] mb-1.5"
                     data-msg-sender="{{ $message->sender_id }}">
-                    @if($message->sender?->profile_picture)
-                        <img loading="lazy" decoding="async" src="{{ $message->sender->profile_picture }}"
-                            alt="{{ $message->sender->first_name }} {{ $message->sender->last_name }}"
-                            class="w-7 h-7 rounded-full object-cover shrink-0 mb-0.5">
-                    @else
-                        <div class="w-7 h-7 rounded-full bg-[#060D26] text-white flex items-center justify-center text-[11px] font-bold shrink-0 mb-0.5"
-                            aria-hidden="true">
-                            {{ strtoupper(substr($message->sender->first_name, 0, 1)) }}
-                        </div>
-                    @endif
+                    <x-person-link :user="$message->sender" :name="$message->sender->first_name.' '.$message->sender->last_name" class="shrink-0 mb-0.5 rounded-full">
+                        @if($message->sender?->profile_picture)
+                            <img loading="lazy" decoding="async" src="{{ $message->sender->profile_picture }}" alt=""
+                                class="w-7 h-7 rounded-full object-cover">
+                        @else
+                            <div class="w-7 h-7 rounded-full bg-[#060D26] text-white flex items-center justify-center text-[11px] font-bold" aria-hidden="true">
+                                {{ strtoupper(substr($message->sender->first_name, 0, 1)) }}
+                            </div>
+                        @endif
+                    </x-person-link>
 
                     <div class="min-w-0 w-full max-w-[300px] bg-white border border-[#E2E4EC] rounded-2xl shadow-sm overflow-hidden">
                         <div class="flex items-center gap-3 p-3 border-b border-[#E2E4EC]">

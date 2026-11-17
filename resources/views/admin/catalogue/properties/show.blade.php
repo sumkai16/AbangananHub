@@ -207,7 +207,7 @@
                     @if($landlordVerified)<x-admin.status status="Verified" />@endif
                 </div>
                 @if($landlord)
-                    <a href="{{ route('admin.users.show', $landlord) }}" class="mt-2 block text-[14px] font-semibold text-[#060D26] underline-offset-2 hover:underline">{{ trim($landlord->first_name.' '.$landlord->last_name) }}</a>
+                    <x-person-link :user="$landlord" class="mt-2 block text-[14px] font-semibold text-[#060D26]" />
                     <p class="break-words text-[12.5px] text-[#5B6A8E]">{{ $landlord->email ?: '—' }}</p>
                 @else
                     <p class="mt-2 text-[13px] text-[#5B6A8E]">—</p>
@@ -441,7 +441,7 @@
                             @foreach($reviews as $review)
                                 <li class="px-5 py-3.5">
                                     <div class="flex items-center justify-between gap-3">
-                                        <p class="text-[13.5px] font-semibold text-[#060D26]">{{ trim(($review->tenant->first_name ?? '').' '.($review->tenant->last_name ?? '')) ?: '—' }}</p>
+                                        <p class="text-[13.5px] font-semibold text-[#060D26]">@if($review->tenant)<x-person-link :user="$review->tenant" />@else — @endif</p>
                                         <p class="text-[12px] tabular-nums text-[#5B6A8E]"><span class="font-semibold text-[#B45309]">{{ $review->rating }}</span> / 5 · {{ $review->created_at?->format('M j, Y') }}</p>
                                     </div>
                                     <p class="mt-1 max-w-[80ch] text-[13px] leading-relaxed text-[#060D26]/80">{{ $review->review_comment ?: 'No comment.' }}</p>

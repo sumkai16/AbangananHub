@@ -65,7 +65,7 @@
             <div class="shrink-0 flex items-center justify-between gap-3 px-5 sm:px-6 py-3.5 border-b border-[#E2E4EC]">
                 <div class="min-w-0">
                     <h2 id="agreement-title-{{ $reservation->reservation_id }}" class="text-[16px] font-semibold text-[#060D26] leading-tight">Rental agreement</h2>
-                    <p class="text-[12.5px] text-[#5B6A8E] truncate">{{ $tenant->first_name }} {{ $tenant->last_name }} · {{ $reservation->unit?->unit_label }}</p>
+                    <p class="text-[12.5px] text-[#5B6A8E] truncate"><x-person-link :user="$tenant" /> · {{ $reservation->unit?->unit_label }}</p>
                 </div>
                 <div class="flex shrink-0 items-center gap-2">
                     @if($leaseStatus === 'uploaded')
@@ -115,7 +115,7 @@
             <h2 class="text-[18px] font-bold leading-tight text-[#060D26]">Rental details</h2>
             <span class="inline-flex items-center h-6 px-2.5 rounded-full border text-[12px] font-semibold {{ $pill }}">{{ $status['label'] }}</span>
         </div>
-        <p class="mt-1 text-[13px] text-[#5B6A8E]">{{ $tenant->first_name }} {{ $tenant->last_name }} · {{ $reservation->unit->unit_label ?? 'No unit' }} · {{ $reservation->property->title }}</p>
+        <p class="mt-1 text-[13px] text-[#5B6A8E]"><x-person-link :user="$tenant" /> · {{ $reservation->unit->unit_label ?? 'No unit' }} · {{ $reservation->property->title }}</p>
     </div>
 
     <div class="grid gap-5 px-6 py-4 md:grid-cols-2 md:gap-x-8">

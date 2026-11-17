@@ -319,6 +319,7 @@ Route::middleware('auth')->group(function () {
         // The tenant list: add, view, edit, invite, remove.
         Route::post('/tenants', [TenantController::class, 'store'])->name('tenants.store');
         Route::get('/tenants/{landlordTenant}', [TenantController::class, 'show'])->name('tenants.show');
+        Route::get('/tenants/{landlordTenant}/profile', [TenantController::class, 'profile'])->name('tenants.profile');
         Route::patch('/tenants/{landlordTenant}', [TenantController::class, 'update'])->name('tenants.update');
         Route::delete('/tenants/{landlordTenant}', [TenantController::class, 'destroy'])->name('tenants.destroy');
         Route::post('/tenants/{landlordTenant}/invite', [TenantController::class, 'invite'])->middleware('throttle:6,1')->name('tenants.invite');

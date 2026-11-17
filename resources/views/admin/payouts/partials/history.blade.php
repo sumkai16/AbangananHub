@@ -19,7 +19,7 @@
                     @foreach ($rows as $payout)
                         @php $landlord = $payout->landlord; @endphp
                         <tr class="hover:bg-[#F7F8FC] transition-colors duration-200 align-top">
-                            <td class="px-4 py-2.5 text-[13px] text-[#060D26]">{{ $landlord ? trim($landlord->first_name.' '.$landlord->last_name) : '—' }}</td>
+                            <td class="px-4 py-2.5 text-[13px] text-[#060D26]">@if($landlord)<x-person-link :user="$landlord" />@else — @endif</td>
                             <td class="px-4 py-2.5 text-right text-[13px] font-semibold tabular-nums text-[#060D26]">
                                 ₱{{ number_format($payout->amount, 2) }}
                                 <span class="block text-[11px] font-normal text-[#5B6A8E]">{{ $payout->payments_count }} {{ Str::plural('payment', $payout->payments_count) }}</span>

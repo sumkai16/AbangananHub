@@ -102,12 +102,12 @@
                         <div class="flex flex-wrap items-start justify-between gap-3 mb-2">
                             <div>
                                 <p class="text-[13.5px] font-bold text-[#060D26]">
-                                    {{ trim(($review->tenant->first_name ?? '') . ' ' . ($review->tenant->last_name ?? '')) ?: '—' }}
+                                    @if($review->tenant)<x-person-link :user="$review->tenant" />@else — @endif
                                     <span class="text-[#5B6A8E] font-normal">reviewed</span>
                                     {{ $review->property->title ?? '—' }}
                                 </p>
                                 <p class="text-[11.5px] text-[#5B6A8E] mt-0.5">
-                                    Landlord: {{ trim(($review->landlord->first_name ?? '') . ' ' . ($review->landlord->last_name ?? '')) ?: '—' }}
+                                    Landlord: @if($review->landlord)<x-person-link :user="$review->landlord" />@else — @endif
                                     · {{ $review->created_at->format('M d, Y') }}
                                 </p>
                             </div>

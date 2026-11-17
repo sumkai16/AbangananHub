@@ -16,7 +16,7 @@
                 <a href="{{ route('admin.catalogue.properties.show', $document->property) }}" class="hover:text-[#060D26] hover:underline">
                     {{ $document->property->title }}
                 </a>
-                — {{ trim(($document->property->landlord->first_name ?? '') . ' ' . ($document->property->landlord->last_name ?? '')) ?: '—' }}
+                — @if($document->property->landlord)<x-person-link :user="$document->property->landlord" />@else — @endif
             </p>
         </div>
         <x-admin.status :status="$document->isRequested() ? 'Requested' : $document->display_status" />
@@ -37,7 +37,7 @@
                 <div>
                     <dt class="text-[11px] text-[#5B6A8E] font-semibold uppercase tracking-wide">Verified by</dt>
                     <dd class="text-[14px] text-[#060D26] font-medium mt-0.5">
-                        {{ trim($document->verifier->first_name . ' ' . $document->verifier->last_name) }}
+                        <x-person-link :user="$document->verifier" />
                         <span class="text-[#5B6A8E] font-normal">{{ $document->verified_at?->format('M j, Y') }}</span>
                     </dd>
                 </div>
@@ -46,7 +46,7 @@
                 <div>
                     <dt class="text-[11px] text-[#5B6A8E] font-semibold uppercase tracking-wide">Requested by</dt>
                     <dd class="text-[14px] text-[#060D26] font-medium mt-0.5">
-                        {{ trim($document->requester->first_name . ' ' . $document->requester->last_name) }}
+                        <x-person-link :user="$document->requester" />
                     </dd>
                 </div>
             @endif

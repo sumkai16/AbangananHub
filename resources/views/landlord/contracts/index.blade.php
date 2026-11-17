@@ -99,6 +99,7 @@
                                     class="w-full text-left px-5 py-3.5 hover:bg-[#ECEEF6] active:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">
                                     <div class="flex items-start justify-between gap-3">
                                         <div class="min-w-0">
+                                            {{-- The whole card is a button that opens the rental, so the name stays plain here (a link inside a button is invalid). --}}
                                             <p class="text-[13.5px] font-bold text-[#060D26] truncate">{{ $contract->tenant->first_name }} {{ $contract->tenant->last_name }}</p>
                                             <p class="text-[11.5px] text-[#5B6A8E]">{{ $codes[$contract->tenant_id] ?? '' }} · {{ \App\Support\LeaseTerms::reference($contract) }} · {{ $contract->unit->unit_label ?? 'No unit' }} · {{ $contract->property->title }}</p>
                                         </div>
@@ -149,7 +150,7 @@
                                     @endphp
                                     <tr class="hover:bg-[#ECEEF6] transition-colors duration-200">
                                         <td class="px-5 py-3">
-                                            <p class="text-[13px] font-bold text-[#060D26] truncate">{{ $contract->tenant->first_name }} {{ $contract->tenant->last_name }}</p>
+                                            <p class="text-[13px] font-bold text-[#060D26] truncate"><x-person-link :user="$contract->tenant" /></p>
                                             <p class="text-[11.5px] text-[#5B6A8E] truncate">
                                                 {{ $codes[$contract->tenant_id] ?? '' }} · <span class="tabular-nums">{{ \App\Support\LeaseTerms::reference($contract) }}</span>
                                             </p>

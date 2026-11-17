@@ -91,7 +91,7 @@
                                 <tbody class="divide-y divide-[#E2E4EC]">
                                     @foreach($unitReservations as $reservation)
                                         <tr class="hover:bg-[#F7F8FC] transition-colors duration-200">
-                                            <td class="px-4 text-[13px] font-medium text-[#060D26]">{{ trim(($reservation->tenant->first_name ?? '').' '.($reservation->tenant->last_name ?? '')) ?: '—' }}</td>
+                                            <td class="px-4 text-[13px] font-medium text-[#060D26]">@if($reservation->tenant)<x-person-link :user="$reservation->tenant" />@else — @endif</td>
                                             <td class="px-4 text-[13px] whitespace-nowrap tabular-nums text-[#5B6A8E]">{{ $reservation->created_at?->format('M j, Y') }}</td>
                                             <td class="px-4"><x-admin.status :status="$reservation->rental_status" /></td>
                                             <td class="px-4 text-right"><a href="{{ route('admin.reservations.show', $reservation) }}" class="text-[13px] font-semibold text-[#060D26] underline-offset-2 hover:underline">View</a></td>
@@ -123,7 +123,7 @@
                     <div class="px-4 py-2.5">
                         <p class="text-[12px] text-[#5B6A8E]">Landlord</p>
                         @if($landlord)
-                            <a href="{{ route('admin.users.show', $landlord) }}" class="block text-[13px] font-semibold leading-5 text-[#060D26] underline-offset-2 hover:underline">{{ trim($landlord->first_name.' '.$landlord->last_name) }}</a>
+                            <x-person-link :user="$landlord" class="block text-[13px] font-semibold leading-5 text-[#060D26]" />
                             <p class="break-words text-[12px] leading-4 text-[#5B6A8E]">{{ $landlord->email ?: '—' }}</p>
                         @else
                             <p class="text-[13px] text-[#5B6A8E]">—</p>

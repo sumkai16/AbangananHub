@@ -107,7 +107,7 @@
         {{-- Payments to confirm: a tenant says they paid (cash or QR) and is waiting on this landlord. First thing on the
              page, above every figure, so it is never missed. Confirm or Not received works in place. --}}
         @if($pendingClaims->isNotEmpty())
-            <section aria-labelledby="claims-title" class="mb-4 sm:mb-5">
+            <section id="payments-to-confirm" aria-labelledby="claims-title" class="mb-4 scroll-mt-24 sm:mb-5">
                 <h2 id="claims-title" class="mb-2 flex items-center gap-2 text-[14px] font-semibold text-[#060D26]">
                     Payments to confirm
                     <span class="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-[#FF8A66] text-[11px] font-bold tabular-nums text-[#060D26]">{{ $pendingClaims->count() }}</span>
@@ -296,7 +296,7 @@
                                     {{ $item['initials'] }}
                                 </div>
                                 <div class="min-w-0">
-                                    <p class="text-[13.5px] font-semibold text-[#060D26] truncate">{{ $item['name'] }}</p>
+                                    <p class="text-[13.5px] font-semibold text-[#060D26] truncate"><x-person-link :user="$item['tenant']" :name="$item['name']" /></p>
                                     <p class="text-[11px] text-[#5B6A8E] truncate">
                                         {{ $reservation->unit->unit_label ?? '—' }} · {{ $reservation->property->title ?? '' }}
                                     </p>
@@ -393,7 +393,7 @@
                                             </div>
                                             <div class="min-w-0">
                                                 <p class="text-[13.5px] font-semibold text-[#060D26] truncate">
-                                                    {{ $item['name'] }}
+                                                    <x-person-link :user="$item['tenant']" :name="$item['name']" />
                                                 </p>
                                                 <div class="flex items-center gap-1.5 mt-0.5">
                                                     @if($item['tenant']?->is_walk_in)

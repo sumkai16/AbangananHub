@@ -218,7 +218,7 @@
                 <tbody class="divide-y divide-[#E2E4EC]">
                     @forelse($reservations as $reservation)
                         <tr class="hover:bg-[#F7F8FC] transition-colors">
-                            <td class="px-4 py-2.5 font-medium text-[#060D26]">{{ $reservation->tenant->first_name ?? '' }} {{ $reservation->tenant->last_name ?? '' }}</td>
+                            <td class="px-4 py-2.5 font-medium text-[#060D26]">@if($reservation->tenant)<x-person-link :user="$reservation->tenant" />@endif</td>
                             <td class="px-4 py-2.5 text-[#5B6A8E]">{{ $reservation->property->title ?? '—' }}</td>
                             <td class="px-4 py-2.5 text-[#060D26]">{{ $reservation->unit->unit_label ?? '—' }}</td>
                             <td class="px-4 py-2.5">
@@ -310,7 +310,7 @@
                     @forelse($users as $user)
                         @php $userRole = $user->roles->first()?->role; @endphp
                         <tr class="hover:bg-[#F7F8FC] transition-colors">
-                            <td class="px-4 py-2.5 font-medium text-[#060D26]">{{ $user->first_name }} {{ $user->last_name }}</td>
+                            <td class="px-4 py-2.5 font-medium text-[#060D26]"><x-person-link :user="$user" /></td>
                             <td class="px-4 py-2.5 text-[#5B6A8E]">{{ $user->email }}</td>
                             <td class="px-4 py-2.5">
                                 <span class="text-[13px] text-[#060D26]">{{ $userRole ?? '—' }}</span>

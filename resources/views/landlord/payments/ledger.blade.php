@@ -118,7 +118,7 @@
                 @endif
                 <div class="min-w-0 pt-0.5">
                     <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-                        <h1 class="text-[22px] sm:text-[26px] leading-tight font-semibold tracking-tight text-[#060D26] break-words">{{ $tenantName }}</h1>
+                        <h1 class="text-[22px] sm:text-[26px] leading-tight font-semibold tracking-tight text-[#060D26] break-words"><x-person-link :user="$tenant" :name="$tenantName" /></h1>
                         @unless($isActive)
                             <span class="inline-flex items-center h-6 px-2.5 rounded-full border text-[12px] font-semibold {{ $statusPill }}">
                                 {{ $reservation->rental_status }}

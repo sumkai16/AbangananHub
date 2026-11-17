@@ -89,7 +89,7 @@
                             <tr class="hover:bg-[#F7F8FC] transition-colors duration-200">
                                 <td class="px-4 whitespace-nowrap">
                                     <div class="flex items-center gap-1.5">
-                                        <p class="text-[13px] font-semibold text-[#060D26]">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</p>
+                                        <p class="text-[13px] font-semibold text-[#060D26]">@if($tenant)<x-person-link :user="$tenant" />@else — @endif</p>
                                         @if ($tenant?->is_walk_in)
                                             <span class="inline-flex items-center h-5 px-1.5 rounded bg-[#FBBF24]/[0.16] text-[#B45309] text-[11px] font-semibold"
                                                 title="Walk-in tenant — identity not verified by AbangananHub">Walk-in</span>
@@ -116,7 +116,7 @@
                                     @if ($charge->isVoided())
                                         <p class="text-[12px] leading-4 text-[#5B6A8E]">{{ $charge->voidReasonLabel() }} · {{ $charge->voided_at?->format('M j, Y') }}</p>
                                         @if ($charge->voider)
-                                            <p class="text-[12px] leading-4 text-[#5B6A8E]">by {{ trim($charge->voider->first_name.' '.$charge->voider->last_name) }}</p>
+                                            <p class="text-[12px] leading-4 text-[#5B6A8E]">by <x-person-link :user="$charge->voider" /></p>
                                         @endif
                                     @else
                                         <button type="button" x-on:click="openVoid({{ $charge->deposit_charge_id }}, @js($label))"

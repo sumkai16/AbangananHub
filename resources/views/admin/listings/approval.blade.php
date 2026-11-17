@@ -122,7 +122,7 @@
                             <x-admin.status :status="$p->verification_status" />
                             @if ($p->publication_status !== 'Published')<x-admin.status :status="$p->publication_status" />@endif
                         </div>
-                        <p class="text-[13px] leading-5 text-[#5B6A8E]">{{ $landlordName }} @if ($landlordVerified)· Verified landlord @endif · Sent {{ $p->created_at->format('M j, Y') }}, {{ $p->created_at->diffForHumans() }}</p>
+                        <p class="text-[13px] leading-5 text-[#5B6A8E]"><x-person-link :user="$p->landlord" :name="$landlordName" /> @if ($landlordVerified)· Verified landlord @endif · Sent {{ $p->created_at->format('M j, Y') }}, {{ $p->created_at->diffForHumans() }}</p>
                     </div>
                     <a href="{{ route('admin.catalogue.properties.show', $p) }}" class="inline-flex h-8 items-center rounded-lg border border-[#E2E4EC] bg-white px-3 text-[12.5px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#F7F8FC]">Open full page</a>
                 </div>
@@ -171,7 +171,7 @@
                             </p>
                             <div class="mt-auto flex items-center gap-2.5 border-t border-[#E2E4EC] pt-3">
                                 <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#ECEEF6] text-[11px] font-bold text-[#060D26]" aria-hidden="true">{{ strtoupper(collect(explode(' ', $landlordName))->filter()->take(2)->map(fn ($w) => substr($w, 0, 1))->implode('')) }}</span>
-                                <div class="min-w-0 flex-1"><p class="truncate text-[13px] font-semibold leading-4 text-[#060D26]">{{ $landlordName }}</p><p class="truncate text-[12px] leading-4 text-[#5B6A8E]">{{ $p->landlord->email ?? '' }}</p></div>
+                                <div class="min-w-0 flex-1"><p class="truncate text-[13px] font-semibold leading-4 text-[#060D26]"><x-person-link :user="$p->landlord" :name="$landlordName" /></p><p class="truncate text-[12px] leading-4 text-[#5B6A8E]">{{ $p->landlord->email ?? '' }}</p></div>
                                 <x-admin.status :status="$landlordVerified ? 'Verified' : 'Not verified'" :tone="$landlordVerified ? 'green' : 'amber'" />
                             </div>
                         </div>

@@ -130,7 +130,7 @@
                                     <p class="truncate text-[13px] leading-5 text-[#060D26]" title="{{ $payment->reservation?->property?->title }}">{{ $payment->reservation?->property?->title ?? '—' }}</p>
                                     <p class="truncate text-[12px] leading-4 text-[#5B6A8E]">{{ $payment->reservation?->unit?->unit_label ?? '' }}</p>
                                 </td>
-                                <td class="px-4 text-[13px] whitespace-nowrap text-[#060D26]">{{ $payLandlord ? trim($payLandlord->first_name.' '.$payLandlord->last_name) : '—' }}</td>
+                                <td class="px-4 text-[13px] whitespace-nowrap text-[#060D26]">@if($payLandlord)<x-person-link :user="$payLandlord" />@else — @endif</td>
                                 <td class="px-4 text-right">
                                     <p class="text-[13px] font-semibold tabular-nums whitespace-nowrap text-[#060D26]">₱{{ number_format($payment->amount, 2) }}</p>
                                     <p class="text-[12px] leading-4 text-[#5B6A8E]">{{ $payment->payment_type }}</p>
@@ -192,7 +192,7 @@
                                 <dd class="truncate text-[#060D26]" title="{{ $payment->reservation?->property?->title }}">{{ $payment->reservation?->property?->title ?? '—' }}</dd>
                                 <dd class="truncate text-[12px] text-[#5B6A8E]">{{ $payment->reservation?->unit?->unit_label ?? '' }}</dd>
                             </div>
-                            <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Landlord</dt><dd class="truncate text-right text-[#060D26]">{{ $payLandlord ? trim($payLandlord->first_name.' '.$payLandlord->last_name) : '—' }}</dd></div>
+                            <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Landlord</dt><dd class="truncate text-right text-[#060D26]">@if($payLandlord)<x-person-link :user="$payLandlord" />@else — @endif</dd></div>
                             <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Paid by</dt><dd class="min-w-0 truncate text-right text-[#060D26]" title="{{ $payment->reference_no }}">{{ $payment->payment_method ?: '—' }}@if ($payment->reference_no) <span class="text-[#5B6A8E]">· {{ $payment->reference_no }}</span>@endif</dd></div>
                             <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Date</dt><dd class="text-right tabular-nums text-[#060D26]">{{ ($payment->paid_at ?? $payment->created_at)?->format('M j, Y') ?? '—' }}</dd></div>
                         </dl>

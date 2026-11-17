@@ -170,10 +170,10 @@
                                 @php $st = $statusOf($r); @endphp
                                 <li class="px-5 py-3.5">
                                     <div class="flex items-start justify-between gap-3">
-                                        <button type="button" class="min-w-0 text-left cursor-pointer" @click="$dispatch('open-tenant', { url: @js(route('landlord.tenants.show', $r['row'])) })">
-                                            <p class="text-[14px] font-bold text-[#060D26] truncate">{{ $r['name'] }}</p>
+                                        <div class="min-w-0 text-left">
+                                            <p class="text-[14px] font-bold text-[#060D26] truncate"><x-person-link :user="$r['tenant']" /></p>
                                             <p class="text-[12px] text-[#5B6A8E]">{{ $r['code'] }}@if($r['shown']) · {{ $r['shown']->unit->unit_label ?? 'No unit' }} · {{ $r['shown']->property->title }}@else · {{ $r['tenant']->contact_number ?: ($r['tenant']->email ?: 'No contact') }}@endif</p>
-                                        </button>
+                                        </div>
                                         <span class="shrink-0 inline-flex items-center h-6 px-2.5 rounded-full border text-[11px] font-bold {{ $pill[$st['tone']] }}">{{ $st['label'] }}</span>
                                     </div>
                                     <div class="mt-2 flex items-center justify-between gap-3 text-[12px] text-[#5B6A8E]">
@@ -209,10 +209,10 @@
                                         @endphp
                                         <tr class="hover:bg-[#ECEEF6] transition-colors duration-200">
                                             <td class="px-5 py-3">
-                                                <button type="button" class="block w-full min-w-0 text-left cursor-pointer" @click="$dispatch('open-tenant', { url: @js(route('landlord.tenants.show', $r['row'])) })">
-                                                    <span class="block text-[13px] font-bold text-[#060D26] truncate">{{ $r['name'] }}</span>
+                                                <div class="block w-full min-w-0 text-left">
+                                                    <span class="block text-[13px] font-bold text-[#060D26] truncate"><x-person-link :user="$r['tenant']" /></span>
                                                     <span class="block text-[11.5px] text-[#5B6A8E]">{{ $r['code'] }}@if($r['tenant']->is_walk_in) · Added by you{{ $r['tenant']->email ? ', invite pending' : '' }}@endif</span>
-                                                </button>
+                                                </div>
                                             </td>
                                             <td class="px-4 py-3 min-w-0">
                                                 <span class="block text-[13px] text-[#060D26] truncate">{{ $r['tenant']->contact_number ?: '—' }}</span>

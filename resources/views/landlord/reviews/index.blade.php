@@ -119,7 +119,7 @@
                                         </div>
                                         <div>
                                             <p class="text-[13.5px] font-bold text-[#060D26]">
-                                                {{ $review->tenant->first_name }} {{ $review->tenant->last_name }}
+                                                <x-person-link :user="$review->tenant" />
                                             </p>
                                             <p class="text-[12px] text-[#5B6A8E] flex items-center gap-1">
                                                 <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0">

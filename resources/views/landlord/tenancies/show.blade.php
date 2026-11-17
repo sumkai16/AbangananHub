@@ -85,7 +85,7 @@
                         <p class="text-[12px] font-semibold text-[#5B6A8E]">Tenant</p>
                         <div class="flex flex-wrap items-center gap-2">
                             <h1 class="text-[22px] sm:text-[24px] font-semibold tracking-tight text-[#060D26] truncate">
-                                {{ trim(($tenant->first_name ?? '') . ' ' . ($tenant->last_name ?? '')) ?: 'Unknown tenant' }}
+                                <x-person-link :user="$tenant" :name="trim(($tenant->first_name ?? '') . ' ' . ($tenant->last_name ?? '')) ?: 'Unknown tenant'" />
                             </h1>
                             <span class="inline-flex items-center h-6 px-2.5 rounded-full border text-[12px] font-semibold {{ $statusPill }}">
                                 {{ $reservation->rental_status }}

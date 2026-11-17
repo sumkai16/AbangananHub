@@ -190,7 +190,7 @@
                                         <p class="min-w-0 text-[14px] font-semibold leading-snug {{ $row['closed'] ? 'text-[#5B6A8E]' : 'text-[#060D26]' }}">{{ $row['r']->property->title }}</p>
                                         <span class="shrink-0 inline-flex items-center h-6 px-2.5 rounded-full text-[11px] font-bold whitespace-nowrap {{ $row['pill'][1] }}">{{ $row['pill'][0] }}</span>
                                     </div>
-                                    <p class="mt-0.5 text-[12.5px] text-[#5B6A8E] truncate">{{ $row['unit'] }} · {{ $row['landlord'] }}</p>
+                                    <p class="mt-0.5 text-[12.5px] text-[#5B6A8E] truncate">{{ $row['unit'] }} · <x-person-link :user="$row['r']->property->landlord" :name="$row['landlord']" /></p>
                                     <p class="mt-1 text-[12.5px] text-[#060D26] tabular-nums">
                                         Move-in: {{ $row['moveIn'] }} <span class="text-[#5B6A8E]">· {{ $row['duration'] }}</span>
                                     </p>
@@ -231,7 +231,7 @@
                                         </div>
                                         <div class="min-w-0">
                                             <p class="text-[14px] font-semibold truncate {{ $row['closed'] ? 'text-[#5B6A8E]' : 'text-[#060D26]' }}" title="{{ $row['r']->property->title }}">{{ $row['r']->property->title }}</p>
-                                            <p class="text-[12.5px] text-[#5B6A8E] truncate">{{ $row['unit'] }} · {{ $row['landlord'] }}</p>
+                                            <p class="text-[12.5px] text-[#5B6A8E] truncate">{{ $row['unit'] }} · <x-person-link :user="$row['r']->property->landlord" :name="$row['landlord']" /></p>
                                             @if($row['details']['rejection_reason'])
                                                 <p class="text-[12.5px] text-[#B91C1C] truncate" title="{{ $row['details']['rejection_reason'] }}">Reason: {{ $row['details']['rejection_reason'] }}</p>
                                             @endif

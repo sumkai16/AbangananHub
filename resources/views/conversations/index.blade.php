@@ -861,7 +861,7 @@
                             const slot = document.createElement('span');
                             slot.setAttribute('data-avatar-slot', '');
                             slot.className = 'contents';
-                            slot.appendChild(this.buildAvatar(data.sender_avatar, senderFirst, data.sender_name));
+                            slot.appendChild(this.buildAvatar(data.sender_avatar, senderFirst, data.sender_name, msgList.dataset.otherProfile));
                             row.appendChild(slot);
 
                             const wrap = document.createElement('div');
@@ -873,7 +873,7 @@
 
                             const name = document.createElement('p');
                             name.className = 'text-[11px] font-bold text-[#060D26] mb-1';
-                            name.textContent = senderFirst;
+                            name.appendChild(this.profileLink(msgList.dataset.otherProfile, senderFirst, senderFirst, 'cursor-pointer underline-offset-2 decoration-1 hover:underline focus-visible:underline'));
                             bubble.appendChild(name);
                             bubble.appendChild(this.buildBody(data.message));
 
@@ -913,19 +913,47 @@
                         return stamp;
                     },
 
-                    buildAvatar(url, firstName, fullName) {
-                        if (url) {
-                            const img = document.createElement('img');
-                            img.src = url;
-                            img.alt = fullName || firstName || '';
-                            img.className = 'w-7 h-7 rounded-full object-cover shrink-0 mb-0.5';
-                            return img;
+                    // The other person's name or avatar as a link to their profile in a new tab (the same link the server
+                    // draws on a reload). The page gives the address in data-other-profile; with none, plain text or the node itself.
+                    profileLink(href, text, label, cls, child) {
+                        if (!href) return child || document.createTextNode(text);
+                        const a = document.createElement('a');
+                        a.href = href;
+                        a.target = '_blank';
+                        a.rel = 'noopener';
+                        a.className = cls;
+                        if (child) {
+                            a.setAttribute('aria-label', (label || text) + ' (opens profile in a new tab)');
+                            a.appendChild(child);
+                        } else {
+                            a.textContent = text;
+                            const hint = document.createElement('span');
+                            hint.className = 'sr-only';
+                            hint.textContent = ' (opens profile in a new tab)';
+                            a.appendChild(hint);
                         }
-                        const fallback = document.createElement('div');
-                        fallback.className = 'w-7 h-7 rounded-full bg-[#060D26] text-white flex items-center justify-center text-[11px] font-bold shrink-0 mb-0.5';
-                        fallback.setAttribute('aria-hidden', 'true');
-                        fallback.textContent = (firstName || '?').charAt(0).toUpperCase();
-                        return fallback;
+                        return a;
+                    },
+
+                    buildAvatar(url, firstName, fullName, profileHref) {
+                        let face;
+                        if (url) {
+                            face = document.createElement('img');
+                            face.src = url;
+                            face.alt = '';
+                            face.className = 'w-7 h-7 rounded-full object-cover';
+                        } else {
+                            face = document.createElement('div');
+                            face.className = 'w-7 h-7 rounded-full bg-[#060D26] text-white flex items-center justify-center text-[11px] font-bold';
+                            face.setAttribute('aria-hidden', 'true');
+                            face.textContent = (firstName || '?').charAt(0).toUpperCase();
+                        }
+                        if (!profileHref) {
+                            face.classList.add('shrink-0', 'mb-0.5');
+                            if (url) face.alt = fullName || firstName || '';
+                            return face;
+                        }
+                        return this.profileLink(profileHref, '', fullName || firstName, 'shrink-0 mb-0.5 rounded-full cursor-pointer transition-opacity duration-200 hover:opacity-80', face);
                     },
 
                     buildSpacer() {

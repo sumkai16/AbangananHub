@@ -716,7 +716,7 @@
                                         {{ strtoupper(substr($review->tenant->first_name ?? '?', 0, 1)) }}
                                     </div>
                                     <div>
-                                        <p class="text-sm font-semibold text-[#060D26]">{{ $review->tenant->first_name }} {{ $review->tenant->last_name }}</p>
+                                        <p class="text-sm font-semibold text-[#060D26]"><x-person-link :user="$review->tenant" /></p>
                                         <p class="text-[11px] text-[#5B6A8E]">{{ $review->created_at->format('M d, Y') }}</p>
                                     </div>
                                 </div>

@@ -284,7 +284,7 @@
                                             @endif
                                             <div class="min-w-0">
                                                 <p class="text-[13px] font-bold text-[#060D26] truncate">
-                                                    {{ $reservation->tenant->first_name ?? 'Unknown' }} {{ $reservation->tenant->last_name ?? '' }}
+                                                    <x-person-link :user="$reservation->tenant" :name="trim(($reservation->tenant->first_name ?? 'Unknown').' '.($reservation->tenant->last_name ?? ''))" />
                                                 </p>
                                                 <p class="text-[11.5px] text-[#5B6A8E]">{{ $reservation->tenant->contact_number ?? '—' }}</p>
                                             </div>
@@ -379,7 +379,7 @@
                                     @endif
                                     <div class="min-w-0">
                                         <p class="text-[13px] font-bold text-[#060D26] truncate">
-                                            {{ $reservation->tenant->first_name ?? 'Unknown' }} {{ $reservation->tenant->last_name ?? '' }}
+                                            <x-person-link :user="$reservation->tenant" :name="trim(($reservation->tenant->first_name ?? 'Unknown').' '.($reservation->tenant->last_name ?? ''))" />
                                         </p>
                                         <p class="text-[11.5px] text-[#5B6A8E]">{{ $reservation->tenant->contact_number ?? '—' }}</p>
                                     </div>

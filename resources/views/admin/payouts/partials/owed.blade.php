@@ -56,7 +56,7 @@
                                 <div class="flex items-center gap-3">
                                     <span class="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-[#ECEEF6] text-[11px] font-bold text-[#060D26]" aria-hidden="true">{{ $initials($name) }}</span>
                                     <div class="min-w-0">
-                                        <p class="truncate text-[13.5px] font-semibold text-[#060D26]">{{ $name }}</p>
+                                        <p class="truncate text-[13.5px] font-semibold text-[#060D26]"><x-person-link :user="$landlord" :name="$name" /></p>
                                         @if ($hasDestination)
                                             <p class="truncate text-[12.5px] text-[#5B6A8E]">GCash {{ $account?->gcash_number }} ({{ $account?->gcash_account_name }})</p>
                                         @else
@@ -157,7 +157,7 @@
                                                 @foreach ($row['payments'] as $payment)
                                                     @php $tenant = $payment->reservation?->tenant; @endphp
                                                     <tr>
-                                                        <td class="px-4 py-2.5 text-[13px] text-[#060D26]">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</td>
+                                                        <td class="px-4 py-2.5 text-[13px] text-[#060D26]">@if($tenant)<x-person-link :user="$tenant" />@else — @endif</td>
                                                         <td class="px-4 py-2.5 text-[13px] text-[#5B6A8E]">{{ $payment->payment_type }}</td>
                                                         <td class="px-4 py-2.5 text-right text-[13px] font-semibold tabular-nums text-[#060D26]">₱{{ number_format($payment->amount, 2) }}</td>
                                                         <td class="px-4 py-2.5 text-right text-[13px] tabular-nums text-[#5B6A8E]">{{ ($payment->released_at ?? $payment->paid_at)?->format('M d, Y') ?? '—' }}</td>

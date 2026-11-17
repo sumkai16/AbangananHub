@@ -87,7 +87,7 @@
                                 {{-- Bubble --}}
                                 <div class="max-w-[75%]">
                                     <p class="text-[10.5px] font-semibold {{ $isTenant ? 'text-[#060D26]' : 'text-[#15803D] text-right' }} mb-1">
-                                        {{ $senderName }} · {{ $roleLabel }}
+                                        <x-person-link :user="$msg->sender" :name="$senderName" /> · {{ $roleLabel }}
                                     </p>
                                     <div class="px-4 py-2.5 rounded-2xl text-[13px] leading-relaxed
                                         {{ $isTenant
@@ -246,7 +246,7 @@
                         </div>
                         <div>
                             <p class="text-[13px] font-bold text-[#060D26]">
-                                {{ trim($conversation->tenant->first_name . ' ' . $conversation->tenant->last_name) }}
+                                <x-person-link :user="$conversation->tenant" />
                             </p>
                             <p class="text-[11px] text-[#5B6A8E]">{{ $conversation->tenant->email }}</p>
                         </div>
@@ -270,7 +270,7 @@
                         </div>
                         <div>
                             <p class="text-[13px] font-bold text-[#060D26]">
-                                {{ trim($conversation->landlord->first_name . ' ' . $conversation->landlord->last_name) }}
+                                <x-person-link :user="$conversation->landlord" />
                             </p>
                             <p class="text-[11px] text-[#5B6A8E]">{{ $conversation->landlord->email }}</p>
                         </div>

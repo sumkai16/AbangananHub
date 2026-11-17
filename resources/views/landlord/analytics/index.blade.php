@@ -389,7 +389,7 @@
                                             in {{ $activity->property?->title ?? 'a property' }} {{ $st['verb'] }}
                                         </p>
                                         <p class="text-[11px] text-[#5B6A8E] mt-0.5">
-                                            @if($person)by {{ $person }} &middot; @endif{{ $activity->created_at->diffForHumans() }}
+                                            @if($person)by <x-person-link :user="$activity->tenant?->first_name ? $activity->tenant : $activity->actor" :name="$person" /> &middot; @endif{{ $activity->created_at->diffForHumans() }}
                                         </p>
                                     </div>
                                 </div>

@@ -69,7 +69,7 @@
             @forelse($platformFeedback as $f)
                 <div class="flex items-start justify-between gap-3 border-t border-[#E2E4EC] py-2.5">
                     <div class="min-w-0">
-                        <p class="text-[13px] font-semibold text-[#060D26]">{{ $f->user?->first_name }} {{ $f->user?->last_name }} <span class="font-normal text-[#5B6A8E]">· {{ $f->updated_at->diffForHumans() }}</span></p>
+                        <p class="text-[13px] font-semibold text-[#060D26]"><x-person-link :user="$f->user" /> <span class="font-normal text-[#5B6A8E]">· {{ $f->updated_at->diffForHumans() }}</span></p>
                         @if($f->comment)<p class="mt-0.5 text-[13px] text-[#5B6A8E]">{{ $f->comment }}</p>@endif
                     </div>
                     <x-star-rating :rating="$f->rating" :show-value="false" />

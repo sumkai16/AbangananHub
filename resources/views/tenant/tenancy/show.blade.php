@@ -165,7 +165,7 @@
                         @endunless
                     </div>
                     <p class="mt-1 text-[13.5px] leading-snug text-[#5B6A8E] line-clamp-2">
-                        {{ $reservation->property->title ?? '' }} · Landlord {{ $landlordName }}@if($reservation->target_move_in_date) · Moved in {{ $reservation->target_move_in_date->format('M j, Y') }}@endif
+                        {{ $reservation->property->title ?? '' }} · Landlord <x-person-link :user="$landlordUser" :name="$landlordName" />@if($reservation->target_move_in_date) · Moved in {{ $reservation->target_move_in_date->format('M j, Y') }}@endif
                     </p>
                 </div>
             </div>
@@ -494,7 +494,7 @@
                         <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-3">Signatures</p>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <p class="text-[13px] font-bold text-[#060D26]">{{ $landlord->first_name }} {{ $landlord->last_name }}</p>
+                                <p class="text-[13px] font-bold text-[#060D26]"><x-person-link :user="$landlord" /></p>
                                 <p class="text-[11px] text-[#5B6A8E]">Landlord</p>
                                 @if($reservation->landlord_tc_accepted_at)
                                     <p class="text-[11px] text-[#15803D] font-semibold mt-1.5">

@@ -377,7 +377,7 @@
                                                     </div>
                                                 @endif
                                                 <div class="min-w-0">
-                                                    <p class="text-[12.5px] font-semibold text-[#060D26] truncate max-w-[140px]">{{ $tenantName }}</p>
+                                                    <p class="text-[12.5px] font-semibold text-[#060D26] truncate max-w-[140px]"><x-person-link :user="$activeRes->tenant" :name="$tenantName" /></p>
                                                     <p class="text-[11px] text-[#5B6A8E]">{{ $activeRes->tenant->contact_number ?? '—' }}</p>
                                                 </div>
                                             </div>

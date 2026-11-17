@@ -35,7 +35,7 @@
                         <tr class="align-top hover:bg-[#F7F8FC] transition-colors duration-200">
                             <td class="px-4 py-3">
                                 @if($tenant)
-                                    <a href="{{ route('admin.users.show', $tenant) }}" class="text-[12.5px] font-semibold text-[#060D26] hover:underline">{{ trim($tenant->first_name.' '.$tenant->last_name) }}</a>
+                                    <x-person-link :user="$tenant" class="text-[12.5px] font-semibold text-[#060D26]" />
                                     <p class="max-w-[220px] truncate text-[11px] text-[#5B6A8E]">{{ $tenant->email }}</p>
                                 @else
                                     <p class="text-[12.5px] text-[#5B6A8E]">Deleted account</p>
@@ -43,7 +43,7 @@
                             </td>
                             <td class="px-4 py-3 text-[12.5px] text-[#060D26]">
                                 @if($hold->landlord)
-                                    {{ trim($hold->landlord->first_name.' '.$hold->landlord->last_name) }}
+                                    <x-person-link :user="$hold->landlord" />
                                 @else
                                     Admin
                                     @if($hold->source_hold_id)<p class="text-[11px] text-[#5B6A8E]">Possible duplicate of hold #{{ $hold->source_hold_id }}</p>@endif

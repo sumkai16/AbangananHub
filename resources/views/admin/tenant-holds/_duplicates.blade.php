@@ -26,7 +26,7 @@
                         <tr class="align-top hover:bg-[#F7F8FC] transition-colors duration-200">
                             <td class="px-4 py-3">
                                 @if($new)
-                                    <a href="{{ route('admin.users.show', $new) }}" class="text-[12.5px] font-semibold text-[#060D26] hover:underline">{{ trim($new->first_name.' '.$new->last_name) }}</a>
+                                    <x-person-link :user="$new" class="text-[12.5px] font-semibold text-[#060D26]" />
                                     <p class="max-w-[220px] truncate text-[11px] text-[#5B6A8E]">{{ $new->email }}</p>
                                     <p class="text-[11px] text-[#5B6A8E]">Joined {{ $new->created_at?->timezone($tz)->format('M j, Y') }}</p>
                                 @else
@@ -35,7 +35,7 @@
                             </td>
                             <td class="px-4 py-3">
                                 @if($held)
-                                    <a href="{{ route('admin.users.show', $held) }}" class="text-[12.5px] font-semibold text-[#060D26] hover:underline">{{ trim($held->first_name.' '.$held->last_name) }}</a>
+                                    <x-person-link :user="$held" class="text-[12.5px] font-semibold text-[#060D26]" />
                                     <p class="max-w-[220px] truncate text-[11px] text-[#5B6A8E]">{{ $held->email }}</p>
                                     <p class="text-[11px] text-[#5B6A8E]">On hold, reported by {{ $alert->hold->landlord ? trim($alert->hold->landlord->first_name.' '.$alert->hold->landlord->last_name) : 'an admin' }}</p>
                                 @endif

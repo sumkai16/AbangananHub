@@ -39,11 +39,13 @@
 
     {{-- Header --}}
     <div class="px-5 py-3.5 border-b border-[#E2E4EC] flex items-center gap-3 flex-shrink-0">
-        <div class="w-9 h-9 rounded-full bg-[#060D26] text-white flex items-center justify-center font-bold text-xs flex-shrink-0" aria-hidden="true">
-            {{ strtoupper(substr($otherParty->first_name, 0, 1)) }}
-        </div>
+        <x-person-link :user="$otherParty" :name="$otherParty->first_name.' '.$otherParty->last_name" class="flex-shrink-0 rounded-full">
+            <div class="w-9 h-9 rounded-full bg-[#060D26] text-white flex items-center justify-center font-bold text-xs" aria-hidden="true">
+                {{ strtoupper(substr($otherParty->first_name, 0, 1)) }}
+            </div>
+        </x-person-link>
         <div class="min-w-0 flex-1">
-            <h2 class="text-[13px] font-normal text-[#060D26] truncate">{{ $otherParty->first_name }} {{ $otherParty->last_name }}</h2>
+            <h2 class="text-[13px] font-normal text-[#060D26] truncate"><x-person-link :user="$otherParty" /></h2>
             <p class="text-[11px] text-[#5B6A8E] truncate">
                 {{ $conversation->property->title }}@if($conversation->unit) &middot; {{ $conversation->unit->unit_label }}@endif
                 @if($since) &middot; {{ $isLandlord ? 'Tenant' : 'Living here' }} since {{ $since }}@endif
@@ -77,6 +79,7 @@
     {{-- Messages --}}
     <div id="message-list" class="flex-1 px-4 sm:px-5 py-4 overflow-y-auto flex flex-col gap-1 scroll-smooth bg-[#F7F8FC]"
         data-other-avatar="{{ $otherParty->profile_picture }}"
+        data-other-profile="{{ \App\Support\ProfileLinks::url($otherParty) }}"
         data-other-initial="{{ strtoupper(substr($otherParty->first_name, 0, 1)) }}">
         @if($msgs->isEmpty())
             <div class="m-auto max-w-[260px] text-center">

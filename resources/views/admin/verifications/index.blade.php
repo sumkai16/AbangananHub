@@ -126,7 +126,7 @@
                 <div class="flex flex-wrap items-start justify-between gap-3 border-b border-[#E2E4EC] px-5 py-4">
                     <div class="min-w-0">
                         <div class="flex flex-wrap items-center gap-2.5">
-                            <h2 class="text-[17px] font-semibold leading-6 tracking-tight text-[#060D26]">{{ $name }}</h2>
+                            <h2 class="text-[17px] font-semibold leading-6 tracking-tight text-[#060D26]"><x-person-link :user="$v->user" :name="$name" /></h2>
                             <x-admin.status :status="$v->verification_status" />
                             @if ($flagged && $v->verification_status === 'Pending')<x-admin.status status="Needs a closer look" tone="red" />@endif
                         </div>

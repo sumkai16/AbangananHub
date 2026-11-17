@@ -140,7 +140,7 @@
                                     </div>
                                 </td>
                                 <td class="px-4 whitespace-nowrap text-[13px] text-[#060D26]">
-                                    {{ trim(($res->property->landlord->first_name ?? '') . ' ' . ($res->property->landlord->last_name ?? '')) ?: '—' }}
+                                    @if($res->property?->landlord)<x-person-link :user="$res->property->landlord" />@else — @endif
                                 </td>
                                 <td class="px-4 whitespace-nowrap text-[13px] tabular-nums text-[#5B6A8E]">
                                     {{ $res->target_move_in_date?->format('M j, Y') ?? '—' }}

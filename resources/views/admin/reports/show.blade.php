@@ -26,7 +26,7 @@
             <x-card>
                 <p class="text-[11px] font-bold uppercase tracking-wider text-[#5B6A8E] mb-2">Reported By</p>
                 <p class="text-[14px] font-semibold text-[#060D26]">
-                    {{ $report->reporter ? $report->reporter->first_name . ' ' . $report->reporter->last_name : '—' }}
+                    @if($report->reporter)<x-person-link :user="$report->reporter" />@else — @endif
                 </p>
                 <p class="text-[12.5px] text-[#5B6A8E] mt-0.5">{{ $report->reporter->email ?? '' }}</p>
             </x-card>
@@ -38,8 +38,7 @@
                     <p class="text-[14px] font-semibold text-[#060D26]">{{ $report->property->title }}</p>
                     <p class="text-[12.5px] text-[#5B6A8E] mt-0.5">Property Listing</p>
                 @elseif($report->reportedUser)
-                    <p class="text-[14px] font-semibold text-[#060D26]">{{ $report->reportedUser->first_name }}
-                        {{ $report->reportedUser->last_name }}
+                    <p class="text-[14px] font-semibold text-[#060D26]"><x-person-link :user="$report->reportedUser" />
                     </p>
                     <p class="text-[12.5px] text-[#5B6A8E] mt-0.5">{{ $report->reportedUser->email }} · User</p>
                 @else

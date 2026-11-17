@@ -63,11 +63,11 @@
                     </thead>
                     <tbody class="divide-y divide-[#E2E4EC]">
                         @foreach ($documents as $document)
-                            @php $landlord = trim(($document->property->landlord->first_name ?? '').' '.($document->property->landlord->last_name ?? '')) ?: '—'; @endphp
+                            @php $landlord = $document->property->landlord ?? null; @endphp
                             <tr class="transition-colors duration-200 hover:bg-[#F7F8FC]">
                                 <td class="px-4 text-[13px] font-semibold whitespace-nowrap text-[#060D26]">{{ $document->document_type }}</td>
                                 <td class="max-w-0 px-4"><p class="truncate text-[13px] text-[#060D26]" title="{{ $document->property->title ?? '' }}">{{ $document->property->title ?? '—' }}</p></td>
-                                <td class="px-4 text-[13px] whitespace-nowrap text-[#060D26]">{{ $landlord }}</td>
+                                <td class="px-4 text-[13px] whitespace-nowrap text-[#060D26]">@if($landlord)<x-person-link :user="$landlord" />@else — @endif</td>
                                 <td class="px-4 text-[13px] tabular-nums whitespace-nowrap text-[#060D26]">{{ $document->document_number ?: '—' }}</td>
                                 <td class="px-4 whitespace-nowrap">
                                     @if($document->expiry_date)

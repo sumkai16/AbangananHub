@@ -268,7 +268,7 @@
                                                             <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#ECEEF6] text-[10px] font-bold text-[#060D26]">{{ strtoupper(substr($tenant->first_name, 0, 1).substr($tenant->last_name ?? '', 0, 1)) }}</div>
                                                         @endif
                                                         <div class="min-w-0">
-                                                            <p class="max-w-[140px] truncate text-[12.5px] font-semibold text-[#060D26]">{{ $tenantName }}</p>
+                                                            <p class="max-w-[140px] truncate text-[12.5px] font-semibold text-[#060D26]"><x-person-link :user="$tenant" :name="$tenantName" /></p>
                                                             <p class="text-[11px] text-[#5B6A8E]">{{ $tenant->contact_number ?? '—' }}</p>
                                                         </div>
                                                     </div>

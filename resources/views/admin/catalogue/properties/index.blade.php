@@ -209,7 +209,7 @@
                                 </td>
                                 <td class="px-4 py-3">
                                     <p class="text-[12.5px] font-semibold text-[#060D26] truncate max-w-[160px]">
-                                        {{ trim(($property->landlord->first_name ?? '') . ' ' . ($property->landlord->last_name ?? '')) ?: '—' }}
+                                        @if($property->landlord)<x-person-link :user="$property->landlord" />@else — @endif
                                     </p>
                                     <p class="text-[11px] text-[#5B6A8E] truncate max-w-[160px]">{{ $property->landlord->email ?? '' }}</p>
                                 </td>

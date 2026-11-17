@@ -82,7 +82,7 @@
                                 </td>
                                 <td class="px-4 py-3">
                                     @if($e->user)
-                                        <a href="{{ route('admin.users.show', $e->user) }}" class="text-[12.5px] font-semibold text-[#060D26] hover:underline">{{ trim($e->user->first_name.' '.$e->user->last_name) }}</a>
+                                        <x-person-link :user="$e->user" class="text-[12.5px] font-semibold text-[#060D26]" />
                                         <p class="text-[11px] text-[#5B6A8E] truncate max-w-[220px]">{{ $e->user->email }}</p>
                                     @else
                                         <p class="text-[12.5px] text-[#5B6A8E] truncate max-w-[220px]">{{ $e->email ?: 'Unknown' }}</p>

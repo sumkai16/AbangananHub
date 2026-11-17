@@ -148,7 +148,7 @@
 
                 <x-card>
                     <p class="text-[12px] text-[#5B6A8E]">Applicant</p>
-                    <a href="{{ route('admin.users.show', $verification->user) }}" class="block text-[13px] font-semibold text-[#060D26] underline-offset-2 hover:underline">{{ $verification->user->first_name }} {{ $verification->user->last_name }}</a>
+                    <x-person-link :user="$verification->user" class="block text-[13px] font-semibold text-[#060D26]" />
                     <p class="break-words text-[12px] text-[#5B6A8E]">{{ $verification->user->email }}</p>
                 </x-card>
             </div>
