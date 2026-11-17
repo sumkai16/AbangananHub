@@ -1,6 +1,8 @@
 @extends(auth()->user()->usesLandlordShell() ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
 
 @section('content')
+    {{-- Follows this reservation live (resources/js/live-page.js): the landlord recording or confirming a payment redraws the ledger, no reload. --}}
+    <div hidden data-live-page data-live-user="{{ auth()->id() }}" data-live-reservation="{{ $reservation->reservation_id }}" data-live-conversation="{{ $reservation->conversation_id }}"></div>
     @php
         $unit = $reservation->unit;
         $isActive = $reservation->rental_status === 'Occupied';
@@ -448,24 +450,6 @@
         @endif
     </div>
 
-    @if($isActive)
-        {{-- The landlord may record an offline payment while this page is open
-             — mirrors landlord/payments/ledger.blade.php's listener so both
-             sides of the ledger stay in sync without a manual refresh. --}}
-        @push('scripts')
-            <script>
-                document.addEventListener('DOMContentLoaded', () => {
-                    if (!window.Echo) return;
-                    window.Echo.private('user.{{ auth()->id() }}')
-                        .listen('.PaymentStatusUpdated', (e) => {
-                            if (e.reservation_id === {{ $reservation->reservation_id }}) {
-                                window.location.reload();
-                            }
-                        });
-                });
-            </script>
-        @endpush
-    @endif
     <x-rent-period-modal />
 
     {{-- "View lease" — read-only, since a tenant only reaches this page once

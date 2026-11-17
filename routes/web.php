@@ -171,6 +171,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/reservations', [ReservationController::class, 'store'])->middleware('tenant.hold')->name('reservations.store');
         Route::patch('/reservations/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel');
         Route::post('/reservations/{reservation}/request-refund', [ReservationController::class, 'requestRefund'])->name('reservations.requestRefund');
+        // The landlord kept money paid directly: send it to AbangananHub as a report, once.
+        Route::post('/reservations/{reservation}/escalate-refund', [ReservationController::class, 'escalateRefund'])->name('reservations.escalateRefund');
 
         Route::get('/reservations/{reservation}/agreement', [AgreementController::class, 'show'])->name('agreements.show');
         Route::post('/reservations/{reservation}/agreement/sign', [AgreementController::class, 'sign'])->name('agreements.sign');
@@ -251,6 +253,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/lease-policies/panel', [LeaseTemplateController::class, 'panel'])->name('leases.panel');
         Route::patch('/lease-policies/assign', [LeaseTemplateController::class, 'assign'])->name('lease-templates.assign');
         Route::post('/lease-policies/templates/preview', [LeaseTemplateController::class, 'preview'])->name('lease-templates.preview');
+        // Read-only view of a policy's wording (the Read button on the Policies page).
+        Route::get('/lease-policies/standard/read', [LeaseTemplateController::class, 'readStandard'])->name('lease-templates.read-standard');
+        Route::get('/lease-policies/templates/{leaseTemplate}/read', [LeaseTemplateController::class, 'read'])->name('lease-templates.read');
         Route::resource('lease-policies/templates', LeaseTemplateController::class)
             ->only(['create', 'store', 'edit', 'update', 'destroy'])
             ->parameters(['templates' => 'leaseTemplate'])
@@ -436,6 +441,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/catalogue/units/export', [UnitCatalogueController::class, 'export'])->name('catalogue.units.export');
         Route::get('/catalogue/units', [UnitCatalogueController::class, 'index'])->name('catalogue.units.index');
 
+        // Refund requests: held-money move-in disputes and kept-money escalations in one queue. The money actions are the Payments ones.
+        Route::get('/refund-requests', [App\Http\Controllers\Admin\RefundRequestController::class, 'index'])->name('refund-requests.index');
+
         Route::get('/reports', [App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/{report}', [App\Http\Controllers\Admin\ReportController::class, 'show'])->name('reports.show');
         Route::patch('/reports/{report}/resolve', [App\Http\Controllers\Admin\ReportController::class, 'resolve'])->name('reports.resolve');
@@ -506,12 +514,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
     Route::post('/conversations', [ConversationController::class, 'store'])->middleware('tenant.hold')->name('conversations.store');
     Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
+    Route::post('/conversations/{conversation}/read', [ConversationController::class, 'markRead'])->name('conversations.read');
     Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
 
     // Post-move-in chat and its concern cards. Both sides use the same URLs; policies decide.
     Route::get('/tenancy/{reservation}/chat', [ConversationController::class, 'tenancyChat'])->name('tenancy.chat');
     Route::post('/conversations/{conversation}/concerns', [TenantConcernController::class, 'store'])->name('concerns.store');
     Route::post('/conversations/{conversation}/payment-qr', [PaymentQrShareController::class, 'store'])->name('paymentQr.store');
+    Route::post('/reservations/{reservation}/payment-qr-request', [\App\Http\Controllers\PaymentQrRequestController::class, 'store'])->middleware('throttle:10,1')->name('paymentQr.request');
     Route::patch('/concerns/{concern}/status', [TenantConcernController::class, 'updateStatus'])->name('concerns.status');
 
     // Notifications

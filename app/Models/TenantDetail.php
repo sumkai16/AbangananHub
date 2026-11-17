@@ -73,16 +73,21 @@ class TenantDetail extends Model
      * an agreement); the relationship stays optional there, because the name and number are what a
      * landlord actually dials.
      */
-    public static function rules(bool $required): array
+    public static function rules(bool $required, ?self $existing = null): array
     {
-        $presence = $required ? ['required'] : ['nullable'];
+        // Where the details are optional, they still come in pairs: a name without a number (or an ID type without an
+        // ID number) is no use to a landlord, and is only found out at signing. A half that is already saved counts as
+        // given, because a blank box on an edit form means "keep what is saved" (the ID number is never shown back).
+        $pair = fn (string $mine, string $other) => $required
+            ? ['required']
+            : (filled($existing?->{$mine}) ? ['nullable'] : ['nullable', "required_with:{$other}"]);
 
         return [
-            'emergency_contact_name'         => [...$presence, 'string', 'max:150'],
+            'emergency_contact_name'         => [...$pair('emergency_contact_name', 'emergency_contact_number'), 'string', 'max:150'],
             'emergency_contact_relationship' => ['nullable', 'string', Rule::in(self::RELATIONSHIPS)],
-            'emergency_contact_number'       => [...$presence, 'string', 'max:20', 'regex:/^[0-9+\-\s()]{7,20}$/'],
-            'id_type'                        => [...$presence, 'string', Rule::in(self::ID_TYPES)],
-            'id_number'                      => [...$presence, 'string', 'max:50'],
+            'emergency_contact_number'       => [...$pair('emergency_contact_number', 'emergency_contact_name'), 'string', 'max:20', 'regex:/^[0-9+\-\s()]{7,20}$/'],
+            'id_type'                        => [...$pair('id_type', 'id_number'), 'string', Rule::in(self::ID_TYPES)],
+            'id_number'                      => [...$pair('id_number', 'id_type'), 'string', 'max:50'],
         ];
     }
 
@@ -90,6 +95,10 @@ class TenantDetail extends Model
     {
         return [
             'emergency_contact_number.regex' => 'Enter a valid phone number for your emergency contact.',
+            'emergency_contact_name.required_with' => 'Add a name for the emergency contact, or leave the number empty too.',
+            'emergency_contact_number.required_with' => 'Add a phone number for the emergency contact, or leave the name empty too.',
+            'id_type.required_with' => 'Choose the ID type that goes with the ID number, or leave both empty.',
+            'id_number.required_with' => 'Enter the ID number that goes with the ID type, or leave both empty.',
             'id_type.in'                     => 'Choose one of the listed ID types.',
         ];
     }

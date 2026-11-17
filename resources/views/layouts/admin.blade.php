@@ -123,103 +123,104 @@
                 <x-admin.nav-item label="Dashboard" class="mb-3" :href="route('admin.dashboard')" :active="$cur === 'admin.dashboard'"
                     icon="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
 
-                <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                    class="px-3 pt-2 pb-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest whitespace-nowrap">
-                    User Management</p>
-
-                <x-admin.nav-item label="Users" :href="route('admin.users.index')" :active="str_starts_with($cur, 'admin.users.')"
-                    icon="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0Zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0Z" />
-
-                <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                    class="px-3 pt-4 pb-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest whitespace-nowrap">
-                    Verification &amp; Approvals</p>
-
-                <x-admin.nav-item label="Landlord Verifications" :href="route('admin.verifications.index')" :active="str_starts_with($cur, 'admin.verifications')"
-                    icon="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-                <x-admin.nav-item label="Property Verifications" :href="route('admin.listings.approval')" :active="$cur === 'admin.listings.approval'"
-                    icon="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-                <x-admin.nav-item label="Property Documents" :href="route('admin.documents.index')" :active="str_starts_with($cur, 'admin.documents')"
-                    icon="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-
-                <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                    class="px-3 pt-4 pb-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest whitespace-nowrap">
-                    Property Management</p>
-
-                <x-admin.nav-item label="Properties" :href="route('admin.catalogue.properties.index')" :active="str_starts_with($cur, 'admin.catalogue.properties')"
-                    icon="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-                <x-admin.nav-item label="Units" :href="route('admin.catalogue.units.index')" :active="str_starts_with($cur, 'admin.catalogue.units') || str_starts_with($cur, 'admin.units')"
-                    icon="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm0 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0115.75 3.75H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zm0 9.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
-
-                <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                    class="px-3 pt-4 pb-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest whitespace-nowrap">
-                    Rentals</p>
-
-                <x-admin.nav-item label="Reservations" :href="route('admin.reservations.index')" :active="str_starts_with($cur, 'admin.reservations')"
-                    icon="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                <x-admin.nav-item label="Payments" :href="route('admin.payments.index')" :active="str_starts_with($cur, 'admin.payments')"
-                    icon="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
-                <x-admin.nav-item label="Payouts" :href="route('admin.payouts.index')" :active="str_starts_with($cur, 'admin.payouts')"
-                    icon="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
-                <x-admin.nav-item label="Deposit Charges" :href="route('admin.deposit-charges.index')" :active="str_starts_with($cur, 'admin.deposit-charges')"
-                    icon="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-
-                <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                    class="px-3 pt-4 pb-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest whitespace-nowrap">
-                    Content &amp; Reviews</p>
-
-                <x-admin.nav-item label="Reviews" :href="route('admin.reviews.index')" :active="str_starts_with($cur, 'admin.reviews')"
-                    icon="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
-                <x-admin.nav-item label="Reports" :href="route('admin.reports.index')" :active="str_starts_with($cur, 'admin.reports')"
-                    icon="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                <x-admin.nav-item label="Conversations" :href="route('admin.conversations.index')" :active="str_starts_with($cur, 'admin.conversations')"
-                    icon="M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.294 48.294 0 005.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
-
-                <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                    class="px-3 pt-4 pb-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest whitespace-nowrap">
-                    Insights</p>
-
-                <x-admin.nav-item label="Analytics" :href="route('admin.report-analytics.index')" :active="str_starts_with($cur, 'admin.report-analytics')"
-                    icon="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-                <x-admin.nav-item label="Ratings" filled :href="route('admin.ratings.index')" :active="str_starts_with($cur, 'admin.ratings')"
-                    icon="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-
-                <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                    class="px-3 pt-4 pb-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest whitespace-nowrap">
-                    System Management</p>
-
-                <x-admin.nav-item label="System Settings" :href="route('admin.settings.edit')" :active="str_starts_with($cur, 'admin.settings') || str_starts_with($cur, 'admin.security.two-factor')"
-                    icon="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894z M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <x-admin.nav-item label="Activity Logs" :href="route('admin.audit-logs.index')" :active="str_starts_with($cur, 'admin.audit-logs') || str_starts_with($cur, 'admin.security-events')"
-                    icon="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
-
-                {{-- Tenant holds: same row as every nav item, plus a count of reports to confirm and possible duplicates to review. --}}
                 @php
-                    $holdsToReview = \App\Models\TenantHold::where('status', \App\Models\TenantHold::PENDING)->count()
-                        + \App\Models\HoldMatchAlert::open()->count();
-                    $holdsActive = str_starts_with($cur, 'admin.tenant-holds');
+                    // One list drives every row, so a new page or a new number is one edit. `icon` is static SVG path data.
+                    // The numbers come from AdminQueues, the same queues the dashboard's "Needs your attention" card shows.
+                    $navCounts = \App\Services\AdminQueues::navCounts();
+                $navSections = [
+                    'User Management' => [
+                        ['label' => 'Users', 'href' => route('admin.users.index'), 'active' => str_starts_with($cur, 'admin.users.'), 'icon' => 'M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0Zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0Z'],
+                        ['label' => 'Tenant holds', 'href' => route('admin.tenant-holds.index'), 'active' => str_starts_with($cur, 'admin.tenant-holds'), 'badge' => $navCounts['holds'] ?? 0, 'badgeAttr' => 'data-holds-badge', 'icon' => 'M14.25 9v6m-4.5 0V9M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+                    ],
+                    'Verification & Approvals' => [
+                        ['label' => 'Landlord Verifications', 'href' => route('admin.verifications.index'), 'active' => str_starts_with($cur, 'admin.verifications'), 'badge' => $navCounts['verifications'] ?? 0, 'icon' => 'M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z'],
+                        ['label' => 'Property Verifications', 'href' => route('admin.listings.approval'), 'active' => $cur === 'admin.listings.approval', 'badge' => $navCounts['listings'] ?? 0, 'icon' => 'M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25'],
+                        ['label' => 'Property Documents', 'href' => route('admin.documents.index'), 'active' => str_starts_with($cur, 'admin.documents'), 'badge' => $navCounts['documents'] ?? 0, 'icon' => 'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z'],
+                    ],
+                    'Property Management' => [
+                        ['label' => 'Properties', 'href' => route('admin.catalogue.properties.index'), 'active' => str_starts_with($cur, 'admin.catalogue.properties'), 'icon' => 'M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25'],
+                        ['label' => 'Units', 'href' => route('admin.catalogue.units.index'), 'active' => str_starts_with($cur, 'admin.catalogue.units') || str_starts_with($cur, 'admin.units'), 'badge' => $navCounts['units'] ?? 0, 'icon' => 'M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm0 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0115.75 3.75H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zm0 9.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z'],
+                    ],
+                    'Rentals' => [
+                        ['label' => 'Reservations', 'href' => route('admin.reservations.index'), 'active' => str_starts_with($cur, 'admin.reservations'), 'icon' => 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5'],
+                        ['label' => 'Payments', 'href' => route('admin.payments.index'), 'active' => str_starts_with($cur, 'admin.payments'), 'icon' => 'M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z'],
+                        ['label' => 'Payouts', 'href' => route('admin.payouts.index'), 'active' => str_starts_with($cur, 'admin.payouts'), 'badge' => $navCounts['payouts'] ?? 0, 'icon' => 'M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75'],
+                        ['label' => 'Refund requests', 'href' => route('admin.refund-requests.index'), 'active' => str_starts_with($cur, 'admin.refund-requests'), 'badge' => $navCounts['refunds'] ?? 0, 'icon' => 'M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3'],
+                        ['label' => 'Deposit Charges', 'href' => route('admin.deposit-charges.index'), 'active' => str_starts_with($cur, 'admin.deposit-charges'), 'icon' => 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z'],
+                    ],
+                    'Content & Reviews' => [
+                        ['label' => 'Reviews', 'href' => route('admin.reviews.index'), 'active' => str_starts_with($cur, 'admin.reviews'), 'icon' => 'M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z'],
+                        ['label' => 'Reports', 'href' => route('admin.reports.index'), 'active' => str_starts_with($cur, 'admin.reports'), 'badge' => $navCounts['reports'] ?? 0, 'icon' => 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z'],
+                        ['label' => 'Conversations', 'href' => route('admin.conversations.index'), 'active' => str_starts_with($cur, 'admin.conversations'), 'icon' => 'M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.294 48.294 0 005.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z'],
+                    ],
+                    'Insights' => [
+                        ['label' => 'Analytics', 'href' => route('admin.report-analytics.index'), 'active' => str_starts_with($cur, 'admin.report-analytics'), 'icon' => 'M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z'],
+                        ['label' => 'Ratings', 'href' => route('admin.ratings.index'), 'active' => str_starts_with($cur, 'admin.ratings'), 'icon' => 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z', 'filled' => true],
+                    ],
+                    'System Management' => [
+                        ['label' => 'System Settings', 'href' => route('admin.settings.edit'), 'active' => str_starts_with($cur, 'admin.settings') || str_starts_with($cur, 'admin.security.two-factor'), 'icon' => 'M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894z M15 12a3 3 0 11-6 0 3 3 0 016 0z'],
+                        ['label' => 'Activity Logs', 'href' => route('admin.audit-logs.index'), 'active' => str_starts_with($cur, 'admin.audit-logs') || str_starts_with($cur, 'admin.security-events'), 'icon' => 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z'],
+                    ],
+                    'Account' => [
+                        ['label' => 'My Profile', 'href' => route('admin.profile.edit'), 'active' => str_starts_with($cur, 'admin.profile'), 'icon' => 'M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z'],
+                    ],
+                ];
                 @endphp
-                <a href="{{ route('admin.tenant-holds.index') }}" @if($holdsActive) aria-current="page" @endif
-                    class="group relative flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors duration-200 {{ $holdsActive ? 'bg-white/[0.10] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white' }}">
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="shrink-0 {{ $holdsActive ? 'text-[#FF8A66]' : '' }}">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 9v6m-4.5 0V9M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap flex-1">Tenant holds</span>
-                    @if($holdsToReview > 0)
-                        <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak data-holds-badge
-                            class="rounded-full bg-[#FF8A66] px-1.5 py-px text-[10.5px] font-bold tabular-nums text-[#060D26]">{{ $holdsToReview > 99 ? '99+' : $holdsToReview }}</span>
-                        <span x-show="sidebarCollapsed" x-cloak class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#FF8A66]"></span>
-                    @endif
-                    <span x-show="sidebarCollapsed" x-cloak
-                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#060D26] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity z-50">
-                        Tenant holds
-                    </span>
-                </a>
 
-                <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                    class="px-3 pt-4 pb-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest whitespace-nowrap">
-                    Account</p>
+                {{-- Each section folds. The open/closed choice is remembered per browser; the section holding the current page
+                     is always open (also after a sidebar click that swaps the page). A folded section still shows the sum of
+                     its waiting counts, and a dot when it holds the current page. The icon-only rail shows every item. --}}
+                @foreach($navSections as $sectionTitle => $navItems)
+                    @php
+                        $sectionActive = collect($navItems)->contains(fn ($i) => $i['active']);
+                        $sectionBadge = (int) collect($navItems)->sum(fn ($i) => $i['badge'] ?? 0);
+                    @endphp
+                    <div class="mt-3"
+                        x-data="{
+                            title: @js($sectionTitle),
+                            open: true,
+                            active: @js($sectionActive),
+                            init() {
+                                let saved = {};
+                                try { saved = JSON.parse(localStorage.getItem('adminNavOpen') || '{}'); } catch (e) {}
+                                this.open = this.active ? true : saved[this.title] !== false;
+                            },
+                            toggle() {
+                                this.open = !this.open;
+                                try {
+                                    const saved = JSON.parse(localStorage.getItem('adminNavOpen') || '{}');
+                                    saved[this.title] = this.open;
+                                    localStorage.setItem('adminNavOpen', JSON.stringify(saved));
+                                } catch (e) {}
+                            },
+                            refresh() {
+                                this.active = !!this.$refs.items.querySelector('[aria-current=page]');
+                                if (this.active) this.open = true;
+                            },
+                        }"
+                        @live:swapped.document="setTimeout(() => refresh(), 60)">
+                        <div x-show="sidebarCollapsed" x-cloak class="mx-3 mb-2 border-t border-white/[0.08]"></div>
 
-                <x-admin.nav-item label="My Profile" :href="route('admin.profile.edit')" :active="str_starts_with($cur, 'admin.profile')"
+                        <button type="button" data-sidebar-label x-show="!sidebarCollapsed" @click="toggle()" :aria-expanded="open"
+                            class="group flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/60 cursor-pointer"
+                            :class="!open && active ? 'text-white' : 'text-white/50 hover:text-white/80'">
+                            <span class="flex-1">{{ $sectionTitle }}</span>
+                            <span x-show="!open && active" x-cloak class="h-1.5 w-1.5 rounded-full bg-[#FF8A66]" aria-hidden="true"></span>
+                            @if($sectionBadge > 0)
+                                <span x-show="!open" x-cloak
+                                    class="min-w-[18px] rounded-full bg-[#FF8A66] px-1.5 text-center text-[10px] font-bold leading-[18px] text-[#060D26] tabular-nums normal-case tracking-normal">{{ $sectionBadge > 99 ? '99+' : $sectionBadge }}</span>
+                            @endif
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="shrink-0 transition-transform duration-200" :class="open ? '' : '-rotate-90'" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" /></svg>
+                        </button>
+
+                        <div x-ref="items" x-show="open || sidebarCollapsed" x-transition.opacity.duration.150ms class="space-y-0.5">
+                            @foreach($navItems as $item)
+                                <x-admin.nav-item :label="$item['label']" :href="$item['href']" :active="$item['active']"
+                                    :icon="$item['icon']" :filled="$item['filled'] ?? false" :badge="$item['badge'] ?? 0" :badge-attr="$item['badgeAttr'] ?? ''" />
+                            @endforeach
+                        </div>
+                    </div>
+                @endforeach
 
             </nav>
 

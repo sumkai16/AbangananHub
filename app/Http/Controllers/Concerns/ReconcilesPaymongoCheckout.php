@@ -103,7 +103,7 @@ trait ReconcilesPaymongoCheckout
     {
         if (PaymentClaims::hasPending($locked, $claimType, $billingPeriod)) {
             throw ValidationException::withMessages(['payment' => [
-                'You already told your landlord you paid this. Wait for them to confirm it, or withdraw your report first.',
+                'You already told your landlord you paid this. Wait for them to confirm it, or cancel your report first.',
             ]]);
         }
     }

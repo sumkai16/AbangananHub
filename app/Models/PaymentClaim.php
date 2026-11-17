@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\PaymentClaimUpdated;
 use App\Services\LandlordRentDueCount;
 use App\Services\RentLedger;
 use App\Support\RentPaymentAllocator;
@@ -9,6 +10,9 @@ use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Broadcasting\BroadcastException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * A tenant's "I paid the landlord directly". Not money: nothing reads a claim as a payment. Only when the
@@ -47,8 +51,30 @@ class PaymentClaim extends Model
      */
     protected static function booted(): void
     {
-        static::saved(fn (self $claim) => LandlordRentDueCount::forgetForReservation($claim->reservation_id));
+        static::saved(function (self $claim) {
+            LandlordRentDueCount::forgetForReservation($claim->reservation_id);
+
+            // Filed, or moved to another state: tell the open chat and pay pages (PaymentClaimUpdated). After the commit,
+            // so what they fetch next is the new state.
+            if ($claim->wasRecentlyCreated || $claim->wasChanged(['status', 'disputed_at'])) {
+                DB::afterCommit(fn () => $claim->broadcastQuietly());
+            }
+        });
         static::deleted(fn (self $claim) => LandlordRentDueCount::forgetForReservation($claim->reservation_id));
+    }
+
+    /** A stopped Reverb must never turn filing or deciding a payment report into an error: the row is the record. */
+    public function broadcastQuietly(): void
+    {
+        try {
+            $this->loadMissing('reservation.property');
+            PaymentClaimUpdated::dispatch($this);
+        } catch (BroadcastException $e) {
+            Log::warning('Payment claim broadcast failed, continuing without it', [
+                'payment_claim_id' => $this->payment_claim_id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     protected function casts(): array

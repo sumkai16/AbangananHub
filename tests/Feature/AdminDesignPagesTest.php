@@ -40,6 +40,7 @@ class AdminDesignPagesTest extends TestCase
             'payouts' => ['admin.payouts.index', []],
             'deposit charges' => ['admin.deposit-charges.index', ['status' => 'All']],
             'reviews' => ['admin.reviews.index', []],
+            'refund requests' => ['admin.refund-requests.index', []],
             'reports' => ['admin.reports.index', ['status' => 'All']],
             'conversations' => ['admin.conversations.index', []],
             'audit logs' => ['admin.audit-logs.index', []],

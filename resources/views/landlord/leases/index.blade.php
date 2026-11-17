@@ -6,6 +6,9 @@
         $templateById = $templates->keyBy('lease_template_id');
         $templateOptions = $templates->pluck('name', 'lease_template_id')->mapWithKeys(fn ($n, $id) => [(string) $id => $n])->all();
         $selectClass = 'h-10 w-full pl-3.5 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-white text-[13px] text-[#060D26]';
+        // The Read button: opens the full-screen reader (partials/_reader) over this page.
+        $readIcon = 'M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25';
+        $readBtn = 'inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#060D26]/35 bg-white px-3 text-[12.5px] font-bold text-[#060D26] transition-colors hover:bg-[#ECEEF6] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30';
     @endphp
 
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
@@ -22,34 +25,48 @@
             @endphp
             <div class="grid grid-cols-1 gap-10 xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start">
 
-                {{-- Your policies: the library. Scrolls sideways on a phone; each card opens the editor. --}}
+                {{-- Your policies: the library. Scrolls sideways on a phone; each card can be read in full or opened in the editor. --}}
                 <section aria-labelledby="library-title" class="xl:col-start-2 xl:row-start-1 xl:sticky xl:top-6">
                     <h2 id="library-title" class="text-[16px] font-semibold text-[#060D26]">Your policies</h2>
                     <p class="mt-0.5 text-[13px] text-[#5B6A8E]">The wording and rules a tenant agrees to. Anything without a policy uses the standard one.</p>
 
                     <ul class="mt-4 -mx-4 sm:-mx-6 lg:mx-0 flex gap-3 overflow-x-auto px-4 sm:px-6 lg:px-0 pb-2 snap-x snap-mandatory xl:flex-col xl:overflow-visible xl:pb-0 xl:snap-none">
                         <li class="snap-start shrink-0 w-[240px] xl:w-full">
-                            <div class="h-full rounded-2xl border border-[#E2E4EC] bg-[#F7F8FC] p-4">
+                            <div class="flex h-full flex-col rounded-2xl border border-[#E2E4EC] bg-[#F7F8FC] p-4">
                                 <p class="text-[14px] font-semibold text-[#060D26]">Standard policy</p>
                                 <p class="mt-1 text-[12.5px] leading-snug text-[#5B6A8E]">Built in. Used wherever nothing else is set.</p>
+                                <div class="mt-3">
+                                    <button type="button" class="{{ $readBtn }}"
+                                        @click="$dispatch('open-policy-reader', { url: @js(route('landlord.lease-templates.read-standard')), title: 'Standard policy', editUrl: '' })">
+                                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $readIcon }}" /></svg>
+                                        Read
+                                    </button>
+                                </div>
                             </div>
                         </li>
                         @foreach($templates as $template)
                             @php $uses = $template->properties_count + $template->units_count; @endphp
                             <li class="snap-start shrink-0 w-[240px] xl:w-full">
-                                <a href="{{ route('landlord.lease-templates.edit', $template) }}" data-page-swap="nav"
-                                    class="group flex h-full flex-col rounded-2xl border border-[#E2E4EC] bg-white p-4 transition-[border-color,box-shadow] duration-200 hover:border-[#5B6A8E]/40 hover:shadow-[0_4px_16px_rgba(6,13,38,0.07)] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30">
-                                    <span class="flex items-start justify-between gap-2">
+                                <div class="flex h-full flex-col rounded-2xl border border-[#E2E4EC] bg-white p-4 transition-[border-color,box-shadow] duration-200 hover:border-[#5B6A8E]/40 hover:shadow-[0_4px_16px_rgba(6,13,38,0.07)]">
+                                    <div class="flex items-start justify-between gap-2">
                                         <span class="min-w-0 truncate text-[14px] font-semibold text-[#060D26]">{{ $template->name }}</span>
                                         <span class="shrink-0 text-[12px] tabular-nums {{ $uses ? 'font-semibold text-[#15803D]' : 'text-[#5B6A8E]' }}">{{ $uses ? $uses.' in use' : 'Not used' }}</span>
-                                    </span>
-                                    <span class="mt-2.5 flex flex-wrap gap-1.5">
+                                    </div>
+                                    <div class="mt-2.5 flex flex-wrap gap-1.5">
                                         @foreach(array_slice($template->summaryChips(), 0, 3) as $chip)
                                             <span class="rounded-full bg-[#ECEEF6] px-2 py-0.5 text-[11.5px] font-medium text-[#060D26]">{{ $chip }}</span>
                                         @endforeach
-                                    </span>
-                                    <span class="mt-3 text-[12.5px] font-semibold text-[#B35A3D] group-hover:underline underline-offset-2">Edit policy</span>
-                                </a>
+                                    </div>
+                                    <div class="mt-3 flex items-center gap-3">
+                                        <button type="button" class="{{ $readBtn }}"
+                                            @click="$dispatch('open-policy-reader', { url: @js(route('landlord.lease-templates.read', $template)), title: @js($template->name), editUrl: @js(route('landlord.lease-templates.edit', $template)) })">
+                                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $readIcon }}" /></svg>
+                                            Read
+                                        </button>
+                                        <a href="{{ route('landlord.lease-templates.edit', $template) }}" data-page-swap="nav"
+                                            class="inline-flex h-9 items-center text-[12.5px] font-semibold text-[#B35A3D] underline-offset-2 hover:underline focus:outline-none focus-visible:ring-4 focus-visible:ring-[#FF8A66]/30">Edit policy</a>
+                                    </div>
+                                </div>
                             </li>
                         @endforeach
                         <li class="snap-start shrink-0 w-[200px] xl:w-full">
@@ -97,7 +114,9 @@
                         </nav>
 
                         {{-- The chosen property: a header bar (who and which policy), then the units as a table --}}
-                        <div class="min-w-0 overflow-hidden rounded-2xl border border-[#E2E4EC] bg-white">
+                        <div class="min-w-0 space-y-5">
+                        {{-- No overflow-hidden here: the dropdowns below open past the card's edge. --}}
+                        <div class="rounded-2xl border border-[#E2E4EC] bg-white">
                             <div class="flex flex-col gap-4 p-4 sm:p-6">
                                 <div class="min-w-0">
                                     <h3 class="text-[18px] font-semibold leading-snug text-[#060D26]">{{ $selected->title }}</h3>
@@ -109,9 +128,19 @@
                                                 <span class="rounded-full bg-[#ECEEF6] px-2.5 py-0.5 text-[12px] font-medium text-[#060D26]">{{ $chip }}</span>
                                             @endforeach
                                             <a href="{{ route('landlord.lease-templates.edit', $propertyPolicy) }}" data-page-swap="nav" class="ml-1 inline-flex h-9 items-center text-[13px] font-semibold text-[#B35A3D] underline-offset-2 hover:underline">Edit this policy</a>
+                                            <button type="button" class="{{ $readBtn }}"
+                                                @click="$dispatch('open-policy-reader', { url: @js(route('landlord.lease-templates.read', $propertyPolicy)), title: @js($propertyPolicy->name), editUrl: @js(route('landlord.lease-templates.edit', $propertyPolicy)) })">
+                                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $readIcon }}" /></svg>
+                                                Read
+                                            </button>
                                         </div>
                                     @else
                                         <p class="mt-3 max-w-md text-[13px] leading-relaxed text-[#5B6A8E]">The built-in wording, filled in with this property's rent and house rules.</p>
+                                        <button type="button" class="{{ $readBtn }} mt-3"
+                                            @click="$dispatch('open-policy-reader', { url: @js(route('landlord.lease-templates.read-standard')), title: 'Standard policy', editUrl: '' })">
+                                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $readIcon }}" /></svg>
+                                            Read the standard policy
+                                        </button>
                                     @endif
                                 </div>
 
@@ -150,10 +179,53 @@
                                 </div>
                             </div>
                         </div>
+
+                        {{-- What the policy this property follows says, in short: fills the space under the units and answers "what did I agree to?" without opening the editor. --}}
+                        @php
+                            $lateFee = $propertyPolicy?->lateFee();
+                            $glance = [
+                                'Late fee' => match (true) {
+                                    $lateFee === false => 'None',
+                                    is_array($lateFee) => $lateFee['type'] === 'fixed' ? '₱'.number_format($lateFee['value'], 2) : rtrim(rtrim(number_format($lateFee['value'], 2), '0'), '.').'% of the rent',
+                                    default => $selected->late_fee_type && $selected->late_fee_value !== null ? 'Set on the property' : 'None',
+                                },
+                                'Grace period' => ($propertyPolicy?->rent_grace_days ?? $selected->rent_grace_days ?? config('rentals.rent_overdue_grace_days')).' days after the due date',
+                                'Notice to leave' => ($propertyPolicy?->notice_days ?? config('rentals.lease_notice_days')).' days',
+                                'Documents to upload' => $propertyPolicy && $propertyPolicy->required_documents
+                                    ? collect(\App\Support\RequiredDocuments::forSnapshot($propertyPolicy->required_documents))->pluck('label')->implode(', ')
+                                    : 'None asked for',
+                            ];
+                            $ruleSections = \App\Support\HouseRules::visible($propertyPolicy?->house_rule_sections);
+                        @endphp
+                        <div class="rounded-2xl border border-[#E2E4EC] bg-white p-4 sm:p-6">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <h3 class="text-[15px] font-semibold text-[#060D26]">{{ $propertyPolicy?->name ?? 'Standard policy' }}, in short</h3>
+                                @if($propertyPolicy)<span class="text-[12px] tabular-nums text-[#5B6A8E]">Version {{ $propertyPolicy->version }}</span>@endif
+                            </div>
+                            <dl class="mt-3 grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
+                                @foreach($glance as $term => $value)
+                                    <div class="min-w-0">
+                                        <dt class="text-[12px] font-semibold text-[#5B6A8E]">{{ $term }}</dt>
+                                        <dd class="mt-0.5 text-[13.5px] text-[#060D26]">{{ $value }}</dd>
+                                    </div>
+                                @endforeach
+                            </dl>
+                            @if($ruleSections)
+                                <p class="mt-4 text-[12px] font-semibold text-[#5B6A8E]">House rules</p>
+                                <div class="mt-1.5 flex flex-wrap gap-1.5">
+                                    @foreach($ruleSections as $sec)
+                                        <span class="rounded-full bg-[#ECEEF6] px-2.5 py-0.5 text-[12px] font-medium text-[#060D26]">{{ $sec['title'] }} · {{ count($sec['rules']) }}</span>
+                                    @endforeach
+                                </div>
+                            @endif
+                            <p class="mt-4 text-[12.5px] leading-relaxed text-[#5B6A8E]">Agreements you send from now on use this wording. Agreements already sent do not change.</p>
+                        </div>
+                        </div>
                     </div>
                 </section>
             </div>
         @endif
+            @include('landlord.leases.partials._reader')
         </div>
     </div>
 @endsection

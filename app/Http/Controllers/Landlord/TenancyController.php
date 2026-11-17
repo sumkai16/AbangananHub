@@ -65,7 +65,7 @@ class TenancyController extends Controller
     {
         Gate::authorize('editWalkInDetails', $reservation);
 
-        $validated = $request->validate(TenantDetail::rules(false), TenantDetail::messages());
+        $validated = $request->validate(TenantDetail::rules(false, $reservation->tenant->tenantDetail()->first()), TenantDetail::messages());
 
         if (TenantDetail::saveFor($reservation->tenant, $validated) === null) {
             return back()->with('warning', 'Nothing to save. Fill in at least one field.');

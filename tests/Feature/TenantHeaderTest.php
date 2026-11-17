@@ -60,6 +60,16 @@ class TenantHeaderTest extends TestCase
             ->assertDontSee('Become a Landlord');
     }
 
+    public function test_the_footer_is_drawn_on_the_landing_page_only(): void
+    {
+        $this->get(route('home'))->assertOk()->assertSee('id="site-footer"', false);
+
+        $tenant = $this->makeTenant();
+        foreach (['properties.index', 'about', 'reservations.index', 'tenancy.index', 'conversations.index'] as $name) {
+            $this->actingAs($tenant)->get(route($name))->assertOk()->assertDontSee('id="site-footer"', false);
+        }
+    }
+
     public function test_the_about_page_does_not_send_applicants_to_a_menu_item_that_is_gone(): void
     {
         $this->get(route('about'))->assertOk()->assertDontSee('in your account menu');

@@ -7,12 +7,21 @@
 @php
     // The landlord's most recent QR in any chat. Offered first so they don't re-pick the screenshot for every tenant.
     $lastShare = \App\Models\PaymentQrShare::lastReadableBy(auth()->id());
+    // The tenant used "Ask {landlord} to share a payment QR" and nothing has been shared since (PaymentQrRequestController).
+    $qrAskedAt = collect([
+        $conversation->relationLoaded('activeReservation') ? $conversation->activeReservation : null,
+        $conversation->relationLoaded('reservation') ? $conversation->reservation : null,
+    ])->filter()->first(fn ($r) => $r->qr_requested_at)?->qr_requested_at;
 @endphp
 <div x-data="paymentQrSheet({{ $conversation->conversation_id }}, {{ $lastShare?->payment_qr_share_id ?? 'null' }})" :data-sheet-open="open" @keydown.escape.window="close()">
     <button type="button" @click="open = true"
-        class="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-[#E2E4EC] bg-white px-3 text-[12px] font-bold text-[#060D26] transition-colors hover:bg-[#F7F8FC]">
+        @if($qrAskedAt) title="{{ $conversation->tenant?->first_name ?? 'The tenant' }} asked for your payment QR {{ $qrAskedAt->diffForHumans() }}" @endif
+        class="relative inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border bg-white px-3 text-[12px] font-bold text-[#060D26] transition-colors hover:bg-[#F7F8FC] {{ $qrAskedAt ? 'border-[#FF8A66] ring-2 ring-[#FF8A66]/25' : 'border-[#E2E4EC]' }}">
         <svg class="h-4 w-4 text-[#B35A3D]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 19.5h.75v.75h-.75v-.75ZM19.5 13.5h.75v.75h-.75v-.75ZM19.5 19.5h.75v.75h-.75v-.75ZM16.5 16.5h.75v.75h-.75v-.75Z"/></svg>
         <span class="hidden sm:inline">Share payment QR</span><span class="sm:hidden">QR</span>
+        @if($qrAskedAt)
+            <span class="rounded-full bg-[#FF8A66] px-1.5 text-[10px] font-bold leading-[16px] text-[#060D26]">Asked</span>
+        @endif
     </button>
 
     <div x-show="open" x-cloak x-transition.opacity

@@ -70,7 +70,7 @@ class PaymentClaims
             }
 
             if (self::hasPending($locked, $type, $billingPeriod)) {
-                self::fail('You already reported this payment. Wait for your landlord to confirm it, or withdraw it first.');
+                self::fail('You already reported this payment. Wait for your landlord to confirm it, or cancel your report first.');
             }
 
             // The landlord chose which ways they take (Settings > Payments); a report for one they turned off is refused.

@@ -46,8 +46,12 @@
                 margin-left: 5rem;
             }
 
-            /* The page panel starts at the sidebar's edge, so it follows a collapsed sidebar too. */
+            /* The page panel (and any overlay marked data-sidebar-offset, like the policy reader) starts at the sidebar's edge, so it follows a collapsed sidebar too. */
             .sidebar-pre-collapsed [data-page-panel-section] {
+                left: 5rem;
+            }
+
+            .sidebar-pre-collapsed [data-sidebar-offset] {
                 left: 5rem;
             }
 
@@ -231,10 +235,8 @@
                 $navUnreadMessages = $unreadMessageCount;
                 // Tenancies that owe rent or wait on a payment answer: the same people as the Payments page's "Still owed".
                 $navPaymentsDue = \App\Services\LandlordRentDueCount::for(auth()->id());
-                $navInquiries = \App\Models\Reservation::whereHas('property', fn ($q) => $q->where('landlord_id', auth()->id()))
-                    ->where('rental_status', 'Inquiry')->count();
-                // Concerns tenants reported that still need the landlord (Open or In Progress).
-                $navConcerns = \App\Models\TenantConcern::unresolved()->whereHas('conversation', fn ($q) => $q->where('landlord_id', auth()->id()))->count();
+                // One rule per item, in one place (LandlordNavCounts); Messages and Payments have their own sources above.
+                $navCounts = \App\Services\LandlordNavCounts::for(auth()->id());
 
                 $navSections = [
                     'Overview' => [
@@ -244,18 +246,18 @@
                             'icon' => '<circle cx="12" cy="12" r="9" /><circle cx="8.5" cy="12" r="0.75" fill="currentColor" stroke="none" /><circle cx="12" cy="12" r="0.75" fill="currentColor" stroke="none" /><circle cx="15.5" cy="12" r="0.75" fill="currentColor" stroke="none" />'],
                     ],
                     'Property Management' => [
-                        ['label' => 'Properties', 'href' => route('landlord.properties.index'), 'active' => str_starts_with($current, 'landlord.properties') && ! str_contains($current, 'units'),
+                        ['label' => 'Properties', 'href' => route('landlord.properties.index'), 'active' => str_starts_with($current, 'landlord.properties') && ! str_contains($current, 'units'), 'badge' => $navCounts['properties'],
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" />'],
                         // All units across properties. Also lit for the per-property unit pages, which Properties skips.
                         ['label' => 'Units', 'href' => route('landlord.units.index'), 'active' => str_starts_with($current, 'landlord.units') || str_contains($current, 'properties.units'),
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />'],
                     ],
                     'Rentals & Payments' => [
-                        ['label' => 'Reservations', 'href' => route('landlord.reservations.index'), 'active' => str_starts_with($current, 'landlord.reservations'), 'badge' => $navInquiries,
+                        ['label' => 'Reservations', 'href' => route('landlord.reservations.index'), 'active' => str_starts_with($current, 'landlord.reservations') || str_starts_with($current, 'landlord.viewings'), 'badge' => $navCounts['reservations'],
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />'],
                         // Also lit for the per-tenancy page (ledger, lease).
                         ['label' => 'Rentals', 'href' => route('landlord.contracts.index'),
-                            'active' => str_starts_with($current, 'landlord.contracts') || str_starts_with($current, 'landlord.tenancies'),
+                            'active' => str_starts_with($current, 'landlord.contracts') || str_starts_with($current, 'landlord.tenancies'), 'badge' => $navCounts['rentals'],
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />'],
                         // The rules and wording tenants agree to, per property and unit; also lit for the policy editor.
                         ['label' => 'Policies', 'href' => route('landlord.leases.index'),
@@ -264,13 +266,13 @@
                         ['label' => 'Tenants', 'href' => route('landlord.tenants.index'), 'active' => str_starts_with($current, 'landlord.tenants'),
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />'],
                         // What tenants reported from their chat; the badge counts the ones still open or in progress.
-                        ['label' => 'Concerns', 'href' => route('landlord.concerns.index'), 'active' => str_starts_with($current, 'landlord.concerns'), 'badge' => $navConcerns,
+                        ['label' => 'Concerns', 'href' => route('landlord.concerns.index'), 'active' => str_starts_with($current, 'landlord.concerns'), 'badge' => $navCounts['concerns'],
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />'],
                         ['label' => 'Payments', 'href' => route('landlord.payments.index'), 'active' => str_starts_with($current, 'landlord.payments') || str_starts_with($current, 'landlord.payouts'), 'badge' => $navPaymentsDue,
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />'],
                     ],
                     'Insights' => [
-                        ['label' => 'Reviews', 'href' => route('landlord.reviews.index'), 'active' => str_starts_with($current, 'landlord.reviews'),
+                        ['label' => 'Reviews', 'href' => route('landlord.reviews.index'), 'active' => str_starts_with($current, 'landlord.reviews'), 'badge' => $navCounts['reviews'],
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.563.563 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5z" />'],
                         ['label' => 'Analytics', 'href' => route('landlord.analytics.index'), 'active' => str_starts_with($current, 'landlord.analytics'),
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />'],
@@ -438,9 +440,9 @@
             class="{{ $embedded ? '' : 'lg:ml-64' }} print:!ml-0 flex-1 flex flex-col min-w-0 transition-all duration-300">
 
             @unless($embedded)
-            {{-- Mobile-only slim bar --}}
-            <div
-                class="lg:hidden print:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-[#E2E4EC] sticky top-0 z-30">
+            {{-- Mobile-only top bar: the same lockup as the tenant site (logo and name), then the page's title on a strip under it. --}}
+            <div class="lg:hidden print:hidden sticky top-0 z-30">
+            <div class="flex items-center justify-between gap-2 px-4 py-3 bg-white border-b border-[#E2E4EC]">
                 <button @click="sidebarOpen = !sidebarOpen" aria-label="Open menu"
                     class="w-11 h-11 flex items-center justify-center rounded-lg hover:bg-[#E2E4EC] text-[#060D26] transition-colors duration-200">
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -449,8 +451,11 @@
                     </svg>
                 </button>
 
-                {{-- Page title: pages push it from <x-page-header> (or by hand) and the in-page title hides below lg. --}}
-                <div id="mobile-title" class="flex min-w-0 flex-1 items-center gap-2 px-3">@stack('mobile-title')</div>
+                {{-- Brand: the logo is always here, so the bar reads the same on every page and matches the tenant bar. --}}
+                <a href="{{ route('landlord.dashboard') }}" data-page-swap="nav" aria-label="AbangananHub, landlord dashboard"
+                    class="group flex min-w-0 flex-1 items-center no-underline">
+                    <x-brand-logo mark="w-8 h-8" text="text-[16px] max-[380px]:hidden" gap="gap-1.5" />
+                </a>
 
                 <div class="flex shrink-0 items-center gap-2">
                     <x-theme-toggle class="w-11 h-11 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26] hover:bg-[#ECEEF6]" />
@@ -500,6 +505,10 @@
                     </div>
                     </div>
                 </div>
+            </div>
+            {{-- Page title: pages push it from <x-page-header> (or by hand) and the in-page title hides below lg.
+                 Empty on a page without one, so the strip is not drawn. page-swap.js refreshes it between pages. --}}
+            <div id="mobile-title" class="flex min-h-11 min-w-0 items-center gap-2 border-b border-[#E2E4EC] bg-white px-4 py-1.5 empty:hidden">@stack('mobile-title')</div>
             </div>
             @endunless
 

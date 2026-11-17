@@ -73,10 +73,30 @@
         @if($share)
             @include('payments.partials._qr-block', ['share' => $share])
         @else
-            <p class="rounded-xl border border-dashed border-[#5B6A8E]/40 px-3 py-3 text-[12.5px] text-[#5B6A8E]">
-                {{ $landlordName }} hasn&rsquo;t shared a payment QR yet.
-                <a href="{{ $conversationLink }}" class="font-bold text-[#060D26] underline">Ask in your chat</a>.
-            </p>
+            @php
+                // One tap tells the landlord through the system (a notification and a line in the chat). Open for an hour,
+                // then the tenant may ask again; sharing a QR closes it (PaymentQrRequestController).
+                $qrAskedAt = $reservation->qr_requested_at;
+                $qrAskOpen = $qrAskedAt && $qrAskedAt->gt(now()->subMinutes(\App\Http\Controllers\PaymentQrRequestController::COOLDOWN_MINUTES));
+            @endphp
+            <div class="rounded-xl border border-dashed border-[#5B6A8E]/40 px-3 py-3 text-[12.5px] text-[#5B6A8E]">
+                <p>{{ $landlordName }} hasn&rsquo;t shared a payment QR yet.</p>
+                @if($reservation->conversation_id)
+                    @if($qrAskOpen)
+                        <p class="mt-2 font-semibold text-[#060D26]">You asked {{ $landlordName }} {{ $qrAskedAt->diffForHumans() }}. We&rsquo;ll tell you when it arrives.</p>
+                    @else
+                        <form method="POST" action="{{ route('paymentQr.request', $reservation) }}" class="mt-2">
+                            @csrf
+                            <button type="submit" class="inline-flex h-10 items-center rounded-xl border border-[#060D26]/35 bg-white px-4 text-[13px] font-bold text-[#060D26] transition-colors hover:bg-[#ECEEF6]">
+                                {{ $qrAskedAt ? 'Ask '.$landlordName.' again' : 'Ask '.$landlordName.' to share a payment QR' }}
+                            </button>
+                        </form>
+                    @endif
+                    <a href="{{ $conversationLink }}" class="mt-2 inline-block text-[12px] font-semibold text-[#5B6A8E] underline">Or write in your chat</a>
+                @else
+                    <a href="{{ $conversationLink }}" class="font-bold text-[#060D26] underline">Ask in your chat</a>.
+                @endif
+            </div>
         @endif
     </div>
 

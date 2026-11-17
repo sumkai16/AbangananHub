@@ -93,6 +93,29 @@
             </x-card>
         @endif
 
+        {{-- Refund not returned: the landlord recorded keeping money the tenant paid straight to them --}}
+        @php $refundRes = $report->refundReservation; @endphp
+        @if($refundRes)
+            <x-card class="mb-4">
+                <p class="text-[11px] font-bold uppercase tracking-wider text-[#5B6A8E] mb-3">Refund not returned</p>
+                <dl class="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-[13px]">
+                    <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Paid to the landlord</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($refundRes->directPaidAmount($refundRes->payments), 2) }}</dd></div>
+                    <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Landlord kept</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($refundRes->keptDirectAmount(), 2) }}</dd></div>
+                    <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Recorded</dt><dd class="font-semibold text-[#060D26]">{{ $refundRes->move_in_refund_at?->format('M d, Y') ?? '—' }}</dd></div>
+                    <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Asked for it back</dt><dd class="font-semibold text-[#060D26]">{{ $refundRes->move_in_refund_requested_at?->format('M d, Y') ?? 'No' }}</dd></div>
+                </dl>
+                <p class="mt-2 text-[13px] text-[#060D26]"><span class="text-[#5B6A8E]">Landlord&rsquo;s reason:</span> &ldquo;{{ $refundRes->move_in_refund_note ?: 'None given' }}&rdquo;</p>
+                <div class="mt-3 flex flex-wrap gap-2 text-[12.5px] font-bold">
+                    <a href="{{ route('admin.reservations.show', $refundRes) }}" class="rounded-lg border border-[#E2E4EC] bg-white px-3 py-2 text-[#060D26] hover:bg-[#F7F8FC] transition-colors">Open reservation #{{ $refundRes->reservation_id }}</a>
+                    @if($refundRes->conversation_id)
+                        <a href="{{ route('admin.conversations.show', $refundRes->conversation_id) }}" class="rounded-lg border border-[#E2E4EC] bg-white px-3 py-2 text-[#060D26] hover:bg-[#F7F8FC] transition-colors">Read the chat</a>
+                    @endif
+                    <a href="{{ route('admin.refund-requests.index', ['type' => 'escalations']) }}" class="rounded-lg border border-[#E2E4EC] bg-white px-3 py-2 text-[#060D26] hover:bg-[#F7F8FC] transition-colors">All refund requests</a>
+                </div>
+                <p class="mt-3 text-[12px] text-[#5B6A8E]">This money went straight to the landlord, so AbangananHub cannot refund it. The actions below act on the landlord&rsquo;s account or listing.</p>
+            </x-card>
+        @endif
+
         {{-- Actions --}}
         @if($report->isPending())
             <x-card>

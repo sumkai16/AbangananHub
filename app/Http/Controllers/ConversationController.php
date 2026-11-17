@@ -155,6 +155,28 @@ class ConversationController extends Controller
         return redirect()->route('conversations.show', $conversation);
     }
 
+    /**
+     * The open thread has just shown a message from the other person: mark what they sent as read (the same two
+     * updates show() makes when a thread is opened), so the list, the Unread tab and the sidebar number agree with the screen.
+     */
+    public function markRead(Conversation $conversation)
+    {
+        Gate::authorize('view', $conversation);
+
+        Notification::where('user_id', Auth::id())
+            ->where('type', 'message')
+            ->where('conversation_id', $conversation->conversation_id)
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+
+        $conversation->messages()
+            ->where('sender_id', '!=', Auth::id())
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+
+        return response()->noContent();
+    }
+
     public function show(Conversation $conversation)
     {
         Gate::authorize('view', $conversation);

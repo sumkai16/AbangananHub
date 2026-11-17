@@ -59,6 +59,8 @@ function needsFullLoad(doc) {
     // Tenant shell: the search band above the page differs between pages (Home and Browse have it, most others do not),
     // and it sits outside the swapped area, so a change of band means a normal load.
     if (shell === 'site-header' && !!document.getElementById('header-search-expanded') !== !!doc.getElementById('header-search-expanded')) return true;
+    // The footer sits outside the swapped area and is drawn on the landing page only: a change of page that adds or drops it is a normal load.
+    if (shell === 'site-header' && !!document.getElementById('site-footer') !== !!doc.getElementById('site-footer')) return true;
     // A pushed script is fine when it can be run again: a library file (src, loaded once), data-swap-safe (a
     // self-contained function, run after the swap) or data-swap-global (declares functions the page's x-data needs,
     // run before the swap). Any other inline script means a normal load.

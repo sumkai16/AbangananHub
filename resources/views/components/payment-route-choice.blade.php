@@ -102,12 +102,12 @@
     <div>
         <h3 class="text-[15px] font-normal text-[#060D26]">
             @if($pendingClaim)
-                Your payment is waiting for {{ $landlordName }}
+                Your payment report is waiting for {{ $landlordName }}
             @else
                 {{ $isMoveIn ? 'How do you want to pay to move in?' : 'How do you want to pay '.$period['label'].'?' }}
             @endif
         </h3>
-        <p class="mt-0.5 text-[12.5px] text-[#5B6A8E]">{{ $pendingClaim ? 'To pay a different way, withdraw this report first.' : 'You can choose differently next time.' }}</p>
+        <p class="mt-0.5 text-[12.5px] text-[#5B6A8E]">{{ $pendingClaim ? 'To pay a different way, or fix a mistake, cancel this report first.' : 'You can choose differently next time.' }}</p>
     </div>
 
     {{-- A report is waiting: the other ways to pay are hidden, so there is one clear thing on screen (and no way

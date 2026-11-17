@@ -8,7 +8,7 @@
         $cardClass = 'rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)]';
     @endphp
     {{-- Tenants get the same 1400px column as the site header and every other tenant page; the landlord's sidebar shell keeps the full width. --}}
-    <div class="{{ auth()->user()->usesLandlordShell() ? 'max-w-none' : auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-5 min-h-[calc(100vh-72px)]" x-data="inboxApp()" x-cloak>
+    <div class="{{ auth()->user()->usesLandlordShell() ? 'max-w-none' : auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-5 min-h-[calc(100vh-72px)]" x-data="inboxApp()" @click="listLink($event)" x-cloak>
 
         {{-- The landlord shell has no top bar on desktop (sidebar only), so only the 40px page padding is reserved there. --}}
         <div class="flex flex-col {{ $wide ? 'gap-4' : 'overflow-hidden '.$cardClass }} {{ auth()->user()->usesLandlordShell() ? 'lg:!h-[calc(100dvh-40px)]' : '' }}"
@@ -22,10 +22,9 @@
             </div>
         @endif
 
-        {{-- Header (the landlord shell shows the title in its mobile top bar instead) --}}
-        @push('mobile-title')<x-page-icon class="!h-7 !w-7 !rounded-lg" path="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /><span class="truncate text-[15px] font-semibold tracking-tight text-[#060D26]">{{ $box === 'tenancy' ? ($isLandlord ? 'Tenants' : 'My home') : ($isLandlord ? 'Inquiries' : 'Messages') }}</span>@endpush
-        <div class="flex items-center justify-between gap-3 flex-shrink-0 px-1 {{ auth()->user()->usesLandlordShell() ? '' : 'max-sm:hidden' }} {{ $isLandlord && $landlordProperties->isNotEmpty() ? '' : 'page-header-bare' }}">
-            <div class="page-header-title flex items-center gap-3 sm:gap-3.5 min-w-0">
+        {{-- Header: the title sits in the page itself, left of the property filter, at every width (the landlord shell's phone bar carries the logo, not this title). --}}
+        <div class="flex items-center justify-between gap-3 flex-shrink-0 px-1 {{ auth()->user()->usesLandlordShell() ? '' : 'max-sm:hidden' }} ">
+            <div class="flex items-center gap-3 sm:gap-3.5 min-w-0">
                 <div class="flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-[#060D26]">
                     <svg fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2" class="w-4 h-4 sm:w-[19px] sm:h-[19px]">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -50,7 +49,7 @@
             </div>
 
             @if($isLandlord && $landlordProperties->isNotEmpty())
-                <div class="relative" x-data="{ filterOpen: false }">
+                <div class="relative" x-data="{ filterOpen: false }" data-inbox-filter>
                     <button @click="filterOpen = !filterOpen" type="button"
                         class="flex h-9 sm:h-10 max-w-[10.5rem] sm:max-w-none items-center gap-2 rounded-xl border border-[#E2E4EC] bg-white px-4 text-[13px] font-medium text-[#060D26] transition-colors duration-200 hover:border-[#060D26]/40 hover:bg-[#F7F8FC] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -66,12 +65,12 @@
                         x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-95"
                         x-transition:enter-end="opacity-100 scale-100"
                         class="absolute right-0 top-[calc(100%+6px)] z-50 w-[240px] rounded-xl bg-white py-1 shadow-[0_4px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/5">
-                        <a href="{{ route('conversations.index', array_filter(['box' => $box === 'tenancy' ? 'tenancy' : null, 'status' => $status !== 'all' ? $status : null])) }}"
+                        <a data-inbox-link href="{{ route('conversations.index', array_filter(['box' => $box === 'tenancy' ? 'tenancy' : null, 'status' => $status !== 'all' ? $status : null])) }}"
                             class="block px-4 py-2.5 text-[13px] font-medium text-[#060D26] transition hover:bg-[#F7F8FC] {{ !$propertyId ? 'bg-[#ECEEF6]' : '' }}">
                             All Properties
                         </a>
                         @foreach($landlordProperties as $prop)
-                            <a href="{{ route('conversations.index', array_filter(['box' => $box === 'tenancy' ? 'tenancy' : null, 'status' => $status !== 'all' ? $status : null, 'property_id' => $prop->property_id])) }}"
+                            <a data-inbox-link href="{{ route('conversations.index', array_filter(['box' => $box === 'tenancy' ? 'tenancy' : null, 'status' => $status !== 'all' ? $status : null, 'property_id' => $prop->property_id])) }}"
                                 class="block truncate px-4 py-2.5 text-[13px] font-medium text-[#060D26] transition hover:bg-[#F7F8FC] {{ $propertyId == $prop->property_id ? 'bg-[#ECEEF6]' : '' }}">
                                 {{ $prop->title }}
                             </a>
@@ -90,7 +89,7 @@
 
                 {{-- Box switch: deal chats vs. chats with people already living here --}}
                 @if($isLandlord || $hasTenancy)
-                    <div class="flex-shrink-0 border-b border-[#E2E4EC] p-2">
+                    <div class="flex-shrink-0 border-b border-[#E2E4EC] p-2" data-inbox-box>
                         <div class="grid grid-cols-2 gap-1 rounded-xl bg-[#ECEEF6] p-1">
                             @foreach ([['inquiry', 'Inquiries'], ['tenancy', $isLandlord ? 'Tenants' : 'My home']] as [$boxKey, $boxLabel])
                                 <a href="{{ route('conversations.index', array_filter(['box' => $boxKey === 'tenancy' ? 'tenancy' : null, 'property_id' => $propertyId])) }}"
@@ -107,7 +106,7 @@
                 @endif
 
                 {{-- Tabs --}}
-                <div class="flex flex-shrink-0 items-center gap-0.5 overflow-x-auto border-b border-[#E2E4EC] px-2">
+                <div class="flex flex-shrink-0 items-center gap-0.5 overflow-x-auto border-b border-[#E2E4EC] px-2" data-inbox-tabs>
                     @php
                         $tabs = [
                             'all' => ['label' => 'Active', 'count' => $activeCount],
@@ -121,7 +120,7 @@
                     @endphp
                     @foreach ($tabs as $key => $tab)
                                 <a href="{{ route('conversations.index', array_filter(['box' => $box === 'tenancy' ? 'tenancy' : null, 'status' => $key, 'search' => request('search'), 'property_id' => $propertyId])) }}"
-                                    data-page-swap="nav"
+                                    data-inbox-link
                                     class="flex-1 whitespace-nowrap border-b-2 px-1 py-3 text-center text-[13px] font-semibold transition-colors
                                         {{ $status === $key ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
                                     {{ $tab['label'] }}
@@ -134,7 +133,7 @@
 
                 {{-- Search --}}
                 <div class="flex-shrink-0 border-b border-[#E2E4EC] px-3 py-3">
-                    <form method="GET" action="{{ route('conversations.index') }}" class="relative">
+                    <form method="GET" action="{{ route('conversations.index') }}" class="relative" data-inbox-search @submit.prevent="searchList($el)">
                         <input type="hidden" name="status" value="{{ $status }}">
                         @if($box === 'tenancy')<input type="hidden" name="box" value="tenancy">@endif
                         @if($propertyId)<input type="hidden" name="property_id" value="{{ $propertyId }}">@endif
@@ -151,7 +150,7 @@
                 </div>
 
                 {{-- Conversation items --}}
-                <div class="flex-1 overflow-y-auto">
+                <div class="flex-1 overflow-y-auto" data-inbox-rows>
                     @forelse ($conversations as $conversation)
                         @php
                             $otherParty = auth()->id() === $conversation->tenant_id
@@ -268,21 +267,23 @@
                     @endforelse
                 </div>
 
+                <div class="flex-shrink-0" data-inbox-footer>
                 @if($conversations->isNotEmpty())
                     <div class="px-4 py-2 border-t border-[#5B6A8E]/10 flex-shrink-0 flex items-center justify-between gap-2">
                         @if($conversations->hasPages())
-                            <a @if($conversations->onFirstPage()) aria-disabled="true" @else href="{{ $conversations->previousPageUrl() }}" @endif
+                            <a @if($conversations->onFirstPage()) aria-disabled="true" @else href="{{ $conversations->previousPageUrl() }}" data-inbox-link @endif
                                 class="h-8 px-2.5 inline-flex items-center rounded-lg border border-[#E2E4EC] text-[12px] font-semibold {{ $conversations->onFirstPage() ? 'text-[#CBD5E1] cursor-not-allowed' : 'text-[#060D26] hover:bg-[#ECEEF6]' }}">Prev</a>
                         @endif
                         <p class="text-[11px] text-[#5B6A8E] text-center flex-1">
                             Showing {{ $conversations->firstItem() }} to {{ $conversations->lastItem() }} of {{ $conversations->total() }} {{ $isLandlord ? Str::plural('inquiry', $conversations->total()) : Str::plural('conversation', $conversations->total()) }}
                         </p>
                         @if($conversations->hasPages())
-                            <a @if($conversations->hasMorePages()) href="{{ $conversations->nextPageUrl() }}" @else aria-disabled="true" @endif
+                            <a @if($conversations->hasMorePages()) href="{{ $conversations->nextPageUrl() }}" data-inbox-link @else aria-disabled="true" @endif
                                 class="h-8 px-2.5 inline-flex items-center rounded-lg border border-[#E2E4EC] text-[12px] font-semibold {{ $conversations->hasMorePages() ? 'text-[#060D26] hover:bg-[#ECEEF6]' : 'text-[#CBD5E1] cursor-not-allowed' }}">Next</a>
                         @endif
                     </div>
                 @endif
+                </div>
             </div>
 
             {{-- RIGHT: Chat panel --}}
@@ -338,13 +339,35 @@
                     activeId: null,
                     loading: false,
                     echoListener: null,
+                    listTimer: null,
+                    listAbort: null,
+                    listHref: null,
+                    listSig: null,
+                    panelSig: null,
+                    pollTimer: null,
 
                     init() {
                         // Lets the concern buttons (rendered inside the injected panel) refresh it.
                         window.refreshInboxPanel = () => this.refreshPanel();
+                        // And lets the page-level helpers (Resolve) refresh the list on the left.
+                        window.refreshInboxList = () => this.refreshList();
+
+                        // A message that arrived while the tab was in the background is read once the tab is looked at again.
+                        this.onVisible = () => { if (!document.hidden && this.activeId) this.markRead(); };
+                        document.addEventListener('visibilitychange', this.onVisible);
 
                         const active = @js(request()->integer('active') ?: null);
                         if (active) this.loadConversation(active);
+
+                        // Safety net for when the live connection is not up (Reverb stopped, or a page the browser will not
+                        // open a websocket from, like an https tunnel to a plain-ws Reverb): look again every 5 seconds while
+                        // this tab is on screen. It does nothing while the connection is healthy, so it costs nothing then.
+                        this.pollTimer = setInterval(() => {
+                            if (document.hidden) return;
+                            if (window.Echo?.connector?.pusher?.connection?.state === 'connected') return;
+                            this.refreshPanel(true);
+                            this.refreshList();
+                        }, 5000);
 
                         // Bound once for the page lifetime, not per-conversation:
                         // this is how a thread you are NOT currently viewing gets
@@ -360,11 +383,17 @@
                                 if (e.conversation_id !== this.activeId) {
                                     this.updateListStage(e.conversation_id, e.status);
                                 }
+                                // The instant tweak above is only a stand-in: the server decides which tab the thread is in now.
+                                this.scheduleListRefresh();
                             },
                             '.MessageSent': (e) => {
-                                if (e.conversation_id === this.activeId) return;
-                                this.updateListPreview(e.conversation_id, e.message, e.is_system);
+                                if (e.conversation_id !== this.activeId) {
+                                    this.updateListPreview(e.conversation_id, e.message, e.is_system);
+                                }
+                                // Order, tab counts and a brand-new thread all come from the server's list.
+                                this.scheduleListRefresh();
                             },
+                            '.PaymentClaimUpdated': () => this.scheduleListRefresh(),
                             '.PaymentStatusUpdated': (e) => {
                                 // Same split as ReservationStatusUpdated above: this
                                 // channel owns the list rows for threads you are not
@@ -375,6 +404,7 @@
                                 if (e.conversation_id !== this.activeId) {
                                     this.updateListStage(e.conversation_id, e.stage);
                                 }
+                                this.scheduleListRefresh();
                             },
                         };
                         const channel = window.Echo.private('user.{{ auth()->id() }}');
@@ -391,6 +421,109 @@
                         this.echoListener = null;
                         window.activeConversationId = null;
                         window.refreshInboxPanel = undefined;
+                        window.refreshInboxList = undefined;
+                        clearTimeout(this.listTimer);
+                        clearInterval(this.pollTimer);
+                        this.listAbort?.abort();
+                        if (this.onVisible) document.removeEventListener('visibilitychange', this.onVisible);
+                    },
+
+                    // ── The list on the left, kept true without a page load ─────────────────────────────────────────────
+                    // The server decides what is in each tab, in what order and with what counts, so every change (a message,
+                    // a status, a payment, a send of our own) just asks it again, a moment later and at most once at a time.
+                    // Search, tabs, paging and the property filter use the same call, so the open thread is never closed
+                    // by them. Anything typed in the search box or the message box stays as it is.
+                    scheduleListRefresh() {
+                        clearTimeout(this.listTimer);
+                        this.listTimer = setTimeout(() => this.refreshList(), 400);
+                    },
+
+                    listLink(e) {
+                        const link = e.target.closest('a[data-inbox-link]');
+                        if (!link || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || !link.getAttribute('href')) return;
+                        e.preventDefault();
+                        this.refreshList(link.href, true);
+                    },
+
+                    searchList(form) {
+                        const url = new URL(form.getAttribute('action') || window.location.pathname, window.location.href);
+                        url.search = new URLSearchParams(new FormData(form)).toString();
+                        this.refreshList(url.toString(), true);
+                    },
+
+                    async refreshList(href = null, navigate = false) {
+                        const url = new URL(href || this.listHref || window.location.href, window.location.href);
+                        url.searchParams.delete('active');
+
+                        this.listAbort?.abort();
+                        const mine = (this.listAbort = new AbortController());
+
+                        let doc;
+                        try {
+                            const res = await fetch(url, {
+                                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' },
+                                credentials: 'same-origin',
+                                signal: mine.signal,
+                            });
+                            if (!res.ok || new URL(res.url).pathname !== url.pathname) throw new Error('not the inbox');
+                            doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+                        } catch (err) {
+                            // A background refresh that fails just leaves the list as it was; a click or a search falls back to a normal page.
+                            if (err.name !== 'AbortError' && navigate) window.location.assign(url);
+                            return;
+                        }
+                        if (mine.signal.aborted) return;
+
+                        this.listHref = url.toString();
+
+                        // Nothing new from the server since the last time: leave the list alone (no flicker, no lost hover).
+                        const sig = ['[data-inbox-filter]', '[data-inbox-box]', '[data-inbox-tabs]', '[data-inbox-rows]', '[data-inbox-footer]']
+                            .map(sel => doc.querySelector(sel)?.outerHTML ?? '').join('|');
+                        if (sig === this.listSig && !navigate) return;
+                        this.listSig = sig;
+
+                        const scroller = document.querySelector('[data-inbox-rows]');
+                        const scrollTop = scroller ? scroller.scrollTop : 0;
+
+                        for (const sel of ['[data-inbox-filter]', '[data-inbox-box]', '[data-inbox-tabs]', '[data-inbox-rows]', '[data-inbox-footer]']) {
+                            const cur = document.querySelector(sel);
+                            const next = doc.querySelector(sel);
+                            if (!cur || !next) continue;
+                            window.Alpine?.destroyTree?.(cur);
+                            cur.replaceWith(document.adoptNode(next));
+                        }
+
+                        // The search form keeps its own box (value, focus, caret); only its hidden filters follow the new list.
+                        const form = document.querySelector('[data-inbox-search]');
+                        const freshForm = doc.querySelector('[data-inbox-search]');
+                        if (form && freshForm) {
+                            form.querySelectorAll('input[type=hidden]').forEach(el => el.remove());
+                            freshForm.querySelectorAll('input[type=hidden]').forEach(el => form.prepend(document.adoptNode(el)));
+                        }
+
+                        const rows = document.querySelector('[data-inbox-rows]');
+                        if (rows) rows.scrollTop = navigate ? 0 : scrollTop;
+
+                        if (navigate) {
+                            const shown = new URL(url);
+                            if (this.activeId) shown.searchParams.set('active', this.activeId);
+                            window.history.replaceState({}, '', shown);
+                        }
+                    },
+
+                    // The open thread has just received something from the other person: say it was read, so the list dot,
+                    // the Unread tab and the sidebar number agree with what is on screen. Not while the tab is hidden.
+                    async markRead() {
+                        const id = this.activeId;
+                        if (!id || document.hidden) return;
+                        try {
+                            await fetch('/conversations/' + id + '/read', {
+                                method: 'POST',
+                                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'X-Requested-With': 'XMLHttpRequest' },
+                            });
+                            window.Alpine?.store('navBadges')?.refreshMessages?.(0);
+                            this.scheduleListRefresh();
+                        } catch (err) { }
                     },
 
                     updateListPreview(conversationId, message, isSystem) {
@@ -442,6 +575,7 @@
                                 }
                             });
                             const html = await res.text();
+                            this.panelSig = html;
                             const wrapper = document.getElementById('chat-panel-wrapper');
                             this.replacePanelMarkup(wrapper, html);
 
@@ -495,6 +629,7 @@
                                 if (!res.ok) return;
                                 const data = await res.json();
                                 this.appendMessage(data, true);
+                                this.scheduleListRefresh();
                                 input.value = '';
                                 input.focus();
                             } catch (err) {
@@ -518,6 +653,11 @@
                                     sent_at: e.sent_at,
                                     is_system: e.is_system
                                 }, false);
+                                if (e.sender_id !== {{ auth()->id() }} && !e.is_system) this.markRead();
+                                // A system line (a QR was asked for, a status moved) can change the buttons around the thread, so the
+                                // panel is drawn again from the server too.
+                                if (e.is_system) this.refreshPanel();
+                                this.scheduleListRefresh();
                             })
                             .listen('.ReservationStatusUpdated', (e) => {
                                 // The panel is role-dependent (landlord sees
@@ -535,6 +675,11 @@
                                 // and this is the only signal the panel gets.
                                 this.refreshPanel();
                                 this.updateListStage(e.conversation_id, e.stage);
+                            })
+                            .listen('.PaymentClaimUpdated', () => {
+                                // A payment report was filed, cancelled or decided: the thread's payment strip (Confirm and Reject
+                                // for the landlord, the "waiting" card for the tenant) changes with it, and no status moves.
+                                this.refreshPanel();
                             })
                             .listen('.HandoverScheduleUpdated', () => {
                                 // Same shape again: proposing or confirming a
@@ -556,7 +701,7 @@
                     // already typed and their scroll position both survive —
                     // losing a half-written message because the other party
                     // clicked a button would be worse than the stale panel.
-                    async refreshPanel() {
+                    async refreshPanel(quiet = false) {
                         const id = this.activeId;
                         if (!id) return;
 
@@ -592,6 +737,10 @@
                         } catch (e) {
                             return; // Leave the stale panel up rather than blanking it.
                         }
+
+                        // The 5-second look-again only replaces the panel when the server's markup actually changed.
+                        if (quiet && markup === this.panelSig) return;
+                        this.panelSig = markup;
 
                         // Trusted first-party markup: this is the chat-panel
                         // Blade partial for the authenticated viewer, served by
@@ -1019,7 +1168,7 @@
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     });
-                    if (res.ok) window.location.reload();
+                    if (res.ok) { window.refreshInboxPanel?.(); window.refreshInboxList?.(); }
                 } catch (e) { }
             }
         </script>

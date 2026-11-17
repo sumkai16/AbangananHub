@@ -3,6 +3,7 @@ import './echo';
 import './field-validation';
 import './live-filter';
 import './page-swap';
+import './live-page';
 import { aiSearch, aiSearchBox } from './ai-search';
 import propertyCard from './property-card';
 import { leaseEditor } from './lease-editor-alpine';

@@ -6,11 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\LandlordVerification;
 use App\Models\Payment;
 use App\Models\Property;
-use App\Models\PropertyDocument;
 use App\Models\PropertyUnit;
-use App\Models\Report;
 use App\Models\Reservation;
 use App\Models\User;
+use App\Services\AdminQueues;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -25,7 +24,7 @@ class DashboardController extends Controller
         $activeReservations  = Reservation::whereNotIn('rental_status', Reservation::TERMINAL_STATUSES)->count();
 
         // ── What is waiting on the admin ──────────────────────────
-        $queue = $this->queue();
+        $queue = AdminQueues::rows();
         $openItems = collect($queue)->sum('count');
 
         $moneyHeld = (float) Payment::where('status', 'Held')->sum('amount');
@@ -106,34 +105,5 @@ class DashboardController extends Controller
         }
 
         return ['total' => $total, 'rows' => $rows];
-    }
-
-    /**
-     * One row per queue that only the admin can clear, in a fixed order so a row never moves between visits.
-     *
-     * @return list<array{label: string, count: int, oldest: ?Carbon, href: string}>
-     */
-    private function queue(): array
-    {
-        $rows = [
-            ['Landlord verifications', LandlordVerification::where('verification_status', 'Pending'), 'submitted_at', route('admin.verifications.index', ['status' => 'Pending'])],
-            ['Property verifications', Property::where('verification_status', 'Pending'), 'created_at', route('admin.listings.approval', ['status' => 'Pending'])],
-            ['Property documents', PropertyDocument::where('status', 'Pending')->whereNotNull('file_path'), 'created_at', route('admin.documents.index', ['status' => 'Pending'])],
-            ['Unit approvals', PropertyUnit::awaitingOwnReview(), 'property_units.created_at', route('admin.catalogue.units.index', ['needs' => 'approval'])],
-            ['Reports', Report::where('report_status', 'Pending'), 'created_at', route('admin.reports.index', ['status' => 'Pending'])],
-            ['Move-in disputes', Reservation::whereNotNull('move_in_disputed_at'), 'move_in_disputed_at', route('admin.reservations.index', ['filter' => 'disputed'])],
-        ];
-
-        return array_map(function (array $row) {
-            [$label, $query, $column, $href] = $row;
-            $summary = $query->toBase()->selectRaw("COUNT(*) as total, MIN({$column}) as oldest")->first();
-
-            return [
-                'label' => $label,
-                'count' => (int) $summary->total,
-                'oldest' => $summary->oldest ? Carbon::parse($summary->oldest) : null,
-                'href' => $href,
-            ];
-        }, $rows);
     }
 }

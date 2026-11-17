@@ -4,12 +4,16 @@ namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreReservationRequest;
+use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\Property;
 use App\Models\PropertyUnit;
+use App\Models\Report;
 use App\Models\Reservation;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ReservationController extends Controller
 {
@@ -89,6 +93,66 @@ class ReservationController extends Controller
             route('landlord.reservations.index'), $reservation->conversation_id);
 
         return back()->with('success', 'Your landlord was asked to return your payment.');
+    }
+
+    /**
+     * The landlord recorded that they kept money the tenant paid straight to them, and the tenant disagrees: send it to
+     * AbangananHub as a "Refund not returned" report against the landlord. AbangananHub never held this money, so the
+     * admin cannot refund it; the admin decides what to do about the landlord's account or listing. Once per
+     * reservation (a filled `refund_report_id` is the mark).
+     */
+    public function escalateRefund(Reservation $reservation)
+    {
+        abort_unless($reservation->tenant_id === Auth::id(), 403);
+
+        $result = DB::transaction(function () use ($reservation) {
+            $locked = Reservation::whereKey($reservation->getKey())->with(['property', 'tenant'])->lockForUpdate()->firstOrFail();
+
+            if ($locked->refund_report_id !== null) {
+                return ['warning' => 'You already sent this to AbangananHub.'];
+            }
+
+            $kept = $locked->keptDirectAmount();
+
+            if ($kept <= 0) {
+                return ['warning' => 'Your landlord has not recorded keeping any of your payment.'];
+            }
+
+            $landlordId = $locked->property?->landlord_id;
+            $note = filled($locked->move_in_refund_note) ? ' Their reason: "'.$locked->move_in_refund_note.'".' : '';
+
+            $report = Report::create([
+                'reporter_id' => Auth::id(),
+                'property_id' => $locked->property_id,
+                'reported_user_id' => $landlordId,
+                'report_reason' => 'Refund not returned: tenant paid straight to the landlord and the landlord recorded keeping ₱'
+                    .number_format($kept, 2).'.'.$note.' Reservation #'.$locked->reservation_id.'.',
+                'report_status' => 'Pending',
+            ]);
+
+            $locked->forceFill(['refund_report_id' => $report->report_id])->save();
+
+            AuditLog::record('refund.escalate', '₱'.number_format($kept, 2).' kept by the landlord sent to admin', $locked, null, [
+                'reservation_id' => $locked->reservation_id, 'report_id' => $report->report_id,
+            ]);
+
+            User::whereHas('roles', fn ($q) => $q->where('role', 'Admin'))->pluck('user_id')->each(fn ($adminId) => Notification::notify(
+                $adminId,
+                'payment',
+                'Refund not returned',
+                ($locked->tenant->first_name ?? 'A tenant').' says their landlord kept ₱'.number_format($kept, 2).' paid directly, and asked AbangananHub to look at it.',
+                route('admin.refund-requests.index'),
+                $locked->conversation_id,
+            ));
+
+            Notification::notify($landlordId, 'payment', 'Payment sent for review',
+                ($locked->tenant->first_name ?? 'Your tenant').' asked AbangananHub to review the ₱'.number_format($kept, 2).' you kept.',
+                route('landlord.reservations.index'), $locked->conversation_id);
+
+            return ['success' => 'Sent to AbangananHub. We will review it and the landlord\'s account.'];
+        });
+
+        return back()->with(array_key_first($result), reset($result));
     }
 
     public function cancel(Reservation $reservation)

@@ -66,6 +66,8 @@ class Reservation extends Model
         'move_in_refund_note',
         'move_in_refund_at',
         'move_in_refund_requested_at',
+        'qr_requested_at',
+        'refund_report_id',
         'rent_written_off_at',
         'rent_written_off_amount',
         'rent_write_off_source',
@@ -99,6 +101,7 @@ class Reservation extends Model
             'deposit_returned_at' => 'datetime',
             'move_in_refund_at' => 'datetime',
             'move_in_refund_requested_at' => 'datetime',
+            'qr_requested_at' => 'datetime',
             'move_in_refund_amount' => 'decimal:2',
             'rent_written_off_at' => 'datetime',
             'rent_written_off_amount' => 'decimal:2',
@@ -1428,8 +1431,36 @@ class Reservation extends Model
             return 0.0;
         }
 
+        return $this->directPaidAmount($payments);
+    }
+
+    /**
+     * Move-in money the tenant paid straight to the landlord (recorded by the landlord, never held by AbangananHub).
+     * Unlike moneyToSettle() it still reads the amount after a decision is recorded, so the page that shows a
+     * "kept" decision can say how much was kept.
+     */
+    public function directPaidAmount($payments = null): float
+    {
+        $payments ??= $this->payments()->get();
+
         return round((float) $payments->where('status', 'Paid')->whereNotNull('recorded_by')
             ->whereIn('payment_type', ['Reservation Fee', 'Deposit', 'Monthly', 'Initial'])->sum('amount'), 2);
+    }
+
+    /** How much of the direct move-in money the landlord recorded as kept (nothing until a decision is recorded). */
+    public function keptDirectAmount(): float
+    {
+        if ($this->move_in_refund_decision === null) {
+            return 0.0;
+        }
+
+        return max(0.0, round($this->directPaidAmount() - (float) $this->move_in_refund_amount, 2));
+    }
+
+    /** The report the tenant sent to AbangananHub about money their landlord kept (see Tenant\ReservationController::escalateRefund). */
+    public function refundReport()
+    {
+        return $this->belongsTo(Report::class, 'refund_report_id', 'report_id');
     }
 
     /** Tells the landlord there is money to settle when a reservation with direct payments is cancelled. */

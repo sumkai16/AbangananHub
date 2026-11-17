@@ -1,6 +1,8 @@
 @extends(auth()->user()->usesLandlordShell() ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
 
 @section('content')
+    {{-- Any change to one of this tenant's reservations redraws the list live (resources/js/live-page.js). --}}
+    <div hidden data-live-page data-live-any data-live-user="{{ auth()->id() }}"></div>
     <div class="{{ auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-14 min-h-[calc(100vh-72px)] flex flex-col" x-data="{
             modalOpen: false,
             selected: null,

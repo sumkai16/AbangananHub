@@ -1,6 +1,8 @@
 @extends(auth()->user()->usesLandlordShell() ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
 
 @section('content')
+    {{-- Follows this reservation live (resources/js/live-page.js): a payment confirmed or a status change redraws the page, no reload. --}}
+    <div hidden data-live-page data-live-user="{{ auth()->id() }}" data-live-reservation="{{ $reservation->reservation_id }}" data-live-conversation="{{ $reservation->conversation_id }}"></div>
     @php
         $landlord = $reservation->property->landlord;
         $tenant = $reservation->tenant;
@@ -499,29 +501,10 @@
 
         </div>{{-- /document + rail --}}
 
-        <p class="text-[10.5px] text-[#5B6A8E] text-center mt-4 hidden print:block">
+        <p data-live-ignore class="text-[10.5px] text-[#5B6A8E] text-center mt-4 hidden print:block">
             {{ $agreementRef }} &middot; Generated {{ now()->format('F j, Y \a\t g:i A') }} &middot; AbangananHub
         </p>
     </div>
     </x-print-document>
 
-    @if($processingPayment)
-        @push('scripts')
-            <script>
-                // The webhook lands out-of-band, so without this the tenant sits on
-                // the spinner forever. A full reload is deliberate: this page has
-                // five mutually exclusive server-rendered states and re-rendering
-                // one of them in JS would duplicate the Blade.
-                document.addEventListener('DOMContentLoaded', () => {
-                    if (!window.Echo) return;
-                    window.Echo.private('user.{{ auth()->id() }}')
-                        .listen('.PaymentStatusUpdated', (e) => {
-                            if (e.reservation_id === {{ $reservation->reservation_id }}) {
-                                window.location.reload();
-                            }
-                        });
-                });
-            </script>
-        @endpush
-    @endif
 @endsection

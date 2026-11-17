@@ -19,7 +19,7 @@ class AdminPageSwapRegionsTest extends TestCase
         return array_map(fn ($r) => [$r], [
             'admin.audit-logs.index', 'admin.catalogue.properties.index', 'admin.catalogue.units.index',
             'admin.conversations.index', 'admin.deposit-charges.index', 'admin.payments.index',
-            'admin.reports.index', 'admin.reservations.index', 'admin.reviews.index', 'admin.users.index',
+            'admin.refund-requests.index', 'admin.reports.index', 'admin.reservations.index', 'admin.reviews.index', 'admin.users.index',
         ]);
     }
 

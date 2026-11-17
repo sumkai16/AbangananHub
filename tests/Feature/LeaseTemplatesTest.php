@@ -580,4 +580,36 @@ class LeaseTemplatesTest extends TestCase
         $none = $this->template($l, ['name' => 'No fee', 'late_fee_type' => 'none']);
         $this->assertContains('No late fee', $none->summaryChips());
     }
+
+    public function test_a_policy_can_be_read_in_full_by_its_landlord_only(): void
+    {
+        ['landlord' => $l, 'prop' => $prop] = $this->setupLandlord();
+        $t = $this->template($l, ['name' => 'Readable', 'body' => 'Rent is paid on the {{due_day}} of each month. UNIQUE-WORDING']);
+        $prop->forceFill(['lease_template_id' => $t->lease_template_id])->save();
+
+        $this->actingAs($l)->getJson(route('landlord.lease-templates.read', $t))
+            ->assertOk()->assertJsonPath('html', fn ($html) => str_contains($html, 'UNIQUE-WORDING'));
+
+        $this->actingAs($this->makeLandlord())->getJson(route('landlord.lease-templates.read', $t))->assertForbidden();
+    }
+
+    public function test_the_standard_policy_can_be_read_and_the_policies_page_offers_read_buttons(): void
+    {
+        ['landlord' => $l] = $this->setupLandlord();
+        $t = $this->template($l, ['name' => 'Mine']);
+
+        $this->actingAs($l)->getJson(route('landlord.lease-templates.read-standard'))->assertOk()->assertJsonStructure(['html']);
+
+        $this->actingAs($l)->get(route('landlord.leases.index'))
+            ->assertOk()
+            ->assertSee('open-policy-reader', false)
+            // The URLs sit inside @js(), so their slashes are JSON-escaped.
+            ->assertSee("lease-policies\\/templates\\/{$t->lease_template_id}\\/read", false)
+            ->assertSee('lease-policies\\/standard\\/read', false);
+    }
+
+    public function test_reading_the_standard_policy_works_before_any_property_exists(): void
+    {
+        $this->actingAs($this->makeLandlord())->getJson(route('landlord.lease-templates.read-standard'))->assertOk()->assertJsonStructure(['html']);
+    }
 }

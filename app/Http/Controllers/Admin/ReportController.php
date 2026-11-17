@@ -56,7 +56,7 @@ class ReportController extends Controller
 
     public function show(Report $report)
     {
-        $report->load(['reporter', 'property', 'reportedUser', 'paymentClaim.reservation.property']);
+        $report->load(['reporter', 'property', 'reportedUser', 'paymentClaim.reservation.property', 'refundReservation.payments']);
 
         // A payment dispute: the evidence the admin would otherwise hunt for, and the landlord's track record.
         $claim = $report->paymentClaim;

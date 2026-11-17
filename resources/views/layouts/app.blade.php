@@ -517,7 +517,9 @@
         @yield('content')
     </main>
 
-    <footer class="print:hidden bg-[#060D26] mt-auto">
+    {{-- The footer belongs to the landing page only; every other page ends with its own content. page-swap.js loads a page in full when the footer would differ (needsFullLoad). --}}
+    @if(request()->routeIs('home'))
+    <footer id="site-footer" class="print:hidden bg-[#060D26] mt-auto">
         <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 pb-[max(2rem,env(safe-area-inset-bottom))]">
 
             {{-- Brand --}}
@@ -594,6 +596,7 @@
             </div>
         </div>
     </footer>
+    @endif
 
     {{-- ========================================== --}}
     {{-- UNIFIED DYNAMIC AUTH MODAL (AJAX/FETCH) --}}
