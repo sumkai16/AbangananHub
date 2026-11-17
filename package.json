@@ -29,6 +29,7 @@
         "jsqr": "^1.4.0",
         "leaflet": "^1.9.4",
         "leaflet-routing-machine": "^3.2.12",
-        "leaflet.markercluster": "^1.5.3"
+        "leaflet.markercluster": "^1.5.3",
+        "pdfjs-dist": "^6.5.438"
     }
 }
