@@ -40,6 +40,11 @@ class UnitMedia extends Model
             return;
         }
 
+        // A seeded photo lives on this site (/images/seed/...), not on Cloudinary: nothing to delete over the network.
+        if (! $this->cloudinary_public_id && str_starts_with((string) $this->media_url, '/')) {
+            return;
+        }
+
         try {
             $publicId = $this->cloudinary_public_id
                 ?: 'abanganan/units/' . pathinfo(parse_url($this->media_url, PHP_URL_PATH), PATHINFO_FILENAME);

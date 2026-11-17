@@ -73,7 +73,7 @@ class OccupancyController extends Controller
                     'rent'      => (float) $unit->rental_fee,
                     'deposit'   => $unit->security_deposit !== null ? (float) $unit->security_deposit : null,
                     'capacity'  => $unit->occupancy_limit,
-                    'photo'     => optional($unit->media->firstWhere('media_type', 'Image'))->media_url,
+                    'photo'     => \App\Support\Images::absolute(optional($unit->media->firstWhere('media_type', 'Image'))->media_url),
                     'amenities' => $unit->amenities->pluck('amenity_name')->values(),
                 ])->values(),
             ];

@@ -222,7 +222,7 @@ class PromoSeeder extends TenantSeeder
                 PropertyMedia::create([
                     'property_id' => $property->property_id,
                     'media_type'  => 'Image',
-                    'media_url'   => "https://images.unsplash.com/photo-{$photo}?w=1200&q=80",
+                    'media_url'   => "/images/seed/{$photo}.jpg",
                 ]);
             }
         }
@@ -261,7 +261,7 @@ class PromoSeeder extends TenantSeeder
                     UnitMedia::create([
                         'unit_id'    => $unit->unit_id,
                         'media_type' => 'Image',
-                        'media_url'  => 'https://images.unsplash.com/photo-'.$unitPhotos[($i + $k) % count($unitPhotos)].'?w=800&q=80',
+                        'media_url'  => '/images/seed/'.$unitPhotos[($i + $k) % count($unitPhotos)].'.jpg',
                         'source'     => 'camera',
                         'caption'    => $k === 0 ? 'Sleeping area with natural light' : null,
                     ]);

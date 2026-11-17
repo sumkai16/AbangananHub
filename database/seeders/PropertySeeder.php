@@ -24,6 +24,9 @@ use Illuminate\Database\Seeder;
  * kitchen, floor, avail, deposit (months of rent), desc.
  *
  * Runs after AmenitySeeder and LandlordSeeder.
+ *
+ * Listing and unit photos are local files (public/images/seed/<unsplash-id>.jpg, stored as /images/seed/<id>.jpg), so the
+ * demo needs no internet connection.
  */
 class PropertySeeder extends Seeder
 {
@@ -205,7 +208,7 @@ class PropertySeeder extends Seeder
             PropertyMedia::create([
                 'property_id' => $property->property_id,
                 'media_type'  => 'Image',
-                'media_url'   => 'https://images.unsplash.com/photo-'.$pool[($n + $k) % count($pool)].'?w=1200&q=80',
+                'media_url'   => '/images/seed/'.$pool[($n + $k) % count($pool)].'.jpg',
             ]);
         }
     }
@@ -234,7 +237,7 @@ class PropertySeeder extends Seeder
             UnitMedia::create([
                 'unit_id'    => $unit->unit_id,
                 'media_type' => 'Image',
-                'media_url'  => 'https://images.unsplash.com/photo-'.self::UNIT_PHOTOS[($seed + $k * 5) % count(self::UNIT_PHOTOS)].'?w=800&q=80',
+                'media_url'  => '/images/seed/'.self::UNIT_PHOTOS[($seed + $k * 5) % count(self::UNIT_PHOTOS)].'.jpg',
                 'source'     => 'camera',
                 'caption'    => $k === 0 ? self::CAPTIONS[$seed % count(self::CAPTIONS)] : null,
             ]);

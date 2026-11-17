@@ -6,7 +6,8 @@ namespace App\Support;
  * Resizes remote listing photos by rewriting the size hint in their URL, so a
  * 640px card doesn't download the 1200px original.
  *
- * Seeded data is Unsplash (?w=&q=); real landlord uploads are Cloudinary
+ * Seeded data is a set of local files under public/images/seed (site-relative paths like /images/seed/<id>.jpg, so the
+ * demo needs no internet); Unsplash URLs (?w=&q=) are still understood for older rows; real landlord uploads are Cloudinary
  * (/upload/ transformation segment). Any other host is returned untouched —
  * we can't resize what we don't control, and a broken URL is worse than a
  * large one.
@@ -35,6 +36,11 @@ class Images
             return $url;
         }
 
+        // A site-relative path (the seeded local photos): there is nothing to resize, and it has no host to look up.
+        if (str_starts_with($url, '/') && ! str_starts_with($url, '//')) {
+            return $url;
+        }
+
         $host = parse_url($url, PHP_URL_HOST);
 
         if ($host === 'images.unsplash.com') {
@@ -53,6 +59,19 @@ class Images
         }
 
         return $url;
+    }
+
+    /**
+     * The URL with a host, for places that leave the page (the mobile API, emails): a site-relative path such as
+     * /images/seed/x.jpg becomes an absolute URL on this site; anything already absolute is returned as it is.
+     */
+    public static function absolute(?string $url): ?string
+    {
+        if (! $url || ! str_starts_with($url, '/') || str_starts_with($url, '//')) {
+            return $url;
+        }
+
+        return url($url);
     }
 
     /** A srcset string for the URL, or null when it can't be resized. */
