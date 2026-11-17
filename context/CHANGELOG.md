@@ -2,6 +2,11 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 17 2026 — Second browser pass: two fixes (branch `axci`)
+- **Admin Refund requests no longer needs a sideways scroll.** The 8-column table was about 1400 px wide, so on a 1366 px laptop the Refund and Release buttons sat off-screen. Now 5 fixed-width columns: the actions, raised date and "Paid to the landlord" note sit under the request label, the landlord under the rental. No horizontal scroll at laptop width (`admin/refund-requests/index.blade.php`).
+- **Dashboard alert labels in dark mode** ("Fix now", "Waiting on admin", the counts and the sub-lines) were dim on the dark background; they now carry `dark:` colours.
+- **Found, not fixed:** a landlord's Reservations sidebar badge does not move live when a new inquiry arrives (it is right after a reload); only Messages is pushed.
+
 ## Nov 17 2026 — Landlord dashboard alerts: grouped, named, and linked to the right page (branch `axci`)
 **View, controller and Properties filter; no migration.** The four tinted rows became two groups on desktop ("Fix now" with one coral button on the first row, "Waiting on admin" quiet) and one collapsed summary card on phones (the first thing to do with a full-width button, the rest behind "Show the other N"). Mockups were options A to E; B on desktop and D on phone won.
 - **`DashboardController::setupAlerts`** now returns `group` (fix|waiting), `title`, `sub`, `cta`, `url`. It names the listing ("Tisa Garden Rooms was rejected"), the tenant and the amount ("Confirm Noemi's ₱9,500.00 payment"), and a single listing links straight to it.

@@ -75,7 +75,7 @@
                             <button type="button" @click="toggle('fix')" :aria-expanded="(! shut.fix).toString()" aria-controls="alerts-fix"
                                 class="group mb-2 flex w-full cursor-pointer items-center gap-2 rounded-lg py-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/60">
                                 <span class="h-2 w-2 rounded-full bg-[#DC2626]" aria-hidden="true"></span>
-                                <span class="text-[12px] font-bold uppercase tracking-[0.06em] text-[#991B1B]">Fix now</span>
+                                <span class="text-[12px] font-bold uppercase tracking-[0.06em] text-[#991B1B] dark:text-[#FCA5A5]">Fix now</span>
                                 <span class="text-[12px] text-[#5B6A8E]">{{ $fix->count() }} {{ Str::plural('thing', $fix->count()) }} holding back your income</span>
                                 <svg class="ml-auto h-4 w-4 text-[#5B6A8E] transition-transform duration-200 group-hover:text-[#060D26]" :class="shut.fix ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
                             </button>
@@ -83,7 +83,7 @@
                                 @foreach($fix as $alert)
                                     <li>
                                         <a href="{{ $alert['url'] }}" class="group flex items-center gap-3 px-4 py-3 transition-colors duration-200 hover:bg-[#F7F8FC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#FF8A66]/60">
-                                            <p class="min-w-0 flex-1 text-[14px] text-[#060D26]"><span class="font-bold group-hover:underline">{{ $alert['title'] }}</span> <span class="text-[#46537A]">&middot; {{ $alert['sub'] }}</span></p>
+                                            <p class="min-w-0 flex-1 text-[14px] text-[#060D26]"><span class="font-bold group-hover:underline">{{ $alert['title'] }}</span> <span class="text-[#46537A] dark:text-[#94A3B8]">&middot; {{ $alert['sub'] }}</span></p>
                                             @if($loop->first)
                                                 <span class="inline-flex min-h-[34px] shrink-0 items-center rounded-lg bg-[#FF8A66] px-3.5 text-[12.5px] font-bold text-[#060D26] transition-colors duration-200 group-hover:bg-[#E96F4F]">{{ $alert['cta'] }}</span>
                                             @else
@@ -100,7 +100,7 @@
                             <button type="button" @click="toggle('waiting')" :aria-expanded="(! shut.waiting).toString()" aria-controls="alerts-waiting"
                                 class="group mb-2 flex w-full cursor-pointer items-center gap-2 rounded-lg py-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/60">
                                 <span class="h-2 w-2 rounded-full bg-[#9AA6C2]" aria-hidden="true"></span>
-                                <span class="text-[12px] font-bold uppercase tracking-[0.06em] text-[#46537A]">Waiting on admin</span>
+                                <span class="text-[12px] font-bold uppercase tracking-[0.06em] text-[#46537A] dark:text-[#94A3B8]">Waiting on admin</span>
                                 <span class="text-[12px] text-[#5B6A8E]">nothing to do yet</span>
                                 <svg class="ml-auto h-4 w-4 text-[#5B6A8E] transition-transform duration-200 group-hover:text-[#060D26]" :class="shut.waiting ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
                             </button>
@@ -122,7 +122,7 @@
                 <div class="sm:hidden" x-data="{ open: false }">
                     <div class="overflow-hidden rounded-2xl border {{ $urgent ? 'border-[#FCA5A5] bg-[#FEF2F2]' : 'border-[#E2E4EC] bg-white' }}">
                         <div class="flex flex-col gap-2.5 px-3.5 pb-3 pt-3.5">
-                            <p class="text-[11.5px] font-bold uppercase tracking-[0.05em] {{ $urgent ? 'text-[#991B1B]' : 'text-[#46537A]' }}">{{ $total }} {{ Str::plural('thing', $total) }} {{ $total === 1 ? 'needs' : 'need' }} you</p>
+                            <p class="text-[11.5px] font-bold uppercase tracking-[0.05em] {{ $urgent ? 'text-[#991B1B] dark:text-[#FCA5A5]' : 'text-[#46537A] dark:text-[#94A3B8]' }}">{{ $total }} {{ Str::plural('thing', $total) }} {{ $total === 1 ? 'needs' : 'need' }} you</p>
                             <p class="text-[15px] font-bold leading-snug text-[#060D26]">{{ $lead['title'] }}</p>
                             <p class="-mt-1 text-[12.5px] text-[#46537A]">{{ $lead['sub'] }}</p>
                             <a href="{{ $lead['url'] }}" class="flex h-11 items-center justify-center rounded-xl text-[14px] font-bold text-[#060D26] transition-colors duration-200 {{ $urgent ? 'bg-[#FF8A66] hover:bg-[#E96F4F]' : 'border border-[#060D26]/25 bg-white' }}">{{ $lead['cta'] }}</a>

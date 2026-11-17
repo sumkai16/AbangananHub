@@ -55,42 +55,29 @@
             @if ($rows->isEmpty())
                 <x-admin.empty title="No refund requests" :note="$search ? 'Try a different search.' : 'When a tenant reports a move-in problem, or says a landlord kept their money, it shows here.'" />
             @else
+                {{-- Fixed column widths so the page never scrolls sideways at laptop width: the actions sit under the request,
+                     the landlord under the rental and the raised date under the request label. --}}
                 <div class="overflow-x-auto scrollbar-thin-light">
-                    <table class="min-w-full">
+                    <table class="w-full min-w-[900px] table-fixed">
+                        <colgroup><col style="width:24%"><col style="width:20%"><col style="width:22%"><col style="width:10%"><col style="width:24%"></colgroup>
                         <thead>
                             <tr class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
                                 <x-admin.th>Request</x-admin.th>
                                 <x-admin.th>Tenant</x-admin.th>
-                                <x-admin.th>Landlord</x-admin.th>
                                 <x-admin.th>Rental</x-admin.th>
                                 <x-admin.th>Amount</x-admin.th>
                                 <x-admin.th>Reason</x-admin.th>
-                                <x-admin.th>Raised</x-admin.th>
-                                <th class="px-4 py-2.5"><span class="sr-only">Actions</span></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#E2E4EC]">
                             @foreach ($rows as $row)
                                 @php $res = $row['reservation']; $isDispute = $row['kind'] === 'disputes'; @endphp
                                 <tr class="align-top hover:bg-[#F7F8FC] transition-colors duration-200">
-                                    <td class="px-4 py-3 whitespace-nowrap">
+                                    <td class="px-4 py-3">
                                         <x-admin.status :status="$isDispute ? 'Under review' : 'Pending'" :label="$isDispute ? 'Move-in dispute' : 'Not returned'" />
                                         <p class="mt-1 text-[12px] text-[#5B6A8E]">{{ $isDispute ? 'Money held by us' : 'Paid to the landlord' }}</p>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <p class="text-[13.5px] font-semibold text-[#060D26]">{{ $row['tenant'] }}</p>
-                                        <p class="text-[12.5px] text-[#5B6A8E]">{{ $row['tenantEmail'] }}</p>
-                                    </td>
-                                    <td class="px-4 py-3 text-[13.5px] text-[#060D26]">{{ $row['landlord'] }}</td>
-                                    <td class="px-4 py-3 max-w-[16rem]">
-                                        <p class="truncate text-[13.5px] text-[#060D26]" title="{{ $row['property'] }}">{{ $row['property'] }}</p>
-                                        <p class="text-[12.5px] text-[#5B6A8E]">{{ $row['unit'] }} · Reservation #{{ $res->reservation_id }}</p>
-                                    </td>
-                                    <td class="px-4 py-3 text-[13.5px] font-semibold tabular-nums whitespace-nowrap text-[#060D26]">{{ $peso($row['amount']) }}</td>
-                                    <td class="px-4 py-3 max-w-[22rem] text-[13px] text-[#060D26]" title="{{ $row['reason'] }}"><span class="line-clamp-3">{{ $row['reason'] }}</span></td>
-                                    <td class="px-4 py-3 text-[13px] whitespace-nowrap text-[#5B6A8E]">{{ $row['raised_at']->format('M j, Y') }}<br><span class="text-[12px]">{{ $row['raised_at']->diffForHumans() }}</span></td>
-                                    <td class="px-4 py-3">
-                                        <div class="flex flex-col items-end gap-2">
+                                        <p class="text-[12px] text-[#5B6A8E]">Raised {{ $row['raised_at']->format('M j, Y') }} &middot; {{ $row['raised_at']->diffForHumans() }}</p>
+                                        <div class="mt-3 flex flex-col items-start gap-2">
                                             @if($isDispute && $row['payment'])
                                                 @include('admin.payments.partials._actions', ['payment' => $row['payment'], 'heldGroups' => $heldGroups])
                                             @elseif($isDispute)
@@ -106,6 +93,17 @@
                                             </div>
                                         </div>
                                     </td>
+                                    <td class="px-4 py-3">
+                                        <p class="text-[13.5px] font-semibold text-[#060D26] break-words">{{ $row['tenant'] }}</p>
+                                        <p class="truncate text-[12.5px] text-[#5B6A8E]" title="{{ $row['tenantEmail'] }}">{{ $row['tenantEmail'] }}</p>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <p class="truncate text-[13.5px] text-[#060D26]" title="{{ $row['property'] }}">{{ $row['property'] }}</p>
+                                        <p class="text-[12.5px] text-[#5B6A8E]">{{ $row['unit'] }} &middot; Reservation #{{ $res->reservation_id }}</p>
+                                        <p class="mt-0.5 truncate text-[12.5px] text-[#5B6A8E]" title="{{ $row['landlord'] }}">Landlord: {{ $row['landlord'] }}</p>
+                                    </td>
+                                    <td class="px-4 py-3 text-[13.5px] font-semibold tabular-nums whitespace-nowrap text-[#060D26]">{{ $peso($row['amount']) }}</td>
+                                    <td class="px-4 py-3 text-[13px] text-[#060D26]" title="{{ $row['reason'] }}"><span class="line-clamp-4">{{ $row['reason'] }}</span></td>
                                 </tr>
                             @endforeach
                         </tbody>
