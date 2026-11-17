@@ -52,3 +52,9 @@ Schedule::command('audit:verify')->dailyAt('03:30')->timezone(config('rentals.ti
 
 // Tenant holds: lift the ones whose overdue rent has been paid. Also checked when the tenant opens their hold page.
 Schedule::command('holds:release-paid')->dailyAt('09:00')->timezone(config('rentals.timezone'));
+
+// Off-server backup: database + private/public storage (IDs, selfies, leases, documents), encrypted, to Cloudflare R2.
+// Runs before the 03:00 prune. The check at 08:00 alerts admins if no good backup exists for 36 h, which also
+// catches a dead scheduler (plans/database-and-files-backup.md).
+Schedule::command('backup:run')->dailyAt('02:30')->timezone(config('rentals.timezone'))->withoutOverlapping(120)->onOneServer();
+Schedule::command('backup:list', ['--check'])->dailyAt('08:00')->timezone(config('rentals.timezone'));
