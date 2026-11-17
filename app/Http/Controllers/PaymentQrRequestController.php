@@ -22,9 +22,9 @@ class PaymentQrRequestController extends Controller
     {
         abort_unless($reservation->tenant_id === Auth::id(), 403);
 
-        $reservation->loadMissing(['property.landlord', 'unit', 'tenant', 'conversation']);
+        $reservation->loadMissing(['property.landlord', 'unit', 'tenant', 'conversation', 'tenancyThread']);
         $landlord = $reservation->property?->landlord;
-        $conversation = $reservation->conversation;
+        $conversation = $reservation->paymentChat(open: true);
 
         // A walk-in tenancy has no chat, and a finished or cancelled one has nothing left to pay.
         abort_unless($landlord && $conversation && ! in_array($reservation->rental_status, Reservation::TERMINAL_STATUSES, true), 404);

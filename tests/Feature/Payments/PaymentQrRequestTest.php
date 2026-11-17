@@ -84,4 +84,42 @@ class PaymentQrRequestTest extends TestCase
         $this->actingAs($tenant)->post(route('paymentQr.request', $reservation));
         $page()->assertSee('We&rsquo;ll tell you when it arrives', false)->assertDontSee(route('paymentQr.request', $reservation), false);
     }
+
+    public function test_a_tenant_who_lives_there_asks_through_a_tenancy_chat_that_is_opened_for_them(): void
+    {
+        ['tenant' => $tenant, 'landlord' => $landlord, 'reservation' => $reservation] = $this->makeTenancy();
+        $this->assertNull($reservation->conversation_id);
+
+        $this->actingAs($tenant)->post(route('paymentQr.request', $reservation))->assertSessionHas('success');
+
+        $thread = $reservation->fresh()->tenancyThread;
+        $this->assertNotNull($thread);
+        $note = Notification::where('user_id', $landlord->user_id)->latest('notification_id')->firstOrFail();
+        $this->assertSame($thread->conversation_id, $note->conversation_id);
+        $this->assertTrue($thread->messages()->where('kind', 'system')->where('message', 'like', '%to share a payment QR%')->exists());
+    }
+
+    public function test_the_tenancy_chat_wins_over_the_old_inquiry_chat(): void
+    {
+        ['tenant' => $tenant, 'landlord' => $landlord, 'reservation' => $reservation] = $this->makeTenancy();
+        $inquiry = Conversation::create([
+            'tenant_id' => $tenant->user_id, 'landlord_id' => $landlord->user_id,
+            'property_id' => $reservation->property_id, 'unit_id' => $reservation->unit_id, 'type' => 'inquiry',
+        ]);
+        $reservation->forceFill(['conversation_id' => $inquiry->conversation_id])->save();
+        $tenancy = $reservation->openTenancyThread();
+
+        $this->actingAs($tenant)->post(route('paymentQr.request', $reservation))->assertSessionHas('success');
+
+        $this->assertTrue($tenancy->messages()->where('message', 'like', '%to share a payment QR%')->exists());
+        $this->assertFalse($inquiry->messages()->where('message', 'like', '%to share a payment QR%')->exists());
+    }
+
+    public function test_the_pay_card_offers_the_ask_button_to_a_tenant_who_lives_there_without_a_chat_yet(): void
+    {
+        ['tenant' => $tenant, 'reservation' => $reservation] = $this->makeTenancy();
+
+        $this->actingAs($tenant)->get(route('tenancy.show', $reservation))->assertOk()
+            ->assertSee(route('paymentQr.request', $reservation), false);
+    }
 }

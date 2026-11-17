@@ -22,13 +22,19 @@
         ->sortByDesc('payment_claim_id');
     $pending = $mine->firstWhere('status', 'Pending');
     $rejected = ! $pending && $mine->first()?->status === 'Rejected' ? $mine->first() : null;
-    $conversationLink = $reservation->conversation_id
+    // Living here: the tenancy chat (opened on demand). Before move-in: the inquiry chat.
+    $conversationLink = $reservation->rental_status !== 'Occupied' && $reservation->conversation_id
         ? route('conversations.index', ['active' => $reservation->conversation_id])
         : route('tenancy.chat', $reservation);
 @endphp
 <div id="{{ $isMoveIn ? 'pay' : 'pay-'.$periodKey->format('Y-m') }}" class="scroll-mt-24 rounded-2xl border border-[#E2E4EC] bg-white p-4 sm:p-5" x-data="{ form: {{ $errors->has('payment') || $errors->has('reference_no') || $errors->has('amount') || $errors->has('paid_on') || $errors->has('accept_terms') || ($isMoveIn && request()->boolean('pay')) ? 'true' : 'false' }} }">
     <h3 class="text-[15px] font-normal text-[#060D26]">
-        {{ $isMoveIn ? 'Pay your landlord to move in' : (($period['is_future'] ?? false) ? 'Pay ahead: '.$period['label'] : 'Pay your landlord: '.$period['label']) }}
+        @if($isMoveIn || ($period['is_future'] ?? false))
+            {{ $isMoveIn ? 'Pay your landlord to move in' : 'Pay ahead: '.$period['label'] }}
+        @else
+            {{-- Inside the rent picker the heading follows the months ticked (range); alone it keeps the month. --}}
+            Pay your landlord: <span x-text="typeof range !== 'undefined' && range ? range : @js($period['label'])">{{ $period['label'] }}</span>
+        @endif
     </h3>
 
     @if($isMoveIn)
@@ -61,7 +67,7 @@
         @if($period['is_future'] ?? false)
             <p class="mt-1 text-[13px] text-[#5B6A8E]">You&rsquo;re all paid up. Want to pay early? One month is <span class="font-bold tabular-nums text-[#060D26]">&#8369;{{ number_format($defaultAmount, 2) }}</span>. Paying more covers the months after it, in order.</p>
         @else
-            <p class="mt-1 text-[13px] text-[#5B6A8E]">Balance for this month: <span class="font-bold tabular-nums text-[#060D26]">&#8369;{{ number_format($defaultAmount, 2) }}</span></p>
+            <p class="mt-1 text-[13px] text-[#5B6A8E]"><span x-text="typeof count !== 'undefined' && count > 1 ? 'Balance for these months:' : 'Balance for this month:'">Balance for this month:</span> <span class="font-bold tabular-nums text-[#060D26]" x-text="typeof total !== 'undefined' && typeof money === 'function' ? money(total) : @js('₱'.number_format($defaultAmount, 2))">&#8369;{{ number_format($defaultAmount, 2) }}</span></p>
         @endif
     @endif
 
@@ -81,7 +87,7 @@
             @endphp
             <div class="rounded-xl border border-dashed border-[#5B6A8E]/40 px-3 py-3 text-[12.5px] text-[#5B6A8E]">
                 <p>{{ $landlordName }} hasn&rsquo;t shared a payment QR yet.</p>
-                @if($reservation->conversation_id)
+                @if($reservation->canAskForPaymentQr())
                     @if($qrAskOpen)
                         <p class="mt-2 font-semibold text-[#060D26]">You asked {{ $landlordName }} {{ $qrAskedAt->diffForHumans() }}. We&rsquo;ll tell you when it arrives.</p>
                     @else

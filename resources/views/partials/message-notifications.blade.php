@@ -168,8 +168,9 @@
                 this.toasts.push({
                     id,
                     conversation_id: data.conversation_id,
-                    sender_name: data.sender_name,
-                    sender_initial: data.sender_initial || data.sender_name.charAt(0).toUpperCase(),
+                    {{-- A system line (an automatic notice in the chat) has no sender. --}}
+                    sender_name: data.sender_name || 'AbangananHub',
+                    sender_initial: data.sender_initial || (data.sender_name || 'A').charAt(0).toUpperCase(),
                     message: data.message,
                     property_title: data.property_title || '',
                     unit_label: data.unit_label || '',

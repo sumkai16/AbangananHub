@@ -716,6 +716,29 @@ class Reservation extends Model
     }
 
     /**
+     * The chat a payment request goes through: the tenancy chat once the tenant lives here, otherwise the inquiry
+     * chat from before move-in. With $open, a tenant who lives here but has no tenancy chat yet gets one.
+     * Null for a walk-in, who has no account to read it from.
+     */
+    public function paymentChat(bool $open = false): ?Conversation
+    {
+        $thread = $this->tenancyThread ?? $this->conversation;
+
+        if (! $thread && $open && $this->rental_status === 'Occupied') {
+            $thread = $this->openTenancyThread();
+        }
+
+        return $thread;
+    }
+
+    /** Whether the tenant can ask the landlord for a QR: a chat exists, or one can be opened for them. */
+    public function canAskForPaymentQr(): bool
+    {
+        return $this->paymentChat() !== null
+            || ($this->rental_status === 'Occupied' && $this->tenant && ! $this->tenant->is_walk_in);
+    }
+
+    /**
      * Create (or reattach) the tenancy chat once the tenant is actually living here.
      *
      * One thread per tenant, landlord and property: renting the same place again later
