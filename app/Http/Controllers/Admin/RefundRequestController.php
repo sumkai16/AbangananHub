@@ -29,7 +29,7 @@ class RefundRequestController extends Controller
         $type = in_array($request->query('type'), self::TYPES, true) ? $request->query('type') : 'all';
         $search = trim((string) $request->query('search', ''));
 
-        $with = ['tenant', 'property.landlord', 'unit', 'payments'];
+        $with = ['tenant', 'property.landlord', 'unit', 'payments.reservation.tenant', 'payments.reservation.property'];
 
         $disputes = AdminQueues::moveInDisputes()->with($with)->get()->map(fn (Reservation $r) => $this->disputeRow($r));
         $escalations = AdminQueues::escalations()->select('reservations.*')->with(array_merge($with, ["refundReport"]))->get()
