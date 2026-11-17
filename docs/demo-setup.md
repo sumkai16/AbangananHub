@@ -54,6 +54,8 @@ not `localhost`.
 
 ## Demo data
 
+**For the capstone defense use `docs/defense-script.md`** (accounts, the admin's two-factor code, and every scenario with where to click). The paragraph below is the older, smaller demo.
+
 `php artisan migrate:fresh --seed` builds the whole demo (Maria Santos, her 10 tenants, three requests in
 progress, a listing waiting for admin approval). **It wipes the local database.** To add the demo extras
 to a database that already has the base seed, run `php artisan db:seed --class=DemoSeeder` (safe to repeat).

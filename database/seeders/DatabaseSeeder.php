@@ -17,6 +17,8 @@ class DatabaseSeeder extends Seeder
             ReviewSeeder::class,
             ReportSeeder::class,
             DemoSeeder::class,
+            // The capstone-defense world: admin queues, landlord and tenant states, a known admin 2FA secret.
+            DefenseSeeder::class,
         ]);
     }
 }
