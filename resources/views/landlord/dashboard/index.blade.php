@@ -48,53 +48,105 @@
             </div>
         </div>
 
-        {{-- Setup alerts: only what blocks earning (unpaid-out, unlisted, rejected). Absent when all is well.
-             A tinted row per alert: an icon for the level, the sentence, and a button. Blockers (danger, warn) get the
-             coral button; a plain status like "waiting for admin approval" gets a quiet outline one. --}}
+        {{-- Setup alerts: what blocks earning, and what is only waiting. Absent when all is well. Desktop groups them
+             ("Fix now" with one coral button for the first thing, "Waiting on admin" quiet). A phone gets one summary
+             card with the first thing to do and the rest one tap away. Each row links to the page that answers it
+             (DashboardController::setupAlerts). --}}
         @if($setupAlerts->isNotEmpty())
-            <ul class="mb-5 space-y-2" aria-label="Setup alerts">
-                @foreach($setupAlerts as $alert)
-                    @php
-                        [$box, $iconBox, $iconPath, $button] = match($alert['level']) {
-                            'danger' => [
-                                'border-[#EF4444]/25 bg-[#EF4444]/[0.06]',
-                                'bg-[#EF4444]/10 text-[#B91C1C]',
-                                'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z',
-                                'bg-[#FF8A66] text-[#060D26] hover:bg-[#E96F4F]',
-                            ],
-                            'warn' => [
-                                'border-[#FBBF24]/40 bg-[#FBBF24]/10',
-                                'bg-[#FBBF24]/20 text-[#92400E]',
-                                'M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z',
-                                'bg-[#FF8A66] text-[#060D26] hover:bg-[#E96F4F]',
-                            ],
-                            default => [
-                                'border-[#E2E4EC] bg-white',
-                                'bg-[#ECEEF6] text-[#060D26]',
-                                'M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
-                                'border border-[#060D26]/20 bg-white text-[#060D26] hover:border-[#FF8A66]',
-                            ],
-                        };
-                    @endphp
-                    <li>
-                        <a href="{{ $alert['url'] }}"
-                            class="group flex items-center gap-3 rounded-2xl border px-3.5 py-2.5 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/60 sm:px-4 {{ $box }}">
-                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl {{ $iconBox }}" aria-hidden="true">
-                                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ $iconPath }}" />
-                                </svg>
-                            </span>
-                            <p class="min-w-0 flex-1 text-[14px] font-medium text-[#060D26]">{{ $alert['text'] }}</p>
-                            <span class="inline-flex min-h-[36px] shrink-0 items-center gap-1 rounded-xl px-3.5 text-[12.5px] font-semibold transition-colors duration-200 {{ $button }}">
-                                {{ $alert['cta'] }}
-                                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                                </svg>
-                            </span>
-                        </a>
-                    </li>
-                @endforeach
-            </ul>
+            @php
+                $fix = $setupAlerts->where('group', 'fix')->values();
+                $waiting = $setupAlerts->where('group', 'waiting')->values();
+                $total = $setupAlerts->count();
+                $lead = $fix->first() ?? $waiting->first();
+                $rest = $setupAlerts->reject(fn ($a) => $a === $lead)->values();
+                $urgent = $fix->isNotEmpty();
+            @endphp
+            <section aria-label="Setup alerts" class="mb-5">
+                {{-- Desktop and tablet --}}
+                {{-- Each group folds from its header. Open by default; a folded group stays folded on the next visit. --}}
+                <div class="hidden space-y-4 sm:block"
+                    x-data="{
+                        shut: {},
+                        init() { try { this.shut = JSON.parse(localStorage.getItem('dashAlertsShut') || '{}') || {}; } catch (e) { this.shut = {}; } },
+                        toggle(k) { this.shut[k] = ! this.shut[k]; try { localStorage.setItem('dashAlertsShut', JSON.stringify(this.shut)); } catch (e) {} },
+                    }">
+                    @if($fix->isNotEmpty())
+                        <div>
+                            <button type="button" @click="toggle('fix')" :aria-expanded="(! shut.fix).toString()" aria-controls="alerts-fix"
+                                class="group mb-2 flex w-full cursor-pointer items-center gap-2 rounded-lg py-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/60">
+                                <span class="h-2 w-2 rounded-full bg-[#DC2626]" aria-hidden="true"></span>
+                                <span class="text-[12px] font-bold uppercase tracking-[0.06em] text-[#991B1B]">Fix now</span>
+                                <span class="text-[12px] text-[#5B6A8E]">{{ $fix->count() }} {{ Str::plural('thing', $fix->count()) }} holding back your income</span>
+                                <svg class="ml-auto h-4 w-4 text-[#5B6A8E] transition-transform duration-200 group-hover:text-[#060D26]" :class="shut.fix ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                            </button>
+                            <ul id="alerts-fix" x-show="! shut.fix" class="divide-y divide-[#E2E4EC] overflow-hidden rounded-2xl border border-[#E2E4EC] bg-white">
+                                @foreach($fix as $alert)
+                                    <li>
+                                        <a href="{{ $alert['url'] }}" class="group flex items-center gap-3 px-4 py-3 transition-colors duration-200 hover:bg-[#F7F8FC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#FF8A66]/60">
+                                            <p class="min-w-0 flex-1 text-[14px] text-[#060D26]"><span class="font-bold group-hover:underline">{{ $alert['title'] }}</span> <span class="text-[#46537A]">&middot; {{ $alert['sub'] }}</span></p>
+                                            @if($loop->first)
+                                                <span class="inline-flex min-h-[34px] shrink-0 items-center rounded-lg bg-[#FF8A66] px-3.5 text-[12.5px] font-bold text-[#060D26] transition-colors duration-200 group-hover:bg-[#E96F4F]">{{ $alert['cta'] }}</span>
+                                            @else
+                                                <span class="shrink-0 text-[12.5px] font-bold text-[#B35A3D]">{{ $alert['cta'] }} &rsaquo;</span>
+                                            @endif
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+                    @if($waiting->isNotEmpty())
+                        <div>
+                            <button type="button" @click="toggle('waiting')" :aria-expanded="(! shut.waiting).toString()" aria-controls="alerts-waiting"
+                                class="group mb-2 flex w-full cursor-pointer items-center gap-2 rounded-lg py-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/60">
+                                <span class="h-2 w-2 rounded-full bg-[#9AA6C2]" aria-hidden="true"></span>
+                                <span class="text-[12px] font-bold uppercase tracking-[0.06em] text-[#46537A]">Waiting on admin</span>
+                                <span class="text-[12px] text-[#5B6A8E]">nothing to do yet</span>
+                                <svg class="ml-auto h-4 w-4 text-[#5B6A8E] transition-transform duration-200 group-hover:text-[#060D26]" :class="shut.waiting ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                            </button>
+                            <ul id="alerts-waiting" x-show="! shut.waiting" class="divide-y divide-[#E2E4EC] overflow-hidden rounded-2xl border border-[#E2E4EC] bg-white">
+                                @foreach($waiting as $alert)
+                                    <li>
+                                        <a href="{{ $alert['url'] }}" class="group flex items-center gap-3 px-4 py-3 transition-colors duration-200 hover:bg-[#F7F8FC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#FF8A66]/60">
+                                            <p class="min-w-0 flex-1 text-[13.5px] text-[#46537A]"><span class="font-bold text-[#060D26] group-hover:underline">{{ $alert['title'] }}</span></p>
+                                            <span class="shrink-0 text-[12.5px] font-bold text-[#B35A3D]">{{ $alert['cta'] }} &rsaquo;</span>
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Phone: the first thing to do, the rest behind one tap. --}}
+                <div class="sm:hidden" x-data="{ open: false }">
+                    <div class="overflow-hidden rounded-2xl border {{ $urgent ? 'border-[#FCA5A5] bg-[#FEF2F2]' : 'border-[#E2E4EC] bg-white' }}">
+                        <div class="flex flex-col gap-2.5 px-3.5 pb-3 pt-3.5">
+                            <p class="text-[11.5px] font-bold uppercase tracking-[0.05em] {{ $urgent ? 'text-[#991B1B]' : 'text-[#46537A]' }}">{{ $total }} {{ Str::plural('thing', $total) }} {{ $total === 1 ? 'needs' : 'need' }} you</p>
+                            <p class="text-[15px] font-bold leading-snug text-[#060D26]">{{ $lead['title'] }}</p>
+                            <p class="-mt-1 text-[12.5px] text-[#46537A]">{{ $lead['sub'] }}</p>
+                            <a href="{{ $lead['url'] }}" class="flex h-11 items-center justify-center rounded-xl text-[14px] font-bold text-[#060D26] transition-colors duration-200 {{ $urgent ? 'bg-[#FF8A66] hover:bg-[#E96F4F]' : 'border border-[#060D26]/25 bg-white' }}">{{ $lead['cta'] }}</a>
+                        </div>
+                        @if($rest->isNotEmpty())
+                            <button type="button" @click="open = !open" :aria-expanded="open.toString()"
+                                class="flex h-11 w-full items-center justify-center gap-1.5 border-t text-[13px] font-bold transition-colors duration-200 {{ $urgent ? 'border-[#FCA5A5] bg-[#FEE2E2] text-[#7F1D1D]' : 'border-[#E2E4EC] bg-[#F7F8FC] text-[#46537A]' }}">
+                                <span x-text="open ? 'Show less' : 'Show the other {{ $rest->count() }}'">Show the other {{ $rest->count() }}</span>
+                                <svg class="h-3.5 w-3.5 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                            </button>
+                            <ul x-show="open" x-cloak class="divide-y divide-[#E2E4EC] border-t border-[#E2E4EC] bg-white">
+                                @foreach($rest as $alert)
+                                    <li>
+                                        <a href="{{ $alert['url'] }}" class="flex min-h-[56px] items-center gap-3 px-3.5 py-2.5">
+                                            <span class="min-w-0 flex-1"><span class="block text-[13.5px] font-bold text-[#060D26]">{{ $alert['title'] }}</span><span class="block text-[12.5px] text-[#46537A]">{{ $alert['sub'] }}</span></span>
+                                            <span class="text-[18px] text-[#5B6A8E]" aria-hidden="true">&rsaquo;</span>
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </div>
+                </div>
+            </section>
         @endif
 
         {{-- 2. The numbers, in one navy band. Rent this month leads; overdue, occupancy, vacant units and inquiries follow.

@@ -70,7 +70,7 @@
 
                 <div class="filter-row flex flex-wrap items-center gap-2.5">
                     @php
-                        $listStatusOptions = ['' => 'All Status', 'Approved' => 'Approved', 'Pending' => 'Pending', 'Rejected' => 'Rejected'];
+                        $listStatusOptions = ['' => 'All Status', 'Approved' => 'Approved', 'Pending' => 'Pending', 'Rejected' => 'Rejected', 'Suspended' => 'Suspended', 'Draft' => 'Not finished'];
                         $listTypeOptions = [...\App\Enums\PropertyType::options('All Types'), 'House' => 'House for Rent'];
                     @endphp
                     <x-styled-select name="status" :options="$listStatusOptions" :selected="request('status', '')" autosubmit

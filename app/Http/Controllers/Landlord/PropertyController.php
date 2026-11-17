@@ -38,7 +38,12 @@ class PropertyController extends Controller
             // A Draft's verification_status is 'Pending' by default (the
             // column default, not a real submission) — filtering the
             // Pending bucket must not pull unsubmitted drafts into it.
-            $query->where('verification_status', $status)->submitted();
+            // Suspended and Draft are publication states, not verification ones; the dashboard alerts link to them.
+            if (in_array($status, ['Suspended', 'Draft'], true)) {
+                $query->where('publication_status', $status);
+            } else {
+                $query->where('verification_status', $status)->submitted();
+            }
         }
 
         if ($type = $request->input('type')) {

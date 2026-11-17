@@ -66,6 +66,7 @@ class LandlordDashboardLayoutTest extends TestCase
         $this->actingAs($landlord)->get(route('landlord.dashboard'))
             ->assertOk()
             ->assertSee('aria-label="Setup alerts"', false)
-            ->assertSee('waiting for admin approval.');
+            ->assertSee('is waiting for admin approval')
+            ->assertSee('Waiting on admin');
     }
 }

@@ -243,88 +243,81 @@ class DashboardController extends Controller
     }
 
     /**
-     * Things blocking this landlord from earning: listings stuck in review,
-     * rejected or unfinished, and a missing payout destination.
-     * Each: level (danger|warn|info), text, cta, url.
+     * Things blocking this landlord from earning: a payment to answer, listings rejected, suspended or unfinished,
+     * a missing payout destination, and (quietly) listings waiting on the admin.
+     * Each: group ('fix' = the landlord can act, 'waiting' = nothing to do yet), title, sub, cta, url.
+     * A single listing links straight to that listing; several link to the Properties list with the matching filter.
      */
     private function setupAlerts(int $landlordId, ?int $only = null): Collection
     {
         $alerts = collect();
-        $counts = ['rejected' => 0, 'suspended' => 0, 'draft' => 0, 'pending' => 0];
 
-        Property::where('landlord_id', $landlordId)
+        $properties = Property::where('landlord_id', $landlordId)
             ->when($only, fn ($q) => $q->whereKey($only))
-            ->selectRaw('verification_status, publication_status, count(*) as c')
-            ->groupBy('verification_status', 'publication_status')
-            ->get()
-            ->each(function ($row) use (&$counts) {
-                $n = (int) $row->c;
-                if ($row->publication_status === 'Draft') {
-                    $counts['draft'] += $n;
-                } elseif ($row->publication_status === 'Suspended') {
-                    $counts['suspended'] += $n;
-                } elseif ($row->verification_status === 'Rejected') {
-                    $counts['rejected'] += $n;
-                } elseif ($row->verification_status === 'Pending') {
-                    $counts['pending'] += $n;
-                }
-            });
+            ->get(['property_id', 'title', 'verification_status', 'publication_status']);
 
-        $listings = fn (int $n) => $n . ' ' . ($n === 1 ? 'listing' : 'listings');
+        $by = [
+            'draft' => $properties->where('publication_status', 'Draft'),
+            'suspended' => $properties->where('publication_status', 'Suspended'),
+            'rejected' => $properties->where('publication_status', '!=', 'Draft')->where('publication_status', '!=', 'Suspended')->where('verification_status', 'Rejected'),
+            'pending' => $properties->where('publication_status', '!=', 'Draft')->where('publication_status', '!=', 'Suspended')->where('verification_status', 'Pending'),
+        ];
 
-        $toConfirm = PaymentClaim::pending()
+        $claims = PaymentClaim::pending()
             ->whereHas('reservation.property', fn ($q) => $q->where('landlord_id', $landlordId)->when($only, fn ($q) => $q->whereKey($only)))
-            ->count();
+            ->with(['reservation.tenant', 'reservation.unit'])
+            ->oldest()
+            ->get();
 
-        if ($toConfirm > 0) {
+        if ($claims->isNotEmpty()) {
+            $first = $claims->first();
+            $single = $claims->count() === 1;
             $alerts->push([
-                'level' => 'danger',
-                'text' => $toConfirm.' '.($toConfirm === 1 ? 'payment is' : 'payments are').' waiting for you to confirm.',
-                'cta' => 'Review',
-                'url' => route('landlord.reservations.index'),
+                'group' => 'fix',
+                'title' => $single
+                    ? 'Confirm '.($first->reservation?->tenant?->first_name ?? 'a tenant').'’s ₱'.number_format((float) $first->amount, 2).' payment'
+                    : 'Confirm '.$claims->count().' payments',
+                'sub' => $single ? ($first->reservation?->unit?->unit_label ?? 'They are waiting for you') : 'Tenants are waiting for you',
+                'cta' => 'Confirm',
+                // The reports are listed on Payments, above the figures; Reservations never showed them.
+                'url' => route('landlord.payments.index').'#payments-to-confirm',
             ]);
         }
 
         if (Auth::user()->showsPayoutTools() && ! Auth::user()->hasPayoutDestination()) {
             $alerts->push([
-                'level' => 'warn',
-                'text' => 'Add your GCash details so AbangananHub can send your payouts.',
+                'group' => 'fix',
+                'title' => 'Add your GCash details',
+                'sub' => 'So AbangananHub can send your payouts',
                 'cta' => 'Add details',
                 'url' => route('landlord.payouts.index').'#payout-account',
             ]);
         }
-        if ($counts['rejected'] > 0) {
+
+        $listing = function (string $key, string $one, string $many, string $sub, string $cta, string $group, ?string $filter, ?callable $single = null) use ($by, $alerts) {
+            $set = $by[$key];
+            if ($set->isEmpty()) {
+                return;
+            }
+
+            $only1 = $set->count() === 1;
+            $p = $set->first();
             $alerts->push([
-                'level' => 'danger',
-                'text' => $listings($counts['rejected']) . ' rejected by admin. Review and resubmit.',
-                'cta' => 'Review',
-                'url' => route('landlord.properties.index', ['status' => 'Rejected']),
+                'group' => $group,
+                'title' => $only1 ? $p->title.' '.$one : $set->count().' listings '.$many,
+                'sub' => $sub,
+                'cta' => $cta,
+                'url' => $only1
+                    ? ($single ? $single($p) : route('landlord.properties.show', $p))
+                    : route('landlord.properties.index', array_filter(['status' => $filter])),
             ]);
-        }
-        if ($counts['suspended'] > 0) {
-            $alerts->push([
-                'level' => 'danger',
-                'text' => $listings($counts['suspended']) . ' suspended and hidden from tenants.',
-                'cta' => 'View',
-                'url' => route('landlord.properties.index'),
-            ]);
-        }
-        if ($counts['draft'] > 0) {
-            $alerts->push([
-                'level' => 'warn',
-                'text' => $listings($counts['draft']) . ' not finished yet, so tenants cannot see ' . ($counts['draft'] === 1 ? 'it' : 'them') . '.',
-                'cta' => 'Continue setup',
-                'url' => route('landlord.properties.index'),
-            ]);
-        }
-        if ($counts['pending'] > 0) {
-            $alerts->push([
-                'level' => 'info',
-                'text' => $listings($counts['pending']) . ' waiting for admin approval.',
-                'cta' => 'View',
-                'url' => route('landlord.properties.index', ['status' => 'Pending']),
-            ]);
-        }
+        };
+
+        $listing('rejected', 'was rejected', 'were rejected', 'Fix what the admin flagged, then resubmit', 'Fix and resubmit', 'fix', 'Rejected');
+        $listing('suspended', 'is suspended', 'are suspended', 'Hidden from tenants until this is sorted out', 'See why', 'fix', 'Suspended');
+        $listing('draft', 'is not finished', 'are not finished', 'Tenants cannot see it yet', 'Continue setup', 'fix', 'Draft',
+            fn ($p) => route('properties.wizard.resume', $p));
+        $listing('pending', 'is waiting for admin approval', 'are waiting for admin approval', 'Nothing to do until the admin answers', 'View', 'waiting', 'Pending');
 
         return $alerts;
     }
