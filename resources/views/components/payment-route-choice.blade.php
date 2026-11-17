@@ -88,26 +88,83 @@
     // How many cards sit side by side: online + "directly", or each direct way on its own.
     $cardCount = $online ? ($direct ? 2 : 1) : (int) $qr + (int) $cash;
     $directWays = $qr && $cash ? 'own QR or cash' : 'own QR';
+
+    // The month picker (monthly rent only): the months owed, oldest first, and what paying the first N of them comes to.
+    // Months are always settled oldest first, so ticking one ticks every older one, and the amount both direct forms send
+    // is the running total (the allocator already spreads any amount over the months). Online pays the first month only.
+    $rows = [];
+    $amountsStr = [];
+    if (! $isMoveIn) {
+        $source = $unsettled->isNotEmpty() ? $unsettled->values() : collect([$period]);
+        $running = 0.0;
+        foreach ($source as $p) {
+            $balance = max(0, round((float) ($p['balance'] ?? 0), 2));
+            $running = round($running + $balance, 2);
+            $amountsStr[] = number_format($running, 2, '.', '');
+            $late = ($p['status'] ?? '') === 'overdue' && ! empty($p['due_on'])
+                ? (int) $p['due_on']->copy()->startOfDay()->diffInDays(now()->startOfDay()) : 0;
+            $dueText = ! empty($p['due_on']) ? $p['due_on']->format('M j') : null;
+            $early = (bool) ($p['is_future'] ?? false);
+            $sub = match (true) {
+                ($p['status'] ?? '') === 'overdue' => 'Overdue '.$late.' '.\Illuminate\Support\Str::plural('day', $late).($dueText ? ' · due '.$dueText : ''),
+                $early => 'Pay early'.($dueText ? ' · due '.$dueText : ''),
+                ($p['status'] ?? '') === 'partial' => 'Part paid · balance left',
+                default => 'Due'.($dueText ? ' '.$dueText : ''),
+            };
+            $rows[] = ['label' => $p['label'], 'balance' => $balance, 'status' => $p['status'] ?? 'due', 'sub' => $sub];
+        }
+    }
+    // After a failed submit, the picker comes back on the number of months whose total was typed.
+    // Opens on everything owed (the number in the Balance card); a form that came back with errors keeps its own choice.
+    $startCount = $canPayAll ? $payAllMonths : 1;
+    if ($canPayAll && old('amount') !== null) {
+        foreach ($amountsStr as $i => $a) {
+            if ((string) old('amount') === $a) {
+                $startCount = $i + 1;
+            }
+        }
+    }
+    $sheetCls = 'max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-[60] max-lg:max-h-[92dvh] max-lg:overflow-y-auto max-lg:rounded-t-3xl max-lg:bg-white max-lg:px-4 max-lg:pt-3 max-lg:pb-[max(1.5rem,env(safe-area-inset-bottom))] max-lg:shadow-[0_-12px_40px_rgba(6,13,38,0.25)]';
 @endphp
 <div id="{{ $anchor }}" class="scroll-mt-24 space-y-3" x-data="{
         route: @js($startRoute), cashForm: @js($startCash && $errors->any()),
-        payAll: @js($startPayAll),
-        // This month, or the whole balance: both amount fields (QR and cash) follow the choice.
-        setPayAll(flag) {
-            this.payAll = flag;
-            const value = flag ? @js($allAmountStr) : @js($oneAmountStr);
+        payAll: @js($startCount > 1),
+        count: @js($startCount), amounts: @js($amountsStr), labels: @js(array_column($rows, 'label')),
+        sheet: false, desk: window.matchMedia('(min-width: 1024px)').matches,
+        init() {
+            // From lg up the way-to-pay column sits beside the months; below it, it is a bottom sheet the sticky bar opens.
+            const mq = window.matchMedia('(min-width: 1024px)');
+            this.onMq = (e) => { this.desk = e.matches; if (e.matches) this.sheet = false; };
+            mq.addEventListener('change', this.onMq);
+            this.$watch('sheet', (open) => document.documentElement.classList.toggle('overflow-hidden', open && !this.desk));
+            // The page was drawn with one month in the amount fields: make them match the months ticked.
+            if (this.amounts.length) this.setCount(this.count);
+        },
+        destroy() { document.documentElement.classList.remove('overflow-hidden'); },
+        // The first N months: both amount fields (QR and cash) follow the choice.
+        setCount(n) {
+            this.count = Math.min(Math.max(1, n), Math.max(1, this.amounts.length));
+            this.payAll = this.count > 1;
+            const value = this.amounts[this.count - 1];
             this.$root.querySelectorAll('input[name=amount]').forEach(i => { i.value = value; });
         },
-    }">
+        setPayAll(flag) { this.setCount(flag ? this.amounts.length : 1); },
+        toggle(i) { this.setCount(i <= this.count ? i - 1 : i); },
+        money(v) { return '₱' + Number(v).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
+        get total() { return this.amounts[this.count - 1] ?? 0; },
+        get range() { return this.count > 1 ? this.labels[0] + ' – ' + this.labels[this.count - 1] : (this.labels[0] ?? ''); },
+    }" @open-pay-sheet.window="if (!desk && amounts.length) sheet = true">
     <div>
         <h3 class="text-[15px] font-normal text-[#060D26]">
             @if($pendingClaim)
                 Your payment report is waiting for {{ $landlordName }}
+            @elseif($isMoveIn)
+                How do you want to pay to move in?
             @else
-                {{ $isMoveIn ? 'How do you want to pay to move in?' : 'How do you want to pay '.$period['label'].'?' }}
+                Pay your rent
             @endif
         </h3>
-        <p class="mt-0.5 text-[12.5px] text-[#5B6A8E]">{{ $pendingClaim ? 'To pay a different way, or fix a mistake, cancel this report first.' : 'You can choose differently next time.' }}</p>
+        <p class="mt-0.5 text-[12.5px] text-[#5B6A8E]">{{ $pendingClaim ? 'To pay a different way, or fix a mistake, cancel this report first.' : ($isMoveIn ? 'You can choose differently next time.' : 'Choose the months, then how. You can choose differently next time.') }}</p>
     </div>
 
     {{-- A report is waiting: the other ways to pay are hidden, so there is one clear thing on screen (and no way
@@ -119,6 +176,55 @@
             {{ $landlordName }} takes online payments only, and paying online opens when this month is due.
         </p>
     @else
+    <div class="{{ $isMoveIn ? 'space-y-3' : 'lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:items-start lg:gap-8 space-y-3 lg:space-y-0' }}">
+
+    @unless($isMoveIn)
+    {{-- Step 1, months: always on the page (on a phone too); the way to pay below is the sheet. --}}
+    <div class="space-y-3">
+        <p class="text-[11.5px] font-bold uppercase tracking-wider text-[#5B6A8E]">1 · What are you paying?</p>
+        @if($canPayAll)
+            <div class="flex flex-wrap items-center justify-between gap-x-3">
+                <p class="text-[13px] font-semibold text-[#060D26]">You owe {{ $payAllMonths }} months ({{ $payAllRange }})</p>
+                <button type="button" @click="setPayAll(true)" class="min-h-[44px] px-1 text-[12.5px] font-bold text-[#B35A3D] hover:underline">Pay all {{ $payAllMonths }} months &#8369;{{ number_format($payAllTotal, 2) }}</button>
+            </div>
+        @endif
+        <div role="group" aria-label="Months to pay" class="space-y-2">
+            @foreach($rows as $i => $row)
+                @php $n = $i + 1; @endphp
+                <label class="flex min-h-[56px] items-center gap-3.5 rounded-xl border bg-white px-3.5 py-3 transition-colors {{ $canPayAll ? 'cursor-pointer' : '' }}"
+                    :class="count >= {{ $n }} ? 'border-[#060D26]' : 'border-[#E2E4EC]'">
+                    <input type="checkbox" class="h-5 w-5 shrink-0 accent-[#060D26]" @if($canPayAll) :checked="count >= {{ $n }}" @change="toggle({{ $n }})" @else checked disabled @endif
+                        aria-label="{{ $row['label'] }}">
+                    <span class="min-w-0 flex-1">
+                        <span class="block text-[15px] font-semibold text-[#060D26]">{{ $row['label'] }}</span>
+                        <span class="block text-[12.5px] {{ $row['status'] === 'overdue' ? 'font-semibold text-[#B91C1C]' : 'text-[#5B6A8E]' }}">{{ $row['sub'] }}
+                        </span>
+                    </span>
+                    <span class="shrink-0 text-[15px] font-bold tabular-nums text-[#060D26]">&#8369;{{ number_format($row['balance'], 2) }}</span>
+                </label>
+            @endforeach
+        </div>
+        <div class="flex items-baseline justify-between gap-3 border-t border-[#E2E4EC] pt-3">
+            <div><p class="text-[11.5px] font-bold uppercase tracking-wider text-[#5B6A8E]">Total</p><p class="text-[12px] text-[#5B6A8E]" x-text="range"></p></div>
+            <p class="text-[24px] font-extrabold tabular-nums tracking-tight text-[#060D26]" x-text="money(total)">&#8369;{{ number_format($rows[0]['balance'] ?? 0, 2) }}</p>
+        </div>
+    </div>
+    @endunless
+
+    <div x-ref="how" @unless($isMoveIn) x-show="desk || sheet" x-cloak :role="desk ? null : 'dialog'" :aria-modal="desk ? null : 'true'" aria-label="How do you want to pay?" class="space-y-3 {{ $sheetCls }}" @else class="space-y-3" @endunless>
+    @unless($isMoveIn)
+        <div class="lg:hidden">
+            <div class="mx-auto mb-2 h-1.5 w-10 rounded-full bg-[#E2E4EC]" aria-hidden="true"></div>
+            <div class="flex items-start justify-between gap-3">
+                <div><p class="text-[18px] font-bold text-[#060D26]">Pay {{ $landlordName }}</p><p class="text-[13px] text-[#5B6A8E]"><span x-text="range"></span> &middot; <span class="font-bold text-[#060D26] tabular-nums" x-text="money(total)"></span></p></div>
+                <button type="button" @click="sheet = false" class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#E2E4EC] text-[#060D26]" aria-label="Close">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+        </div>
+        <p class="hidden text-[11.5px] font-bold uppercase tracking-wider text-[#5B6A8E] lg:block">2 · How do you want to pay?</p>
+        <p class="text-[11.5px] font-bold uppercase tracking-wider text-[#5B6A8E] lg:hidden">How do you want to pay?</p>
+    @endunless
     {{-- Online on: two cards, "online" (protected, held) or "directly" (no fee, no protection), and the QR / cash
          choice sits inside "directly" so the tenant never sees two QR options. Online off: QR and cash side by side. --}}
     <div class="grid gap-3 {{ $cardCount > 1 ? 'sm:grid-cols-2' : '' }}" role="group" aria-label="Payment method">
@@ -177,23 +283,6 @@
         </div>
     @endif
 
-    @if($canPayAll)
-        <div x-show="route === 'direct' || route === 'cash'" x-cloak class="rounded-2xl border border-[#E2E4EC] bg-white p-3 sm:p-4">
-            <p class="text-[13px] font-semibold text-[#060D26]">You owe {{ $payAllMonths }} months ({{ $payAllRange }})</p>
-            <div class="mt-2 grid grid-cols-2 rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] p-1 text-[13px] font-bold" role="group" aria-label="How much to pay">
-                <button type="button" @click="setPayAll(false)" :aria-pressed="!payAll"
-                    :class="!payAll ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E]'"
-                    class="min-h-[44px] rounded-lg px-2 transition-colors">This month<span class="block text-[12px] font-semibold tabular-nums">&#8369;{{ number_format($cashAmount, 2) }}</span></button>
-                <button type="button" @click="setPayAll(true)" :aria-pressed="payAll"
-                    :class="payAll ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E]'"
-                    class="min-h-[44px] rounded-lg px-2 transition-colors">Pay all {{ $payAllMonths }} months<span class="block text-[12px] font-semibold tabular-nums">&#8369;{{ number_format($payAllTotal, 2) }}</span></button>
-            </div>
-            <p x-show="payAll" x-cloak class="mt-2 text-[12px] leading-relaxed text-[#5B6A8E]">
-                One report for {{ $payAllRange }}. {{ $landlordName }} confirms it once and it is spread over those months, oldest first.
-            </p>
-        </div>
-    @endif
-
     <div x-show="route === 'direct' || route === 'cash'" x-cloak>
         <x-payment-safety-tips :landlord-name="$landlordName" />
     </div>
@@ -203,7 +292,7 @@
     <div x-show="route === 'online'" x-cloak>
         @if($canPayAll)
             <p x-show="payAll" x-cloak class="mb-2 rounded-xl bg-[#FBBF24]/15 px-3 py-2 text-[12px] leading-relaxed text-[#060D26]">
-                Online pays one month at a time, so this pays {{ $period['label'] }} only. To pay all {{ $payAllMonths }} months at once, pay {{ $landlordName }} directly.
+                Online pays one month at a time, so this pays {{ $period['label'] }} only. To pay <span x-text="count"></span> months at once, pay {{ $landlordName }} directly.
             </p>
         @endif
         <form action="{{ $checkoutUrl }}" method="POST" class="rounded-2xl border border-[#E2E4EC] bg-white p-4 sm:p-5" x-data="{ agreed: {{ old('accept_terms') ? 'true' : 'false' }}@if($flex),
@@ -362,5 +451,18 @@
         </div>
     </div>
     @endif
+    </div>{{-- /how --}}
+    </div>{{-- /months + how --}}
+
+    @unless($isMoveIn)
+        {{-- Phone: the total and one button stay at the bottom of the screen; it opens the sheet above. --}}
+        <div x-show="!sheet && !desk" x-cloak data-live-ignore
+            class="fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-[#E2E4EC] bg-white px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-6px_20px_rgba(6,13,38,0.08)] lg:hidden">
+            <div class="min-w-0"><p class="text-[11.5px] font-bold uppercase tracking-wider text-[#5B6A8E]">Total</p><p class="text-[20px] font-extrabold tabular-nums leading-tight text-[#060D26]" x-text="money(total)"></p></div>
+            <button type="button" @click="sheet = true" class="h-[52px] flex-1 rounded-2xl bg-[#FF8A66] text-[16px] font-bold text-[#060D26] transition-colors hover:bg-[#E96F4F]"
+                x-text="count > 1 ? 'Pay ' + count + ' months' : 'Pay ' + (labels[0] ?? 'rent')">Pay rent</button>
+        </div>
+        <div x-show="sheet && !desk" x-cloak @click="sheet = false" class="fixed inset-0 z-[55] bg-[#060D26]/50 lg:hidden" aria-hidden="true"></div>
+    @endunless
     @endif
 </div>

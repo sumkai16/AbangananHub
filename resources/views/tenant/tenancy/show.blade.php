@@ -124,7 +124,7 @@
         $extraCharges = round($summary['otherCollected'] - $summary['depositCollected'], 2);
     @endphp
 
-    <div class="{{ auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-16 space-y-5" x-data>
+    <div class="{{ auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-16 space-y-5 {{ ($canPayNow && ! $openRentCheckout && $pendingClaims->isEmpty()) ? 'max-lg:pb-32' : '' }}" x-data>
 
         <header class="space-y-4 pb-1">
             <nav aria-label="Breadcrumb" class="flex flex-wrap items-center gap-1.5 text-[13px] text-[#5B6A8E]">
@@ -240,7 +240,7 @@
 
                 @if($canPayNow)
                     <div class="mt-auto">
-                        <a href="#pay"
+                        <a href="#pay" x-on:click="$dispatch('open-pay-sheet')"
                             class="h-11 sm:h-10 px-4 inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl text-[13.5px] font-semibold bg-[#FF8A66] text-[#060D26] hover:bg-[#E96F4F] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#060D26] transition-colors duration-200 cursor-pointer">
                             {{ $pendingClaims->isNotEmpty() ? 'See your payment report' : ($payablePeriod ? 'Pay rent' : 'Pay ahead') }}
                         </a>
@@ -296,13 +296,9 @@
                 </div>
                 <div>
                     <p class="text-[18px] sm:text-[20px] leading-none font-bold tracking-tight tabular-nums text-[#060D26]">{{ $peso($summary['depositRemaining']) }}</p>
-                    <p class="mt-1 text-[12px] text-[#5B6A8E]">
-                        @if($summary['depositCollected'] > 0)
-                            <a href="#deposit" class="font-semibold text-[#060D26] underline underline-offset-2 decoration-[#060D26]/30 hover:text-[#B35A3D] hover:decoration-[#B35A3D] transition-colors duration-200">Deposit details</a>
-                        @else
-                            No deposit recorded
-                        @endif
-                    </p>
+                    @if($summary['depositCollected'] <= 0)
+                        <p class="mt-1 text-[12px] text-[#5B6A8E]">No deposit recorded</p>
+                    @endif
                 </div>
             </div>
 
@@ -323,8 +319,26 @@
             </section>
         @endif
 
-        {{-- Payments: what you paid, newest first, plus any report still waiting for the landlord. --}}
-        <x-card flush x-data="{ moreRows: false }">
+        {{-- Payments and the security deposit share one place: tabs when there is a deposit to show. The Deposit details tile opens
+             the second tab; #deposit in the address does too. --}}
+        @php $hasDeposit = $summary['depositCollected'] > 0 || $activeDepositCharges->isNotEmpty(); @endphp
+        <div x-data="{ tab: (@js($hasDeposit) && location.hash === '#deposit') ? 'deposit' : 'payments' }" class="space-y-3"
+            @open-deposit.window="tab = 'deposit'; $nextTick(() => $refs.tabsTop.scrollIntoView({ behavior: 'smooth', block: 'start' }))">
+        @if($hasDeposit)
+            <div x-ref="tabsTop" role="tablist" aria-label="Payments and deposit" class="scroll-mt-24 flex gap-1 border-b border-[#E2E4EC]">
+                <button type="button" role="tab" @click="tab = 'payments'" :aria-selected="tab === 'payments'"
+                    :class="tab === 'payments' ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#5B6A8E] hover:text-[#060D26]'"
+                    class="-mb-px inline-flex min-h-[48px] items-center gap-2 border-b-[3px] px-3 text-[14px] font-semibold transition-colors">
+                    Payments @if($allPayments->count() > 0)<span class="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#ECEEF6] px-1.5 text-[11px] font-bold tabular-nums text-[#5B6A8E]">{{ $allPayments->count() }}</span>@endif
+                </button>
+                <button type="button" role="tab" @click="tab = 'deposit'" :aria-selected="tab === 'deposit'"
+                    :class="tab === 'deposit' ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#5B6A8E] hover:text-[#060D26]'"
+                    class="-mb-px inline-flex min-h-[48px] items-center gap-2 border-b-[3px] px-3 text-[14px] font-semibold transition-colors">
+                    Security deposit <span class="hidden text-[12.5px] font-medium text-[#5B6A8E] sm:inline tabular-nums">{{ $peso($summary['depositRemaining']) }} held</span>
+                </button>
+            </div>
+        @endif
+        <x-card flush x-data="{ moreRows: false }" x-show="tab === 'payments'">
             <div class="flex items-center justify-between gap-3 px-5 sm:px-6 pt-4 pb-3 border-b border-[#E2E4EC]">
                 <h2 class="flex items-center gap-2 text-[14px] font-semibold text-[#060D26]">
                     Payments
@@ -417,7 +431,7 @@
             @php
                 $heldShare = $summary['depositCollected'] > 0 ? max(0, min(100, (int) round($summary['depositRemaining'] / $summary['depositCollected'] * 100))) : 0;
             @endphp
-            <x-card flush id="deposit" class="scroll-mt-24">
+            <x-card flush id="deposit" class="scroll-mt-24" x-show="tab === 'deposit'" x-cloak>
                 <div class="px-5 sm:px-6 py-5">
                     <h2 class="text-[15px] font-semibold text-[#060D26]">Security deposit</h2>
                     <p class="mt-0.5 text-[13px] text-[#5B6A8E] tabular-nums">
@@ -448,6 +462,7 @@
                 @endif
             </x-card>
         @endif
+        </div>{{-- /tabs --}}
     </div>
 
     <x-rent-period-modal />
