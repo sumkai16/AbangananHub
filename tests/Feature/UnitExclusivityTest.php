@@ -21,14 +21,25 @@ class UnitExclusivityTest extends TestCase
 {
     use CreatesMarketplaceFixtures, CreatesPaymentFixtures, DatabaseTransactions;
 
-    private const REASON = 'Another reservation on this unit already has an agreement in progress, or the unit is occupied. Cancel or complete that one first.';
-
     protected function setUp(): void
     {
         parent::setUp();
 
         config(['services.paymongo.secret_key' => 'sk_test_x']);
         Carbon::setTestNow('2026-10-14 10:00:00');
+    }
+
+    /** What the refused landlord is told: it names the tenant who holds the unit and what state that holder is in. */
+    private function reasonFor(Reservation $holder): string
+    {
+        $holder = $holder->fresh();
+        $name = trim($holder->tenant->first_name.' '.$holder->tenant->last_name);
+
+        return match ($holder->rental_status) {
+            'Pending Rental Agreement' => $name."'s agreement for this unit is waiting for a signature. Cancel it to send this one.",
+            'Rental Agreement Signed' => $name.' has signed an agreement for this unit and has not paid yet. Cancel or complete it first.',
+            default => $name.' already holds this unit ('.strtolower($holder->rental_status).'). Cancel or complete that one first.',
+        };
     }
 
     /** A second reservation by another tenant on the same unit as $first. */
@@ -62,7 +73,7 @@ class UnitExclusivityTest extends TestCase
 
         $this->actingAs($t['landlord'])
             ->patch(route('landlord.reservations.advanceAgreement', $second), ['accept_tc' => '1'])
-            ->assertSessionHasErrors(['reservation' => self::REASON]);
+            ->assertSessionHasErrors(['reservation' => $this->reasonFor($t['reservation'])]);
 
         $this->assertSame('Pending Rental Agreement', $t['reservation']->fresh()->rental_status, 'the first still stands');
         $this->assertSame('Under Negotiation', $second->fresh()->rental_status);
@@ -78,7 +89,7 @@ class UnitExclusivityTest extends TestCase
 
         $this->patchJson("/api/v1/landlord/reservations/{$second->reservation_id}/advance-agreement")
             ->assertStatus(422)
-            ->assertJsonPath('errors.reservation.0', self::REASON);
+            ->assertJsonPath('errors.reservation.0', $this->reasonFor($t['reservation']));
 
         $this->assertSame('Under Negotiation', $second->fresh()->rental_status);
     }
@@ -90,7 +101,17 @@ class UnitExclusivityTest extends TestCase
 
         $this->assertNotNull($second->unitHeldByAnother());
         $this->assertFalse($second->advanceToPendingAgreement());
-        $this->assertSame(self::REASON, $second->agreementBlockedReason());
+        $this->assertSame($this->reasonFor($t['reservation']), $second->agreementBlockedReason());
+        $this->assertStringContainsString('already holds this unit (occupied)', $second->agreementBlockedReason());
+    }
+
+    public function test_a_signed_but_unpaid_agreement_says_so(): void
+    {
+        $t = $this->makeTenancy(['rental_status' => 'Rental Agreement Signed']);
+        $second = $this->competitor($t['reservation'], 'Under Negotiation');
+
+        $this->assertSame($this->reasonFor($t['reservation']), $second->agreementBlockedReason());
+        $this->assertStringContainsString('has signed an agreement for this unit and has not paid yet', $second->agreementBlockedReason());
     }
 
     public function test_the_only_reservation_on_a_unit_advances_as_before(): void

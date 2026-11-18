@@ -48,6 +48,7 @@ class ListingPhotosTest extends TestCase
         return [
             'unit_label' => 'Room A', 'rental_fee' => 3500, 'security_deposit' => 3500, 'occupancy_limit' => 2,
             'availability_status' => 'Available', 'description' => 'Test',
+            'advance_months' => 1, 'payment_arrangement' => 'advance_deposit',
             'photos' => array_map(fn ($i) => $this->png("p{$i}.png"), range(1, max($count, 1))),
             'photo_sources' => array_fill(0, max($count, 1), 'upload'),
         ];

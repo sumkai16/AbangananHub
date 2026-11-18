@@ -35,13 +35,14 @@ class ListPaginationTest extends TestCase
         }
 
         $first = $this->actingAs($landlord)->get(route('landlord.tenants.index'))->assertOk();
-        $first->assertViewHas('rows', fn ($rows) => $rows->count() === 20 && $rows->total() === 25);
+        $first->assertViewHas('rows', fn ($rows) => $rows->count() === 10 && $rows->total() === 25);
         $first->assertViewHas('counts', fn ($counts) => $counts['all'] === 25);
         $first->assertSee('page=2', false);
 
-        $this->actingAs($landlord)->get(route('landlord.tenants.index', ['page' => 2]))
+        // Ten a page since the one-table Tenants page (Nov 15, 49bdf7a): 25 tenants are three pages, the last with 5.
+        $this->actingAs($landlord)->get(route('landlord.tenants.index', ['page' => 3]))
             ->assertOk()
-            ->assertViewHas('rows', fn ($rows) => $rows->count() === 5 && $rows->currentPage() === 2);
+            ->assertViewHas('rows', fn ($rows) => $rows->count() === 5 && $rows->currentPage() === 3);
     }
 
     public function test_payments_list_a_page_at_a_time_but_the_summary_still_counts_every_tenancy(): void

@@ -123,15 +123,21 @@ class LedgerPanelTest extends TestCase
             ->assertRedirect($this->ledgerUrl(['embed' => 1]));
     }
 
-    public function test_every_ledger_link_asks_for_the_panel(): void
+    /**
+     * Since the two-pane lease modal (Nov 12, fb79e88) Open ledger on Payments and in the lease modal opens the full
+     * ledger page. Only the dashboard action list still opens it as a panel.
+     */
+    public function test_open_ledger_on_payments_and_in_the_lease_modal_goes_to_the_full_page(): void
     {
         $link = 'href="' . route('landlord.payments.ledger', $this->tenancy) . '"';
 
         $list = $this->actingAs($this->landlord)->get(route('landlord.payments.index'))->assertOk()->getContent();
-        $this->assertMatchesRegularExpression('/<a [^>]*' . preg_quote($link, '/') . '[^>]*data-page-panel/s', $list);
+        $this->assertStringContainsString($link, $list);
+        $this->assertDoesNotMatchRegularExpression('/<a [^>]*' . preg_quote($link, '/') . '[^>]*data-page-panel/s', $list);
 
         $contract = $this->actingAs($this->landlord)->get(route('landlord.contracts.show', $this->tenancy))->assertOk()->getContent();
-        $this->assertMatchesRegularExpression('/<a [^>]*' . preg_quote($link, '/') . '[^>]*data-page-panel/s', $contract);
+        $this->assertStringContainsString($link, $contract);
+        $this->assertDoesNotMatchRegularExpression('/<a [^>]*' . preg_quote($link, '/') . '[^>]*data-page-panel/s', $contract);
     }
 
     public function test_the_ledger_stays_private_to_its_landlord_in_embed_mode(): void

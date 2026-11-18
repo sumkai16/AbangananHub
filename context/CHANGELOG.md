@@ -2,6 +2,17 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 18 2026 — 22 stale tests brought in line with the code (branch `axci`)
+**Tests only, plus one DESIGN.md note. No app code changed.** The full suite had 22 failures that predate the ID-check work; every one was a test that had not followed a deliberate change.
+- **Unit form** (`ListingPhotosTest`, `UnitReturnToTest`, `PropertyActivityTest`, 7 tests): the forms now send `payment_arrangement` (and `advance_months` on create), which `PropertyUnitController` requires.
+- **Reports** (`LandlordFileReportModalTest`, `TenantSafetyTest`, 2): a tenant opening `reports.create` is sent to `tenant.reports.index?report=1`; filing redirects to `tenant.reports.index`.
+- **Open-ended rental** (`TenantsPageTest`, 2, plus 1 new): the end date has been optional since Nov 13 (`StoreContractRequest`), so the tests refuse an end date before the move-in instead, and a new test pins "blank end date = open-ended".
+- **Unit exclusivity** (`UnitExclusivityTest`, 3, plus 1 new): `Reservation::agreementBlockedReason()` names the holder and their state; the tests build the expected sentence per holder.
+- **Lease wording** (`LeaseTest`, `ContractsPageTest`, 2): the lease modal reads "Signed online {date}" and "Uploaded {date}".
+- **Ledger links** (`LedgerPanelTest`, 1): Open ledger on Payments and in the lease modal opens the full page since fb79e88 (Nov 12); only the dashboard action list still opens the panel. DESIGN §6u now says so.
+- **Stale reservations** (`StaleReservationsTest`, 4): the agreement and signed stages are 1 day to remind, 3 to cancel since the 3-day payment deadlines (Nov 13, 8c939ac); the tests used the old 2/5 and 3/10 days.
+- **Tenants page size** (`ListPaginationTest`, 1): 10 a page since the one-table Tenants page (Nov 15, 49bdf7a); the test expected 20.
+
 ## Nov 18 2026 — ID photo check, and an easier face check (branch `axci`)
 **Services, controller, one migration, the wizard script and views.** Plan: `plans/id-check-and-face-liveness.md` (pending Axcee's manual pass, checklist I1-I5 and F1-F8 in the plan).
 - **Does the photo look like an ID?** `OcrService::read()` asks Google Vision once for text, faces and labels (`App\Support\VisionReading`) and keeps the answer 30 minutes, **encrypted** (it is the text of a government ID, and the production cache is the database). The preview and the final submit therefore read a photo once; an applicant used to cost three Vision calls. `App\Services\IdDocumentCheck` scores the front (enough text, ID-type words, common ID words, the applicant's name, a face, a card-like label) as `pass`, `unsure`, `fail` or `unavailable`; the back only needs some text. Only `fail` holds the applicant back, for `ATTEMPTS_BEFORE_CONTINUE = 2` tries; `unsure` (a worn but real ID) and `unavailable` (Vision down) never block. It catches the wrong photo, not a forged card.

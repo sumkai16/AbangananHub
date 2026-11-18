@@ -176,7 +176,7 @@ class LeaseTest extends TestCase
 
         // The button is gone from the lease details modal...
         $this->actingAs($this->landlord)->get(route('landlord.contracts.show', $reservation))
-            ->assertOk()->assertSee('signed online on')->assertDontSee('Upload agreement');
+            ->assertOk()->assertSee('Signed online '.$reservation->agreed_at->format('M j, Y'))->assertDontSee('Upload agreement');
 
         // ...and the server refuses the upload too, so hiding the button is not the only guard.
         $this->actingAs($this->landlord)->post(route('landlord.leases.upload', $reservation), [

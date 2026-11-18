@@ -17,7 +17,7 @@ class UnitReturnToTest extends TestCase
 {
     use CreatesMarketplaceFixtures, DatabaseTransactions;
 
-    private array $fields = ['unit_label' => 'Bed A', 'rental_fee' => 5000, 'occupancy_limit' => 2, 'availability_status' => 'Available'];
+    private array $fields = ['unit_label' => 'Bed A', 'rental_fee' => 5000, 'occupancy_limit' => 2, 'availability_status' => 'Available', 'payment_arrangement' => 'advance_deposit'];
 
     private function fixtures(): array
     {

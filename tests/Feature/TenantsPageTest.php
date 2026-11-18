@@ -103,16 +103,29 @@ class TenantsPageTest extends TestCase
         Mail::assertQueued(TenantInviteMail::class);
     }
 
+    public function test_a_blank_end_date_makes_an_open_ended_rental(): void
+    {
+        $landlord = $this->makeLandlord();
+        $unit = $this->makeUnit($this->makeProperty($landlord));
+
+        $this->addTenant($landlord, ['unit_id' => $unit->unit_id] + $this->contractFields(['move_out_date' => '']))
+            ->assertSessionHasNoErrors();
+
+        $contract = Reservation::where('unit_id', $unit->unit_id)->firstOrFail();
+        $this->assertNull($contract->target_move_out_date, 'No end date: the rental keeps running until someone ends it.');
+    }
+
     public function test_a_failed_add_reopens_with_what_was_typed_and_says_what_to_fix(): void
     {
         $landlord = $this->makeLandlord();
         $unit = $this->makeUnit($this->makeProperty($landlord));
 
-        // Only the move-in date filled: the end date, and so the contract, is refused.
+        // An end date before the move-in date: the contract, and so the whole add, is refused.
         $this->actingAs($landlord)->from(route('landlord.tenants.index'))
             ->post(route('landlord.tenants.store'), [
                 '_form' => 'tenant', '_action' => '', 'first_name' => 'Ana', 'last_name' => 'Santos', 'contact_number' => '09175550123',
                 'unit_id' => $unit->unit_id, 'move_in_date' => now()->addDays(10)->toDateString(),
+                'move_out_date' => now()->addDays(5)->toDateString(),
             ])
             ->assertSessionHasErrors('move_out_date')
             ->assertRedirect(route('landlord.tenants.index'));
@@ -130,8 +143,8 @@ class TenantsPageTest extends TestCase
         // Already moved in, but no move-in money recorded: the contract rules refuse it.
         $this->addTenant($landlord, ['unit_id' => $unit->unit_id] + $this->contractFields(['move_in_date' => now()->subDay()->toDateString()]))
             ->assertSessionHasErrors('initial_amount');
-        // No end date.
-        $this->addTenant($landlord, ['unit_id' => $unit->unit_id] + $this->contractFields(['move_out_date' => '']))
+        // An end date before the move-in date.
+        $this->addTenant($landlord, ['unit_id' => $unit->unit_id] + $this->contractFields(['move_out_date' => now()->addDays(5)->toDateString()]))
             ->assertSessionHasErrors('move_out_date');
 
         $this->assertNull(User::where('email', 'ana.santos.tenant@example.test')->first(), 'No half-added tenant.');

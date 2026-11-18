@@ -65,7 +65,7 @@ class TenantSafetyTest extends TestCase
             'property_id' => $unit->property_id, 'unit_id' => $unit->unit_id,
         ]);
 
-        $html = $this->actingAs($tenant)->get(route('reports.create'))->assertOk()->getContent();
+        $html = $this->actingAs($tenant)->get(route('tenant.reports.index', ['report' => 1]))->assertOk()->getContent();
 
         $this->assertStringContainsString('Partnerella Known', $html);
         $this->assertStringNotContainsString('Strangerino', $html);

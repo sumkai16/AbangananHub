@@ -211,6 +211,7 @@ class PropertyActivityTest extends TestCase
 
         $this->actingAs($landlord)->put(route('landlord.properties.units.update', [$property, $unit]), [
             'unit_label' => 'Bed A', 'rental_fee' => 6500, 'occupancy_limit' => 2, 'availability_status' => 'Available',
+            'payment_arrangement' => 'advance_deposit',
         ])->assertRedirect();
 
         $line = $this->lines($property->property_id)->firstWhere('action', 'unit.updated');

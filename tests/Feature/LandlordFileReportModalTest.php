@@ -66,9 +66,12 @@ class LandlordFileReportModalTest extends TestCase
     {
         $tenant = $this->makeTenant();
 
-        $this->actingAs($tenant)->get(route('reports.create'))->assertOk();
+        // A tenant files from the modal on My Reports, so the old page only sends them there with the form open.
+        $this->actingAs($tenant)->get(route('reports.create'))
+            ->assertRedirect(route('tenant.reports.index', ['report' => 1]));
+        $this->get(route('tenant.reports.index', ['report' => 1]))->assertOk();
         $this->post(route('reports.store'), [
             'target_type' => 'property', 'property_id' => $this->makeProperty($this->makeLandlord())->property_id, 'category' => 'Fake Listing',
-        ])->assertRedirect(route('reports.create'));
+        ])->assertRedirect(route('tenant.reports.index'))->assertSessionHas('success');
     }
 }
