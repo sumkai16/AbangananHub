@@ -2,6 +2,9 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 19 2026 — "Become a landlord" in the account menu (branch `axci`)
+**One Blade change in `layouts/app.blade.php`, plus `tests/Feature/BecomeLandlordMenuTest.php` (5).** A tenant had no way into the landlord application from the avatar menu (the Nov 5 header decision removed every "Become a landlord" link; only List your property on the landing and About pages remained). The Account group now has one row for a tenant who is not a landlord or admin: **Become a landlord** until they apply, then **Verification status**. The header and footer are unchanged. DESIGN §39 records the exception.
+
 ## Nov 18 2026 — 22 stale tests brought in line with the code (branch `axci`)
 **Tests only, plus one DESIGN.md note. No app code changed.** The full suite had 22 failures that predate the ID-check work; every one was a test that had not followed a deliberate change.
 - **Unit form** (`ListingPhotosTest`, `UnitReturnToTest`, `PropertyActivityTest`, 7 tests): the forms now send `payment_arrangement` (and `advance_months` on create), which `PropertyUnitController` requires.

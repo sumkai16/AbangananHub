@@ -383,6 +383,18 @@
                                 </a>
                             @endif
 
+                            {{-- A tenant's way into the landlord application: "Become a landlord" until they apply, then their
+                                 Verification status (where a rejected applicant can apply again). Landlords and admins never see it. --}}
+                            @if($userRoles->contains('Tenant') && ! $userRoles->contains('Landlord') && ! $userRoles->contains('Admin'))
+                                <a href="{{ $hasVerification ? route('landlord.verification.show') : route('landlord.verification.create') }}"
+                                    data-account-menu="{{ $hasVerification ? 'landlord-status' : 'become-landlord' }}" class="{{ $menuRow }}">
+                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="{{ $menuIcon }}" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                                    </svg>
+                                    {{ $hasVerification ? 'Verification status' : 'Become a landlord' }}
+                                </a>
+                            @endif
+
                             <div class="h-px bg-[#E2E4EC] mx-2 my-1.5"></div>
 
                             {{-- Sign out --}}
