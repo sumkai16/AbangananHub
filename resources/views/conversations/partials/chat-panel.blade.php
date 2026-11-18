@@ -20,22 +20,15 @@
     $pendingPayment = $reservation?->payments->firstWhere('status', 'Pending');
     $hasSettledPayment = $heldPayment || $releasedPayment;
 
-    // What this viewer is expected to do right now. Drives the action bar so
-    // the role/status branching is stated once instead of being re-derived
-    // in four places further down.
-    $waitingOnMe = ($isLandlord && in_array($rentalStatus, ['Inquiry', 'Under Negotiation']))
-        || ($isTenant && in_array($rentalStatus, ['Pending Rental Agreement', 'Rental Agreement Signed']));
+    // The next step for this viewer (stage, whose turn, one sentence, one primary action). Drives the folded
+    // next-step row and the action bar's tint, so the role/status branching is stated once in ChatDealStep.
+    $next = ($reservation && ! $isTerminal)
+        ? \App\Support\ChatDealStep::for($reservation, auth()->user(), $isLandlord, $otherParty->first_name)
+        : null;
+    $waitingOnMe = (bool) ($next['yourTurn'] ?? false);
 
-    // Same stage-label mapping the conversation list sidebar already uses —
-    // drives the sticky strip's stage pill.
-    $stageLabel = match ($rentalStatus) {
-        'Inquiry' => 'Inquiry',
-        'Under Negotiation' => 'Negotiation',
-        'Pending Rental Agreement' => 'Agreement',
-        'Rental Agreement Signed' => $hasSettledPayment ? 'Paid' : 'Signed',
-        'Occupied' => 'Occupied',
-        default => $rentalStatus,
-    };
+    // Same stage names the stepper and the conversation list use. Drives the terms strip's stage pill.
+    $stageLabel = $next['stage'] ?? $rentalStatus;
 
     // Asked once per payment route; afterwards sending an agreement is a single click.
     $needsLandlordTc = $isLandlord && \App\Support\LandlordTerms::needed(auth()->user());
@@ -47,7 +40,25 @@
 @endphp
 
 <div class="flex h-full {{ $sheet ? 'gap-4' : 'flex-col' }}" id="chat-panel-root" data-conversation-id="{{ $conversation->conversation_id }}"
-    x-data="{ detailsOpen: false }">
+    x-data="{
+        detailsOpen: false,
+        showTc: false,
+        dealOpen: false,
+        dealKey: 'chatDeal:{{ $conversation->conversation_id }}',
+        initDeal() {
+            let saved = null;
+            try { saved = localStorage.getItem(this.dealKey); } catch (e) {}
+            this.dealOpen = saved === null ? window.matchMedia('(min-width: 1024px)').matches : saved === '1';
+        },
+        setDeal(open) {
+            this.dealOpen = open;
+            try { localStorage.setItem(this.dealKey, open ? '1' : '0'); } catch (e) {}
+        },
+        showDeal() {
+            this.setDeal(true);
+            this.$nextTick(() => this.$refs.dealPanel.scrollIntoView({ block: 'nearest' }));
+        },
+    }" x-init="initDeal()">
 <div class="flex flex-col min-h-0 min-w-0 flex-1 {{ $sheet ? 'overflow-hidden rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)]' : '' }}">
 
     {{-- Chat header --}}
@@ -83,9 +94,8 @@
                     Tenancy &amp; rent
                 </a>
             @endif
-            {{-- Details toggle now carries only secondary context (property,
-                 dates) — the stage and the actions moved out into the always
-                 visible strip below, so nothing actionable hides in here. --}}
+            {{-- Details toggle carries only secondary context (dates, the original message). The stage and the actions
+                 live in the next-step row and the panel below it, a separate toggle (dealOpen). --}}
             <button type="button" @click="detailsOpen = !detailsOpen"
                 :aria-expanded="detailsOpen ? 'true' : 'false'"
                 class="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-[#E2E4EC] text-[11px] font-bold text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#F7F8FC] cursor-pointer transition-all duration-200">
@@ -111,20 +121,76 @@
         </div>
     </div>
 
-    {{-- ===== Rental progress — always visible ===== --}}
-    @if($reservation)
-        @if($isTerminal)
-            <div class="px-5 py-3 border-b border-[#E2E4EC] bg-[#EF4444]/[0.04] flex items-center gap-2.5 flex-shrink-0">
-                <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#E2E4EC] text-[#EF4444]">{{ $rentalStatus }}</span>
-                <p class="text-[11.5px] text-[#5B6A8E] truncate">
-                    @if($rentalStatus === 'Rejected' && $reservation->rejection_reason)
-                        {{ $reservation->rejection_reason }}
-                    @else
-                        This rental process has ended.
-                    @endif
+    {{-- ===== Rental progress ===== --}}
+    @if($reservation && $isTerminal)
+        <div class="px-5 py-3 border-b border-[#E2E4EC] bg-[#EF4444]/[0.04] flex items-center gap-2.5 flex-shrink-0">
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#E2E4EC] text-[#EF4444]">{{ $rentalStatus }}</span>
+            <p class="text-[11.5px] text-[#5B6A8E] truncate">
+                @if($rentalStatus === 'Rejected' && $reservation->rejection_reason)
+                    {{ $reservation->rejection_reason }}
+                @else
+                    This rental process has ended.
+                @endif
+            </p>
+        </div>
+    @endif
+
+    @if($reservation && !$isTerminal)
+        @if($next)
+        {{-- Next-step row: the one thing to know about this deal, always visible. The terms strip, stepper and action
+             bar sit in the panel below, folded on phones. The people who missed their next step when this was hidden
+             now get it here: a sentence plus the single primary action, so the fold never hides what is waiting on them.
+             The chevron is the toggle; the choice is remembered per conversation. --}}
+        <div class="relative flex flex-shrink-0 flex-wrap items-center gap-x-3 gap-y-2.5 border-b border-[#E2E4EC] px-5 pb-3.5 pt-3 {{ $next['yourTurn'] ? 'bg-[#FF8A66]/10' : 'bg-[#F7F8FC]' }}">
+            <div class="order-1 min-w-0 flex-1 basis-40">
+                <p class="truncate text-[10px] font-bold uppercase tracking-wider {{ $next['yourTurn'] ? 'text-[#B35A3D]' : 'text-[#5B6A8E]' }}">
+                    {{ $next['yourTurn'] ? 'Your turn' : 'Waiting on '.$otherParty->first_name }}
+                    &middot; {{ $next['stage'] }} &middot; Step {{ $next['step'] }} of {{ $next['total'] }}
                 </p>
+                <p class="mt-0.5 text-[13px] font-medium leading-snug text-[#060D26]">{{ $next['sentence'] }}</p>
             </div>
-        @else
+
+            <button type="button" @click="setDeal(!dealOpen)"
+                :aria-expanded="dealOpen ? 'true' : 'false'" aria-controls="deal-panel-{{ $conversation->conversation_id }}"
+                :aria-label="dealOpen ? 'Hide rental details and actions' : 'Show rental details and actions'"
+                class="order-2 -mr-2 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-[#5B6A8E] transition-colors duration-200 hover:bg-[#ECEEF6] hover:text-[#060D26] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] cursor-pointer sm:order-3">
+                <svg class="h-4 w-4 transition-transform duration-200 motion-reduce:transition-none" :class="dealOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                </svg>
+            </button>
+
+            @if($next['action'])
+                {{-- Same destination as the button in the action bar: same href, same form (by id), same modal, or the open panel. --}}
+                @php
+                    $act = $next['action'];
+                    $actClass = 'order-3 flex h-10 w-full flex-shrink-0 items-center justify-center rounded-xl bg-[#FF8A66] px-4 text-[12px] font-bold text-[#060D26] transition-colors duration-200 hover:bg-[#E96F4F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#060D26]/40 cursor-pointer sm:order-2 sm:w-auto';
+                @endphp
+                <div x-show="!dealOpen" x-cloak class="contents">
+                    @if($act['kind'] === 'link')
+                        <a href="{{ $act['href'] }}" class="{{ $actClass }}">{{ $act['label'] }}</a>
+                    @elseif($act['kind'] === 'submit')
+                        <button type="submit" form="{{ $act['form'] }}" class="{{ $actClass }}">{{ $act['label'] }}</button>
+                    @elseif($act['kind'] === 'modal')
+                        <button type="button" @click="showTc = true" aria-haspopup="dialog" class="{{ $actClass }}">{{ $act['label'] }}</button>
+                    @else
+                        <button type="button" @click="showDeal()" class="{{ $actClass }}">{{ $act['label'] }}</button>
+                    @endif
+                </div>
+            @endif
+
+            <div class="absolute inset-x-0 bottom-0 h-0.5 bg-[#E2E4EC]" aria-hidden="true">
+                <div class="h-full bg-[#FF8A66]" style="width: {{ $next['step'] / $next['total'] * 100 }}%"></div>
+            </div>
+        </div>
+        @endif
+
+        <div id="deal-panel-{{ $conversation->conversation_id }}" x-ref="dealPanel" x-show="dealOpen" x-cloak
+            x-transition:enter="transition ease-out duration-200 motion-reduce:transition-none"
+            x-transition:enter-start="opacity-0 -translate-y-1 motion-reduce:translate-y-0"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150 motion-reduce:transition-none"
+            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+            class="flex-shrink-0 max-h-[60%] overflow-y-auto">
             @php
                 $stripUnit = $conversation->unit;
                 $stripRent = $stripUnit?->rental_fee ?? $conversation->property->min_rental_fee;
@@ -169,17 +235,10 @@
             <div class="px-5 pt-3.5 pb-3 border-b border-[#E2E4EC] bg-[#F7F8FC] flex-shrink-0">
                 @include('conversations.partials._stage-stepper', ['reservation' => $reservation])
             </div>
-        @endif
-    @endif
 
-    {{-- ===== Action bar — always visible, never behind a toggle ===== --}}
-    @if($reservation && !$isTerminal)
-        {{-- max-h + scroll: this bar is flex-shrink-0, so without a ceiling a
-             tall action (the handover decision card, the escrow prompt, both
-             at once) squeezes the message list to nothing and overflows the
-             panel. Capped, the messages always keep roughly half the height. --}}
-        <div class="px-5 py-3 border-b border-[#E2E4EC] flex-shrink-0 max-h-[55%] overflow-y-auto {{ $waitingOnMe ? 'bg-[#ECEEF6]/50' : 'bg-white' }}"
-            x-data="{ showReject: false, showCancel: false, showTc: false }">
+        {{-- Action bar: every action, in the open panel --}}
+        <div class="px-5 py-3 border-b border-[#E2E4EC] {{ $waitingOnMe ? 'bg-[#ECEEF6]/50' : 'bg-white' }}"
+            x-data="{ showReject: false, showCancel: false }">
 
             {{-- LANDLORD --}}
             @if($isLandlord)
@@ -217,7 +276,7 @@
                         </div>
                     </form>
                     @endif
-                    <form action="{{ route('landlord.reservations.advanceNegotiation', $reservation) }}" method="POST" class="mt-2">
+                    <form id="{{ \App\Support\ChatDealStep::formId('advance-negotiation', $reservation) }}" action="{{ route('landlord.reservations.advanceNegotiation', $reservation) }}" method="POST" class="mt-2">
                         @csrf @method('PATCH')
                         <button type="submit" class="w-full border border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-[12px] font-semibold py-2 rounded-xl cursor-pointer transition-colors duration-200">
                             Accept &amp; negotiate first <span class="font-medium text-[#5B6A8E]">&middot; talk before sending</span>
@@ -338,7 +397,7 @@
                         <div class="rounded-xl border border-[#22C55E]/25 bg-[#22C55E]/[0.07] p-3">
                             <p class="text-[12px] font-bold text-[#060D26]">Move-in payment confirmed</p>
                             <p class="mt-0.5 text-[11px] text-[#5B6A8E]">Hand over the keys, then confirm the move-in. {{ $otherParty->first_name }} can confirm it too.</p>
-                            <form action="{{ route('landlord.reservations.confirmDirectMoveIn', $reservation) }}" method="POST" class="mt-2"
+                            <form id="{{ \App\Support\ChatDealStep::formId('confirm-direct-move-in', $reservation) }}" action="{{ route('landlord.reservations.confirmDirectMoveIn', $reservation) }}" method="POST" class="mt-2"
                                 data-confirm="Confirm move-in?" data-confirm-message="This starts the tenancy and the rent schedule." data-confirm-button="Confirm move-in">
                                 @csrf
                                 <button type="submit" class="w-full rounded-xl bg-[#FF8A66] py-2 text-[12px] font-bold text-[#060D26] hover:bg-[#E96F4F] transition-all duration-200">Confirm move-in</button>
@@ -542,6 +601,7 @@
                 'isLandlord'  => $isLandlord,
                 'otherParty'  => $otherParty,
             ])
+        </div>
         </div>
     @endif
 

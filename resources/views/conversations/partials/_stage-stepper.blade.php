@@ -12,21 +12,9 @@
 --}}
 
 @php
-    $stageLabels = ['Inquiry', 'Negotiation', 'Agreement', 'Signed', 'Paid', 'Occupied'];
-
-    // A direct payment is written as 'Paid' and stamps move_in_paid_at once the landlord confirms it; online money is Held/Released.
-    $settled = $reservation && ($reservation->move_in_paid_at !== null || $reservation->payments->contains(
-        fn ($p) => $p->payment_type === 'Initial' && in_array($p->status, ['Held', 'Paid', 'Released'], true)
-    ));
-
-    $currentStageIndex = match ($reservation?->rental_status) {
-        'Inquiry' => 0,
-        'Under Negotiation' => 1,
-        'Pending Rental Agreement' => 2,
-        'Rental Agreement Signed' => $settled ? 4 : 3,
-        'Occupied' => 5,
-        default => false,
-    };
+    // The stage rules live in ChatDealStep so this bar and the next-step row agree.
+    $stageLabels = \App\Support\ChatDealStep::STAGES;
+    $currentStageIndex = \App\Support\ChatDealStep::stageIndex($reservation);
 
     $fillPercent = $currentStageIndex !== false
         ? (($currentStageIndex + 1) / count($stageLabels)) * 100
@@ -39,7 +27,14 @@
     <div class="h-full rounded-full bg-[#060D26] transition-all duration-300" style="width: {{ $fillPercent }}%"></div>
 </div>
 
-<div class="flex items-start mt-1.5">
+{{-- Phones: six labels do not fit in 375px (they ran together), so only the current stage is named. --}}
+@if ($currentStageIndex !== false)
+    <p class="mt-1.5 text-[9.5px] font-bold uppercase leading-tight tracking-wider text-[#060D26] sm:hidden">
+        Step {{ $currentStageIndex + 1 }} of {{ count($stageLabels) }} &middot; {{ $stageLabels[$currentStageIndex] }}
+    </p>
+@endif
+
+<div class="mt-1.5 hidden items-start sm:flex">
     @foreach ($stageLabels as $i => $label)
         @php
             $isDone = $currentStageIndex !== false && $i < $currentStageIndex;

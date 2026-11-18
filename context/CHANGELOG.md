@@ -2,6 +2,15 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Nov 18 2026 — Chat deal panel folds into one next-step row (branch `axci`)
+**Views and one support class; no migration.** At 375px the terms strip, stepper and action bar took about 300 of 700 px before the first message. They now sit in a panel that folds, under one row that always shows the next step.
+- **Next-step row:** `YOUR TURN · AGREEMENT · STEP 3 OF 6` (or `WAITING ON MARIA · ...`), one plain sentence, one coral primary button (only on your turn and only when there is one clear action), a chevron toggle and a thin progress line. Coral wash on your turn, neutral otherwise.
+- **Rule:** folded below `lg`, open at `lg` and up. The choice is saved per conversation in `localStorage` (`chatDeal:<conversation_id>`, try/catch), so a page swap or a live refresh keeps it. Terminal states keep their banner and get no row.
+- **`App\Support\ChatDealStep`** holds stage index, stage names and the per-stage sentence and action for both roles. `_stage-stepper` and `chat-panel` read it, so the stage is derived once. The folded button reuses the real link, submits the real form by id (`deal-advance-negotiation-<id>`, `deal-confirm-direct-move-in-<id>`), opens the send-agreement modal, or opens the panel when the action needs it (lease editor, payment review, handover, a viewing request waiting on you).
+- **Stepper bug:** at 375px the six labels ran together ("INQUIRY NEGOTIATIONAGREEMENT"). Phones now show only `STEP 3 OF 6 · AGREEMENT`; six labels from `sm` up. The admin conversation view shares it.
+- **Moved:** `showTc` (send-agreement modal) now lives on the panel root so the folded button can open it; the action bar's `max-h-[55%]` became `max-h-[60%]` on the whole panel. The "Details" toggle is unchanged and separate.
+- **Files:** `app/Support/ChatDealStep.php`, `resources/views/conversations/partials/chat-panel.blade.php`, `_stage-stepper.blade.php`. DESIGN.md §43.
+
 ## Nov 17 2026 — Second browser pass: two fixes (branch `axci`)
 - **Admin Refund requests no longer needs a sideways scroll.** The 8-column table was about 1400 px wide, so on a 1366 px laptop the Refund and Release buttons sat off-screen. Now 5 fixed-width columns: the actions, raised date and "Paid to the landlord" note sit under the request label, the landlord under the rental. No horizontal scroll at laptop width (`admin/refund-requests/index.blade.php`).
 - **Dashboard alert labels in dark mode** ("Fix now", "Waiting on admin", the counts and the sub-lines) were dim on the dark background; they now carry `dark:` colours.
