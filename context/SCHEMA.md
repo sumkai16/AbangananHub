@@ -190,6 +190,9 @@ One application per landlord. Government ID, selfie and ID back live on the **pr
 | ocr_name | varchar(255) | null | | |
 | ocr_confidence | tinyint unsigned | null | | |
 | ocr_status | varchar(255) | null | | |
+| id_check_status | varchar(20) | null | | `pass`, `unsure`, `fail` or `unavailable`: did the ID photos look like an ID (`App\Services\IdDocumentCheck`, from one Google Vision reading of text, faces and labels). `fail` if either side failed. An admin signal, never a decision. Null on applications made before Nov 18 2026 |
+| id_type_match | varchar(20) | null | | `match`, `mismatch` or `unknown`: do the words on the front belong to the ID type the applicant chose |
+| id_check_overridden | boolean | NN, = 0 | | True when the check failed and the application was sent anyway (after the allowed tries, an answer that never reached the phone, or a photo the preview never read). The submit never refuses for the check, so this equals `id_check_status = 'fail'`; it is kept so the admin page can say "sent with a failed ID check" |
 | face_match_status | varchar(20) | null | | `match` (at or above 80%), `review` (60 to 80%, similar: compare by eye), `mismatch` (below 60%), `no_face` or `unavailable` (no keys or an AWS error). Set by `App\Services\FaceMatch` when the application is submitted; an admin signal, never an automatic decision. Null on older applications |
 | face_match_score | decimal(5,2) | null | | Similarity percent of the best match, 0 on a mismatch, null when not checked |
 | business_name | varchar(255) | null | | Copied to `rental_businesses` on approval |

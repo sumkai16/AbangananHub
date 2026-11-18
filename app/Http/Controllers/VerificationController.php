@@ -7,6 +7,7 @@ use App\Mail\VerificationLinkMail;
 use App\Models\LandlordVerification;
 use App\Models\User;
 use App\Services\FaceMatch;
+use App\Services\IdDocumentCheck;
 use App\Services\OcrService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -76,53 +77,63 @@ class VerificationController extends Controller
     }
 
     /**
-     * AJAX — OCR preview for step 5 of the wizard.
-     * Receives base64 ID image, runs OCR, returns name match + type match result.
+     * AJAX — ID photo preview for the ID step of the wizard.
+     * Receives the base64 front (and back) of the ID, reads each photo once with Google Vision, and returns the name
+     * match, the ID-type match and whether the photos look like an ID (App\Services\IdDocumentCheck). A failed look
+     * costs one try per request (front and back together). After ATTEMPTS_BEFORE_CONTINUE failed tries the applicant
+     * may carry on anyway; the admin sees that they did.
      */
-    public function ocrCheck(Request $request, OcrService $ocr)
+    public function ocrCheck(Request $request, OcrService $ocr, IdDocumentCheck $idCheck)
     {
         $request->validate([
             'id_image' => ['required', 'string', 'max:8000000'],
+            'id_back'  => ['nullable', 'string', 'max:8000000'],
             'id_type'  => ['required', 'string', 'in:PhilSys,Professional ID Card,Driver\'s License,Passport,UMID,Postal ID,SSS ID'],
         ]);
 
-        $imageData = $this->decodeBase64Image($request->input('id_image'));
+        $front = $this->decodeBase64Image($request->input('id_image'));
+        $back = $request->filled('id_back') ? $this->decodeBase64Image($request->input('id_back')) : null;
 
-        if (! $imageData) {
+        if (! $front || ($request->filled('id_back') && ! $back)) {
             return response()->json([
                 'name'       => null,
                 'confidence' => 0,
                 'status'     => 'fail',
                 'message'    => 'Invalid image data.',
+                'id_check'   => $this->idCheckPayload(IdDocumentCheck::UNAVAILABLE, null, false, (int) session('id_check_failures', 0)),
             ]);
         }
 
-        $tempPath = storage_path('app/private/temp_ocr_' . auth()->id() . '.jpg');
-        file_put_contents($tempPath, $imageData);
+        $user = $request->user();
+        $idType = $request->input('id_type');
 
-        try {
-            $extractedText = $ocr->extractText($tempPath);
-            $user = auth()->user();
-            $nameResult = $ocr->matchName($extractedText, $user->first_name, $user->last_name);
-            $idNumber = $ocr->extractIdNumber($extractedText, $request->input('id_type'));
-            $typeMatch = $ocr->matchIdType($extractedText, $request->input('id_type'));
+        $frontReading = $ocr->read($front);
+        $backReading = $back ? $ocr->read($back) : null;
 
-            return response()->json([
-                'name'           => $nameResult['name'],
-                'confidence'     => $nameResult['confidence'],
-                'status'         => $nameResult['status'],
-                'id_number'      => $idNumber,
-                'extracted'      => $extractedText,
-                'user_name'      => $user->first_name . ' ' . $user->last_name,
-                'type_match'     => $typeMatch['status'],
-                'type_keywords'  => $typeMatch['keywords_found'],
-            ]);
-        } finally {
-            @unlink($tempPath);
-        }
+        $frontCheck = $idCheck->assessFront($frontReading, $idType, $user->first_name, $user->last_name);
+        $backStatus = $backReading ? $idCheck->assessBack($backReading) : null;
+        $failures = $this->recordIdCheckResult($frontCheck['status'], $backStatus);
+        $nameResult = $ocr->matchName($frontReading->text, $user->first_name, $user->last_name);
+
+        return response()->json([
+            'name'           => $nameResult['name'],
+            'confidence'     => $nameResult['confidence'],
+            'status'         => $nameResult['status'],
+            'id_number'      => $ocr->extractIdNumber($frontReading->text, $idType),
+            'extracted'      => $frontReading->text,
+            'back_extracted' => $backReading?->text,
+            'user_name'      => $user->first_name . ' ' . $user->last_name,
+            'type_match'     => $frontCheck['type_match'],
+            'id_check'       => $this->idCheckPayload(
+                $frontCheck['status'],
+                $backStatus,
+                $idCheck->blocks($frontCheck['status'], $backStatus, $failures),
+                $failures,
+            ),
+        ]);
     }
 
-    public function store(StoreVerificationRequest $request, OcrService $ocr, FaceMatch $faceMatch)
+    public function store(StoreVerificationRequest $request, OcrService $ocr, IdDocumentCheck $idCheck, FaceMatch $faceMatch)
     {
         $user = $request->user();
 
@@ -156,7 +167,42 @@ class VerificationController extends Controller
             ]);
         }
 
-        // ── Store images to local disk ────────────────────────
+        // ── Read the ID photos (free when the wizard's preview just read them) ──
+        $idType = $request->input('id_type');
+        $frontReading = $ocr->read($idImageData);
+        $backReading = $idBackData ? $ocr->read($idBackData) : null;
+
+        // ── Do they look like an ID? The same rule as the preview, but it never turns the application away here ──
+        // The wizard already held the applicant back for the allowed tries. A fail that gets this far (they carried on
+        // after the tries, the answer never reached the phone, or the preview never read the photo) is saved and flagged
+        // red for the admin, who looks at every application. Bouncing now would throw away the finished wizard: the
+        // photos and the selfie.
+        $frontCheck = $idCheck->assessFront($frontReading, $idType, $user->first_name, $user->last_name);
+        $backStatus = $backReading ? $idCheck->assessBack($backReading) : null;
+
+        $nameResult = $ocr->matchName($frontReading->text, $user->first_name, $user->last_name);
+        $idNumber = $ocr->extractIdNumber($frontReading->text, $idType);
+
+        // ── ID number dedup ───────────────────────────────────
+        if ($idNumber) {
+            $idNumberDupe = LandlordVerification::where('id_number', $idNumber)
+                ->where('user_id', '!=', $user->user_id)
+                ->exists();
+
+            if ($idNumberDupe) {
+                return back()->withErrors([
+                    'id_image' => 'We couldn\'t process your verification. Please contact support if you believe this is an error.',
+                ]);
+            }
+        }
+
+        // ── Face on the ID against the selfie (a signal for the admin, never a reject) ──
+        $face = $faceMatch->compare($idImageData, $selfieData);
+
+        // A failed side makes the whole check "fail", and the admin is told the application was sent anyway.
+        $idCheckStatus = $backStatus === IdDocumentCheck::FAIL ? IdDocumentCheck::FAIL : $frontCheck['status'];
+
+        // ── Store images to local disk (the refusals above, a duplicate photo or ID number, all happen before any file changes) ──
         $folder = "verifications/{$user->user_id}";
         $idPath = "{$folder}/id_photo.jpg";
         $idBackPath = $idBackData ? "{$folder}/id_back.jpg" : null;
@@ -179,32 +225,6 @@ class VerificationController extends Controller
         }
         Storage::disk('local')->put($selfiePath, $selfieData);
 
-        // ── Run OCR ───────────────────────────────────────────
-        $fullIdPath = Storage::disk('local')->path($idPath);
-        $extractedText = $ocr->extractText($fullIdPath);
-        $nameResult = $ocr->matchName($extractedText, $user->first_name, $user->last_name);
-        $idNumber = $ocr->extractIdNumber($extractedText, $request->input('id_type'));
-
-        // ── Face on the ID against the selfie (a signal for the admin, never a reject) ──
-        $face = $faceMatch->compare($idImageData, $selfieData);
-
-        // ── ID number dedup ───────────────────────────────────
-        if ($idNumber) {
-            $idNumberDupe = LandlordVerification::where('id_number', $idNumber)
-                ->where('user_id', '!=', $user->user_id)
-                ->exists();
-
-            if ($idNumberDupe) {
-                Storage::disk('local')->delete($idPath);
-                Storage::disk('local')->delete($idBackPath ?? '');
-                Storage::disk('local')->delete($selfiePath);
-
-                return back()->withErrors([
-                    'id_image' => 'We couldn\'t process your verification. Please contact support if you believe this is an error.',
-                ]);
-            }
-        }
-
         // ── Handle logo upload ────────────────────────────────
         $logoPath = $request->hasFile('logo')
             ? $request->file('logo')->store('business_logos', 'public')
@@ -224,6 +244,9 @@ class VerificationController extends Controller
                 'ocr_name'            => $nameResult['name'],
                 'ocr_confidence'      => $nameResult['confidence'],
                 'ocr_status'          => $nameResult['status'],
+                'id_check_status'     => $idCheckStatus,
+                'id_type_match'       => $frontCheck['type_match'],
+                'id_check_overridden' => $idCheckStatus === IdDocumentCheck::FAIL,
                 'face_match_status'   => $face['status'],
                 'face_match_score'    => $face['similarity'],
                 'business_name'       => $request->validated('business_name'),
@@ -238,6 +261,8 @@ class VerificationController extends Controller
                 'submitted_at'        => now(),
             ]
         );
+
+        session()->forget('id_check_failures');
 
         // From the landlord sign-up the answer (step 4, admin review) stays on the same address.
         return redirect()->route($request->boolean('signup_flow') ? 'register.landlord' : 'landlord.verification.show')
@@ -305,6 +330,32 @@ class VerificationController extends Controller
     }
 
     // ─── Helpers ──────────────────────────────────────────────
+
+    /**
+     * One failed look at the photos costs one try, whichever side failed. A look that is not a fail (a pass, unsure, or
+     * Vision unavailable) costs nothing. Returns the tries used so far.
+     */
+    private function recordIdCheckResult(string $frontStatus, ?string $backStatus): int
+    {
+        $failures = (int) session('id_check_failures', 0);
+
+        if ($frontStatus === IdDocumentCheck::FAIL || $backStatus === IdDocumentCheck::FAIL) {
+            session(['id_check_failures' => ++$failures]);
+        }
+
+        return $failures;
+    }
+
+    /** @return array{status: string, back_status: ?string, blocked: bool, attempts_left: int} */
+    private function idCheckPayload(string $status, ?string $backStatus, bool $blocked, int $failures): array
+    {
+        return [
+            'status'        => $status,
+            'back_status'   => $backStatus,
+            'blocked'       => $blocked,
+            'attempts_left' => max(0, IdDocumentCheck::ATTEMPTS_BEFORE_CONTINUE - $failures),
+        ];
+    }
 
     protected function decodeBase64Image(string $base64): ?string
     {

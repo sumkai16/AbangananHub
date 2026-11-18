@@ -30,6 +30,20 @@
         null => ['ID text not checked', 'neutral'],
         default => ['Name not found on ID', 'red'],
     };
+
+    // Did the photos look like an ID at all (App\Services\IdDocumentCheck)? A signal for the admin, never a decision:
+    // it catches the wrong photo, not a forged card.
+    $idChip = match ($verification->id_check_status) {
+        'pass' => ['Looks like an ID', 'green'],
+        'unsure' => ['Might not be an ID', 'amber'],
+        'fail' => ['Not an ID by the check', 'red'],
+        default => ['ID not checked', 'neutral'],
+    };
+    $typeChip = match ($verification->id_type_match) {
+        'match' => ['ID type matches', 'green'],
+        null => null,
+        default => ['ID type not confirmed', 'amber'],
+    };
 @endphp
     <div class="admin-compact max-w-[1600px] mx-auto" x-data="{ previewImage: null }">
 
@@ -51,11 +65,22 @@
                         <div class="flex flex-wrap items-center gap-1">
                             <x-admin.status :status="$verification->liveness_passed ? 'Liveness passed' : 'No liveness check'" :tone="$verification->liveness_passed ? 'green' : 'amber'" />
                             <x-admin.status :status="$ocrChip[0]" :tone="$ocrChip[1]" />
+                            <x-admin.status :status="$idChip[0]" :tone="$idChip[1]" />
+                            @if ($typeChip)
+                                <x-admin.status :status="$typeChip[0]" :tone="$typeChip[1]" />
+                            @endif
+                            @if ($verification->id_check_overridden)
+                                <x-admin.status status="Sent with a failed ID check" tone="red" />
+                            @endif
                         </div>
                     </div>
 
                     @if ($fm)
                         <p class="mb-2 rounded-lg px-3 py-2 text-[13px] text-[#060D26] {{ $fmTone }}">{!! $fmText !!}</p>
+                    @endif
+
+                    @if ($verification->id_check_overridden)
+                        <p class="mb-2 rounded-lg bg-[#EF4444]/[0.07] px-3 py-2 text-[13px] leading-5 text-[#060D26]">Our check could not recognise these photos as an ID, and the application was sent anyway (after the allowed tries, or without the check finishing). Look closely at the ID photos before deciding.</p>
                     @endif
 
                     @unless ($verification->liveness_passed)

@@ -22,6 +22,9 @@ class LandlordVerification extends Model
         'ocr_name',
         'ocr_confidence',
         'ocr_status',
+        'id_check_status',
+        'id_type_match',
+        'id_check_overridden',
         'face_match_status',
         'face_match_score',
         'business_name',
@@ -43,6 +46,7 @@ class LandlordVerification extends Model
             'submitted_at'   => 'datetime',
             'ocr_confidence' => 'integer',
             'liveness_passed' => 'boolean',
+            'id_check_overridden' => 'boolean',
         ];
     }
 

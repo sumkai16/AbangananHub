@@ -224,7 +224,7 @@ class UploadAttackTest extends TestCase
     #[DataProvider('notAnImage')]
     public function test_the_id_photo_check_never_sends_a_non_image_to_the_ocr_service(string $payload): void
     {
-        $this->mock(OcrService::class)->shouldNotReceive('extractText');
+        $this->mock(OcrService::class)->shouldNotReceive('read');
 
         $response = $this->actingAs($this->makeTenant())
             ->postJson(route('landlord.verification.ocrCheck'), ['id_image' => $payload, 'id_type' => 'Passport']);
@@ -236,7 +236,7 @@ class UploadAttackTest extends TestCase
     #[DataProvider('notAnImage')]
     public function test_the_verification_application_refuses_non_image_id_and_selfie_data(string $payload): void
     {
-        $this->mock(OcrService::class)->shouldNotReceive('extractText');
+        $this->mock(OcrService::class)->shouldNotReceive('read');
 
         $this->actingAs($this->makeTenant())
             ->post(route('landlord.verification.store'), [
