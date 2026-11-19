@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\AiSearchLog;
+use App\Models\AuthEvent;
+use App\Models\HoldMatchAlert;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -24,6 +26,7 @@ Schedule::command('occupancy:snapshot')->dailyAt('23:55')->timezone(config('rent
 // Rent reminders — notifies landlords (and platform tenants) about upcoming
 // and overdue monthly rent, read off the ledger. Morning delivery reads better
 // than the nightly escrow run. Idempotent via the rent_reminders guard.
+Schedule::command('reservations:write-off-overdue-rent')->dailyAt('09:00')->timezone(config('rentals.timezone'));
 Schedule::command('reservations:process-rent-reminders')->dailyAt('08:00')->timezone(config('rentals.timezone'));
 
 // Tenant documents (ID photos, clearances) are deleted 30 days after the tenancy ends; the record stays.
@@ -31,7 +34,9 @@ Schedule::command('reservations:process-rent-reminders')->dailyAt('08:00')->time
 Schedule::command('reservations:purge-tenant-documents')->dailyAt('03:30')->timezone(config('rentals.timezone'));
 
 // AI search logs are kept 30 days (App\Models\AiSearchLog::prunable()).
-Schedule::command('model:prune', ['--model' => [AiSearchLog::class]])->dailyAt('03:00')->timezone(config('rentals.timezone'));
+// Account & security events are kept 90 days (config security.auth_events_retention_days).
+// Dismissed duplicate-account alerts are kept 90 days (config security.hold_match.dismissed_retention_days).
+Schedule::command('model:prune', ['--model' => [AiSearchLog::class, AuthEvent::class, HoldMatchAlert::class]])->dailyAt('03:00')->timezone(config('rentals.timezone'));
 // Landlord payouts: the immediate job (SendLandlordPayout) does the work as money becomes payable; this sweep
 // polls transfers PayMongo has not confirmed and sends anything still owed (hold over, wallet was short, job missed).
 Schedule::command('payouts:send')->hourly()->withoutOverlapping()->onOneServer()->timezone(config('rentals.timezone'));
@@ -41,3 +46,15 @@ Schedule::command('reservations:process-stale')->dailyAt('08:30')->timezone(conf
 
 // A tenant's "I paid" that the landlord has not answered: nudge the landlord at 1 and 3 days (config rentals.claim_reminder_days).
 Schedule::command('payment-claims:remind')->dailyAt('08:45')->timezone(config('rentals.timezone'));
+
+// Audit log tamper check: re-walks the hash chain, caches the result for the Activity Logs badge, alerts admins on a break.
+Schedule::command('audit:verify')->dailyAt('03:30')->timezone(config('rentals.timezone'));
+
+// Tenant holds: lift the ones whose overdue rent has been paid. Also checked when the tenant opens their hold page.
+Schedule::command('holds:release-paid')->dailyAt('09:00')->timezone(config('rentals.timezone'));
+
+// Off-server backup: database + private/public storage (IDs, selfies, leases, documents), encrypted, to Cloudflare R2.
+// Runs before the 03:00 prune. The check at 08:00 alerts admins if no good backup exists for 36 h, which also
+// catches a dead scheduler (plans/database-and-files-backup.md).
+Schedule::command('backup:run')->dailyAt('02:30')->timezone(config('rentals.timezone'))->withoutOverlapping(120)->onOneServer();
+Schedule::command('backup:list', ['--check'])->dailyAt('08:00')->timezone(config('rentals.timezone'));

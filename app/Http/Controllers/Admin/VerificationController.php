@@ -8,6 +8,7 @@ use App\Models\AuditLog;
 use App\Models\LandlordVerification;
 use App\Models\Notification;
 use App\Models\RentalBusiness;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -18,18 +19,24 @@ class VerificationController extends Controller
 
     public function index(Request $request)
     {
-        $status = $request->query('status', 'Pending');
+        $status = $request->query('status', 'All');
 
         if (! in_array($status, self::STATUSES, true)) {
-            $status = 'Pending';
+            $status = 'All';
         }
 
         $query = LandlordVerification::with('user')
             ->when($status !== 'All', fn ($q) => $q->where('verification_status', $status));
 
-        $verifications = in_array($status, ['Approved', 'Rejected'], true)
-            ? $query->latest('reviewed_at')->paginate(15)->withQueryString()
-            : $query->oldest('submitted_at')->paginate(15)->withQueryString();
+        // Waiting applications oldest first. On All they sit above everything else, then the newest decisions.
+        $verifications = match ($status) {
+            'Approved', 'Rejected' => $query->latest('reviewed_at'),
+            'Pending' => $query->oldest('submitted_at'),
+            default => $query->orderByRaw("landlord_verifications.verification_status = 'Pending' desc")
+                ->orderByRaw("case when landlord_verifications.verification_status = 'Pending' then landlord_verifications.submitted_at end asc")
+                ->latest('landlord_verifications.submitted_at'),
+        };
+        $verifications = $verifications->paginate(10)->withQueryString();
 
         $counts = [
             'Pending' => LandlordVerification::where('verification_status', 'Pending')->count(),
@@ -38,10 +45,27 @@ class VerificationController extends Controller
         ];
         $counts['All'] = array_sum($counts);
 
+        $since = now()->subDays(30);
+        $summary = [
+            'oldest'   => LandlordVerification::where('verification_status', 'Pending')->min('submitted_at'),
+            'approved' => LandlordVerification::where('verification_status', 'Approved')->where('reviewed_at', '>=', $since)->count(),
+            'rejected' => LandlordVerification::where('verification_status', 'Rejected')->where('reviewed_at', '>=', $since)->count(),
+            // Pending applications where the face match did not clear: these need a careful look.
+            'flagged'  => LandlordVerification::where('verification_status', 'Pending')
+                ->whereIn('face_match_status', ['mismatch', 'review', 'no_face'])->count(),
+        ];
+        $summary['oldest'] = $summary['oldest'] ? Carbon::parse($summary['oldest']) : null;
+
+        // The desk shows one application in full: the one in ?open=, else the first on the page.
+        $selected = $verifications->getCollection()->firstWhere('verification_id', (int) $request->query('open')) ?? $verifications->first();
+        $selected?->loadMissing('reviewer');
+
         return view('admin.verifications.index', [
             'verifications' => $verifications,
             'status' => $status,
             'counts' => $counts,
+            'summary' => $summary,
+            'selected' => $selected,
         ]);
     }
 

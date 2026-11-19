@@ -172,6 +172,19 @@ class OnlineRouteChoiceTest extends TestCase
         $this->assertStringContainsString('nothing counts as paid until', $html);
     }
 
+    public function test_a_fee_unit_online_card_lets_the_tenant_choose_how_much_to_pay(): void
+    {
+        $t = $this->makeOnlineTenancy(['rental_status' => 'Rental Agreement Signed', 'agreed_monthly_rent' => 5000]);
+        $t['reservation']->unit->update(['payment_arrangement' => 'reservation_fee', 'reservation_fee_amount' => 1000, 'security_deposit' => 5000]);
+
+        $html = $this->actingAs($t['tenant'])->get(route('agreements.show', $t['reservation']))->assertOk()->getContent();
+
+        $this->assertStringContainsString('How much do you want to pay now?', $html);
+        $this->assertStringContainsString('name="amount"', $html);
+        $this->assertStringContainsString('Reservation fee', $html);
+        $this->assertStringNotContainsString('pay '.$t['landlord']->first_name.' directly.', $html, 'The old "online is full amount only" note is gone.');
+    }
+
     public function test_online_checkout_is_refused_without_the_tick_box_and_never_calls_paymongo(): void
     {
         Http::fake();

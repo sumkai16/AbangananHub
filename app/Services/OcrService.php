@@ -2,11 +2,18 @@
 
 namespace App\Services;
 
+use App\Support\VisionReading;
+use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class OcrService
 {
+    /** How long a reading is kept: long enough for the wizard's preview to still be there at the final submit. */
+    private const CACHE_MINUTES = 30;
+
     protected string $apiKey;
 
     public function __construct()
@@ -15,18 +22,20 @@ class OcrService
     }
 
     /**
-     * Extract all text from an image using Google Cloud Vision API.
-     * Falls back to empty string on failure.
+     * Ask Google Cloud Vision once for the text, the faces and the labels of a photo. Never throws: when Vision
+     * cannot answer (no key, outage, quota) the reading is `unavailable` and is not kept, so a later call asks again.
      */
-    public function extractText(string $imagePath): string
+    public function read(string $imageBytes): VisionReading
     {
-        if (empty($this->apiKey)) {
-            Log::warning('OcrService: GOOGLE_VISION_API_KEY not set');
-
-            return '';
+        if ($cached = $this->cached($imageBytes)) {
+            return $cached;
         }
 
-        $imageData = base64_encode(file_get_contents($imagePath));
+        if ($this->apiKey === '') {
+            Log::warning('OcrService: GOOGLE_VISION_API_KEY not set');
+
+            return VisionReading::unavailable();
+        }
 
         try {
             $response = Http::timeout(15)->post(
@@ -34,14 +43,11 @@ class OcrService
                 [
                     'requests' => [
                         [
-                            'image' => [
-                                'content' => $imageData,
-                            ],
+                            'image' => ['content' => base64_encode($imageBytes)],
                             'features' => [
-                                [
-                                    'type' => 'DOCUMENT_TEXT_DETECTION',
-                                    'maxResults' => 1,
-                                ],
+                                ['type' => 'DOCUMENT_TEXT_DETECTION', 'maxResults' => 1],
+                                ['type' => 'FACE_DETECTION', 'maxResults' => 1],
+                                ['type' => 'LABEL_DETECTION', 'maxResults' => 10],
                             ],
                         ],
                     ],
@@ -54,17 +60,89 @@ class OcrService
                     'body' => $response->body(),
                 ]);
 
-                return '';
+                return VisionReading::unavailable();
             }
 
-            $result = $response->json();
+            $result = $response->json('responses.0') ?? [];
 
-            return $result['responses'][0]['fullTextAnnotation']['text'] ?? '';
+            if (isset($result['error'])) {
+                Log::error('OcrService: Vision API returned an error', ['error' => $result['error']]);
+
+                return VisionReading::unavailable();
+            }
         } catch (\Exception $e) {
             Log::error('OcrService: Vision API exception', ['message' => $e->getMessage()]);
 
-            return '';
+            return VisionReading::unavailable();
         }
+
+        $reading = new VisionReading(
+            (string) ($result['fullTextAnnotation']['text'] ?? ''),
+            count($result['faceAnnotations'] ?? []),
+            $this->labelsFrom($result['labelAnnotations'] ?? []),
+            true,
+        );
+
+        $this->remember($imageBytes, $reading);
+
+        return $reading;
+    }
+
+    /** A reading of this exact photo made in the last few minutes, or null. Never calls Vision. */
+    public function cached(string $imageBytes): ?VisionReading
+    {
+        $payload = Cache::get($this->cacheKey($imageBytes));
+
+        if (! is_string($payload)) {
+            return null;
+        }
+
+        try {
+            $data = json_decode(Crypt::decryptString($payload), true, 512, JSON_THROW_ON_ERROR);
+        } catch (DecryptException|\JsonException) {
+            return null;
+        }
+
+        return new VisionReading((string) $data['text'], (int) $data['faces'], (array) $data['labels'], true);
+    }
+
+    private function cacheKey(string $imageBytes): string
+    {
+        return 'vision:'.hash('sha256', $imageBytes);
+    }
+
+    /**
+     * The reading holds what is printed on a government ID, so it is stored encrypted: the cache store is the
+     * database in production, and plain ID text must not sit in a table.
+     */
+    private function remember(string $imageBytes, VisionReading $reading): void
+    {
+        $payload = Crypt::encryptString(json_encode([
+            'text' => $reading->text,
+            'faces' => $reading->faceCount,
+            'labels' => $reading->labels,
+        ], JSON_THROW_ON_ERROR));
+
+        Cache::put($this->cacheKey($imageBytes), $payload, now()->addMinutes(self::CACHE_MINUTES));
+    }
+
+    /**
+     * @param  array<int, array{description?: string, score?: float|int}>  $annotations
+     * @return array<string, float> lowercase description => best score
+     */
+    private function labelsFrom(array $annotations): array
+    {
+        $labels = [];
+
+        foreach ($annotations as $annotation) {
+            $name = mb_strtolower(trim((string) ($annotation['description'] ?? '')));
+
+            if ($name !== '') {
+                $labels[$name] = max($labels[$name] ?? 0.0, (float) ($annotation['score'] ?? 0));
+            }
+        }
+
+        return $labels;
     }
 
     /**
@@ -73,8 +151,10 @@ class OcrService
      */
     public function matchName(string $extractedText, string $firstName, string $lastName): array
     {
-        if (empty($extractedText)) {
-            return ['name' => null, 'confidence' => 0, 'status' => 'fail'];
+        // No text at all means the reader returned nothing (a blurry photo, or the service refused the request).
+        // That is not the same as "your name is not on the ID", and the applicant must not be told it is.
+        if (trim($extractedText) === '') {
+            return ['name' => null, 'confidence' => 0, 'status' => 'unreadable'];
         }
 
         $fullName = strtolower(trim("$firstName $lastName"));
@@ -101,6 +181,20 @@ class OcrService
 
         if ($firstNameFound && $lastNameFound) {
             return ['name' => "$firstName $lastName", 'confidence' => 95, 'status' => 'pass'];
+        }
+
+        // OCR slips a letter or two on a slightly soft photo (CABUSAS read as CABUSA5, AXCEE as AXCFE). Compare
+        // word by word with a small edit-distance allowance before falling back to whole-line similarity.
+        $words = $this->words($extractedText);
+        $firstFuzzy = $this->nameFoundIn($firstName, $words);
+        $lastFuzzy = $this->nameFoundIn($lastName, $words);
+
+        if ($firstFuzzy && $lastFuzzy) {
+            return ['name' => "$firstName $lastName", 'confidence' => 90, 'status' => 'pass'];
+        }
+
+        if ($firstFuzzy || $lastFuzzy) {
+            return ['name' => $firstFuzzy ? $firstName : $lastName, 'confidence' => 65, 'status' => 'partial'];
         }
 
         // Fuzzy match each line against both name orderings
@@ -143,6 +237,51 @@ class OcrService
             'confidence' => $confidence,
             'status'     => $status,
         ];
+    }
+
+    /**
+     * Lower-case words of a text, accents flattened and punctuation removed, so "CABUSAS," and "Cabusás" compare.
+     *
+     * @return list<string>
+     */
+    private function words(string $text): array
+    {
+        $text = strtr(mb_strtolower($text), ['ñ' => 'n', 'á' => 'a', 'à' => 'a', 'é' => 'e', 'è' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u']);
+
+        return preg_split('/[^a-z0-9]+/', $text, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    }
+
+    /**
+     * Is every word of a (possibly multi-word) name present in the text, allowing a small spelling error per word?
+     * One edit for words of 4 to 6 letters and two for longer ones; short words must match exactly.
+     *
+     * @param  list<string>  $textWords
+     */
+    private function nameFoundIn(string $name, array $textWords): bool
+    {
+        $nameWords = $this->words($name);
+
+        if ($nameWords === []) {
+            return false;
+        }
+
+        foreach ($nameWords as $word) {
+            $allowed = strlen($word) >= 7 ? 2 : (strlen($word) >= 4 ? 1 : 0);
+            $found = false;
+
+            foreach ($textWords as $candidate) {
+                if (abs(strlen($candidate) - strlen($word)) <= $allowed && levenshtein($candidate, $word) <= $allowed) {
+                    $found = true;
+                    break;
+                }
+            }
+
+            if (! $found) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -203,11 +342,12 @@ class OcrService
             return ['match' => false, 'status' => 'unknown', 'keywords_found' => []];
         }
 
-        $textLower = strtolower($extractedText);
+        $textLower = mb_strtolower($extractedText);
         $found = [];
 
+        // Whole words only: "umid" is inside "humid" and "lto" inside "Walton", which are not a UMID or an LTO card.
         foreach ($keywords as $keyword) {
-            if (str_contains($textLower, strtolower($keyword))) {
+            if (preg_match('/(?<![\p{L}\p{N}])'.preg_quote(mb_strtolower($keyword), '/').'(?![\p{L}\p{N}])/u', $textLower) === 1) {
                 $found[] = $keyword;
             }
         }

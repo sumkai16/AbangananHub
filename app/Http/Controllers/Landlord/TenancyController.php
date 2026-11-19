@@ -10,6 +10,7 @@ use App\Models\Reservation;
 use App\Models\TenantDetail;
 use App\Services\RentLedger;
 use App\Services\RentReminderNotifier;
+use App\Services\RentWriteOff;
 use App\Support\BusinessTime;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -64,7 +65,7 @@ class TenancyController extends Controller
     {
         Gate::authorize('editWalkInDetails', $reservation);
 
-        $validated = $request->validate(TenantDetail::rules(false), TenantDetail::messages());
+        $validated = $request->validate(TenantDetail::rules(false, $reservation->tenant->tenantDetail()->first()), TenantDetail::messages());
 
         if (TenantDetail::saveFor($reservation->tenant, $validated) === null) {
             return back()->with('warning', 'Nothing to save. Fill in at least one field.');
@@ -113,11 +114,15 @@ class TenancyController extends Controller
 
         $data = $request->validate([
             'move_out_date' => ['nullable', 'date', 'before_or_equal:' . BusinessTime::today()],
+            // Optional: the landlord can note the deposit as returned now, or do it later from the lease.
+            'deposit_returned_amount' => ['nullable', 'numeric', 'min:0'],
         ], [
             'move_out_date.before_or_equal' => 'A move-out date cannot be in the future.',
         ]);
 
-        $ended = DB::transaction(function () use ($reservation, $data) {
+        $depositNote = null;
+
+        $ended = DB::transaction(function () use ($reservation, $data, &$depositNote) {
             $locked = Reservation::whereKey($reservation->getKey())
                 ->with(['unit', 'property', 'tenant'])
                 ->lockForUpdate()
@@ -129,6 +134,10 @@ class TenancyController extends Controller
 
             if ($wasEnded) {
                 $this->notifyTenancyEnded($locked);
+
+                if (filled($data['deposit_returned_amount'] ?? null)) {
+                    $depositNote = $this->recordDepositReturn($locked, (float) $data['deposit_returned_amount']);
+                }
             }
 
             return $wasEnded;
@@ -138,9 +147,83 @@ class TenancyController extends Controller
             return back()->with('error', 'This tenancy is not currently active, so it cannot be ended.');
         }
 
+        $message = 'Rental ended. The unit is available again and no new months are billed.'.($depositNote ? ' '.$depositNote : '');
+
+        // The lease modal on the Leases page ends it in place and comes back to the list.
+        if ($request->input('from') === 'contracts') {
+            return redirect()->route('landlord.contracts.index', ['status' => 'ended'])->with('success', $message);
+        }
+
         return redirect()
             ->route('landlord.tenancies.show', $reservation)
-            ->with('success', 'Tenancy ended. The unit is available again and the ledger is closed.');
+            ->with('success', $message);
+    }
+
+    /**
+     * Note that the deposit went back to the tenant, after the lease has ended. The landlord's own record: no money
+     * moves here. Allowed once, up to what is left of the deposit after any deposit charges.
+     */
+    public function returnDeposit(Request $request, Reservation $reservation)
+    {
+        Gate::authorize('viewTenancy', $reservation);
+        abort_unless($reservation->rental_status === 'Completed', 404);
+
+        $data = $request->validate(['deposit_returned_amount' => ['required', 'numeric', 'min:0']]);
+
+        $note = DB::transaction(function () use ($reservation, $data) {
+            $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();
+
+            return $this->recordDepositReturn($locked, (float) $data['deposit_returned_amount']);
+        });
+
+        return redirect()
+            ->route('landlord.contracts.index', ['status' => 'ended', 'open' => $reservation->reservation_id])
+            ->with($note ? 'success' : 'warning', $note ?: 'The deposit was already marked as returned.');
+    }
+
+    /**
+     * "Write off now": the landlord decides an ended tenant's unpaid rent will not be paid. The months stay on the ledger,
+     * but the balance leaves every total. (Left alone, it is written off by itself after rentals.write_off_after_days.)
+     * Only for an ended lease that has a balance, and reversible with resumeCollecting().
+     */
+    public function stopCollecting(Request $request, Reservation $reservation)
+    {
+        Gate::authorize('viewTenancy', $reservation);
+        abort_unless($reservation->rental_status === 'Completed', 404);
+
+        $result = RentWriteOff::apply($reservation, RentWriteOff::MANUAL);
+
+        return match (true) {
+            $result === null => back()->with('warning', 'This is already written off.'),
+            $result === false => back()->with('warning', 'Nothing is owed on this rental.'),
+            default => back()->with('success', 'Wrote off ₱'.number_format($result, 2).'. It no longer counts as owed. You can collect it again any time.'),
+        };
+    }
+
+    /** Undo the write-off: the balance counts as owed again, and the daily job leaves this rental alone. */
+    public function resumeCollecting(Request $request, Reservation $reservation)
+    {
+        Gate::authorize('viewTenancy', $reservation);
+        abort_unless($reservation->rental_status === 'Completed', 404);
+
+        RentWriteOff::resume($reservation);
+
+        return back()->with('success', 'Collecting again. The balance counts as owed, and it will not be written off automatically.');
+    }
+
+    /** Writes the deposit-return note (once, capped at the deposit that is left). Null when it was already recorded. */
+    private function recordDepositReturn(Reservation $reservation, float $amount): ?string
+    {
+        if ($reservation->deposit_returned_at) {
+            return null;
+        }
+
+        $left = RentLedger::for($reservation)->summary()['depositRemaining'];
+        $amount = round(min(max($amount, 0), $left), 2);
+
+        $reservation->forceFill(['deposit_returned_amount' => $amount, 'deposit_returned_at' => now()])->save();
+
+        return 'Deposit return of ₱'.number_format($amount, 2).' recorded.';
     }
 
     /**

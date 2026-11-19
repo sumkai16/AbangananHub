@@ -48,7 +48,8 @@ class PaymentsLedgerSplitTest extends TestCase
             ->assertOk()
             ->assertSee('Rent ledger')
             ->assertSee('Record payment')
-            ->assertSee('Needs action')
+            // The months to chase live in the lease bars and the month popup now; there is no separate card.
+            ->assertDontSee('Needs action')
             ->assertSee('Deposit held')
             ->assertDontSee('View contract')
             // Not a bare substring check: the remind and record forms post to /tenancies/{id}/…
@@ -72,7 +73,7 @@ class PaymentsLedgerSplitTest extends TestCase
             ->assertDontSee('Record payment')
             ->assertDontSee('Rent ledger');
 
-        $this->assertSame(route('landlord.tenants.index'), $this->activeNavHref($response->getContent()));
+        $this->assertSame(route('landlord.contracts.index'), $this->activeNavHref($response->getContent()));
     }
 
     public function test_the_contract_modal_links_to_the_ledger(): void

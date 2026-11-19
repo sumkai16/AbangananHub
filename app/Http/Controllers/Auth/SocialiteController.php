@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\SocialAccount;
 use App\Models\User;
+use App\Services\Security\AuthEventRecorder;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -28,6 +29,13 @@ class SocialiteController extends Controller
      */
     public function redirect(string $provider): RedirectResponse
     {
+        // A landlord sign-up page asks for ?intent=landlord so the provider round trip ends in the verification wizard.
+        if (request()->query('intent') === 'landlord') {
+            session(['auth.intent' => 'landlord']);
+        } else {
+            session()->forget('auth.intent');
+        }
+
         return Socialite::driver($provider)->redirect();
     }
 
@@ -36,6 +44,8 @@ class SocialiteController extends Controller
      */
     public function callback(string $provider): RedirectResponse
     {
+        $intent = session()->pull('auth.intent');
+
         try {
             $socialUser = Socialite::driver($provider)->user();
         } catch (InvalidStateException|\Exception $e) {
@@ -58,6 +68,10 @@ class SocialiteController extends Controller
 
         Auth::login($user, remember: true);
         request()->session()->regenerate();
+
+        if ($intent === 'landlord' && ! $user->hasRole('Landlord')) {
+            return redirect()->route('register.landlord');
+        }
 
         return redirect($user->homeRoute());
     }
@@ -100,6 +114,12 @@ class SocialiteController extends Controller
             return response()->json(['message' => self::LINK_REFUSED], 409);
         }
 
+        if ($user->hasRole('Admin')) {
+            return response()->json(['message' => 'Admins sign in on the web.'], 403);
+        }
+
+        app(AuthEventRecorder::class)->record('login', $user, channel: 'api');
+
         return response()->json([
             'user' => new UserResource($user->load('payoutAccount')),
             'token' => $user->createToken($request->string('device_name'))->plainTextToken,
@@ -110,9 +130,9 @@ class SocialiteController extends Controller
     /**
      * Find-or-create the account behind a social identity. A provider identity already stored in
      * social_accounts always resolves to its account. An existing account with the same email is linked
-     * ONLY when its own email_verified_at is set (otherwise anyone could pre-register someone's address
-     * and inherit their Google login) and it is not a walk-in/inactive placeholder; in those cases this
-     * returns null and the caller refuses. Brand-new emails get an account with the Tenant role,
+     * ONLY when its own email_verified_at is set, or when the provider itself vouches for the address (then
+     * the account is claimed, see claimUnverifiedAccount), and it is not a walk-in/inactive placeholder;
+     * otherwise this returns null and the caller refuses. Brand-new emails get an account with the Tenant role,
      * matching RegisteredUserController's web self-registration and Api\AuthController's mobile one.
      */
     private function resolveSocialUser(string $provider, SocialiteUser $socialUser): ?User
@@ -129,15 +149,30 @@ class SocialiteController extends Controller
         $user = User::where('email', $socialUser->getEmail())->first();
 
         if ($user) {
-            if ($user->email_verified_at === null || $user->is_walk_in || $user->account_status === 'inactive') {
+            if ($user->is_walk_in || $user->account_status === 'inactive') {
                 return null;
             }
 
+            if ($user->email_verified_at === null) {
+                // Nobody has proved they own this address yet. Only a provider that vouches for the email may
+                // claim it; otherwise whoever registered first (Facebook, or a pre-registered password) would
+                // lock the real owner out of social login.
+                if (! $this->providerVerifiedEmail($provider, $socialUser)) {
+                    return null;
+                }
+
+                $this->claimUnverifiedAccount($user);
+            }
+
             // Adds a row; an existing link (this or another provider) is never overwritten.
-            SocialAccount::firstOrCreate(
+            $link = SocialAccount::firstOrCreate(
                 ['user_id' => $user->user_id, 'provider' => $provider],
                 ['provider_id' => $socialUser->getId()],
             );
+
+            if ($link->wasRecentlyCreated) {
+                app(AuthEventRecorder::class)->record('social_linked', $user, metadata: ['provider' => $provider], channel: $provider);
+            }
 
             if (! $user->profile_picture && $socialUser->getAvatar()) {
                 $user->forceFill(['profile_picture' => $socialUser->getAvatar()])->save();
@@ -167,6 +202,8 @@ class SocialiteController extends Controller
             'provider_id' => $socialUser->getId(),
         ]);
 
+        app(AuthEventRecorder::class)->record('social_linked', $user, metadata: ['provider' => $provider], channel: $provider);
+
         $user->assignRole('Tenant');
 
         event(new Registered($user));
@@ -175,6 +212,26 @@ class SocialiteController extends Controller
     }
 
     /** Google reports whether the address is confirmed; other providers do not reliably, so they count as unverified. */
+    /**
+     * The provider just proved ownership of an address whose account was never verified. Whatever else was
+     * attached to that account was set up by someone who had not proved it, so drop their other social links,
+     * scramble the password (the owner can reset it by email) and mark the address verified.
+     */
+    private function claimUnverifiedAccount(User $user): void
+    {
+        // No user-facing unlink exists; this is the only place links are removed, so audit each one.
+        foreach ($user->socialAccounts()->pluck('provider') as $removed) {
+            app(AuthEventRecorder::class)->record('social_unlinked', $user, metadata: ['provider' => $removed, 'reason' => 'account_claimed']);
+        }
+
+        $user->socialAccounts()->delete();
+        $user->forceFill([
+            'password'          => Hash::make(Str::random(40)),
+            'email_verified_at' => now(),
+        ])->save();
+        $user->tokens()->delete();
+    }
+
     private function providerVerifiedEmail(string $provider, SocialiteUser $socialUser): bool
     {
         if ($provider !== 'google' || ! $socialUser instanceof AbstractUser) {

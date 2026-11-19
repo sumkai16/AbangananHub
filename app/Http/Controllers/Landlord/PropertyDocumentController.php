@@ -18,9 +18,13 @@ class PropertyDocumentController extends Controller
     {
         $this->authorizeProperty($property);
 
-        $documents = $property->documents()->latest()->get();
+        // Documents live in a tab on the property page; old links (admin notifications) land there.
+        return redirect($this->documentsUrl($property));
+    }
 
-        return view('landlord.documents.index', compact('property', 'documents'));
+    private function documentsUrl(Property $property): string
+    {
+        return route('landlord.properties.show', $property) . '#documents';
     }
 
     public function store(StorePropertyDocumentRequest $request, Property $property)
@@ -39,7 +43,7 @@ class PropertyDocumentController extends Controller
             'status'           => 'Pending',
         ]);
 
-        return back()->with('success', 'Document uploaded and submitted for review.');
+        return redirect($this->documentsUrl($property))->with('success', 'Document uploaded and submitted for review.');
     }
 
     public function replace(StorePropertyDocumentRequest $request, Property $property, PropertyDocument $document)
@@ -71,7 +75,7 @@ class PropertyDocumentController extends Controller
             Storage::disk('local')->delete($oldPath);
         }
 
-        return back()->with('success', 'Document resubmitted for review.');
+        return redirect($this->documentsUrl($property))->with('success', 'Document resubmitted for review.');
     }
 
     public function destroy(Property $property, PropertyDocument $document)
@@ -83,7 +87,7 @@ class PropertyDocumentController extends Controller
         }
 
         if ($document->status === 'Verified') {
-            return back()->withErrors(['document' => 'A verified document cannot be removed — contact an admin if it needs to be reversed.']);
+            return redirect($this->documentsUrl($property))->withErrors(['document' => 'A verified document cannot be removed — contact an admin if it needs to be reversed.']);
         }
 
         if ($document->file_path) {
@@ -92,7 +96,7 @@ class PropertyDocumentController extends Controller
 
         $document->delete();
 
-        return back()->with('success', 'Document removed.');
+        return redirect($this->documentsUrl($property))->with('success', 'Document removed.');
     }
 
     public function preview(Property $property, PropertyDocument $document)

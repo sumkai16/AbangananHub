@@ -16,7 +16,7 @@
             </x-slot:icon>
             <x-slot:actions>
             <a href="{{ route('properties.create') }}"
-                class="inline-flex items-center justify-center gap-2 h-11 max-sm:h-9 px-5 max-sm:px-4 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[14px] font-semibold transition-colors duration-200 shrink-0">
+                class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[14px] font-semibold transition-colors duration-200 shrink-0">
                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
@@ -54,7 +54,7 @@
         </div>
 
         {{-- Filter toolbar --}}
-        <form method="GET" action="{{ route('landlord.properties.index') }}" class="mb-6">
+        <form data-live method="GET" action="{{ route('landlord.properties.index') }}" class="mb-6">
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
 
                 <div class="relative flex-1 min-w-[200px]">
@@ -65,12 +65,12 @@
                     </svg>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by property name or address..." aria-label="Search by property name or address"
                         x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                        class="w-full h-10 pl-10 pr-4 text-[16px] sm:text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
+                        class="w-full h-11 pl-10 pr-4 text-[16px] sm:text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
                 </div>
 
                 <div class="filter-row flex flex-wrap items-center gap-2.5">
                     @php
-                        $listStatusOptions = ['' => 'All Status', 'Approved' => 'Approved', 'Pending' => 'Pending', 'Rejected' => 'Rejected'];
+                        $listStatusOptions = ['' => 'All Status', 'Approved' => 'Approved', 'Pending' => 'Pending', 'Rejected' => 'Rejected', 'Suspended' => 'Suspended', 'Draft' => 'Not finished'];
                         $listTypeOptions = [...\App\Enums\PropertyType::options('All Types'), 'House' => 'House for Rent'];
                     @endphp
                     <x-styled-select name="status" :options="$listStatusOptions" :selected="request('status', '')" autosubmit
@@ -78,14 +78,6 @@
 
                     <x-styled-select name="type" :options="$listTypeOptions" :selected="request('type', '')" autosubmit
                         class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26]" />
-
-                    <button type="submit"
-                        class="h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 inline-flex items-center gap-1.5">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-                        </svg>
-                        Filter
-                    </button>
 
                     @if(request()->hasAny(['search', 'status', 'type']))
                         <a href="{{ route('landlord.properties.index') }}"
@@ -98,7 +90,7 @@
                     @endif
 
                     {{-- View toggle --}}
-                    <div class="flex items-center gap-0.5 h-11 p-1 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] ml-auto">
+                    <div class="max-lg:hidden flex items-center gap-0.5 h-11 p-1 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] ml-auto">
                         <button type="button" x-on:click="setView('grid')" aria-label="Grid view"
                             :class="view === 'grid' ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E] hover:text-[#060D26]'"
                             class="h-9 w-9 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
@@ -132,34 +124,21 @@
 
         {{-- Empty state --}}
         @if($properties->isEmpty())
-            <div class="flex flex-col items-center justify-center py-24 text-center">
-                <div class="w-16 h-16 rounded-2xl bg-[#ECEEF6] flex items-center justify-center mb-4">
-                    <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"
-                        class="text-[#5B6A8E]">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
-                    </svg>
-                </div>
-                @if(request()->hasAny(['search', 'status', 'type']))
-                    <p class="text-[15px] font-semibold text-[#060D26]">No properties match your filters</p>
-                    <p class="text-sm text-[#5B6A8E] mt-1 max-w-xs">Try a different search, status or type.</p>
+            @php $filtered = request()->hasAny(['search', 'status', 'type']); @endphp
+            <x-empty-state flat
+                :title="$filtered ? 'No properties match your filters' : 'No properties yet'"
+                :note="$filtered ? 'Try a different search, status or type.' : 'Add your first property to start receiving reservations from tenants.'">
+                <x-slot:icon>
+                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" /></svg>
+                </x-slot:icon>
+                @if($filtered)
                     <a href="{{ route('landlord.properties.index') }}"
-                        class="mt-5 inline-flex items-center gap-2 h-10 px-5 rounded-xl border border-[#060D26]/25 text-[#060D26] text-sm font-semibold hover:border-[#060D26] hover:bg-[#F7F8FC] transition-colors duration-200">
-                        Clear filters
-                    </a>
+                        class="inline-flex items-center gap-2 h-11 px-5 rounded-xl border border-[#060D26]/25 text-[#060D26] text-sm font-semibold hover:border-[#060D26] hover:bg-[#F7F8FC] transition-colors duration-200">Clear filters</a>
                 @else
-                    <p class="text-[15px] font-semibold text-[#060D26]">No properties yet</p>
-                    <p class="text-sm text-[#5B6A8E] mt-1 max-w-xs">Add your first property to start receiving reservations from
-                        tenants.</p>
                     <a href="{{ route('properties.create') }}"
-                        class="mt-5 inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                        </svg>
-                        Add Property
-                    </a>
+                        class="inline-flex items-center gap-2 h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-colors duration-200">Add Property</a>
                 @endif
-            </div>
+            </x-empty-state>
 
             {{-- Property list (grid / table toggle) --}}
         @else
@@ -178,7 +157,7 @@
                 }
             @endphp
 
-            <div x-show="view === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div x-show="view === 'grid'" class="max-lg:!grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 @foreach($properties as $property)
                     @php extract($derived[$property->property_id]); @endphp
 
@@ -189,7 +168,7 @@
                         <a href="{{ route('landlord.properties.show', $property) }}"
                             class="relative block aspect-[16/9] max-sm:aspect-auto max-sm:w-24 max-sm:min-h-[104px] overflow-hidden bg-[#ECEEF6] shrink-0">
                             @if($thumb)
-                                <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="{{ $property->title }}"
+                                <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($thumb->media_url, 'card') }}" alt="{{ $property->title }}"
                                     class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out">
                             @else
                                 <div class="w-full h-full flex flex-col items-center justify-center gap-2">
@@ -222,7 +201,7 @@
                             <div class="flex items-start justify-between gap-2">
                                 <div class="min-w-0">
                                     <a href="{{ route('landlord.properties.show', $property) }}"
-                                        class="block text-[15px] font-bold text-[#060D26] leading-snug line-clamp-1 hover:text-[#B35A3D] transition-colors duration-200 max-sm:after:absolute max-sm:after:inset-0">
+                                        class="block text-[15px] font-bold text-[#060D26] leading-snug line-clamp-1 hover:text-[#B35A3D] transition-colors duration-200 after:absolute after:inset-0 after:z-0">
                                         {{ $property->title }}
                                     </a>
                                     <p class="text-[12px] text-[#5B6A8E] mt-0.5 line-clamp-1 flex items-center gap-1">
@@ -279,9 +258,10 @@
                                 </p>
                             </div>
 
-                            {{-- Actions --}}
+                            {{-- A draft is finished or thrown away here. Any other property opens by tapping its card
+                                 (View Units and Edit went: units and details are tabs on the property page). --}}
+                            @if($property->isDraft())
                             <div class="relative z-10 flex items-center gap-2 pt-1 mt-auto">
-                                @if($property->isDraft())
                                     <a href="{{ route('properties.wizard.resume', $property) }}"
                                         class="flex-1 h-10 flex items-center justify-center gap-1.5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] transition-all duration-200">
                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -302,34 +282,15 @@
                                             </svg>
                                         </button>
                                     </form>
-                                @else
-                                    <a href="{{ route('landlord.properties.units.index', $property) }}"
-                                        class="max-sm:hidden flex-1 h-10 flex items-center justify-center gap-1.5 rounded-xl border border-[#060D26]/25 text-[#060D26] text-[13px] font-semibold hover:border-[#060D26] hover:bg-[#F7F8FC] transition-colors duration-200">
-                                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                            stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />
-                                        </svg>
-                                        View Units
-                                    </a>
-                                    <a href="{{ route('properties.edit', $property) }}"
-                                        class="max-sm:hidden h-10 px-4 flex items-center gap-1.5 rounded-xl border border-[#5B6A8E]/30 text-[#060D26] text-[13px] font-medium hover:bg-[#ECEEF6] transition-colors duration-200">
-                                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                            stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931z" />
-                                        </svg>
-                                        Edit
-                                    </a>
-                                @endif
                             </div>
+                            @endif
                         </div>
                     </article>
                 @endforeach
             </div>
 
             {{-- Table view --}}
-            <x-card flush x-show="view === 'table'" x-cloak>
+            <x-card flush x-show="view === 'table'" x-cloak class="max-lg:!hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[980px] text-left">
                         <thead>
@@ -350,7 +311,7 @@
                                         <div class="flex items-center gap-3">
                                             <div class="w-12 h-12 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0">
                                                 @if($thumb)
-                                                    <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="{{ $property->title }}" class="w-full h-full object-cover">
+                                                    <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($thumb->media_url, 'card') }}" alt="{{ $property->title }}" class="w-full h-full object-cover">
                                                 @else
                                                     <div class="w-full h-full flex items-center justify-center text-[#5B6A8E]/60">
                                                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -382,8 +343,8 @@
                                         <div class="flex items-center gap-3 text-[12px] whitespace-nowrap">
                                             <span class="font-bold text-[#060D26]">{{ $property->units_count }} total</span>
                                             <span class="text-[#15803D] font-semibold">{{ $property->available_units_count }} avail</span>
-                                            <span class="text-[#B45309] font-semibold">{{ $property->reserved_units_count }} rsvd</span>
-                                            <span class="text-[#EF4444] font-semibold">{{ $property->occupied_units_count }} occ</span>
+                                            <span class="text-[#B45309] font-semibold">{{ $property->reserved_units_count }} reserved</span>
+                                            <span class="text-[#DC2626] font-semibold">{{ $property->occupied_units_count }} occupied</span>
                                         </div>
                                     </td>
 
@@ -421,23 +382,11 @@
                                                     </button>
                                                 </form>
                                             @else
-                                                <a href="{{ route('landlord.properties.units.index', $property) }}"
-                                                    class="h-8 px-3 inline-flex items-center rounded-lg border border-[#FF8A66] text-[#B35A3D] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 whitespace-nowrap">
-                                                    View Units
-                                                </a>
-                                                <a href="{{ route('properties.edit', $property) }}" aria-label="Edit property"
-                                                    class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#5B6A8E]/25 text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200">
-                                                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931z" />
-                                                    </svg>
-                                                </a>
-                                                <a href="{{ route('landlord.properties.show', $property) }}" aria-label="View property"
-                                                    class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#5B6A8E]/25 text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200">
-                                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
-                                                    </svg>
+                                                <a href="{{ route('landlord.properties.show', $property) }}"
+                                                    class="h-8 px-3 inline-flex items-center gap-1 rounded-lg border border-[#FF8A66] text-[#B35A3D] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 whitespace-nowrap">
+                                                    View details
+                                                    <span aria-hidden="true">&rarr;</span>
+                                                    <span class="sr-only">of {{ $property->title }}</span>
                                                 </a>
                                             @endif
                                         </div>

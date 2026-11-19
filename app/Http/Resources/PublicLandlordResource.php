@@ -28,7 +28,6 @@ class PublicLandlordResource extends JsonResource
             'logo_url'                => $business?->logo_url,
             'is_verified'             => $business !== null,
             'member_since'            => $landlord->created_at,
-            'business_contact_number' => $this->when(auth('sanctum')->check(), fn () => $business?->contact_number),
         ];
     }
 }

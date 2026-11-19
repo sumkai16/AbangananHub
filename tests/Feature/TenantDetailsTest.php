@@ -265,4 +265,40 @@ class TenantDetailsTest extends TestCase
         $this->assertStringNotContainsString('1234-5678', json_encode($reservation->fresh()->lease_snapshot));
         $this->assertStringNotContainsString('PhilSys', json_encode($reservation->fresh()->lease_snapshot));
     }
+
+    public function test_settings_refuses_half_a_pair_but_keeps_a_saved_half(): void
+    {
+        $tenant = $this->makeUserWithRole('Tenant');
+        $this->actingAs($tenant);
+
+        // A name with no number, and an ID type with no ID number, are each only half a record.
+        $this->patch(route('profile.tenantDetails.update'), ['emergency_contact_name' => 'Ana Cruz'])
+            ->assertSessionHasErrors('emergency_contact_number');
+        $this->patch(route('profile.tenantDetails.update'), ['id_type' => 'PhilSys'])
+            ->assertSessionHasErrors('id_number');
+        $this->assertNull(TenantDetail::find($tenant->user_id));
+
+        // Both halves together save.
+        $this->patch(route('profile.tenantDetails.update'), self::DETAILS)->assertSessionHasNoErrors();
+
+        // Once saved, a blank box means "keep what is saved": changing only the ID type, or the contact's name, is fine
+        // (the ID number is never shown back, so the tenant cannot be made to retype it).
+        $this->patch(route('profile.tenantDetails.update'), ['id_type' => 'Passport'])->assertSessionHasNoErrors();
+        $this->patch(route('profile.tenantDetails.update'), ['emergency_contact_name' => 'Ben Cruz'])->assertSessionHasNoErrors();
+
+        $detail = TenantDetail::find($tenant->user_id);
+        $this->assertSame('Passport', $detail->id_type);
+        $this->assertSame('1234-5678-9012-3456', $detail->id_number);
+        $this->assertSame('Ben Cruz', $detail->emergency_contact_name);
+    }
+
+    public function test_add_tenant_also_refuses_half_a_pair(): void
+    {
+        $landlord = $this->makeLandlord();
+
+        $this->actingAs($landlord)->post(route('landlord.tenants.store'), [
+            'first_name' => 'Half', 'last_name' => 'Pair', 'contact_number' => '09170000001',
+            'emergency_contact_name' => 'Ana Cruz',
+        ])->assertSessionHasErrors('emergency_contact_number');
+    }
 }

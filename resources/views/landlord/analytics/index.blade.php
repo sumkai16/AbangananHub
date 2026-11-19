@@ -61,11 +61,12 @@
                 </form>
 
                 <a href="{{ route('landlord.analytics.export', ['range' => $rangeKey]) }}"
+                    title="Download this report as a spreadsheet (CSV)"
                     class="h-10 px-4 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13px] font-bold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200 inline-flex items-center gap-1.5">
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                     </svg>
-                    Export Report
+                    Export CSV
                 </a>
             </x-slot:actions>
         </x-page-header>
@@ -388,7 +389,7 @@
                                             in {{ $activity->property?->title ?? 'a property' }} {{ $st['verb'] }}
                                         </p>
                                         <p class="text-[11px] text-[#5B6A8E] mt-0.5">
-                                            @if($person)by {{ $person }} &middot; @endif{{ $activity->created_at->diffForHumans() }}
+                                            @if($person)by <x-person-link :user="$activity->tenant?->first_name ? $activity->tenant : $activity->actor" :name="$person" /> &middot; @endif{{ $activity->created_at->diffForHumans() }}
                                         </p>
                                     </div>
                                 </div>
@@ -407,8 +408,9 @@
 
 @push('scripts')
     @vite('resources/js/charts.js')
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
+    <script data-swap-safe>
+        // Draws now when the page was swapped in (the DOM is ready and Chart is loaded), or after load otherwise.
+        const drawAnalytics = () => {
             if (typeof Chart === 'undefined') return;
 
             const peso = (v) => '₱' + Number(v).toLocaleString(undefined, { maximumFractionDigits: 0 });
@@ -513,6 +515,7 @@
                     options: donut,
                 });
             }
-        });
+        };
+        document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', drawAnalytics) : drawAnalytics();
     </script>
 @endpush

@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use App\Services\Security\AuditChain;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Append-only record of consequential admin actions.
@@ -59,6 +61,22 @@ class AuditLog extends Model
         'user.create'               => 'User created',
         'user.update'               => 'User updated',
         'user.status_change'        => 'User status changed',
+        'user.password_reset_link'  => 'Password reset link sent',
+        'user.sign_out_everywhere'  => 'User signed out everywhere',
+        'activity.export'           => 'Activity log exported',
+        'hold.flagged'              => 'Tenant reported for unpaid rent',
+        'hold.confirmed'            => 'Tenant hold confirmed',
+        'hold.rejected'             => 'Tenant hold rejected',
+        'hold.released'             => 'Tenant hold released',
+        'hold.duplicate_flagged'    => 'Possible duplicate account found',
+        'hold.duplicate_dismissed'  => 'Duplicate alert dismissed',
+        'hold.duplicate_held'       => 'Duplicate account put on hold',
+        'security.two_factor_enabled'   => 'Admin two-factor turned on',
+        'security.two_factor_disabled'  => 'Admin two-factor turned off',
+        'security.two_factor_codes'     => 'Admin recovery codes regenerated',
+        'auth.login'                    => 'Signed in',
+        'auth.logout'                   => 'Signed out',
+        'auth.two_factor_passed'        => 'Passed two-factor',
         'user.delete'               => 'User deleted',
         'review.visibility_change'  => 'Review visibility changed',
         'report.resolve'            => 'Report resolved',
@@ -83,6 +101,8 @@ class AuditLog extends Model
         'reason',
         'metadata',
         'ip_address',
+        'prev_hash',
+        'row_hash',
     ];
 
     protected $casts = [
@@ -95,7 +115,7 @@ class AuditLog extends Model
      *
      * Call this inside the same DB::transaction() as the mutation it describes.
      * `$auditable` is the record acted upon; pass null for actions with no
-     * surviving target (a hard delete).
+     * surviving target (a hard delete). Pass `asSystem: true` for an automatic action.
      */
     public static function record(
         string $action,
@@ -103,10 +123,14 @@ class AuditLog extends Model
         ?Model $auditable = null,
         ?string $reason = null,
         array $metadata = [],
+        bool $asSystem = false,
+        ?User $actor = null,
     ): self {
-        $actor = Auth::user();
+        // $asSystem: the platform acted (an automatic check), even if a user happens to be signed in on this
+        // request, e.g. the person who just registered. Without it the row would blame them.
+        $actor = $asSystem ? null : ($actor ?? Auth::user());
 
-        return self::create([
+        $attributes = [
             'actor_id'       => $actor?->user_id,
             // Snapshotted so the row stays readable after the actor is deleted
             // and actor_id is nulled out by the FK's ON DELETE SET NULL.
@@ -119,7 +143,23 @@ class AuditLog extends Model
             'reason'         => $reason,
             'metadata'       => $metadata ?: null,
             'ip_address'     => request()->ip(),
-        ]);
+        ];
+
+        // The row locked here is the newest one, so concurrent writers queue and each chains to the true previous row.
+        return DB::transaction(function () use ($attributes) {
+            $createdAt = now()->startOfSecond();
+            $prev = DB::table('audit_logs')->orderByDesc('log_id')->lockForUpdate()->value('row_hash')
+                ?? AuditChain::genesis();
+
+            $attributes['prev_hash'] = $prev;
+            $attributes['row_hash'] = AuditChain::hash($attributes + ['created_at' => $createdAt]);
+
+            $log = new self($attributes);
+            $log->created_at = $createdAt;
+            $log->save();
+
+            return $log;
+        });
     }
 
     public function actor(): BelongsTo

@@ -26,7 +26,7 @@
                             </h1>
                             <p
                                 style="margin: 0 0 8px; font-size: 15px; color: #5B6A8E; line-height: 1.6; text-align: center;">
-                                <strong style="color: #060D26;">{{ $landlord->publicName() }}</strong> added you as their tenant. Set a password to see your lease and rent, message your landlord, and report payments.
+                                <strong style="color: #060D26;">{{ $landlord->publicName() }}</strong> added you as their tenant. Set a password to see your rental and rent, message your landlord, and report payments.
                             </p>
                             <p style="margin: 0 0 32px; font-size: 14px; color: #5B6A8E; text-align: center;">
                                 This link works for 7 days. If you do not rent from {{ $landlord->publicName() }}, you can ignore this email.

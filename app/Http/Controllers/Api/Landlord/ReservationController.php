@@ -7,6 +7,7 @@ use App\Http\Requests\Landlord\SendAgreementRequest;
 use App\Http\Resources\ReservationResource;
 use App\Models\Notification;
 use App\Models\Reservation;
+use App\Services\ImageUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -97,14 +98,20 @@ class ReservationController extends Controller
      * Mirrors Landlord\ReservationController::markTurnedOver — same lock,
      * same system message, same notification. Starts Clock 2.
      */
-    public function markTurnedOver(Reservation $reservation): JsonResponse
+    public function markTurnedOver(Request $request, Reservation $reservation, ImageUploader $uploader): JsonResponse
     {
         Gate::authorize('markTurnedOver', $reservation);
 
-        $marked = DB::transaction(function () use ($reservation) {
+        $request->validate([
+            'handover_photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+        ]);
+
+        $photo = $uploader->upload($request->file('handover_photo'), 'abanganan/handover');
+
+        $marked = DB::transaction(function () use ($reservation, $photo) {
             $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();
 
-            if (! $locked->markKeysTurnedOver()) {
+            if (! $locked->markKeysTurnedOver($photo['url'], $photo['public_id'])) {
                 return false;
             }
 

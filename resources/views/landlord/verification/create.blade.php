@@ -1,13 +1,22 @@
-@extends('layouts.app', ['searchBar' => false])
+@extends(!empty($signupFlow) ? 'layouts.signup' : 'layouts.app', ['searchBar' => false])
 
 @section('content')
     <div class="min-h-[calc(100vh-72px)] py-8 px-4 sm:px-6 lg:px-8">
         <div class="max-w-[1200px] mx-auto"
-            x-data="verificationWizard({ ocrCheckUrl: '{{ route('landlord.verification.ocrCheck') }}', csrfToken: '{{ csrf_token() }}' })"
+            x-data="verificationWizard({ ocrCheckUrl: '{{ route('landlord.verification.ocrCheck') }}', csrfToken: '{{ csrf_token() }}', modelUrl: '{{ asset('models/face-api') }}' })"
             x-init="init()">
 
             {{-- Page-level notices — capped to a readable measure above the grid --}}
             <div class="max-w-3xl mx-auto">
+            {{-- Reached from the landlord sign-up: the same title and four-step indicator as the account steps,
+                 now on step 3. The layout (layouts.signup) is the sign-up shell, not the site menu. --}}
+            @if(!empty($signupFlow))
+                <div class="max-w-lg mx-auto mt-2 mb-8 px-6 sm:px-0" x-data="{ step: 3 }">
+                    <h2 class="font-jakarta text-[28px] sm:text-[32px] font-extrabold text-[#060D26] tracking-tight leading-tight">Sign up as a landlord</h2>
+                    <p class="mt-1.5 text-[15px] text-[#5B6A8E]">Four short steps, so tenants can trust who they rent from.</p>
+                    <div class="mt-6"><x-landlord-signup-steps /></div>
+                </div>
+            @endif
             {{-- Rejection Banner --}}
             @if($verification && $verification->verification_status === 'Rejected')
                 <div class="mb-6 rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/[0.07] p-4">
@@ -60,6 +69,9 @@
             <form method="POST" action="{{ route('landlord.verification.store') }}" enctype="multipart/form-data"
                 x-ref="form" @submit.prevent="submitForm()">
                 @csrf
+                @if(!empty($signupFlow))
+                    <input type="hidden" name="signup_flow" value="1">
+                @endif
 
                 <input type="hidden" name="id_type" :value="idType">
                 <input type="hidden" name="id_image" :value="idImageBase64">
@@ -153,7 +165,7 @@
                 {{-- STEPS 1–5 — rail + stage --}}
                 {{-- ═══════════════════════════════════════════════ --}}
                 <div x-show="step > 0" x-transition:enter.duration.200ms
-                    class="grid lg:grid-cols-[248px_minmax(0,1fr)] lg:gap-11">
+                    class="grid grid-cols-1 lg:grid-cols-[248px_minmax(0,1fr)] lg:gap-11">
 
                     @include('landlord.verification._stepper')
 
@@ -239,7 +251,7 @@
 
                     {{-- ── Active capture area ─────────────────── --}}
                     <div x-show="idCapturePhase !== 'choose'" class="mt-6 max-w-4xl">
-                        <div class="grid xl:grid-cols-[minmax(0,1fr)_300px] gap-8 items-start">
+                        <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_300px] gap-8 items-start">
 
                             {{-- Stage --}}
                             <div class="max-w-2xl">
@@ -270,7 +282,7 @@
                                             <span class="text-xs text-[#5B6A8E]"
                                                 x-text="needsBack ? 'Front' : 'ID Photo'"></span>
                                             <button type="button" @click="retakePhoto('id')"
-                                                class="text-xs text-[#B35A3D] hover:underline">Retake</button>
+                                                class="inline-flex items-center min-h-[44px] px-2 -mx-2 text-[13px] font-semibold text-[#B35A3D] hover:underline">Retake</button>
                                         </div>
                                     </div>
                                     <div x-show="needsBack" class="relative">
@@ -293,7 +305,7 @@
                                                 <div class="flex items-center justify-between mt-1.5">
                                                     <span class="text-xs text-[#5B6A8E]">Back</span>
                                                     <button type="button" @click="retakePhoto('idBack')"
-                                                        class="text-xs text-[#B35A3D] hover:underline">Retake</button>
+                                                        class="inline-flex items-center min-h-[44px] px-2 -mx-2 text-[13px] font-semibold text-[#B35A3D] hover:underline">Retake</button>
                                                 </div>
                                             </div>
                                         </template>
@@ -323,6 +335,12 @@
                                 </div>
                             </div>
 
+                            {{-- Soft hint, never a block: a soft photo reads worse, and the card text is what the check needs. --}}
+                            <p x-show="idCapturePhase === 'done' && (idBlurry || idBackBlurry)" x-cloak
+                                class="mb-3 rounded-xl bg-[#FBBF24]/[0.10] px-3 py-2 text-[13px] text-[#060D26]">
+                                One of your ID photos looks a little blurry. Tap <strong>Retake</strong>, wait a second for the camera to focus, and keep the card flat and well lit.
+                            </p>
+
                             {{-- OCR results --}}
                             <div x-show="idCapturePhase === 'done' && (ocrLoading || ocrResult || ocrError)" class="mb-4">
                                 <div x-show="ocrLoading" class="flex items-center gap-2 py-4 justify-center">
@@ -338,6 +356,30 @@
 
                                 <template x-if="!ocrLoading && ocrResult">
                                     <div>
+                                        {{-- Does it look like an ID? Red while a retake is needed, amber when the applicant may carry on. --}}
+                                        <template x-if="idCheckCard">
+                                            <div class="mb-4 flex items-start gap-2.5 rounded-xl p-3"
+                                                :role="idCheckCard.tone === 'red' ? 'alert' : 'status'"
+                                                :class="{ 'bg-[#EF4444]/[0.07]': idCheckCard.tone === 'red', 'bg-[#FBBF24]/[0.10]': idCheckCard.tone === 'amber', 'bg-[#F7F8FC]': idCheckCard.tone === 'neutral' }">
+                                                <svg class="mt-0.5 h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"
+                                                    :class="{ 'text-[#EF4444]': idCheckCard.tone === 'red', 'text-[#FBBF24]': idCheckCard.tone === 'amber', 'text-[#5B6A8E]': idCheckCard.tone === 'neutral' }">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.814-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                                                </svg>
+                                                <div class="min-w-0 flex-1">
+                                                    <p class="text-sm font-semibold text-[#060D26]" x-text="idCheckCard.title"></p>
+                                                    <p class="mt-1 text-xs leading-relaxed text-[#5B6A8E]" x-text="idCheckCard.body"></p>
+                                                    <button type="button" x-show="idCheckCard.retake" @click="retakePhoto(idCheckCard.retake)"
+                                                        class="mt-3 inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-[#FF8A66] px-5 text-sm font-semibold text-[#060D26] transition-colors duration-150 hover:bg-[#E96F4F] sm:w-auto">
+                                                        Retake photo
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </template>
+
+                                        {{-- With nothing read from the front, "What we found" would only show dashes. --}}
+                                        <div x-show="!idFrontUnread">
                                         <div class="border-t border-[#E2E4EC] pt-4 mb-4">
                                             <p class="text-xs font-semibold text-[#5B6A8E] mb-3">What we found on your ID
                                             </p>
@@ -361,7 +403,7 @@
                                         </div>
                                         <div class="space-y-2">
                                             <div class="flex items-start gap-2.5 p-3 rounded-xl"
-                                                :class="ocrResult?.status === 'pass' ? 'bg-[#22C55E]/[0.07]' : (ocrResult?.status === 'partial' ? 'bg-[#FBBF24]/[0.10]' : 'bg-[#EF4444]/[0.07]')">
+                                                :class="ocrResult?.status === 'pass' ? 'bg-[#22C55E]/[0.07]' : (['partial', 'unreadable'].includes(ocrResult?.status) ? 'bg-[#FBBF24]/[0.10]' : 'bg-[#EF4444]/[0.07]')">
                                                 <template x-if="ocrResult?.status === 'pass'">
                                                     <svg class="w-4 h-4 text-[#22C55E] mt-0.5 shrink-0"
                                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -372,7 +414,7 @@
                                                 </template>
                                                 <template x-if="ocrResult?.status !== 'pass'">
                                                     <svg class="w-4 h-4 mt-0.5 shrink-0"
-                                                        :class="ocrResult?.status === 'partial' ? 'text-[#FBBF24]' : 'text-[#EF4444]'"
+                                                        :class="['partial', 'unreadable'].includes(ocrResult?.status) ? 'text-[#FBBF24]' : 'text-[#EF4444]'"
                                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                         stroke-width="1.5" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -381,11 +423,15 @@
                                                 </template>
                                                 <div>
                                                     <p class="text-sm font-semibold text-[#060D26]"
-                                                        x-text="ocrResult?.status === 'pass' ? 'We found your name on this ID' : (ocrResult?.status === 'partial' ? 'Partial name match' : 'Name not found on this ID')">
+                                                        x-text="ocrResult?.status === 'pass' ? 'We found your name on this ID' : (ocrResult?.status === 'partial' ? 'Partial name match' : (ocrResult?.status === 'unreadable' ? 'We could not read the text on this photo' : 'Name not found on this ID'))">
                                                     </p>
                                                     <p class="text-xs text-[#5B6A8E] mt-1"
                                                         x-show="ocrResult?.status === 'partial'">Close but not exact. Try
                                                         retaking with better lighting, or continue — our team will verify.
+                                                    </p>
+                                                    <p class="text-xs text-[#5B6A8E] mt-1"
+                                                        x-show="ocrResult?.status === 'unreadable'">The text came out too faint to read. Hold the
+                                                        phone steady in good light and retake, or continue and our team will check it by eye.
                                                     </p>
                                                     <p class="text-xs text-[#5B6A8E] mt-1"
                                                         x-show="ocrResult?.status === 'fail'">Make sure text is clear and
@@ -421,6 +467,7 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        </div>{{-- /!idFrontUnread --}}
                                     </div>
                                 </template>
 
@@ -553,18 +600,16 @@
                 <div x-show="step === 3" x-transition:enter.duration.200ms>
 
                     <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#060D26]">Live face check</p>
-                    <h1 class="mt-1.5 text-2xl font-normal tracking-tight text-[#060D26]"
-                        x-text="livenessActive && livenessInstruction ? livenessInstruction : 'Show us it\'s really you'">
-                    </h1>
-                    <p class="mt-2 text-sm text-[#5B6A8E] leading-relaxed max-w-md">Four quick movements prove you're
-                        here in person. We take the photo automatically once they're done, then compare it with the
+                    <h1 class="mt-1.5 text-2xl font-normal tracking-tight text-[#060D26]">Show us it's really you</h1>
+                    <p class="mt-2 text-sm text-[#5B6A8E] leading-relaxed max-w-md">Three quick movements prove you're
+                        here in person. Then look at the camera and we take the photo for you, to compare with the
                         photo on your ID.</p>
 
                     {{-- ── Ready screen ────────────────────────── --}}
                     <div x-show="selfieCapturePhase === 'choose' && !selfieBase64" class="mt-6 max-w-xl">
                         <p class="text-[11px] font-bold uppercase tracking-[0.09em] text-[#5B6A8E]">You'll be asked to</p>
                         <ol class="mt-3 space-y-2 mb-5">
-                            <template x-for="(label, idx) in livenessSteps" :key="idx">
+                            <template x-for="(label, idx) in livenessChecklist" :key="idx">
                                 <li class="flex items-center gap-3">
                                     <span
                                         class="w-[22px] h-[22px] rounded-full bg-[#ECEEF6] text-[#060D26] text-[11px] font-bold flex items-center justify-center shrink-0"
@@ -592,10 +637,10 @@
 
                     {{-- ── Camera selfie capture with liveness ──── --}}
                     <div x-show="selfieCapturePhase === 'camera' && !selfieBase64" class="mt-6 max-w-2xl">
-                        <div class="grid xl:grid-cols-[380px_minmax(0,1fr)] gap-8 items-start">
+                        <div class="grid grid-cols-1 xl:grid-cols-[380px_minmax(0,1fr)] gap-8 items-start">
 
                             {{-- Stage --}}
-                            <div class="max-w-[380px]">
+                            <div class="w-full max-w-[380px] mx-auto xl:mx-0">
                             <template x-if="cameraError">
                                 <div class="mb-4 rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/[0.07] p-3">
                                     <p class="text-sm text-[#EF4444]" x-text="cameraError"></p>
@@ -614,32 +659,49 @@
                                             :style="'border-color: ' + livenessGuideColor"></div>
                                     </div>
 
-                                    {{-- Face detected indicator --}}
-                                    <div x-show="livenessActive && livenessFaceDetected"
-                                        class="absolute top-4 left-1/2 -translate-x-1/2 pointer-events-none">
-                                        <span
-                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#ECEEF6]/90 text-xs font-medium text-[#060D26]">
-                                            <svg class="w-3 h-3 text-[#22C55E]" xmlns="http://www.w3.org/2000/svg"
-                                                fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="m4.5 12.75 6 6 9-13.5" />
+                                    {{-- What to do right now, on the camera view where the eyes are: the live instruction (with an
+                                         arrow on the turns), how far along the pose is, and "No face detected". --}}
+                                    <div x-show="livenessActive && livenessInstruction"
+                                        class="absolute inset-x-3 top-3 flex flex-col items-center gap-2 pointer-events-none">
+                                        <div role="status" aria-live="polite"
+                                            class="flex max-w-full items-center gap-2 rounded-2xl bg-[#060D26]/70 px-4 py-2 text-[20px] font-semibold leading-tight text-white">
+                                            <svg x-show="livenessDirection === 'left'" class="h-5 w-5 shrink-0" xmlns="http://www.w3.org/2000/svg"
+                                                fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
                                             </svg>
-                                            Face detected
-                                        </span>
-                                    </div>
-
-                                    {{-- No face detected indicator --}}
-                                    <div x-show="livenessActive && !livenessFaceDetected && !livenessPassed"
-                                        class="absolute top-4 left-1/2 -translate-x-1/2 pointer-events-none">
-                                        <span
-                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#EF4444]/[0.07] text-xs font-medium text-[#EF4444]">
-                                            <svg class="w-3 h-3 text-[#EF4444]" xmlns="http://www.w3.org/2000/svg"
-                                                fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                            <span x-text="livenessInstruction"></span>
+                                            <svg x-show="livenessDirection === 'right'" class="h-5 w-5 shrink-0" xmlns="http://www.w3.org/2000/svg"
+                                                fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                                            </svg>
+                                        </div>
+                                        <div class="h-1 w-40 max-w-full overflow-hidden rounded-full bg-white/30" aria-hidden="true">
+                                            <div class="h-full rounded-full bg-[#FF8A66] transition-[width] duration-150 motion-reduce:transition-none"
+                                                :style="'width: ' + Math.round(livenessProgress * 100) + '%'"></div>
+                                        </div>
+                                        <span x-show="!livenessFaceDetected && !livenessPassed"
+                                            class="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-[#EF4444]">
+                                            <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                stroke-width="2" stroke="currentColor" aria-hidden="true">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
                                                     d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.814-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                                             </svg>
                                             No face detected
                                         </span>
+                                    </div>
+
+                                    {{-- A hint when a step is taking a while, and where the applicant is in the four steps
+                                         (done = green, now = coral, next = grey). --}}
+                                    <div x-show="livenessActive"
+                                        class="absolute inset-x-3 bottom-3 flex flex-col items-center gap-2 pointer-events-none">
+                                        <p x-show="livenessHint" x-text="livenessHint" role="status"
+                                            class="rounded-full bg-[#FBBF24] px-3 py-1 text-center text-xs font-semibold text-[#060D26]"></p>
+                                        <div class="flex items-center gap-2" aria-hidden="true">
+                                            <template x-for="(label, idx) in livenessChecklist" :key="idx">
+                                                <span class="h-2 w-2 rounded-full transition-all duration-300 motion-reduce:transition-none"
+                                                    :class="livenessItemDone(idx) ? 'bg-[#22C55E]' : (livenessItemCurrent(idx) ? 'scale-125 bg-[#FF8A66]' : 'bg-white/50')"></span>
+                                            </template>
+                                        </div>
                                     </div>
 
                                     {{-- Loading overlay --}}
@@ -693,20 +755,20 @@
                             </div>{{-- /stage --}}
 
                             {{-- Movement checklist — mirrors the step rail's language --}}
-                            <div x-show="livenessActive || livenessLoading">
+                            <div x-show="livenessActive || livenessLoading" class="hidden xl:block">
                                 <p class="text-[11px] font-bold uppercase tracking-[0.09em] text-[#5B6A8E]">Movements</p>
                                 <ol class="mt-3 space-y-0.5">
-                                    <template x-for="(label, idx) in livenessSteps" :key="idx">
+                                    <template x-for="(label, idx) in livenessChecklist" :key="idx">
                                         <li class="flex items-center gap-3 px-3 py-2 rounded-xl transition-colors duration-200"
-                                            :class="livenessStep === idx ? 'bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)]' : ''">
+                                            :class="livenessItemCurrent(idx) ? 'bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)]' : ''">
                                             <span
                                                 class="w-[22px] h-[22px] shrink-0 rounded-full border-[1.5px] flex items-center justify-center text-[11px] font-bold transition-colors duration-300"
-                                                :class="livenessCompleted[idx]
+                                                :class="livenessItemDone(idx)
                                                     ? 'bg-[#22C55E] border-[#22C55E] text-white'
-                                                    : (livenessStep === idx
+                                                    : (livenessItemCurrent(idx)
                                                         ? 'bg-[#060D26] border-[#FF8A66] text-white'
                                                         : 'bg-white border-[#E2E4EC] text-[#5B6A8E]')">
-                                                <template x-if="livenessCompleted[idx]">
+                                                <template x-if="livenessItemDone(idx)">
                                                     <svg class="w-2.5 h-2.5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                                         viewBox="0 0 24 24" stroke-width="3.5" stroke="currentColor"
                                                         aria-hidden="true">
@@ -714,12 +776,12 @@
                                                             d="m4.5 12.75 6 6 9-13.5" />
                                                     </svg>
                                                 </template>
-                                                <template x-if="!livenessCompleted[idx]">
+                                                <template x-if="!livenessItemDone(idx)">
                                                     <span x-text="idx + 1"></span>
                                                 </template>
                                             </span>
                                             <span class="text-[13px] transition-colors duration-200"
-                                                :class="livenessStep === idx || livenessCompleted[idx] ? 'text-[#060D26] font-semibold' : 'text-[#5B6A8E] font-medium'"
+                                                :class="livenessItemCurrent(idx) || livenessItemDone(idx) ? 'text-[#060D26] font-semibold' : 'text-[#5B6A8E] font-medium'"
                                                 x-text="label"></span>
                                         </li>
                                     </template>
@@ -814,7 +876,7 @@
                                 <label for="business_name" class="block text-sm font-medium text-[#060D26] mb-1">Business
                                     name <span class="text-[#EF4444]">*</span></label>
                                 <input type="text" id="business_name" name="business_name" x-model="businessName"
-                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] outline-none transition-colors"
+                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-3 sm:py-2.5 text-[16px] sm:text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] outline-none transition-colors"
                                     placeholder="e.g. Sunrise Boarding House">
                             </div>
                             <div>
@@ -822,7 +884,7 @@
                                     <span class="text-[#5B6A8E] text-xs font-normal">(optional)</span></label>
                                 <textarea id="description" name="description" rows="3" x-model="description"
                                     maxlength="1000"
-                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] outline-none transition-colors resize-none"
+                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-3 sm:py-2.5 text-[16px] sm:text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] outline-none transition-colors resize-none"
                                     placeholder="Brief description of your rental business"></textarea>
                                 <p class="mt-1 text-xs text-[#5B6A8E]" x-text="(description?.length || 0) + '/1000'"></p>
                             </div>
@@ -836,14 +898,14 @@
                                 <label for="contact_number" class="block text-sm font-medium text-[#060D26] mb-1">Contact
                                     number <span class="text-[#EF4444]">*</span></label>
                                 <input type="text" id="contact_number" name="contact_number" x-model="contactNumber"
-                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] outline-none transition-colors"
+                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-3 sm:py-2.5 text-[16px] sm:text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] outline-none transition-colors"
                                     placeholder="09XX XXX XXXX">
                             </div>
                             <div>
                                 <label for="business_address" class="block text-sm font-medium text-[#060D26] mb-1">Business
                                     address <span class="text-[#EF4444]">*</span></label>
                                 <input type="text" id="business_address" name="business_address" x-model="businessAddress"
-                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] outline-none transition-colors"
+                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-3 sm:py-2.5 text-[16px] sm:text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] outline-none transition-colors"
                                     placeholder="Full address of your rental property/business">
                             </div>
                         </div>
@@ -877,7 +939,7 @@
                             <p class="text-xs font-semibold text-[#5B6A8E] mb-3">Verification checks</p>
                             <div x-show="ocrResult" class="space-y-2">
                                 <div class="flex items-center gap-2 px-3 py-2.5 rounded-xl"
-                                    :class="ocrResult?.status === 'pass' ? 'bg-[#22C55E]/[0.07]' : (ocrResult?.status === 'partial' ? 'bg-[#FBBF24]/[0.10]' : 'bg-[#EF4444]/[0.07]')">
+                                    :class="ocrResult?.status === 'pass' ? 'bg-[#22C55E]/[0.07]' : (['partial', 'unreadable'].includes(ocrResult?.status) ? 'bg-[#FBBF24]/[0.10]' : 'bg-[#EF4444]/[0.07]')">
                                     <template x-if="ocrResult?.status === 'pass'">
                                         <svg class="w-4 h-4 text-[#22C55E] shrink-0" xmlns="http://www.w3.org/2000/svg"
                                             fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -887,7 +949,7 @@
                                     </template>
                                     <template x-if="ocrResult?.status !== 'pass'">
                                         <svg class="w-4 h-4 shrink-0"
-                                            :class="ocrResult?.status === 'partial' ? 'text-[#FBBF24]' : 'text-[#EF4444]'"
+                                            :class="['partial', 'unreadable'].includes(ocrResult?.status) ? 'text-[#FBBF24]' : 'text-[#EF4444]'"
                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -895,7 +957,7 @@
                                         </svg>
                                     </template>
                                     <span class="text-xs text-[#060D26]"
-                                        x-text="ocrResult?.status === 'pass' ? 'Name found on ID' : (ocrResult?.status === 'partial' ? 'Partial name match — team will verify' : 'Name not verified — team will check')"></span>
+                                        x-text="ocrResult?.status === 'pass' ? 'Name found on ID' : (ocrResult?.status === 'partial' ? 'Partial name match — team will verify' : (ocrResult?.status === 'unreadable' ? 'Text not read — team will check by eye' : 'Name not verified — team will check'))"></span>
                                 </div>
                                 <div class="flex items-center gap-2 px-3 py-2.5 rounded-xl"
                                     :class="ocrResult?.type_match === 'match' ? 'bg-[#22C55E]/[0.07]' : 'bg-[#FBBF24]/[0.10]'">
@@ -1058,7 +1120,7 @@
         </div>
     </div>
 
-    <script src="{{ asset('js/verification-wizard.js') }}"></script>
+    <script src="{{ asset('js/verification-wizard.js') }}?v={{ filemtime(public_path('js/verification-wizard.js')) }}"></script>
     <script>
         function emailLinkButton(url, csrfToken) {
             return {

@@ -30,13 +30,7 @@
         {{-- Back to profile: tenants reach Settings from their profile page. A landlord has Settings as its own
              sidebar item next to My Profile, so there is nothing to go back to. --}}
         @unless($isLandlord)
-        <a href="{{ route('profile.show') }}"
-            class="inline-flex items-center gap-1.5 text-sm font-semibold text-[#060D26] hover:brightness-90 transition-all mb-3 sm:mb-5">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-            </svg>
-            Back to Profile
-        </a>
+        <x-back-link href="{{ route('profile.show') }}" to="profile" class="mb-3" />
         @endunless
 
         {{-- ID-card hero --}}
@@ -244,6 +238,15 @@
                         @include('profile.partials.update-password-form', ['inPanel' => true])
                     </x-settings-panel>
                 </div>
+                @php($signedIn = app(\App\Services\Security\SessionManager::class)->forUser($user, session()->getId()))
+                <div data-animate>
+                    <x-settings-panel id="devices" title="Where you're signed in"
+                        :subtitle="$signedIn->count() === 1 ? 'Only this device' : $signedIn->count().' devices'"
+                        :open="$errors->sessions->isNotEmpty()">
+                        <x-slot:icon>{!! $icon('M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3') !!}</x-slot:icon>
+                        @include('profile.partials.sessions', ['inPanel' => true, 'sessions' => $signedIn])
+                    </x-settings-panel>
+                </div>
                 @if($user->hasRole('Tenant'))
                     <div data-animate>
                         <x-settings-panel id="emergency-contact" title="Emergency contact & ID"
@@ -278,7 +281,7 @@
     </style>
 
     @push('scripts')
-        <script>
+        <script data-swap-safe>
             (function () {
                 const pick = document.getElementById('avatar-pick');
                 const input = document.getElementById('avatar-input');

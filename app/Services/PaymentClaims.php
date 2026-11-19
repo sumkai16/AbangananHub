@@ -46,6 +46,7 @@ class PaymentClaims
 
             if ($type === 'MoveIn') {
                 self::assertMoveInOpen($locked);
+                self::assertCoversMoveIn($locked, (float) $data['amount']);
             } else {
                 if ($locked->rental_status !== 'Occupied') {
                     self::fail('Rent can only be reported while your tenancy is running.');
@@ -69,7 +70,7 @@ class PaymentClaims
             }
 
             if (self::hasPending($locked, $type, $billingPeriod)) {
-                self::fail('You already reported this payment. Wait for your landlord to confirm it, or withdraw it first.');
+                self::fail('You already reported this payment. Wait for your landlord to confirm it, or cancel your report first.');
             }
 
             // The landlord chose which ways they take (Settings > Payments); a report for one they turned off is refused.
@@ -104,18 +105,19 @@ class PaymentClaims
                 'filed_by' => $tenant->user_id,
             ]);
 
-            $label = $type === 'MoveIn' ? 'move-in payment' : 'rent for '.$billingPeriod->format('F Y');
+            $label = $claim->coverageLabel($locked);
             $tenantName = $tenant->first_name ?? 'Your tenant';
 
             Notification::notify(
                 $locked->property?->landlord_id,
-                'payment',
+                'payment_to_confirm',
                 'Payment to confirm',
                 $claim->isCash()
                     ? "{$tenantName} says they handed you ₱".number_format((float) $claim->amount, 2)." in cash ({$label}). Confirm only if you received it."
                     : "{$tenantName} says they paid ₱".number_format((float) $claim->amount, 2)." ({$label}) by {$claim->payment_method}, ref {$claim->reference_no}. Check your account, then confirm.",
                 self::decisionLink($locked),
                 $locked->conversation_id,
+                $claim,
             );
 
             return $claim;
@@ -130,6 +132,7 @@ class PaymentClaims
 
             if ($claim->claim_type === 'MoveIn') {
                 self::assertMoveInOpen($locked);
+                self::assertCoversMoveIn($locked, (float) $claim->amount);
 
                 // Rent starts the day they paid when no move-in date was ever agreed. Pinned here so a later
                 // confirmation of occupancy cannot move the months the rows below were written against.
@@ -146,9 +149,7 @@ class PaymentClaims
                     'reference_no' => $claim->reference_no,
                 ], $landlord->user_id, $claim->payment_claim_id);
 
-                $locked->move_in_paid_at = now();
-                $locked->save();
-                $locked->holdUnit();
+                self::applyMoveInPayment($locked);
             } else {
                 if ($locked->rental_status !== 'Occupied') {
                     self::fail('This tenancy is no longer running, so the payment cannot be confirmed.');
@@ -167,6 +168,8 @@ class PaymentClaims
             }
 
             $claim->update(['status' => 'Confirmed', 'decided_by' => $landlord->user_id, 'decided_at' => now()]);
+            // The to-do is done: the landlord's "Payment to confirm" notice (and its reminders) stop reading as unread.
+            Notification::markReadFor($claim, 'payment_to_confirm');
 
             AuditLog::record(
                 'payment_claim.confirm',
@@ -203,6 +206,8 @@ class PaymentClaims
                 'decided_at' => now(),
                 'rejection_reason' => $reason,
             ]);
+
+            Notification::markReadFor($claim, 'payment_to_confirm');
 
             AuditLog::record(
                 'payment_claim.reject',
@@ -324,6 +329,7 @@ class PaymentClaims
             }
 
             $claim->update(['status' => 'Withdrawn', 'decided_at' => now()]);
+            Notification::markReadFor($claim, 'payment_to_confirm');
 
             return $claim;
         });
@@ -346,22 +352,24 @@ class PaymentClaims
             }
 
             self::assertMoveInOpen($locked);
+            self::assertCoversMoveIn($locked, (float) $data['initial_amount']);
 
             if (! $locked->target_move_in_date) {
                 $locked->target_move_in_date = $data['payment_date'];
             }
 
-            $locked->paymentClaims()->pending()->where('claim_type', 'MoveIn')
-                ->update(['status' => 'Withdrawn', 'decided_at' => now()]);
+            // One by one rather than a bulk update, so the sidebar count follows and each waiting notice is marked read.
+            foreach ($locked->paymentClaims()->pending()->where('claim_type', 'MoveIn')->get() as $waiting) {
+                $waiting->update(['status' => 'Withdrawn', 'decided_at' => now()]);
+                Notification::markReadFor($waiting, 'payment_to_confirm');
+            }
 
             MoveInPaymentRecorder::record($locked, $locked->unit, $data + [
                 'agreed_monthly_rent' => $locked->monthlyRent(),
                 'move_in_date' => $locked->tenancyStartDate()?->toDateString(),
             ], $landlord->user_id);
 
-            $locked->move_in_paid_at = now();
-            $locked->save();
-            $locked->holdUnit();
+            self::applyMoveInPayment($locked);
 
             AuditLog::record(
                 'move_in_payment.record',
@@ -408,6 +416,41 @@ class PaymentClaims
     }
 
     /** Move-in money can be reported or recorded once, while the agreement is signed and nothing is held. */
+    /**
+     * A move-in payment must cover what the unit's arrangement asks for next: the reservation fee, or whatever
+     * is still owed. Refusing the short amount here is what keeps a tenant from reaching Occupied with the
+     * balance unpaid. A tolerance of one centavo absorbs rounding.
+     */
+    private static function assertCoversMoveIn(Reservation $locked, float $amount): void
+    {
+        $locked->unsetRelation('payments');
+        $least = $locked->minimumMoveInPayment();
+
+        if ($amount + 0.01 < $least) {
+            self::fail($locked->reservationFee() > 0 && ! $locked->reservationFeePaid() && $locked->moveInPaid() <= 0
+                ? 'The reservation fee for this unit is ₱'.number_format($least, 2).'. The payment is less than that.'
+                : 'The move-in balance still owed is ₱'.number_format($least, 2).'. The payment is less than that.');
+        }
+    }
+
+    /**
+     * After a move-in payment is written: fully paid settles the move-in and holds the unit; under the
+     * reservation_fee arrangement a paid fee holds the unit while the balance stays owed.
+     */
+    private static function applyMoveInPayment(Reservation $locked): void
+    {
+        $locked->unsetRelation('payments');
+
+        if ($locked->moveInShortfall() <= 0.009) {
+            $locked->move_in_paid_at = now();
+            $locked->save();
+            $locked->holdUnit();
+        } elseif ($locked->reservationFeePaid()) {
+            $locked->save();
+            $locked->holdUnit();
+        }
+    }
+
     private static function assertMoveInOpen(Reservation $locked): void
     {
         if ($locked->rental_status !== 'Rental Agreement Signed') {

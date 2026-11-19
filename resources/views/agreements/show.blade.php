@@ -1,6 +1,8 @@
 @extends(auth()->user()->usesLandlordShell() ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
 
 @section('content')
+    {{-- Follows this reservation live (resources/js/live-page.js): a payment confirmed or a status change redraws the page, no reload. --}}
+    <div hidden data-live-page data-live-user="{{ auth()->id() }}" data-live-reservation="{{ $reservation->reservation_id }}" data-live-conversation="{{ $reservation->conversation_id }}"></div>
     @php
         $landlord = $reservation->property->landlord;
         $tenant = $reservation->tenant;
@@ -13,6 +15,10 @@
         // for good, and the tenant had no way to try again.
         $hasPayment = $reservation->payments->whereIn('status', ['Pending', 'Held', 'Paid', 'Released'])
             ->reject(fn ($p) => $p->isStalePending())->isNotEmpty();
+        // A reservation fee paid directly is part of the move-in, not all of it: the tenant still sees the pay card for the balance.
+        if ($hasPayment && ! $heldPayment && $reservation->moveInPaid() > 0 && $reservation->moveInShortfall() > 0) {
+            $hasPayment = false;
+        }
         $hadAbandonedCheckout = ! $hasPayment && $reservation->payments->contains(fn ($p) => $p->isStalePending());
         $processingPayment = $hasPayment && !$heldPayment && !$reservation->isOccupied();
         // Direct payments: money paid to the landlord and confirmed (or recorded by them) sets move_in_paid_at.
@@ -21,7 +27,7 @@
         $directPaid = $reservation->move_in_paid_at !== null;
         // Where the tenant is, for the progress bar: reviewing and signing share the first two steps.
         $stage = $reservation->isOccupied() ? 4 : (($directPaid || $hasPayment) ? 3 : ($reservation->isAgreementSigned() ? 2 : 1));
-        $stepLabels = ['Review lease', 'Sign', 'Pay', 'Move in'];
+        $stepLabels = ['Review rental', 'Sign', 'Pay', 'Move in'];
         $startDate = $terms['start'] ? \Illuminate\Support\Carbon::parse($terms['start']) : null;
         $endDate = $terms['end'] ? \Illuminate\Support\Carbon::parse($terms['end']) : null;
         $lengthMonths = $startDate && $endDate ? max(1, (int) round($startDate->floatDiffInMonths($endDate))) : null;
@@ -39,13 +45,7 @@
 
         {{-- Page chrome — never printed --}}
         <div class="flex items-center justify-between gap-3 mb-6 print:hidden">
-            <a href="{{ $reservation->conversation_id ? route('conversations.index', ['active' => $reservation->conversation_id]) : route('reservations.index') }}"
-                class="inline-flex items-center text-sm font-semibold text-[#5B6A8E] hover:text-[#060D26] transition-colors group">
-                <svg class="w-4 h-4 mr-2 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                </svg>
-                {{ $reservation->conversation_id ? 'Back to chat' : 'Back to Reservations' }}
-            </a>
+            <x-back-link href="{{ $reservation->conversation_id ? route('conversations.index', ['active' => $reservation->conversation_id]) : route('reservations.index') }}" :to="$reservation->conversation_id ? 'chat' : 'reservations'" />
 
             <button type="button" onclick="window.print()"
                 class="inline-flex items-center gap-1.5 px-3 py-2.5 min-h-[40px] rounded-xl border border-[#E2E4EC] bg-white text-[12px] font-bold text-[#060D26] hover:bg-[#F7F8FC] cursor-pointer transition-all duration-200">
@@ -139,7 +139,7 @@
         <x-card flush class="p-5 sm:p-8 print:border-none print:shadow-none print:p-0" x-data="{ all: false }">
             {{-- ===== The lease — frozen terms, see App\Support\LeaseTerms ===== --}}
             <div class="mb-3 flex items-center justify-between gap-3 print:hidden">
-                <h2 class="text-[19px] font-bold tracking-tight text-[#060D26]">The lease</h2>
+                <h2 class="text-[19px] font-bold tracking-tight text-[#060D26]">The rental</h2>
                 {{-- Clauses are collapsible rows when the lease uses the standard wording; a landlord's own text is one block. --}}
                 @if(empty($terms['body']))
                     <button type="button" class="inline-flex min-h-[40px] items-center rounded-xl border border-[#E2E4EC] bg-white px-3.5 text-[13px] font-bold text-[#060D26] transition-colors hover:bg-[#F7F8FC]"
@@ -158,7 +158,7 @@
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-8">
                     <div>
                         <p class="text-[14px] text-[#5B6A8E]">Landlord</p>
-                        <p class="text-[17px] font-bold text-[#060D26]">{{ $landlord->first_name }} {{ $landlord->last_name }}</p>
+                        <p class="text-[17px] font-bold text-[#060D26]"><x-person-link :user="$landlord" /></p>
                         @if($reservation->landlord_tc_accepted_at)
                             <p class="mt-1 flex items-center gap-1.5 text-[14px] font-semibold text-[#15803D]">{!! $tick !!} Accepted {{ $reservation->landlord_tc_accepted_at->format('F j, Y \a\t g:i A') }}</p>
                         @else
@@ -211,6 +211,17 @@
                                 of the terms stated.
                             </p>
                         </div>
+
+                        {{-- Tell the tenant when this expires: the unit is held for them only for a short window. --}}
+                        @if ($signBy = $reservation->paymentDeadline())
+                            @php $payDays = (int) config('rentals.stale_reservations.signed.cancel_days'); @endphp
+                            <p class="mb-4 rounded-xl border border-[#FBBF24]/35 bg-[#FBBF24]/10 px-4 py-3 text-[13px] leading-relaxed text-[#92600A]">
+                                Sign by <strong>{{ $signBy->format('F j, Y') }}</strong> or this agreement closes and the unit is released.
+                                @if ($payDays > 0)
+                                    After you sign, you have {{ $payDays }} {{ $payDays === 1 ? 'day' : 'days' }} to pay the move-in amount to keep the unit.
+                                @endif
+                            </p>
+                        @endif
 
                         <label for="agree" class="flex items-start gap-3 mb-4 cursor-pointer">
                             <input type="checkbox" name="agree" id="agree" required
@@ -291,6 +302,15 @@
 
                     @elseif(!$hasPayment)
                         <div class="mt-4">
+                            @if ($payBy = $reservation->paymentDeadline())
+                                <p class="mb-3 rounded-xl border border-[#FBBF24]/35 bg-[#FBBF24]/10 px-4 py-3 text-[13px] leading-relaxed text-[#92600A]">
+                                    @if($reservation->moveInPaid() > 0)
+                                        You paid &#8369;{{ number_format($reservation->moveInPaid(), 2) }}. The balance of &#8369;{{ number_format($reservation->moveInShortfall(), 2) }} is due by <strong>{{ $payBy->format('F j, Y') }}</strong>@if($reservation->balanceOverdue()) and is now overdue. Your landlord has kept the unit for you for now, so pay it soon.@else. Pay it to keep the unit.@endif
+                                    @else
+                                        Signed, waiting for your payment. Pay by <strong>{{ $payBy->format('F j, Y') }}</strong> or the reservation closes and the unit is released.
+                                    @endif
+                                </p>
+                            @endif
                             @if($hadAbandonedCheckout)
                                 <p class="mb-3 rounded-xl border border-[#FBBF24]/35 bg-[#FBBF24]/10 px-4 py-3 text-[13px] text-[#92600A]">
                                     Your last payment attempt wasn't completed. You can try again below.
@@ -364,6 +384,13 @@
                                                 {{ $reservation->move_in_deadline_at->format('M j, Y') }}, it is released automatically.
                                             @endif
                                         </p>
+                                        @if ($reservation->keys_handover_photo_url)
+                                            <p class="mt-2 text-sm">
+                                                <a href="{{ $reservation->keys_handover_photo_url }}" target="_blank" rel="noopener noreferrer"
+                                                    class="font-semibold underline">See the photo your landlord sent</a>
+                                                ({{ $reservation->keys_turned_over_at?->format('M j, Y') }}). Don't confirm if it doesn't match what you received.
+                                            </p>
+                                        @endif
                                     </div>
                                 @endif
                             @endif
@@ -474,29 +501,10 @@
 
         </div>{{-- /document + rail --}}
 
-        <p class="text-[10.5px] text-[#5B6A8E] text-center mt-4 hidden print:block">
+        <p data-live-ignore class="text-[10.5px] text-[#5B6A8E] text-center mt-4 hidden print:block">
             {{ $agreementRef }} &middot; Generated {{ now()->format('F j, Y \a\t g:i A') }} &middot; AbangananHub
         </p>
     </div>
     </x-print-document>
 
-    @if($processingPayment)
-        @push('scripts')
-            <script>
-                // The webhook lands out-of-band, so without this the tenant sits on
-                // the spinner forever. A full reload is deliberate: this page has
-                // five mutually exclusive server-rendered states and re-rendering
-                // one of them in JS would duplicate the Blade.
-                document.addEventListener('DOMContentLoaded', () => {
-                    if (!window.Echo) return;
-                    window.Echo.private('user.{{ auth()->id() }}')
-                        .listen('.PaymentStatusUpdated', (e) => {
-                            if (e.reservation_id === {{ $reservation->reservation_id }}) {
-                                window.location.reload();
-                            }
-                        });
-                });
-            </script>
-        @endpush
-    @endif
 @endsection

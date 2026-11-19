@@ -64,6 +64,12 @@
     background: #060D26;
 }
 
+/* Dark map: a navy start dot sinks into the navy-grey tiles, so it is light with a navy ring instead. */
+html.dark .map-pin--origin .map-pin__dot {
+    background: #EAEEF9;
+    border-color: #060D26;
+}
+
 .map-pin--school .map-pin__dot {
     background: #EF4444;
 }

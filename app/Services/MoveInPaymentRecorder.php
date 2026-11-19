@@ -34,11 +34,26 @@ class MoveInPaymentRecorder
         int $recordedBy,
         ?int $claimId = null,
     ): int {
+        $amount = (float) $data['initial_amount'];
+        $arrangement = $reservation->paymentArrangement();
+
+        // Under the reservation_fee arrangement the first money is the fee: its own category, and it holds the unit.
+        // The rest of that payment (if the tenant paid more than the fee) is split as usual below.
+        $feeRow = null;
+        $credited = $reservation->moveInPaid();
+        if ($arrangement === 'reservation_fee' && ! $reservation->reservationFeePaid() && $credited <= 0 && $reservation->reservationFee() > 0) {
+            $fee = min($amount, $reservation->reservationFee());
+            $feeRow = ['payment_type' => 'Reservation Fee', 'billing_period' => null, 'amount' => round($fee, 2)];
+            $amount = round($amount - $fee, 2);
+            $credited = $fee;
+        }
+
         $breakdown = MoveInPaymentBreakdown::make(
-            (float) $data['initial_amount'],
+            $amount,
             (float) ($data['agreed_monthly_rent'] ?? $unit->rental_fee),
             $reservation->agreedDeposit(),
             $data['move_in_date'],
+            $credited,
         );
 
         // One collection event, split by purpose, so every row carries the same method, date and
@@ -54,6 +69,9 @@ class MoveInPaymentRecorder
         ];
 
         $rows = $breakdown->rows();
+        if ($feeRow !== null) {
+            array_unshift($rows, $feeRow);
+        }
 
         foreach ($rows as $row) {
             Payment::create($shared + $row);

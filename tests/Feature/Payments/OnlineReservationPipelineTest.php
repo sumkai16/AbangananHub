@@ -2,9 +2,12 @@
 
 namespace Tests\Feature\Payments;
 
+use Tests\Support\PaidAmount;
 use App\Http\Controllers\Landlord\ReservationController;
 use App\Models\Reservation;
+use App\Services\ImageUploader;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Tests\Support\CreatesMarketplaceFixtures;
@@ -105,7 +108,7 @@ class OnlineReservationPipelineTest extends TestCase
         $body = json_encode(['data' => ['attributes' => [
             'type' => 'checkout_session.payment.paid',
             'data' => ['id' => 'cs_hook', 'attributes' => [
-                'payment_intent' => ['id' => 'pi_hook'], 'payments' => [['id' => 'pay_hook']], 'payment_method_used' => 'gcash',
+                'payment_intent' => ['id' => 'pi_hook'], 'payments' => [['id' => 'pay_hook', 'attributes' => ['amount' => PaidAmount::centavos('cs_hook')]]], 'payment_method_used' => 'gcash',
             ]],
         ]]]);
         $time = time();
@@ -122,7 +125,7 @@ class OnlineReservationPipelineTest extends TestCase
         $this->makePendingCheckout($this->signed(), 'cs_poll');
         Http::fake(['api.paymongo.com/v1/checkout_sessions/cs_poll' => Http::response(['data' => ['id' => 'cs_poll', 'attributes' => [
             'status' => 'paid', 'payment_intent' => ['id' => 'pi_poll'],
-            'payments' => [['id' => 'pay_poll', 'attributes' => ['source' => ['type' => 'gcash']]]], 'payment_method_used' => 'gcash',
+            'payments' => [['id' => 'pay_poll', 'attributes' => ['source' => ['type' => 'gcash'], 'amount' => PaidAmount::centavos('cs_poll')]]], 'payment_method_used' => 'gcash',
         ]]])]);
 
         $this->actingAs($this->t['tenant'])->get(route('payments.success', $this->signed()));
@@ -162,8 +165,17 @@ class OnlineReservationPipelineTest extends TestCase
             ->assertDontSee("Waiting for {$name}'s move-in payment", false)
             ->assertDontSee(route('landlord.reservations.confirmDirectMoveIn', $this->signed()), false);
 
-        $this->actingAs($this->t['landlord'])->post(route('landlord.reservations.markTurnedOver', $this->signed()))
-            ->assertSessionHas('success');
+        $this->app->instance(ImageUploader::class, new class extends ImageUploader
+        {
+            public function upload(UploadedFile $file, string $folder, array $options = []): array
+            {
+                return ['url' => 'https://img.test/handover.png', 'public_id' => $folder.'/x'];
+            }
+        });
+
+        $this->actingAs($this->t['landlord'])->post(route('landlord.reservations.markTurnedOver', $this->signed()), [
+            'handover_photo' => UploadedFile::fake()->image('keys.png'),
+        ])->assertSessionHas('success');
 
         $this->actingAs($this->t['landlord'])->get(route('landlord.contracts.show', $this->signed()))
             ->assertOk()->assertSee('Keys handed over')->assertDontSee('Mark keys turned over');

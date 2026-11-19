@@ -7,7 +7,7 @@
         class="group block h-full overflow-hidden rounded-2xl border border-[#E2E4EC] bg-white hover:border-[#5B6A8E]/40 transition-colors duration-200">
         <div class="h-36 overflow-hidden bg-[#ECEEF6]">
             @if($thumb)
-                <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="" class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300 motion-reduce:transition-none">
+                <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($thumb->media_url, 'card') }}" alt="" class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300 motion-reduce:transition-none">
             @else
                 <div class="h-full w-full flex items-center justify-center" aria-hidden="true">
                     <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#5B6A8E" stroke-width="1.5">

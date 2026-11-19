@@ -29,9 +29,9 @@
             {{ $pending->isCash() ? 'handed over' : 'paid' }} {{ $pending->paid_on->format('M j') }}.
         </p>
         <form method="POST" action="{{ route('paymentClaims.withdraw', $pending) }}" class="mt-2"
-            data-confirm="Withdraw this report?" data-confirm-message="Use this if you entered it wrong. You can report again." data-confirm-button="Withdraw">
+            data-confirm="Cancel this payment report?" data-confirm-message="No money is moved or refunded. Use this if you entered the amount or reference wrong, or want to pay another way. You can report again." data-confirm-button="Cancel report">
             @csrf @method('DELETE')
-            <button type="submit" class="h-10 rounded-lg border border-[#E2E4EC] bg-white px-3 text-[12.5px] font-bold text-[#060D26] hover:bg-[#F7F8FC] transition-colors">Withdraw</button>
+            <button type="submit" class="h-10 rounded-lg border border-[#E2E4EC] bg-white px-3 text-[12.5px] font-bold text-[#060D26] hover:bg-[#F7F8FC] transition-colors">Cancel this report</button>
         </form>
     </div>
 @endif

@@ -10,6 +10,7 @@ use App\Models\Notification;
 use App\Models\Property;
 use App\Models\Reservation;
 use App\Models\User;
+use App\Services\Holds\HoldRestrictions;
 use App\Support\ApiPage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -28,10 +29,8 @@ class ConversationController extends Controller
         $userId = $request->user()->user_id;
         $status = $request->query('status', 'all');
 
-        $base = Conversation::where(function ($q) use ($userId) {
-            $q->where('tenant_id', $userId)
-                ->orWhere('landlord_id', $userId);
-        });
+        // A tenant on an unpaid-rent hold only sees chats with the landlord they owe (HoldRestrictions).
+        $base = Conversation::where(HoldRestrictions::partyScope($request->user()));
 
         if ($propertyId = $request->query('property_id')) {
             $base->where('property_id', $propertyId);
@@ -161,6 +160,10 @@ class ConversationController extends Controller
     public function show(Request $request, Conversation $conversation): JsonResponse
     {
         Gate::authorize('view', $conversation);
+
+        if (! HoldRestrictions::canUseConversation($request->user(), $conversation)) {
+            return response()->json(['message' => HoldRestrictions::deniedMessage(), 'code' => 'account_on_hold'], 403);
+        }
 
         $userId = $request->user()->user_id;
 

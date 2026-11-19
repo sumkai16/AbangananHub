@@ -12,8 +12,8 @@
                 class="relative w-full max-w-xl bg-white rounded-2xl shadow-xl">
                 <div class="px-5 sm:px-7 py-5 border-b border-[#E2E4EC] flex items-start justify-between gap-4">
                     <div>
-                        <h2 id="user-form-title" class="text-[18px] font-normal text-[#060D26] tracking-tight">{{ $user ? 'Edit User' : 'Create User' }}</h2>
-                        <p class="text-[13px] text-[#94A3B8] mt-0.5">{{ $user ? $user->email : 'Add a new account to the system.' }}</p>
+                        <h2 id="user-form-title" class="text-[18px] font-semibold text-[#060D26] tracking-tight">{{ $user ? 'Edit User' : 'Create User' }}</h2>
+                        <p class="text-[13px] text-[#5B6A8E] mt-0.5">{{ $user ? $user->email : 'Add a new account to the system.' }}</p>
                     </div>
                     <button type="button" @click="userFormOpen = false" aria-label="Close"
                         class="h-9 w-9 -mr-2 -mt-1 flex items-center justify-center rounded-lg text-[#5B6A8E] hover:text-[#060D26] cursor-pointer">

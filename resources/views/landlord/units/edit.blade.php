@@ -18,7 +18,7 @@
             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
             <a href="{{ route('landlord.properties.show', $property) }}" class="hover:text-[#060D26] transition-colors duration-200 truncate max-w-[16rem]">{{ $property->title }}</a>
             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
-            <a href="{{ route('landlord.properties.units.index', $property) }}" class="hover:text-[#060D26] transition-colors duration-200">Units</a>
+            <a href="{{ $backUrl ?? route('landlord.properties.units.index', $property) }}" class="hover:text-[#060D26] transition-colors duration-200">Units</a>
             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
             <span class="text-[#060D26] font-medium">Edit {{ $unit->unit_label }}</span>
         </nav>
@@ -46,7 +46,7 @@
         <p class="mb-5 text-[13px] text-[#060D26]">
             <span class="text-[#5B6A8E]">Policy:</span> {{ $unitLease?->name ?? 'Standard policy' }}
             @if($unit->lease_template_id === null && $unitLease) <span class="text-[#5B6A8E]">(from the property)</span> @endif
-            <a href="{{ route('landlord.leases.index', ['property' => $property->property_id]) }}" class="ml-1 font-semibold underline underline-offset-2">Change in Lease policies</a>
+            <a href="{{ route('landlord.leases.index', ['property' => $property->property_id]) }}" class="ml-1 font-semibold underline underline-offset-2">Change in Rental policies</a>
         </p>
 
         {{-- Flash / errors --}}
@@ -66,7 +66,7 @@
         @php
             $existingPhotos = $unit->media->where('media_type', 'Image');
             $existingVideo = $unit->media->where('media_type', 'Video')->first();
-            $previewPhoto = $existingPhotos->first()?->media_url;
+            $previewPhoto = \App\Support\Images::src($existingPhotos->first()?->media_url, 'card');
             $statusMeta = [
                 'Available' => ['dot' => '#22C55E', 'text' => 'Vacant and ready'],
                 'Reserved' => ['dot' => '#FBBF24', 'text' => 'On hold for a tenant'],
@@ -110,6 +110,8 @@
                 capacity: @js(old('occupancy_limit', $unit->occupancy_limit)),
                 floorArea: @js(old('floor_area_sqm', $unit->floor_area_sqm)),
                 rentalFee: @js(old('rental_fee', $unit->rental_fee)),
+                securityDeposit: @js(old('security_deposit', $unit->security_deposit)),
+                advanceMonths: @js((int) old('advance_months', $unit->advance_months)),
                 status: @js(old('availability_status', $unit->availability_status)),
                 amenities: @js($preselectedAmenities),
                 exclusiveAmenities: @js($exclusiveAmenityIds),
@@ -128,6 +130,9 @@
             @method('PUT')
             @if($fromWizard ?? false)
                 <input type="hidden" name="from" value="wizard">
+            @endif
+            @if(($returnTo ?? 'units') === 'property')
+                <input type="hidden" name="return_to" value="property">
             @endif
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
@@ -222,11 +227,15 @@
                                 </div>
                                 <div>
                                     <label for="security_deposit" class="{{ $label }}">Security deposit (₱) <span class="font-normal text-[#5B6A8E]">(optional)</span></label>
-                                    <input type="number" id="security_deposit" name="security_deposit" value="{{ old('security_deposit', $unit->security_deposit) }}" min="0"
+                                    <input type="number" id="security_deposit" name="security_deposit" x-model="securityDeposit" min="0"
                                         max="999999.99" step="0.01" placeholder="Leave blank if no deposit" class="{{ $input }}">
+                                    @include('landlord.partials._rent-control-note', ['rent' => 'rentalFee', 'deposit' => 'securityDeposit'])
                                     @error('security_deposit')<p class="{{ $error }}">{{ $message }}</p>@enderror
                                 </div>
                             </div>
+
+                            @include('landlord.units.partials._advance-rent')
+                            @include('landlord.units.partials._payment-arrangement', ['unit' => $unit])
 
                             <div>
                                 <p class="{{ $label }}">Status <span class="text-[#EF4444]">*</span></p>
@@ -303,7 +312,7 @@
                             <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 mb-3">
                                 @foreach($existingPhotos as $photo)
                                     <div class="relative aspect-square rounded-xl overflow-hidden bg-[#F7F8FC] ring-1 ring-[#5B6A8E]/15 group">
-                                        <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="{{ $photo->caption ?? 'Unit photo' }}" class="w-full h-full object-cover">
+                                        <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($photo->media_url, 'card') }}" alt="{{ $photo->caption ?? 'Unit photo' }}" class="w-full h-full object-cover">
                                         @if($photo->source === 'camera')
                                             <span class="absolute top-1 left-1 rounded-full bg-[#FF8A66] text-[#060D26] px-1.5 py-0.5 text-[11px] font-semibold">Live</span>
                                         @endif
@@ -340,7 +349,7 @@
 
                     {{-- Footer bar (DESIGN §6f): ghost cancel left, the one primary action right. --}}
                     <div class="sticky bottom-0 z-10 -mx-4 sm:mx-0 pl-4 pr-20 sm:pl-0 lg:pr-0 py-4 bg-[#F7F8FC] border-t border-[#E2E4EC] flex items-center gap-3">
-                        <a href="{{ ($fromWizard ?? false) ? route('properties.wizard.units', $property) : route('landlord.properties.units.index', $property) }}"
+                        <a href="{{ $backUrl ?? route('landlord.properties.units.index', $property) }}"
                             class="h-11 px-6 inline-flex items-center justify-center rounded-full border border-[#E2E4EC] bg-white hover:bg-[#ECEEF6] text-[#060D26] text-sm font-semibold transition-colors duration-200">
                             Cancel
                         </a>

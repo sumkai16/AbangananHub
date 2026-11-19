@@ -159,6 +159,26 @@ class Conversation extends Model
             ->latestOfMany('message_id');
     }
 
+    /**
+     * How many open chats are waiting on this person: the chat's latest message is from the other side and unread.
+     * The one rule behind the sidebar, the top bar and the floating bubble, so the three can never disagree. A
+     * cancelled or resolved chat is hidden from the inbox, so it is not counted either. Counting loose messages
+     * also counted those chats, and a second message in the same chat counted twice.
+     */
+    public static function unreadCountFor(int $userId): int
+    {
+        // A tenant on an unpaid-rent hold only counts the chats they may still open (the landlord they owe).
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $party = $user && (int) $user->user_id === $userId
+            ? \App\Services\Holds\HoldRestrictions::partyScope($user)
+            : fn ($q) => $q->where('tenant_id', $userId)->orWhere('landlord_id', $userId);
+
+        return static::where($party)
+            ->whereNotIn('status', ['Cancelled', 'Resolved'])
+            ->whereHas('latestMessage', fn ($q) => $q->where('sender_id', '!=', $userId)->where('is_read', false))
+            ->count();
+    }
+
     public function isResolved(): bool
     {
         return $this->status === 'Resolved';

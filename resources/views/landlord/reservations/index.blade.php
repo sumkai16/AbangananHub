@@ -43,11 +43,12 @@
             <x-slot:actions>
                 {{-- Export carries the active filters and stage tab --}}
                 <a href="{{ route('landlord.reservations.export', request()->only('search', 'property', 'from', 'to', 'stage')) }}"
+                    title="Download the reservations shown here as a spreadsheet (CSV)"
                     class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-sm font-semibold transition-all duration-200 shrink-0 cursor-pointer">
                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                     </svg>
-                    Export
+                    Export CSV
                 </a>
             </x-slot:actions>
         </x-page-header>
@@ -62,7 +63,7 @@
 
         {{-- Whose turn it is. Each cell narrows the list to what it counts. --}}
         @php $stageUrl = fn ($s) => route('landlord.reservations.index', array_filter(['stage' => $s] + request()->only('search', 'property', 'from', 'to'))); @endphp
-        <x-stat-strip class="mb-4" :cells="[
+        <x-stat-strip data-swap-region="cards" class="mb-4 max-lg:hidden" :cells="[
             ['label' => 'Needs your reply', 'value' => $strip['reply'], 'note' => 'New inquiries', 'dot' => $strip['reply'] > 0 ? '#FF8A66' : null, 'href' => $stageUrl('new'), 'active' => $stage === 'new'],
             ['label' => 'Discussing', 'value' => $strip['discussing'], 'note' => 'Send the agreement once agreed', 'href' => $stageUrl('discussing'), 'active' => $stage === 'discussing'],
             ['label' => 'Waiting on tenant', 'value' => $strip['waiting'], 'note' => 'To sign or to pay', 'href' => $stageUrl('agreement'), 'active' => $stage === 'agreement'],
@@ -70,7 +71,7 @@
         ]" />
 
         {{-- Search + filters: bare, the same as the other landlord lists --}}
-        <form method="GET" action="{{ route('landlord.reservations.index') }}"
+        <form data-live method="GET" action="{{ route('landlord.reservations.index') }}"
             class="mb-5 flex flex-col lg:flex-row lg:items-center gap-3">
             @if($stage !== 'open')
                 <input type="hidden" name="stage" value="{{ $stage }}">
@@ -135,13 +136,6 @@
                         </div>
                     </div>
                 </div>
-                <button type="submit"
-                        class="h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 inline-flex items-center gap-1.5">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-                        </svg>
-                        Filter
-                    </button>
                 @if(request()->hasAny(['search', 'property', 'from', 'to']))
                     <a href="{{ route('landlord.reservations.index', $stage === 'open' ? [] : ['stage' => $stage]) }}"
                         class="h-11 px-4 rounded-xl border border-[#5B6A8E]/25 text-[13.5px] text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 inline-flex items-center gap-1.5">
@@ -174,6 +168,7 @@
             </div>
         </form>
 
+        <div data-swap-region="results">
         {{-- Stage tabs: the request pipeline only. Signed and paid requests continue on the Tenants page. --}}
         <div class="flex items-center gap-0.5 border-b border-[#E2E4EC] mb-5 overflow-x-auto overflow-y-hidden">
             @foreach([
@@ -184,7 +179,7 @@
                 'payment' => 'Awaiting payment',
                 'closed' => 'Closed',
             ] as $key => $label)
-                <a href="{{ route('landlord.reservations.index', array_filter([
+                <a data-page-swap="nav" href="{{ route('landlord.reservations.index', array_filter([
                         'stage' => $key === 'open' ? null : $key,
                         'search' => request('search'),
                         'property' => request('property'),
@@ -192,7 +187,7 @@
                         'to' => request('to'),
                     ])) }}"
                     class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                        {{ $stage === $key ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
+                        {{ $stage === $key ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#5B6A8E] hover:text-[#060D26]' }}">
                     {{ $label }}
                     @if($counts[$key] > 0)
                         <span class="ml-1 text-[11px] {{ $stage === $key ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $counts[$key] }}</span>
@@ -205,18 +200,13 @@
 
         {{-- Reservations table --}}
         @if($reservations->isEmpty())
-            <div class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] flex flex-col items-center justify-center py-10 px-6 text-center">
-                <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] flex items-center justify-center mb-4">
-                    <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.5">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                    </svg>
-                </div>
-                <p class="text-sm font-semibold text-[#060D26] mb-1">
-                    {{ $stage !== 'open' || request()->hasAny(['search', 'property', 'from', 'to']) ? 'No requests match' : 'No open requests' }}
-                </p>
-                <p class="text-[13px] text-[#5B6A8E]">New inquiries from tenants show up here. Signed and paid ones are on <a href="{{ route('landlord.tenants.index') }}" class="font-semibold text-[#060D26] underline underline-offset-2">Tenants</a>.</p>
-            </div>
+            <x-card flush>
+                <x-empty-state flat symbol="inbox"
+                    :title="$stage !== 'open' || request()->hasAny(['search', 'property', 'from', 'to']) ? 'No requests match' : 'No open requests'"
+                    note="New inquiries from tenants show up here.">
+                    <a href="{{ route('landlord.tenants.index') }}" class="inline-flex h-11 items-center rounded-xl border border-[#060D26]/25 px-5 text-[13px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] transition-colors duration-200">Signed and paid ones are on Tenants</a>
+                </x-empty-state>
+            </x-card>
         @else
             @php
                 $stageTones = [
@@ -254,7 +244,7 @@
                         'chat_url' => $reservation->conversation ? route('conversations.show', $reservation->conversation) : null,
                     ];
                     $initials = mb_strtoupper(mb_substr($reservation->tenant->first_name ?? '?', 0, 1) . mb_substr($reservation->tenant->last_name ?? '', 0, 1));
-                    $moveIn = $reservation->target_move_in_date ?? $reservation->reservation_date;
+                    $moveIn = $reservation->target_move_in_date;
                     $photo = $reservation->property->media->firstWhere('media_type', 'Image');
                     $derived[$reservation->reservation_id] = compact('modalData', 'initials', 'moveIn', 'photo', 'requestStage');
                 }
@@ -294,7 +284,7 @@
                                             @endif
                                             <div class="min-w-0">
                                                 <p class="text-[13px] font-bold text-[#060D26] truncate">
-                                                    {{ $reservation->tenant->first_name ?? 'Unknown' }} {{ $reservation->tenant->last_name ?? '' }}
+                                                    <x-person-link :user="$reservation->tenant" :name="trim(($reservation->tenant->first_name ?? 'Unknown').' '.($reservation->tenant->last_name ?? ''))" />
                                                 </p>
                                                 <p class="text-[11.5px] text-[#5B6A8E]">{{ $reservation->tenant->contact_number ?? '—' }}</p>
                                             </div>
@@ -306,7 +296,7 @@
                                         <div class="flex items-center gap-2.5">
                                             <div class="w-9 h-9 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0">
                                                 @if($photo)
-                                                    <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
+                                                    <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($photo->media_url, 'card') }}" alt="" class="w-full h-full object-cover">
                                                 @endif
                                             </div>
                                             <div class="min-w-0">
@@ -319,8 +309,12 @@
                                     {{-- What the tenant asked for: move-in → move-out (or open), and how many people --}}
                                     <td class="px-4 py-4">
                                         <p class="text-[13px] text-[#060D26] font-medium whitespace-nowrap">
-                                            {{ $moveIn?->format('M d, Y') ?? '—' }} <span class="text-[#5B6A8E]">&rarr;</span>
-                                            {{ $reservation->target_move_out_date?->format('M d, Y') ?? 'open' }}
+                                            @if($moveIn)
+                                                {{ $moveIn->format('M d, Y') }} <span class="text-[#5B6A8E]">&rarr;</span>
+                                                {{ $reservation->target_move_out_date?->format('M d, Y') ?? 'open' }}
+                                            @else
+                                                <span class="text-[#5B6A8E]">Not decided yet</span>
+                                            @endif
                                         </p>
                                         <p class="text-[11.5px] text-[#5B6A8E]">{{ $reservation->occupants_count ? $reservation->occupants_count.' '.\Illuminate\Support\Str::plural('person', $reservation->occupants_count) : 'Occupants not given' }}</p>
                                     </td>
@@ -385,7 +379,7 @@
                                     @endif
                                     <div class="min-w-0">
                                         <p class="text-[13px] font-bold text-[#060D26] truncate">
-                                            {{ $reservation->tenant->first_name ?? 'Unknown' }} {{ $reservation->tenant->last_name ?? '' }}
+                                            <x-person-link :user="$reservation->tenant" :name="trim(($reservation->tenant->first_name ?? 'Unknown').' '.($reservation->tenant->last_name ?? ''))" />
                                         </p>
                                         <p class="text-[11.5px] text-[#5B6A8E]">{{ $reservation->tenant->contact_number ?? '—' }}</p>
                                     </div>
@@ -399,7 +393,7 @@
                             <div class="flex items-center gap-2.5 rounded-xl bg-[#ECEEF6]/60 px-3 py-2.5">
                                 <div class="w-9 h-9 rounded-lg bg-white overflow-hidden shrink-0">
                                     @if($photo)
-                                        <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
+                                        <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($photo->media_url, 'card') }}" alt="" class="w-full h-full object-cover">
                                     @endif
                                 </div>
                                 <div class="min-w-0">
@@ -409,16 +403,16 @@
                             </div>
 
                             {{-- What they asked for --}}
-                            <div class="grid grid-cols-3 gap-2 text-[11.5px]">
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11.5px]">
                                 <div class="rounded-lg border border-[#E2E4EC] px-2.5 py-1.5">
                                     <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E]">Move in</p>
-                                    <p class="font-semibold text-[#060D26] mt-0.5">{{ $moveIn?->format('M d, Y') ?? '—' }}</p>
+                                    <p class="font-semibold text-[#060D26] mt-0.5">{{ $moveIn?->format('M d, Y') ?? 'Not decided yet' }}</p>
                                 </div>
                                 <div class="rounded-lg border border-[#E2E4EC] px-2.5 py-1.5">
                                     <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E]">Move out</p>
                                     <p class="font-semibold text-[#060D26] mt-0.5">{{ $reservation->target_move_out_date?->format('M d, Y') ?? 'Open' }}</p>
                                 </div>
-                                <div class="rounded-lg border border-[#E2E4EC] px-2.5 py-1.5">
+                                <div class="col-span-2 sm:col-span-1 rounded-lg border border-[#E2E4EC] px-2.5 py-1.5">
                                     <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E]">People</p>
                                     <p class="font-semibold text-[#060D26] mt-0.5">{{ $reservation->occupants_count ?? '—' }}</p>
                                 </div>
@@ -447,6 +441,7 @@
                 </div>
             </div>
         @endif
+        </div>
 
         {{-- Details modal --}}
         <template x-teleport="body">
@@ -491,7 +486,7 @@
                                 </div>
                                 <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] px-3.5 py-2.5">
                                     <dt class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">Move-in</dt>
-                                    <dd class="mt-0.5 text-[14.5px] font-extrabold text-[#060D26]" x-text="selected.move_in || selected.reservation_date || '—'"></dd>
+                                    <dd class="mt-0.5 text-[14.5px] font-extrabold text-[#060D26]" x-text="selected.move_in || 'Not decided yet'"></dd>
                                 </div>
                                 <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] px-3.5 py-2.5">
                                     <dt class="text-[11px] font-bold uppercase tracking-wide text-[#5B6A8E]">Move-out</dt>
@@ -605,7 +600,7 @@
                         <div class="p-3 bg-[#ECEEF6] rounded-xl border border-[#FF8A66]/20">
                             @include('landlord.reservations._agreement-fields', ['idPrefix' => 'agreement_modal'])
                             <p class="mb-3 text-xs leading-relaxed text-[#5B6A8E]">
-                                Sends your lease template, or the standard rental agreement if you have not written one.
+                                Sends your rental template, or the standard rental agreement if you have not written one.
                                 <a x-show="agreement.chat_url" :href="agreement.chat_url" class="font-bold text-[#060D26] underline underline-offset-2">Edit the agreement for this tenant in the chat</a>
                             </p>
                             {{-- Asked once per payment route (LandlordTerms), the same as the chat's Send agreement. --}}

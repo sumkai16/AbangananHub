@@ -114,16 +114,18 @@ class PaymongoCheckout
      * stays Pending and the admins are told.
      *
      * PayMongo reports the paid amount in centavos at `payments[].attributes.amount`. A payload without one
-     * cannot be checked; that is logged and let through, because the signature has already vouched for it.
+     * cannot be checked, so it is treated as a mismatch: it stays Pending and the admins are told.
      */
     public static function paidAmountMatches(array $sessionPayments, Payment $payment): bool
     {
         $paid = self::paidPayment($sessionPayments)['attributes']['amount'] ?? null;
 
         if (! is_numeric($paid)) {
-            Log::warning('PayMongo paid amount missing; settling without an amount check', ['payment_id' => $payment->payment_id]);
+            // Fail closed: money we cannot check is not settled. It stays Pending and the admins are told.
+            Log::error('PayMongo paid amount missing; not settling', ['payment_id' => $payment->payment_id]);
+            $payment->alertAdminsAmountMismatch(null);
 
-            return true;
+            return false;
         }
 
         $expected = Payment::toCentavos($payment->checkoutTotal());
@@ -196,7 +198,17 @@ class PaymongoCheckout
             // Paid to reserve: the unit now reads Reserved and leaves search, the same as a confirmed direct
             // payment. Here, not in each caller, so the webhook and the return-page poll both do it.
             if ($rows->first()->payment_type !== 'Monthly') {
-                $rows->first()->reservation?->holdUnit();
+                $reservation = $rows->first()->reservation;
+                $reservation?->holdUnit();
+
+                // A reservation-fee unit is paid online in parts: the move-in is complete when the last part lands.
+                if ($reservation && $reservation->reservationFee() > 0 && $reservation->move_in_paid_at === null) {
+                    $reservation->unsetRelation('payments');
+
+                    if ($reservation->moveInShortfall() <= 0.009) {
+                        $reservation->forceFill(['move_in_paid_at' => now()])->save();
+                    }
+                }
             }
 
             return $rows;
@@ -213,7 +225,9 @@ class PaymongoCheckout
 
         $reservation?->postSystemMessage($lead->payment_type === 'Monthly'
             ? $tenant.' paid rent for '.($lead->billing_period?->format('M Y') ?? 'this period').' online.'
-            : $tenant.' completed the initial payment. Funds are held by AbangananHub.');
+            : $tenant.($reservation && $reservation->reservationFee() > 0 && $reservation->moveInShortfall() > 0.009
+                ? ' paid ₱'.number_format((float) $rows->sum('amount'), 2).' toward the move-in online. ₱'.number_format($reservation->moveInShortfall(), 2).' is still due before move-in. Funds are held by AbangananHub.'
+                : ' completed the initial payment. Funds are held by AbangananHub.'));
         $lead->alertAdminsIfStranded();
 
         return $rows;

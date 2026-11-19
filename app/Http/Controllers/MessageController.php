@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\MessageSent;
 use App\Http\Requests\SendMessageRequest;
 use App\Models\Conversation;
+use App\Services\Holds\HoldRestrictions;
 use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -13,6 +14,10 @@ class MessageController extends Controller
 {
     public function store(SendMessageRequest $request, Conversation $conversation)
     {
+        if (! HoldRestrictions::canUseConversation(Auth::user(), $conversation)) {
+            return response()->json(['error' => HoldRestrictions::deniedMessage(), 'code' => 'account_on_hold'], 403);
+        }
+
         if ($conversation->isCancelled()) {
             return response()->json(['error' => 'This conversation has been cancelled.'], 403);
         }

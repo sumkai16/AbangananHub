@@ -37,15 +37,25 @@
 
     {{-- Tabs --}}
     <div class="flex flex-wrap items-center gap-1.5 mb-5">
-        @foreach(['all' => 'All', 'unread' => 'Unread', 'review' => 'Reviews', 'reservation' => 'Reservations'] as $key => $label)
+        @php
+            $tabs = ['all' => 'All', 'unread' => 'Unread', 'review' => 'Reviews', 'reservation' => 'Reservations'];
+            // Landlords get the to-do list: tenants who owe rent and payment reports waiting for an answer.
+            if (auth()->user()->usesLandlordShell()) {
+                $tabs = ['all' => 'All', 'needs_action' => 'Needs action'] + array_slice($tabs, 1);
+            }
+        @endphp
+        @foreach($tabs as $key => $label)
             @php
                 $isActive = $tab === $key;
                 $params = array_merge(request()->except(['tab', 'page', 'selected']), $key !== 'all' ? ['tab' => $key] : []);
             @endphp
-            <a href="{{ route('notifications.index', $params) }}"
-                class="px-4 py-2 rounded-full text-[13px] font-semibold transition-colors
+            <a href="{{ route('notifications.index', $params) }}" data-page-swap="nav"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold transition-colors
                     {{ $isActive ? 'bg-[#FF8A66] text-[#060D26] shadow-sm' : 'bg-white text-[#060D26] ring-1 ring-[#5B6A8E]/15 hover:bg-[#F7F8FC]' }}">
                 {{ $label }}
+                @if($key === 'needs_action' && ($needsActionCount ?? 0) > 0)
+                    <span class="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-[11px] font-bold tabular-nums {{ $isActive ? 'bg-[#060D26] text-white' : 'bg-[#FF8A66] text-[#060D26]' }}">{{ $needsActionCount }}</span>
+                @endif
             </a>
         @endforeach
     </div>
@@ -58,10 +68,10 @@
                 </svg>
             </div>
             <p class="text-[15px] font-bold text-[#060D26]">
-                {{ $tab === 'unread' ? 'You\'re all caught up!' : 'No notifications found' }}
+                {{ match ($tab) { 'unread' => 'You\'re all caught up!', 'needs_action' => 'Nothing needs your action', default => 'No notifications found' } }}
             </p>
             <p class="text-[13px] text-[#5B6A8E] mt-1">
-                {{ $tab === 'unread' ? 'All notifications have been read.' : 'When you get updates, they\'ll show up here.' }}
+                {{ match ($tab) { 'unread' => 'All notifications have been read.', 'needs_action' => 'Tenants who owe rent and payments waiting for your answer show up here.', default => 'When you get updates, they\'ll show up here.' } }}
             </p>
         </x-card>
     @else
@@ -98,7 +108,7 @@
                             default => ['bg' => 'bg-[#060D26]', 'icon' => 'M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0'],
                         };
                     @endphp
-                    <a href="{{ route('notifications.index', array_merge(request()->except(['selected', 'page']), ['selected' => $n->notification_id])) }}"
+                    <a href="{{ route('notifications.index', array_merge(request()->except(['selected', 'page']), ['selected' => $n->notification_id])) }}" data-page-swap="nav"
                         class="block p-4 transition-all duration-200 hover:bg-[#ECEEF6] {{ $isSelected ? 'bg-[#ECEEF6] border-l-[3px] border-l-[#FF8A66]' : 'border-l-[3px] border-l-transparent' }} {{ $n->is_read && !$isSelected ? 'opacity-70' : '' }}">
                         <div class="flex items-center gap-3">
                             @if($isReview)
@@ -160,13 +170,7 @@
                     @endphp
 
                     {{-- Back to list (mobile only) --}}
-                    <a href="{{ route('notifications.index', request()->except(['selected', 'page'])) }}"
-                        class="lg:hidden flex items-center gap-1.5 text-[13px] font-semibold text-[#060D26] px-6 pt-5 -mb-1">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                        </svg>
-                        Back to notifications
-                    </a>
+                    <x-back-link href="{{ route('notifications.index', request()->except(['selected', 'page'])) }}" to="notifications" class="lg:hidden px-6 pt-5 -mb-1" />
 
                     {{-- Panel header --}}
                     <div class="px-6 py-4 border-b border-[#E2E4EC] bg-white">
@@ -245,7 +249,7 @@
                                 <a href="{{ route('properties.show', $selReview->property_id) }}"
                                     class="flex items-center gap-3 p-3 bg-white ring-1 ring-[#5B6A8E]/10 rounded-2xl hover:bg-[#F7F8FC] transition-all mt-auto">
                                     @if($selReview->property->media->isNotEmpty())
-                                        <img loading="lazy" decoding="async" src="{{ $selReview->property->media->first()->media_url }}"
+                                        <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($selReview->property->media->first()->media_url, 'card') }}"
                                             alt="{{ $selReview->property->title }}"
                                             class="w-12 h-12 rounded-lg object-cover flex-shrink-0">
                                     @else

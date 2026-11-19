@@ -36,12 +36,31 @@ class SocialLoginLinkTest extends TestCase
         }
     }
 
+    public function test_a_provider_that_vouches_for_the_email_claims_an_unverified_account(): void
+    {
+        $squatted = User::factory()->unverified()->create();
+        $squatted->assignRole('Tenant');
+        $squatted->socialAccounts()->create(['provider' => 'facebook', 'provider_id' => 'fb-squatter']);
+        $oldPassword = $squatted->password;
+
+        $this->fakeSocialUser('google', 'google-owner', $squatted->email);
+
+        $this->get('/auth/google/callback')->assertRedirect();
+
+        $this->assertAuthenticatedAs($squatted);
+        $squatted->refresh();
+        $this->assertNotNull($squatted->email_verified_at);
+        $this->assertNotSame($oldPassword, $squatted->password);
+        $this->assertDatabaseMissing('social_accounts', ['provider_id' => 'fb-squatter']);
+        $this->assertDatabaseHas('social_accounts', ['user_id' => $squatted->user_id, 'provider_id' => 'google-owner']);
+    }
+
     public function test_an_unverified_account_is_not_linked_and_gets_no_social_row(): void
     {
         $victim = User::factory()->unverified()->create();
         $victim->assignRole('Tenant');
 
-        $this->fakeSocialUser('google', 'google-attacker', $victim->email);
+        $this->fakeSocialUser('google', 'google-attacker', $victim->email, emailVerified: false);
 
         $this->get('/auth/google/callback')
             ->assertRedirect(route('login'))
@@ -130,7 +149,7 @@ class SocialLoginLinkTest extends TestCase
         $victim = User::factory()->unverified()->create();
         $victim->assignRole('Tenant');
 
-        $this->fakeSocialUser('google', 'google-mobile-attacker', $victim->email, stateless: true);
+        $this->fakeSocialUser('google', 'google-mobile-attacker', $victim->email, stateless: true, emailVerified: false);
 
         $this->postJson('/api/v1/auth/google/token', ['token' => 'abc', 'device_name' => 'phone'])
             ->assertStatus(409)

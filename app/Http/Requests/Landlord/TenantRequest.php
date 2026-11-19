@@ -31,7 +31,7 @@ class TenantRequest extends FormRequest
             'contact_number' => ['required_without:email', 'nullable', 'string', 'max:20', \App\Support\Phone::RULE],
             // Add only: a free unit to put them in. The contract (dates, rent, terms) is filled in next, in Add contract.
             'unit_id' => $editing ? ['prohibited'] : ['nullable', Rule::in(ContractFormOptions::units()->flatMap(fn ($p) => collect($p['units'])->pluck('id'))->all())],
-            ...TenantDetail::rules(false),
+            ...TenantDetail::rules(false, $editing ? TenantDetail::where('user_id', $editing)->first() : null),
         ];
     }
 

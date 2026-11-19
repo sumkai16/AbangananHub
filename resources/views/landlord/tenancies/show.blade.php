@@ -85,7 +85,7 @@
                         <p class="text-[12px] font-semibold text-[#5B6A8E]">Tenant</p>
                         <div class="flex flex-wrap items-center gap-2">
                             <h1 class="text-[22px] sm:text-[24px] font-semibold tracking-tight text-[#060D26] truncate">
-                                {{ trim(($tenant->first_name ?? '') . ' ' . ($tenant->last_name ?? '')) ?: 'Unknown tenant' }}
+                                <x-person-link :user="$tenant" :name="trim(($tenant->first_name ?? '') . ' ' . ($tenant->last_name ?? '')) ?: 'Unknown tenant'" />
                             </h1>
                             <span class="inline-flex items-center h-6 px-2.5 rounded-full border text-[12px] font-semibold {{ $statusPill }}">
                                 {{ $reservation->rental_status }}
@@ -121,7 +121,7 @@
             </div>
 
             {{-- Two blocks instead of eight equal cells: who to reach on the left, the lease on
-                 the right, with the lease drawn as a timeline. Stacks on a phone. --}}
+                 the right, with the rental drawn as a timeline. Stacks on a phone. --}}
             @php
                 $moveIn = $reservation->target_move_in_date;
                 $moveOut = $reservation->target_move_out_date;
@@ -180,7 +180,7 @@
                 {{-- Lease timeline --}}
                 <div class="p-5 sm:p-6">
                     <div class="flex items-baseline justify-between gap-3">
-                        <h2 class="text-[12px] font-bold uppercase tracking-wide text-[#5B6A8E]">Contract</h2>
+                        <h2 class="text-[12px] font-bold uppercase tracking-wide text-[#5B6A8E]">Rental</h2>
                         <p class="text-[12px] text-[#5B6A8E]">
                             {{ $reservation->duration_of_stay ?? 'Term not recorded' }} &middot; rent due day {{ $summary['dueDay'] }}
                         </p>
@@ -211,7 +211,7 @@
                 </div>
             </div>
                     {{-- Lease document — printable lease + signed copy. See plans/formal-lease-agreement.md.
-                         Lives here with the lease dates rather than in its own side card. --}}
+                         Lives here with the rental dates rather than in its own side card. --}}
                     @php
                         $leaseStatus = $reservation->leaseStatus();
                         $leaseTerms = \App\Support\LeaseTerms::for($reservation);
@@ -247,11 +247,13 @@
                                     Open signed copy
                                 </a>
                             @endif
-                            <button type="button" @click="uploading = !uploading"
-                                class="h-11 sm:h-9 px-4 sm:px-3.5 rounded-lg text-[12.5px] font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] inline-flex items-center justify-center cursor-pointer transition-colors duration-200
-                                    {{ $leaseStatus === 'missing' ? 'bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26]' : 'text-[#060D26] hover:bg-[#ECEEF6]' }}">
-                                {{ $reservation->lease_file_path ? 'Replace signed copy' : 'Upload signed copy' }}
-                            </button>
+                            @if ($leaseStatus !== 'signed_online')
+                                <button type="button" @click="uploading = !uploading"
+                                    class="h-11 sm:h-9 px-4 sm:px-3.5 rounded-lg text-[12.5px] font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] inline-flex items-center justify-center cursor-pointer transition-colors duration-200
+                                        {{ $leaseStatus === 'missing' ? 'bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26]' : 'text-[#060D26] hover:bg-[#ECEEF6]' }}">
+                                    {{ $reservation->lease_file_path ? 'Replace signed copy' : 'Upload signed copy' }}
+                                </button>
+                            @endif
                         </div>
 
                         <form x-show="uploading" x-cloak action="{{ route('landlord.leases.upload', $reservation) }}" method="POST" enctype="multipart/form-data"
@@ -356,7 +358,7 @@
                     <div class="flex items-center gap-3 mb-4">
                         <div class="w-14 h-14 rounded-xl bg-[#F7F8FC] overflow-hidden shrink-0 ring-1 ring-[#5B6A8E]/10">
                             @if($thumb)
-                                <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="{{ $unit->unit_label }}" class="w-full h-full object-cover">
+                                <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($thumb->media_url, 'card') }}" alt="{{ $unit->unit_label }}" class="w-full h-full object-cover">
                             @else
                                 <div class="w-full h-full flex items-center justify-center">
                                     <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#5B6A8E" stroke-width="1.5" aria-hidden="true">
@@ -402,12 +404,12 @@
                         <p class="text-[12.5px] text-[#5B6A8E] leading-relaxed mb-4">
                             Marks this tenancy complete and returns
                             <strong class="text-[#060D26]">{{ $unit->unit_label ?? 'the unit' }}</strong>
-                            to your available units. The ledger stays readable but stops accepting new payments.
+                            to your available units. No new months are billed. Rent still owed can be collected, or you can stop collecting it, from Payments.
                         </p>
 
                         <form method="POST" action="{{ route('landlord.tenancies.end', $reservation) }}"
                             data-confirm="End this tenancy?"
-                            data-confirm-message="The unit becomes available again and no further payments can be recorded against this ledger. This cannot be undone."
+                            data-confirm-message="The unit becomes available again and no new months are billed. This cannot be undone."
                             data-confirm-button="End tenancy"
                             data-confirm-type="warning">
                             @csrf

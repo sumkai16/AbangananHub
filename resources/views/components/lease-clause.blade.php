@@ -1,13 +1,13 @@
 @props(['n', 'title', 'gist' => null, 'accordion' => false, 'heading', 'open' => false, 'items' => null, 'body' => ''])
 {{--
-    One numbered lease clause. Give it `items` (the clause's sentences) and it renders the same words two ways:
+    One numbered rental clause. Give it `items` (the clause's sentences) and it renders the same words two ways:
     a bullet list on the agreement page, where people scan, and the original paragraph everywhere else and on paper.
     One source for the wording, so the two can never drift. A clause with one sentence, or free text passed as the
     slot, stays a paragraph.
 
     On the agreement page ($accordion) each clause is also a row you can open: title and a one-line gist when closed,
     the text when open. A closed <details> prints nothing, so the accordion is screen-only and a plain copy is printed
-    instead: the printed lease always carries every clause in full.
+    instead: the printed rental always carries every clause in full.
 --}}
 @php
     $asList = $items !== null && count($items) > 1;

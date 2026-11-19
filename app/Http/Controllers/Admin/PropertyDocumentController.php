@@ -8,6 +8,7 @@ use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\Property;
 use App\Models\PropertyDocument;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -23,7 +24,10 @@ class PropertyDocumentController extends Controller
      */
     public function index(Request $request)
     {
-        $status = $request->query('status', 'Pending');
+        $status = $request->query('status', 'All');
+        if (! in_array($status, ['All', 'Pending', 'Requested', 'Verified', 'Rejected'], true)) {
+            $status = 'All';
+        }
 
         $query = PropertyDocument::with([
             'property:property_id,title,landlord_id',
@@ -38,7 +42,15 @@ class PropertyDocumentController extends Controller
             default     => null, // 'All'
         };
 
-        $documents = $query->latest('updated_at')->paginate(15)->withQueryString();
+        // Waiting documents oldest first, so the longest wait is on top. On All they sit above everything else; the rest
+        // is newest first.
+        $waiting = "(property_documents.status = 'Pending' and property_documents.file_path is not null)";
+        $documents = match ($status) {
+            'Pending' => $query->oldest('updated_at'),
+            'All' => $query->orderByRaw("{$waiting} desc")->orderByRaw("case when {$waiting} then property_documents.updated_at end asc")->latest('updated_at'),
+            default => $query->latest('updated_at'),
+        };
+        $documents = $documents->paginate(15)->withQueryString();
 
         $counts = [
             'Pending'   => PropertyDocument::where('status', 'Pending')->whereNotNull('file_path')->count(),
@@ -48,7 +60,16 @@ class PropertyDocumentController extends Controller
         ];
         $counts['All'] = array_sum($counts);
 
-        return view('admin.documents.index', compact('documents', 'status', 'counts'));
+        $since = now()->subDays(30);
+        $summary = [
+            'oldest'   => ($o = PropertyDocument::where('status', 'Pending')->whereNotNull('file_path')->min('updated_at')) ? Carbon::parse($o) : null,
+            'verified' => PropertyDocument::where('status', 'Verified')->where('verified_at', '>=', $since)->count(),
+            'rejected' => PropertyDocument::where('status', 'Rejected')->where('updated_at', '>=', $since)->count(),
+            'expiring' => PropertyDocument::where('status', 'Verified')->whereNotNull('expiry_date')->whereBetween('expiry_date', [now()->toDateString(), now()->addDays(30)->toDateString()])->count(),
+        ];
+        $recent = PropertyDocument::with(['property', 'verifier'])->whereIn('status', ['Verified', 'Rejected'])->whereNotNull('file_path')->latest('updated_at')->limit(5)->get();
+
+        return view('admin.documents.index', compact('documents', 'status', 'counts', 'summary', 'recent'));
     }
 
     public function show(PropertyDocument $document)

@@ -24,6 +24,7 @@ use App\Http\Controllers\Landlord\AnalyticsController;
 use App\Http\Controllers\Landlord\ContractController;
 use App\Http\Controllers\Landlord\DashboardController;
 use App\Http\Controllers\Landlord\DepositChargeController;
+use App\Http\Controllers\Landlord\LeaseAgreementDraftController;
 use App\Http\Controllers\Landlord\LeaseTemplateController;
 use App\Http\Controllers\Landlord\LedgerController;
 use App\Http\Controllers\Landlord\PaymentClaimController;
@@ -66,6 +67,7 @@ Route::get('/areas', [PropertyController::class, 'areas'])->name('properties.are
 Route::post('/search/interpret', [AiSearchController::class, 'interpret'])->middleware('throttle:60,1')->name('search.interpret');
 Route::post('/search/results', [AiSearchController::class, 'results'])->middleware('throttle:60,1')->name('search.results');
 Route::get('/about', fn () => view('about'))->name('about');
+Route::post('/platform-rating', [App\Http\Controllers\PlatformRatingController::class, 'store'])->middleware('auth')->name('platform-rating.store');
 Route::view('/privacy', 'legal.privacy')->name('privacy');
 Route::view('/terms', 'legal.terms')->name('terms');
 
@@ -75,9 +77,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/settings', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // A tenant whose account is on an unpaid-rent hold: what is owed, how to pay, and a note to the admin.
+    Route::get('/account/on-hold', [\App\Http\Controllers\Account\OnHoldController::class, 'show'])->name('account.on-hold');
+    Route::post('/account/on-hold/{hold}/dispute', [\App\Http\Controllers\Account\OnHoldController::class, 'dispute'])->middleware('throttle:5,1')->name('account.on-hold.dispute');
     Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo');
     Route::patch('/profile/tenant-details', [TenantDetailController::class, 'update'])->name('profile.tenantDetails.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Where you are signed in, and signing out the other devices (asks for the current password).
+    Route::delete('/account/sessions/{id}', [\App\Http\Controllers\Account\SessionController::class, 'destroy'])->name('account.sessions.destroy');
+    Route::delete('/account/sessions', [\App\Http\Controllers\Account\SessionController::class, 'destroyOthers'])->name('account.sessions.destroyOthers');
 
     // Landlord verification — open to any authenticated user, no role gate
     Route::get('/landlord/apply', [VerificationController::class, 'create'])->name('landlord.verification.create');
@@ -112,7 +122,7 @@ Route::middleware('auth')->group(function () {
     // Unit viewings — symmetric like the handover: the tenant requests from
     // the chat, either party reschedules or cancels, the other one confirms.
     // The landlord's Viewings tab posts here too.
-    Route::post('/reservations/{reservation}/viewings', [ViewingController::class, 'store'])->name('viewings.store');
+    Route::post('/reservations/{reservation}/viewings', [ViewingController::class, 'store'])->middleware('tenant.hold')->name('viewings.store');
     Route::get('/reservations/{reservation}/viewing-slots', [ViewingController::class, 'slots'])->name('viewings.slots');
     Route::post('/viewings/{viewing}/reschedule', [ViewingController::class, 'reschedule'])->name('viewings.reschedule');
     Route::post('/viewings/{viewing}/confirm', [ViewingController::class, 'confirm'])->name('viewings.confirm');
@@ -158,8 +168,11 @@ Route::middleware('auth')->group(function () {
     // Tenant-specific routes
     Route::middleware('tenant')->prefix('tenant')->group(function () {
         Route::get('/reservations', [ReservationController::class, 'index'])->name('reservations.index');
-        Route::post('/reservations', [ReservationController::class, 'store'])->name('reservations.store');
+        Route::post('/reservations', [ReservationController::class, 'store'])->middleware('tenant.hold')->name('reservations.store');
         Route::patch('/reservations/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel');
+        Route::post('/reservations/{reservation}/request-refund', [ReservationController::class, 'requestRefund'])->name('reservations.requestRefund');
+        // The landlord kept money paid directly: send it to AbangananHub as a report, once.
+        Route::post('/reservations/{reservation}/escalate-refund', [ReservationController::class, 'escalateRefund'])->name('reservations.escalateRefund');
 
         Route::get('/reservations/{reservation}/agreement', [AgreementController::class, 'show'])->name('agreements.show');
         Route::post('/reservations/{reservation}/agreement/sign', [AgreementController::class, 'sign'])->name('agreements.sign');
@@ -177,6 +190,7 @@ Route::middleware('auth')->group(function () {
 
         // A tenant's own tenancy and rent ledger — read-only except for the
         // one earliest unsettled period, which can be paid online via GCash.
+        Route::get('/tenancy', [TenancyController::class, 'index'])->name('tenancy.index');
         Route::get('/tenancy/{reservation}', [TenancyController::class, 'show'])->name('tenancy.show');
         // Read-only lease view — ReservationPolicy::viewLease already authorizes
         // the tenant, same as the landlord; this was the missing route.
@@ -207,7 +221,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/landlord/{user}/profile/properties', [App\Http\Controllers\Landlord\ProfileController::class, 'properties'])->name('landlord.profile.properties');
 
     // Landlord-specific prefix routes
-    Route::middleware('landlord')->prefix('landlord')->name('landlord.')->group(function () {
+    Route::middleware(['landlord', 'property.scope', 'embeddable'])->prefix('landlord')->name('landlord.')->group(function () {
+        // The sidebar's Property dropdown (see LandlordPropertyScope).
+        Route::post('/property-scope', [\App\Http\Controllers\Landlord\PropertyScopeController::class, 'update'])->name('property-scope.update');
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         // Property management
         Route::get('/properties', [LandlordPropertyController::class, 'index'])->name('properties.index');
@@ -227,14 +243,20 @@ Route::middleware('auth')->group(function () {
         Route::delete('/reservations/viewings/blocked-days/{blockedDate}', [App\Http\Controllers\Landlord\ViewingController::class, 'unblock'])->name('viewings.unblock');
         Route::patch('/reservations/{reservation}/reject', [App\Http\Controllers\Landlord\ReservationController::class, 'reject'])->name('reservations.reject');
         Route::patch('/reservations/{reservation}/cancel', [App\Http\Controllers\Landlord\ReservationController::class, 'cancel'])->name('reservations.cancel');
+        Route::patch('/reservations/{reservation}/withdraw-agreement', [App\Http\Controllers\Landlord\ReservationController::class, 'withdrawAgreement'])->name('reservations.withdrawAgreement');
+        Route::post('/reservations/{reservation}/settle-payment', [App\Http\Controllers\Landlord\ReservationController::class, 'settleMoveInMoney'])->name('reservations.settlePayment');
         Route::patch('/reservations/{reservation}/advance-negotiation', [App\Http\Controllers\Landlord\ReservationController::class, 'advanceToNegotiation'])->name('reservations.advanceNegotiation');
         Route::patch('/reservations/{reservation}/accept-and-send', [App\Http\Controllers\Landlord\ReservationController::class, 'acceptAndSendAgreement'])->name('reservations.acceptAndSend');
-        // Leases page: lease template library and where each template is used (plans/lease-templates-page.md)
-        Route::get('/leases', [LeaseTemplateController::class, 'index'])->name('leases.index');
-        Route::get('/leases/panel', [LeaseTemplateController::class, 'panel'])->name('leases.panel');
-        Route::patch('/leases/assign', [LeaseTemplateController::class, 'assign'])->name('lease-templates.assign');
-        Route::post('/leases/templates/preview', [LeaseTemplateController::class, 'preview'])->name('lease-templates.preview');
-        Route::resource('leases/templates', LeaseTemplateController::class)
+        // Lease policies (URL /landlord/lease-policies): lease template library and where each template is used (plans/lease-templates-page.md)
+        Route::get('/lease-policies', [LeaseTemplateController::class, 'index'])->name('leases.index');
+        Route::get('/lease-policies/agreement', [LeaseAgreementDraftController::class, 'show'])->name('leases.agreement');
+        Route::get('/lease-policies/panel', [LeaseTemplateController::class, 'panel'])->name('leases.panel');
+        Route::patch('/lease-policies/assign', [LeaseTemplateController::class, 'assign'])->name('lease-templates.assign');
+        Route::post('/lease-policies/templates/preview', [LeaseTemplateController::class, 'preview'])->name('lease-templates.preview');
+        // Read-only view of a policy's wording (the Read button on the Policies page).
+        Route::get('/lease-policies/standard/read', [LeaseTemplateController::class, 'readStandard'])->name('lease-templates.read-standard');
+        Route::get('/lease-policies/templates/{leaseTemplate}/read', [LeaseTemplateController::class, 'read'])->name('lease-templates.read');
+        Route::resource('lease-policies/templates', LeaseTemplateController::class)
             ->only(['create', 'store', 'edit', 'update', 'destroy'])
             ->parameters(['templates' => 'leaseTemplate'])
             ->names('lease-templates');
@@ -271,17 +293,23 @@ Route::middleware('auth')->group(function () {
         // Settings > Payments: which ways tenants may pay (online, QR, cash).
         Route::patch('/payment-methods', [PaymentMethodController::class, 'update'])->name('paymentMethods.update');
 
+        // Unpaid-rent holds: report a tenant (an admin confirms), or lift a hold you raised. See plans/tenant-payment-holds.md.
+        Route::post('/reservations/{reservation}/hold', [\App\Http\Controllers\Landlord\TenantHoldController::class, 'store'])->middleware('throttle:10,1')->name('holds.store');
+        Route::post('/holds/{hold}/release', [\App\Http\Controllers\Landlord\TenantHoldController::class, 'release'])->name('holds.release');
+
         // Tenant Ratings
         Route::get('/reservations/{reservation}/rate-tenant', [TenantRatingController::class, 'create'])->name('reservations.rateTenant');
         Route::post('/reservations/{reservation}/rate-tenant', [TenantRatingController::class, 'store'])->name('reservations.rateTenant.store');
 
         // Tenants
         Route::get('/tenants', [TenantController::class, 'index'])->name('tenants.index');
-        // Contracts: the old list URL redirects to Tenants; add, view and renew stay here.
-        Route::get('/contracts', [ContractController::class, 'index'])->name('contracts.index');
-        Route::post('/contracts', [ContractController::class, 'store'])->name('contracts.store');
-        Route::get('/contracts/{reservation}', [ContractController::class, 'show'])->name('contracts.show');
-        Route::post('/contracts/{reservation}/renew', [ContractController::class, 'renew'])->name('contracts.renew');
+        // Leases: the list, add, view and renew. The URL used to be /contracts; the old addresses still redirect (query kept).
+        Route::get('/leases', [ContractController::class, 'index'])->name('contracts.index');
+        Route::get('/contracts', fn (\Illuminate\Http\Request $request) => redirect()->route('landlord.contracts.index', $request->query()));
+        Route::get('/contracts/{reservation}', fn (Reservation $reservation) => redirect()->route('landlord.contracts.show', $reservation));
+        Route::post('/leases', [ContractController::class, 'store'])->name('contracts.store');
+        Route::get('/leases/{reservation}', [ContractController::class, 'show'])->name('contracts.show');
+        Route::post('/leases/{reservation}/renew', [ContractController::class, 'renew'])->name('contracts.renew');
         Route::get('/tenants/export', [TenantController::class, 'export'])->name('tenants.export');
 
         // The old walk-in wizard was replaced by Add Tenant + Add contract (Oct 2026). Old links land on Add contract.
@@ -291,6 +319,7 @@ Route::middleware('auth')->group(function () {
         // The tenant list: add, view, edit, invite, remove.
         Route::post('/tenants', [TenantController::class, 'store'])->name('tenants.store');
         Route::get('/tenants/{landlordTenant}', [TenantController::class, 'show'])->name('tenants.show');
+        Route::get('/tenants/{landlordTenant}/profile', [TenantController::class, 'profile'])->name('tenants.profile');
         Route::patch('/tenants/{landlordTenant}', [TenantController::class, 'update'])->name('tenants.update');
         Route::delete('/tenants/{landlordTenant}', [TenantController::class, 'destroy'])->name('tenants.destroy');
         Route::post('/tenants/{landlordTenant}/invite', [TenantController::class, 'invite'])->middleware('throttle:6,1')->name('tenants.invite');
@@ -299,6 +328,9 @@ Route::middleware('auth')->group(function () {
         // initial payment. The GET is the removed tenancy page's address: it now opens the lease modal.
         Route::get('/tenancies/{reservation}', [App\Http\Controllers\Landlord\TenancyController::class, 'show'])->name('tenancies.show');
         Route::post('/tenancies/{reservation}/end', [App\Http\Controllers\Landlord\TenancyController::class, 'endTenancy'])->name('tenancies.end');
+        Route::post('/tenancies/{reservation}/deposit-return', [App\Http\Controllers\Landlord\TenancyController::class, 'returnDeposit'])->name('tenancies.depositReturn');
+        Route::post('/tenancies/{reservation}/stop-collecting', [App\Http\Controllers\Landlord\TenancyController::class, 'stopCollecting'])->name('tenancies.stopCollecting');
+        Route::post('/tenancies/{reservation}/resume-collecting', [App\Http\Controllers\Landlord\TenancyController::class, 'resumeCollecting'])->name('tenancies.resumeCollecting');
         Route::patch('/tenancies/{reservation}/tenant-details', [App\Http\Controllers\Landlord\TenancyController::class, 'updateTenantDetails'])->name('tenancies.tenantDetails.update');
         Route::get('/tenancies/{reservation}/tenant-details/id', [App\Http\Controllers\Landlord\TenancyController::class, 'revealTenantId'])
             ->middleware('throttle:20,1')->name('tenancies.tenantDetails.id');
@@ -343,6 +375,7 @@ Route::middleware('auth')->group(function () {
 
         // My Complaints — reports this landlord has filed (ACCOUNT).
         // Renamed from landlord.reports.* so "Reports" only ever means analytics.
+        Route::get('/concerns', [App\Http\Controllers\Landlord\ConcernController::class, 'index'])->name('concerns.index');
         Route::get('/complaints', [App\Http\Controllers\Landlord\ReportController::class, 'index'])->name('complaints.index');
         // Units (standalone index)
         Route::get('/units', [UnitIndexController::class, 'index'])->name('units.index');
@@ -350,12 +383,13 @@ Route::middleware('auth')->group(function () {
     });
 
     // Admin-specific routes
-    Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+    Route::middleware(['admin', 'two-factor'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
         Route::get('/listings/approval', [ListingController::class, 'approval'])->name('listings.approval');
         Route::post('/listings/{property_id}/approve', [ListingController::class, 'approve'])->name('listings.approve');
         Route::post('/listings/{property_id}/reject', [ListingController::class, 'reject'])->name('listings.reject');
+        Route::post('/listings/{property_id}/suspend', [ListingController::class, 'suspend'])->name('listings.suspend');
         Route::post('/listings/{property_id}/unsuspend', [ListingController::class, 'unsuspend'])->name('listings.unsuspend');
 
         Route::get('/verifications', [AdminVerificationController::class, 'index'])->name('verifications.index');
@@ -371,12 +405,13 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');
-        Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
+        Route::post('/users', [AdminUserController::class, 'store'])->middleware('recent.password')->name('users.store');
         Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
         Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
-        Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
-        Route::patch('/users/{user}/status', [AdminUserController::class, 'updateStatus'])->name('users.updateStatus');
-        Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+        Route::put('/users/{user}', [AdminUserController::class, 'update'])->middleware('recent.password')->name('users.update');
+        Route::post('/users/{user}/password-reset', [AdminUserController::class, 'sendPasswordReset'])->name('users.passwordReset');
+        Route::patch('/users/{user}/status', [AdminUserController::class, 'updateStatus'])->middleware('recent.password')->name('users.updateStatus');
+        Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->middleware('recent.password')->name('users.destroy');
 
         Route::get('/reservations', [AdminReservationController::class, 'index'])->name('reservations.index');
         Route::get('/reservations/{reservation}', [AdminReservationController::class, 'show'])->name('reservations.show');
@@ -407,31 +442,34 @@ Route::middleware('auth')->group(function () {
         Route::get('/catalogue/units/export', [UnitCatalogueController::class, 'export'])->name('catalogue.units.export');
         Route::get('/catalogue/units', [UnitCatalogueController::class, 'index'])->name('catalogue.units.index');
 
+        // Refund requests: held-money move-in disputes and kept-money escalations in one queue. The money actions are the Payments ones.
+        Route::get('/refund-requests', [App\Http\Controllers\Admin\RefundRequestController::class, 'index'])->name('refund-requests.index');
+
         Route::get('/reports', [App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/{report}', [App\Http\Controllers\Admin\ReportController::class, 'show'])->name('reports.show');
         Route::patch('/reports/{report}/resolve', [App\Http\Controllers\Admin\ReportController::class, 'resolve'])->name('reports.resolve');
 
         Route::get('/payments', [App\Http\Controllers\Admin\PaymentController::class, 'index'])->name('payments.index');
-        Route::post('/payments/{payment}/release', [App\Http\Controllers\Admin\PaymentController::class, 'release'])->name('payments.release');
+        Route::post('/payments/{payment}/release', [App\Http\Controllers\Admin\PaymentController::class, 'release'])->middleware('recent.password')->name('payments.release');
         // Give a held online payment back to the tenant (the other way out of the move-in review queue).
         Route::post('/payments/{payment}/refund', [PaymentRefundController::class, 'store'])
-            ->middleware('throttle:10,1')->name('payments.refund');
+            ->middleware('throttle:10,1')->middleware('recent.password')->name('payments.refund');
 
         // Landlord payouts — manual GCash transfer queue, see
         // docs/specs/2026-07-26-landlord-payout-design.md
         Route::get('/payouts', [App\Http\Controllers\Admin\PayoutController::class, 'index'])->name('payouts.index');
-        Route::post('/payouts/{user}/mark-paid-out', [App\Http\Controllers\Admin\PayoutController::class, 'markPaidOut'])->name('payouts.markPaidOut');
-        Route::post('/payouts/{payout}/retry', [App\Http\Controllers\Admin\PayoutController::class, 'retry'])->name('payouts.retry');
+        Route::post('/payouts/{user}/mark-paid-out', [App\Http\Controllers\Admin\PayoutController::class, 'markPaidOut'])->middleware('recent.password')->name('payouts.markPaidOut');
+        Route::post('/payouts/{payout}/retry', [App\Http\Controllers\Admin\PayoutController::class, 'retry'])->middleware('recent.password')->name('payouts.retry');
         Route::post('/payouts/{payout}/check', [App\Http\Controllers\Admin\PayoutController::class, 'check'])->name('payouts.check');
-        Route::post('/payouts/{user}/approve-account', [App\Http\Controllers\Admin\PayoutController::class, 'approveAccount'])->name('payouts.approveAccount');
-        Route::post('/payouts/{user}/pause', [App\Http\Controllers\Admin\PayoutController::class, 'pause'])->name('payouts.pause');
-        Route::post('/payouts/{user}/resume', [App\Http\Controllers\Admin\PayoutController::class, 'resume'])->name('payouts.resume');
+        Route::post('/payouts/{user}/approve-account', [App\Http\Controllers\Admin\PayoutController::class, 'approveAccount'])->middleware('recent.password')->name('payouts.approveAccount');
+        Route::post('/payouts/{user}/pause', [App\Http\Controllers\Admin\PayoutController::class, 'pause'])->middleware('recent.password')->name('payouts.pause');
+        Route::post('/payouts/{user}/resume', [App\Http\Controllers\Admin\PayoutController::class, 'resume'])->middleware('recent.password')->name('payouts.resume');
 
         // Deposit charges — admin oversight/override of a landlord's claims
         // against a tenant's held security deposit. ReservationPolicy::
         // voidDepositCharge() authorizes Admin here the same as the landlord.
         Route::get('/deposit-charges', [App\Http\Controllers\Admin\DepositChargeController::class, 'index'])->name('deposit-charges.index');
-        Route::post('/deposit-charges/{depositCharge}/void', [App\Http\Controllers\Admin\DepositChargeController::class, 'void'])->name('deposit-charges.void');
+        Route::post('/deposit-charges/{depositCharge}/void', [App\Http\Controllers\Admin\DepositChargeController::class, 'void'])->middleware('recent.password')->name('deposit-charges.void');
 
         // Profile
         Route::get('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'edit'])->name('profile.edit');
@@ -445,28 +483,52 @@ Route::middleware('auth')->group(function () {
 
         // Audit logs — read-only by design; audit rows are append-only.
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+        Route::get('/audit-logs/export', [AuditLogController::class, 'export'])->middleware('throttle:5,1')->name('audit-logs.export');
+        // Account & security events (sign-ins, failures, access denied). Read-only, like the audit log.
+        // Admin two-factor setup and the step-up password check (the middleware lets these through).
+        Route::get('/security/two-factor', [\App\Http\Controllers\Admin\TwoFactorSetupController::class, 'show'])->name('security.two-factor');
+        Route::post('/security/two-factor', [\App\Http\Controllers\Admin\TwoFactorSetupController::class, 'store'])->name('security.two-factor.store');
+        Route::post('/security/two-factor/recovery-codes', [\App\Http\Controllers\Admin\TwoFactorSetupController::class, 'regenerateCodes'])->name('security.two-factor.codes');
+        Route::delete('/security/two-factor/trusted/{device?}', [\App\Http\Controllers\Admin\TwoFactorSetupController::class, 'revokeTrusted'])->whereNumber('device')->name('security.two-factor.trusted.revoke');
+        Route::delete('/security/two-factor', [\App\Http\Controllers\Admin\TwoFactorSetupController::class, 'destroy'])->middleware('recent.password')->name('security.two-factor.destroy');
+        Route::get('/step-up', [\App\Http\Controllers\Admin\StepUpController::class, 'status'])->name('stepUp.status');
+        Route::post('/step-up', [\App\Http\Controllers\Admin\StepUpController::class, 'confirm'])->middleware('throttle:5,1')->name('stepUp.confirm');
+        Route::post('/users/{user}/sign-out-everywhere', \App\Http\Controllers\Admin\UserSessionController::class)->middleware('recent.password')->name('users.signOutEverywhere');
+        // Tenant payment holds and the duplicate-account alerts (confirm, release and put-on-hold need the password again).
+        Route::get('/tenant-holds', [\App\Http\Controllers\Admin\TenantHoldController::class, 'index'])->name('tenant-holds.index');
+        Route::post('/tenant-holds/{hold}/confirm', [\App\Http\Controllers\Admin\TenantHoldController::class, 'confirm'])->middleware('recent.password')->name('tenant-holds.confirm');
+        Route::post('/tenant-holds/{hold}/reject', [\App\Http\Controllers\Admin\TenantHoldController::class, 'reject'])->name('tenant-holds.reject');
+        Route::post('/tenant-holds/{hold}/release', [\App\Http\Controllers\Admin\TenantHoldController::class, 'release'])->middleware('recent.password')->name('tenant-holds.release');
+        Route::post('/hold-alerts/{alert}/dismiss', [\App\Http\Controllers\Admin\TenantHoldController::class, 'dismissAlert'])->name('hold-alerts.dismiss');
+        Route::post('/hold-alerts/{alert}/hold', [\App\Http\Controllers\Admin\TenantHoldController::class, 'holdAlert'])->middleware('recent.password')->name('hold-alerts.hold');
+        Route::get('/security-events', [\App\Http\Controllers\Admin\SecurityEventController::class, 'index'])->name('security-events.index');
+        Route::get('/security-events/export', [\App\Http\Controllers\Admin\SecurityEventController::class, 'export'])->middleware('throttle:5,1')->name('security-events.export');
 
         // System settings — whitelisted overrides of config/rentals.php
         Route::get('/settings', [SettingController::class, 'edit'])->name('settings.edit');
-        Route::patch('/settings', [SettingController::class, 'update'])->name('settings.update');
+        Route::patch('/settings', [SettingController::class, 'update'])->middleware('recent.password')->name('settings.update');
     });
 
     // Conversations and messages
+    Route::get('/conversations/unread-count', [ConversationController::class, 'unreadCount'])->middleware('throttle:60,1')->name('conversations.unreadCount');
     Route::get('/conversations/recent-messages', [ConversationController::class, 'recentMessages'])->name('conversations.recentMessages');
     Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
-    Route::post('/conversations', [ConversationController::class, 'store'])->name('conversations.store');
+    Route::post('/conversations', [ConversationController::class, 'store'])->middleware('tenant.hold')->name('conversations.store');
     Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
+    Route::post('/conversations/{conversation}/read', [ConversationController::class, 'markRead'])->name('conversations.read');
     Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
 
     // Post-move-in chat and its concern cards. Both sides use the same URLs; policies decide.
     Route::get('/tenancy/{reservation}/chat', [ConversationController::class, 'tenancyChat'])->name('tenancy.chat');
     Route::post('/conversations/{conversation}/concerns', [TenantConcernController::class, 'store'])->name('concerns.store');
     Route::post('/conversations/{conversation}/payment-qr', [PaymentQrShareController::class, 'store'])->name('paymentQr.store');
+    Route::post('/reservations/{reservation}/payment-qr-request', [\App\Http\Controllers\PaymentQrRequestController::class, 'store'])->middleware('throttle:10,1')->name('paymentQr.request');
     Route::patch('/concerns/{concern}/status', [TenantConcernController::class, 'updateStatus'])->name('concerns.status');
 
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/recent', [NotificationController::class, 'recent'])->name('notifications.recent');
+    Route::get('/notifications/{notification}/open', [NotificationController::class, 'open'])->name('notifications.open');
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
 
@@ -477,7 +539,8 @@ Route::get('/properties', [PropertyController::class, 'index'])->name('propertie
 Route::get('/properties/count', [PropertyController::class, 'count'])->middleware('throttle:120,1')->name('properties.count');
 Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
 // PayMongo webhook — no auth, CSRF excluded in bootstrap/app.php
-Route::post('/webhooks/paymongo', [PayMongoWebhookController::class, 'handle'])->name('webhooks.paymongo');
+Route::post('/webhooks/paymongo', [PayMongoWebhookController::class, 'handle'])
+    ->middleware('throttle:120,1')->name('webhooks.paymongo');
 Route::post('/csp-report', \App\Http\Controllers\CspReportController::class)->middleware('throttle:30,1')->name('csp.report');
 
 // Bridges a mobile WebView (Bearer token, no session) into a logged-in web

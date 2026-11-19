@@ -33,16 +33,16 @@
              left edge as the one that carries the avatar. --}}
         <span data-avatar-slot class="contents">
         @if($endsRun)
-            @if($message->sender?->profile_picture)
-                <img loading="lazy" decoding="async" src="{{ $message->sender->profile_picture }}"
-                    alt="{{ $message->sender->first_name }} {{ $message->sender->last_name }}"
-                    class="w-7 h-7 rounded-full object-cover shrink-0 mb-0.5">
-            @else
-                <div class="w-7 h-7 rounded-full bg-[#060D26] text-white flex items-center justify-center text-[11px] font-bold shrink-0 mb-0.5"
-                    aria-hidden="true">
-                    {{ strtoupper(substr($message->sender->first_name, 0, 1)) }}
-                </div>
-            @endif
+            <x-person-link :user="$message->sender" :name="$message->sender->first_name.' '.$message->sender->last_name" class="shrink-0 mb-0.5 rounded-full">
+                @if($message->sender?->profile_picture)
+                    <img loading="lazy" decoding="async" src="{{ $message->sender->profile_picture }}" alt=""
+                        class="w-7 h-7 rounded-full object-cover">
+                @else
+                    <div class="w-7 h-7 rounded-full bg-[#060D26] text-white flex items-center justify-center text-[11px] font-bold" aria-hidden="true">
+                        {{ strtoupper(substr($message->sender->first_name, 0, 1)) }}
+                    </div>
+                @endif
+            </x-person-link>
         @else
             <div class="w-7 shrink-0" aria-hidden="true"></div>
         @endif
@@ -52,7 +52,7 @@
             <div class="bg-white text-[#060D26] border border-[#E2E4EC] rounded-2xl {{ $startsRun ? 'rounded-tl-sm' : '' }} px-4 py-2.5 shadow-sm cursor-default">
                 @if($startsRun)
                     <p class="text-[11px] font-bold text-[#060D26] mb-1">
-                        {{ $message->sender->first_name }}
+                        <x-person-link :user="$message->sender" :name="$message->sender->first_name" />
                     </p>
                 @endif
                 <p class="text-[13px] leading-relaxed whitespace-pre-wrap">{{ $message->message }}</p>

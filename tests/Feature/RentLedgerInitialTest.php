@@ -130,7 +130,7 @@ class RentLedgerInitialTest extends TestCase
 
         $reservation = $reservation->fresh();
         $this->assertSame('6000.00', (string) $reservation->agreed_monthly_rent);
-        $this->assertSame(6000.0, (float) $reservation->lease_snapshot['monthly_rent'], 'the lease and the charge agree');
+        $this->assertSame(6000.0, (float) $reservation->lease_snapshot['monthly_rent'], 'the rental and the charge agree');
 
         $reservation->unit->update(['rental_fee' => 9000]);
 

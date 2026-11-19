@@ -19,7 +19,7 @@ class TenantDetailController extends Controller
 
         abort_unless($user->hasRole('Tenant'), 403);
 
-        $validated = $request->validate(TenantDetail::rules(false), TenantDetail::messages());
+        $validated = $request->validate(TenantDetail::rules(false, $user->tenantDetail()->first()), TenantDetail::messages());
 
         if (TenantDetail::saveFor($user, $validated) === null) {
             return back()->with('warning', 'Nothing to save. Fill in at least one field.');

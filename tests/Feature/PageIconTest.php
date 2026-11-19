@@ -37,7 +37,7 @@ class PageIconTest extends TestCase
     public function test_list_pages_that_lacked_an_icon_now_have_one(): void
     {
         $admin = $this->makeUserWithRole('Admin');
-        foreach (['admin.conversations.index', 'admin.reviews.index', 'admin.listings.approval', 'admin.payouts.index', 'admin.deposit-charges.index'] as $route) {
+        foreach (['admin.conversations.index', 'admin.reviews.index'] as $route) {
             $this->actingAs($admin)->get(route($route))->assertOk()->assertSee(self::TILE, false);
         }
 

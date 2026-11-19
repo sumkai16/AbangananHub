@@ -94,7 +94,7 @@
                                 <div>
                                     <span class="{{ $label }}">Rent and deposit</span>
                                     <p class="text-[13px] text-[#5B6A8E] leading-snug">Set per unit, not per property. Change them on each unit's own edit page.</p>
-                                    <a href="{{ route('landlord.properties.show', $property) }}" class="inline-block mt-1 text-[13px] font-semibold text-[#FF8A66] hover:underline">Open units</a>
+                                    <a href="{{ route('landlord.properties.show', $property) }}" class="inline-block mt-1 text-[13px] font-semibold text-[#B35A3D] hover:underline">Open units</a>
                                 </div>
                             </div>
 
@@ -215,7 +215,7 @@
                             <p class="text-[13px] text-[#060D26]">
                                 {{ $property->leaseTemplate?->name ?? 'Standard policy' }}
                                 <span class="text-[#5B6A8E]">&middot; units can use their own.</span>
-                                <a href="{{ route('landlord.leases.index', ['property' => $property->property_id]) }}" class="ml-1 font-semibold text-[#060D26] underline underline-offset-2">Change in Lease policies</a>
+                                <a href="{{ route('landlord.leases.index', ['property' => $property->property_id]) }}" class="ml-1 font-semibold text-[#060D26] underline underline-offset-2">Change in Rental policies</a>
                             </p>
                             @if($property->leaseTemplate && ($property->leaseTemplate->rent_grace_days !== null || $property->leaseTemplate->late_fee_type !== null))
                                 <p class="mt-1 text-[12px] text-[#B45309]">This policy sets its own rent rules, so the rent rules below apply only to units on another policy.</p>
@@ -223,7 +223,7 @@
                         </div>
                     </x-form-section>
 
-                    <x-form-section title="Rent rules" description="Private to you. Each lease keeps the rules that were in force when it was sent.">
+                    <x-form-section title="Rent rules" description="Private to you. Each rental keeps the rules that were in force when it was sent.">
                         <x-slot:icon>{!! $ico('M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z') !!}</x-slot:icon>
 
                         <div x-data="{
@@ -304,7 +304,7 @@
 
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 @forelse($property->media as $img)
-                                    @php $url = $img->media_url; @endphp
+                                    @php $url = \App\Support\Images::src($img->media_url, 'card'); @endphp
                                     <div class="relative aspect-square rounded-xl overflow-hidden bg-[#ECEEF6] border border-[#E2E4EC] group/img">
                                         <img src="{{ str_starts_with($url, 'http') ? $url : Storage::url($url) }}" loading="lazy" decoding="async"
                                             class="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300" alt="Property photo">
@@ -367,7 +367,7 @@
                                 Cancel
                             </a>
                             <button type="submit"
-                                class="ml-auto h-11 px-7 inline-flex items-center justify-center rounded-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-sm font-semibold shadow-sm transition-colors duration-200 cursor-pointer">
+                                class="ml-auto h-11 px-7 inline-flex items-center justify-center rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-sm font-semibold shadow-sm transition-colors duration-200 cursor-pointer">
                                 Save changes
                             </button>
                         </div>
@@ -406,7 +406,7 @@
             </div>
             <div id="location-picker-modal-slot" class="flex-1 relative min-h-0"></div>
             <div class="px-5 py-4 border-t border-[#E2E4EC] shrink-0 flex items-center justify-end">
-                <button type="button" id="location-picker-modal-done" class="h-11 px-6 rounded-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] font-semibold text-sm shadow-sm transition-colors duration-200 cursor-pointer">
+                <button type="button" id="location-picker-modal-done" class="h-11 px-6 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] font-semibold text-sm shadow-sm transition-colors duration-200 cursor-pointer">
                     Done
                 </button>
             </div>

@@ -6,7 +6,7 @@
 
 {{--
     The "Additional terms" box on the Send-agreement forms (chat panel and reservations modal). The text is
-    frozen into the lease when the agreement is sent (Reservation::advanceToPendingAgreement), so what the
+    frozen into the rental when the agreement is sent (Reservation::advanceToPendingAgreement), so what the
     landlord types here is what the tenant signs.
 --}}
 <div class="mb-3">

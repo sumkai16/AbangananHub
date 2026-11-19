@@ -6,6 +6,7 @@ use App\Models\Conversation;
 use App\Models\Notification;
 use App\Models\Property;
 use App\Models\Reservation;
+use App\Services\Holds\HoldRestrictions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -19,7 +20,8 @@ class ConversationController extends Controller
         $status = $request->query('status', 'all');
         $propertyId = $request->query('property_id');
 
-        $party = fn ($q) => $q->where('tenant_id', $userId)->orWhere('landlord_id', $userId);
+        // A tenant on an unpaid-rent hold only sees chats with the landlord they owe (HoldRestrictions).
+        $party = HoldRestrictions::partyScope(Auth::user());
 
         // Two inboxes: the deal chats ("inquiries") and the post-move-in chats ("tenancy").
         $box = $request->query('box') === 'tenancy' ? Conversation::TYPE_TENANCY : Conversation::TYPE_INQUIRY;
@@ -91,9 +93,15 @@ class ConversationController extends Controller
     }
 
     /** Conversations of one type with an unread message from the other person, still open. */
+    /** The number behind every messages badge, so a live page can refresh it exactly instead of counting up. */
+    public function unreadCount()
+    {
+        return response()->json(['count' => Conversation::unreadCountFor(Auth::id())]);
+    }
+
     private function unreadIn(string $type, int $userId): int
     {
-        return Conversation::where(fn ($q) => $q->where('tenant_id', $userId)->orWhere('landlord_id', $userId))
+        return Conversation::where(HoldRestrictions::partyScope(Auth::user()))
             ->where('type', $type)
             ->whereNotIn('status', ['Cancelled', 'Resolved'])
             ->whereHas('latestMessage', fn ($q) => $q->where('sender_id', '!=', $userId)->where('is_read', false))
@@ -147,9 +155,32 @@ class ConversationController extends Controller
         return redirect()->route('conversations.show', $conversation);
     }
 
+    /**
+     * The open thread has just shown a message from the other person: mark what they sent as read (the same two
+     * updates show() makes when a thread is opened), so the list, the Unread tab and the sidebar number agree with the screen.
+     */
+    public function markRead(Conversation $conversation)
+    {
+        Gate::authorize('view', $conversation);
+
+        Notification::where('user_id', Auth::id())
+            ->where('type', 'message')
+            ->where('conversation_id', $conversation->conversation_id)
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+
+        $conversation->messages()
+            ->where('sender_id', '!=', Auth::id())
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+
+        return response()->noContent();
+    }
+
     public function show(Conversation $conversation)
     {
         Gate::authorize('view', $conversation);
+        abort_unless(HoldRestrictions::canUseConversation(Auth::user(), $conversation), 403, HoldRestrictions::deniedMessage());
 
         Notification::where('user_id', Auth::id())
             ->where('type', 'message')
@@ -209,19 +240,14 @@ class ConversationController extends Controller
     {
         $userId = Auth::id();
 
-        $conversations = Conversation::where(function ($q) use ($userId) {
-            $q->where('tenant_id', $userId)
-                ->orWhere('landlord_id', $userId);
-        })
+        // A tenant on an unpaid-rent hold only sees chats with the landlord they owe.
+        $conversations = Conversation::where(HoldRestrictions::partyScope(Auth::user()))
             ->with(['tenant', 'landlord', 'property', 'unit', 'latestMessage'])
             ->orderByDesc('updated_at')
             ->take(5)
             ->get();
 
-        $unreadCount = Conversation::where(function ($q) use ($userId) {
-            $q->where('tenant_id', $userId)
-                ->orWhere('landlord_id', $userId);
-        })
+        $unreadCount = Conversation::where(HoldRestrictions::partyScope(Auth::user()))
             ->whereHas('latestMessage', function ($q) use ($userId) {
                 $q->where('sender_id', '!=', $userId)
                     ->where('is_read', false);

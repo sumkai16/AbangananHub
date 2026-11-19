@@ -10,8 +10,9 @@
     $isMoveIn = $type === 'MoveIn';
     $share = \App\Models\PaymentQrShare::latestFor($reservation);
 
+    // The fee first under a reservation-fee unit, then whatever balance is left; the full amount otherwise.
     $defaultAmount = $isMoveIn
-        ? $reservation->moveInDue()
+        ? ($reservation->minimumMoveInPayment() ?: $reservation->moveInDue())
         : (float) ($period['balance'] ?? 0);
     $periodKey = $isMoveIn ? null : $period['period']->copy()->startOfMonth();
 
@@ -21,22 +22,44 @@
         ->sortByDesc('payment_claim_id');
     $pending = $mine->firstWhere('status', 'Pending');
     $rejected = ! $pending && $mine->first()?->status === 'Rejected' ? $mine->first() : null;
-    $conversationLink = $reservation->conversation_id
+    // Living here: the tenancy chat (opened on demand). Before move-in: the inquiry chat.
+    $conversationLink = $reservation->rental_status !== 'Occupied' && $reservation->conversation_id
         ? route('conversations.index', ['active' => $reservation->conversation_id])
         : route('tenancy.chat', $reservation);
 @endphp
 <div id="{{ $isMoveIn ? 'pay' : 'pay-'.$periodKey->format('Y-m') }}" class="scroll-mt-24 rounded-2xl border border-[#E2E4EC] bg-white p-4 sm:p-5" x-data="{ form: {{ $errors->has('payment') || $errors->has('reference_no') || $errors->has('amount') || $errors->has('paid_on') || $errors->has('accept_terms') || ($isMoveIn && request()->boolean('pay')) ? 'true' : 'false' }} }">
     <h3 class="text-[15px] font-normal text-[#060D26]">
-        {{ $isMoveIn ? 'Pay your landlord to move in' : (($period['is_future'] ?? false) ? 'Pay ahead: '.$period['label'] : 'Pay your landlord: '.$period['label']) }}
+        @if($isMoveIn || ($period['is_future'] ?? false))
+            {{ $isMoveIn ? 'Pay your landlord to move in' : 'Pay ahead: '.$period['label'] }}
+        @else
+            {{-- Inside the rent picker the heading follows the months ticked (range); alone it keeps the month. --}}
+            Pay your landlord: <span x-text="typeof range !== 'undefined' && range ? range : @js($period['label'])">{{ $period['label'] }}</span>
+        @endif
     </h3>
 
     @if($isMoveIn)
+        @if($reservation->reservationFee() > 0)
+            <p class="mt-3 rounded-lg bg-[#F7F8FC] px-3 py-2 text-[12.5px] text-[#060D26]">
+                @if($reservation->reservationFeePaid())
+                    Your reservation fee is paid and the unit is held for you. Pay the balance of &#8369;{{ number_format($reservation->moveInShortfall(), 2) }} before you move in.
+                @else
+                    This unit is held with a reservation fee of &#8369;{{ number_format($reservation->reservationFee(), 2) }}. The remaining &#8369;{{ number_format($reservation->moveInBalanceAfterFee(), 2) }} is due before you move in.
+                @endif
+            </p>
+        @endif
         <dl class="mt-3 space-y-1 text-[13px]">
-            @if($reservation->advanceMonths() > 0)
-                <div class="flex justify-between"><dt class="text-[#5B6A8E]">{{ $reservation->advanceMonths() === 1 ? 'First month’s rent' : $reservation->advanceMonths().' months’ rent in advance' }}</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($reservation->advanceMonths() * $reservation->monthlyRent(), 2) }}</dd></div>
-            @endif
-            @if($reservation->agreedDeposit() > 0)
-                <div class="flex justify-between"><dt class="text-[#5B6A8E]">Security deposit</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($reservation->agreedDeposit(), 2) }}</dd></div>
+            @if($reservation->reservationFee() > 0)
+                {{-- Reservation-fee unit: the lines add up to what is paid now (the fee, then the balance). --}}
+                @foreach($reservation->moveInPayLines() as [$label, $amount])
+                    <div class="flex justify-between"><dt class="text-[#5B6A8E]">{{ $label }}</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($amount, 2) }}</dd></div>
+                @endforeach
+            @else
+                @if($reservation->advanceMonths() > 0)
+                    <div class="flex justify-between"><dt class="text-[#5B6A8E]">{{ $reservation->advanceMonths() === 1 ? 'First month’s rent' : $reservation->advanceMonths().' months’ rent in advance' }}</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($reservation->advanceMonths() * $reservation->monthlyRent(), 2) }}</dd></div>
+                @endif
+                @if($reservation->agreedDeposit() > 0)
+                    <div class="flex justify-between"><dt class="text-[#5B6A8E]">Security deposit</dt><dd class="font-semibold tabular-nums text-[#060D26]">&#8369;{{ number_format($reservation->agreedDeposit(), 2) }}</dd></div>
+                @endif
             @endif
             <div class="flex justify-between border-t border-[#E2E4EC] pt-1.5"><dt class="font-bold text-[#060D26]">Total</dt><dd class="font-bold tabular-nums text-[#060D26]">&#8369;{{ number_format($defaultAmount, 2) }}</dd></div>
         </dl>
@@ -44,7 +67,7 @@
         @if($period['is_future'] ?? false)
             <p class="mt-1 text-[13px] text-[#5B6A8E]">You&rsquo;re all paid up. Want to pay early? One month is <span class="font-bold tabular-nums text-[#060D26]">&#8369;{{ number_format($defaultAmount, 2) }}</span>. Paying more covers the months after it, in order.</p>
         @else
-            <p class="mt-1 text-[13px] text-[#5B6A8E]">Balance for this month: <span class="font-bold tabular-nums text-[#060D26]">&#8369;{{ number_format($defaultAmount, 2) }}</span></p>
+            <p class="mt-1 text-[13px] text-[#5B6A8E]"><span x-text="typeof count !== 'undefined' && count > 1 ? 'Balance for these months:' : 'Balance for this month:'">Balance for this month:</span> <span class="font-bold tabular-nums text-[#060D26]" x-text="typeof total !== 'undefined' && typeof money === 'function' ? money(total) : @js('₱'.number_format($defaultAmount, 2))">&#8369;{{ number_format($defaultAmount, 2) }}</span></p>
         @endif
     @endif
 
@@ -56,10 +79,30 @@
         @if($share)
             @include('payments.partials._qr-block', ['share' => $share])
         @else
-            <p class="rounded-xl border border-dashed border-[#5B6A8E]/40 px-3 py-3 text-[12.5px] text-[#5B6A8E]">
-                {{ $landlordName }} hasn&rsquo;t shared a payment QR yet.
-                <a href="{{ $conversationLink }}" class="font-bold text-[#060D26] underline">Ask in your chat</a>.
-            </p>
+            @php
+                // One tap tells the landlord through the system (a notification and a line in the chat). Open for an hour,
+                // then the tenant may ask again; sharing a QR closes it (PaymentQrRequestController).
+                $qrAskedAt = $reservation->qr_requested_at;
+                $qrAskOpen = $qrAskedAt && $qrAskedAt->gt(now()->subMinutes(\App\Http\Controllers\PaymentQrRequestController::COOLDOWN_MINUTES));
+            @endphp
+            <div class="rounded-xl border border-dashed border-[#5B6A8E]/40 px-3 py-3 text-[12.5px] text-[#5B6A8E]">
+                <p>{{ $landlordName }} hasn&rsquo;t shared a payment QR yet.</p>
+                @if($reservation->canAskForPaymentQr())
+                    @if($qrAskOpen)
+                        <p class="mt-2 font-semibold text-[#060D26]">You asked {{ $landlordName }} {{ $qrAskedAt->diffForHumans() }}. We&rsquo;ll tell you when it arrives.</p>
+                    @else
+                        <form method="POST" action="{{ route('paymentQr.request', $reservation) }}" class="mt-2">
+                            @csrf
+                            <button type="submit" class="inline-flex h-10 items-center rounded-xl border border-[#060D26]/35 bg-white px-4 text-[13px] font-bold text-[#060D26] transition-colors hover:bg-[#ECEEF6]">
+                                {{ $qrAskedAt ? 'Ask '.$landlordName.' again' : 'Ask '.$landlordName.' to share a payment QR' }}
+                            </button>
+                        </form>
+                    @endif
+                    <a href="{{ $conversationLink }}" class="mt-2 inline-block text-[12px] font-semibold text-[#5B6A8E] underline">Or write in your chat</a>
+                @else
+                    <a href="{{ $conversationLink }}" class="font-bold text-[#060D26] underline">Ask in your chat</a>.
+                @endif
+            </div>
         @endif
     </div>
 

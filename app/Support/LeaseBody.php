@@ -150,7 +150,7 @@ class LeaseBody
     public static function starter(?string $type = null): string
     {
         if ($type === 'blank') {
-            return '<h3>Terms</h3><p>Write your lease here. Use "Insert field" for names, amounts and dates.</p>';
+            return '<h3>Terms</h3><p>Write your rental here. Use "Insert field" for names, amounts and dates.</p>';
         }
 
         $f = fn (string $key) => '<span data-field="'.$key.'">'.self::FIELDS[$key].'</span>';
@@ -160,13 +160,13 @@ class LeaseBody
 
         return implode('', [
             '<h3>Premises and use</h3><p>The Landlord rents to the Tenant the unit '.$f('unit').' at '.$f('property').', '.$f('address').'. The premises are for residential use only. The Tenant may not sublet or transfer the premises without the Landlord\'s written consent.</p>',
-            '<h3>Term</h3><p>This lease starts on '.$f('start_date').'. Its end date is '.$f('end_date').'.</p>',
+            '<h3>Term</h3><p>This rental starts on '.$f('start_date').'. Its end date is '.$f('end_date').'.</p>',
             '<h3>Rent</h3><p>The Tenant pays '.$f('monthly_rent').' per month, due on the '.$f('due_day').' day of each month. Payments made through AbangananHub or recorded there by the Landlord form the rent ledger for this tenancy.</p>',
             '<h3>Security deposit</h3><p>The Tenant pays a security deposit of '.$f('security_deposit').'. It covers unpaid rent and damage beyond normal wear and tear. The Landlord returns it within 30 days after the Tenant moves out, less any deductions, which the Landlord lists in writing.</p>',
             '<h3>Utilities</h3><p>'.$f('utilities').'</p>',
             $typeClause,
             '<h3>Care and repairs</h3><p>The Tenant keeps the premises clean and in good condition and reports any damage or needed repair promptly. The Landlord handles repairs from normal wear and tear and to the building\'s structure, plumbing and wiring. The Tenant pays for damage caused by the Tenant, their household or guests. The Landlord gives reasonable notice before entering the premises, except in an emergency.</p>',
-            '<h3>Ending the tenancy</h3><p>Either party may end this lease by giving at least '.$f('notice_days').' days\' written notice, including by message on AbangananHub. On moving out, the Tenant returns the premises and all keys in the condition received, apart from normal wear and tear.</p>',
+            '<h3>Ending the tenancy</h3><p>Either party may end this rental by giving at least '.$f('notice_days').' days\' written notice, including by message on AbangananHub. On moving out, the Tenant returns the premises and all keys in the condition received, apart from normal wear and tear.</p>',
             '<h3>Whole agreement</h3><p>This document is the whole agreement between the parties. Changes are valid only if made in writing and accepted by both.</p>',
         ]);
     }

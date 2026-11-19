@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
-use App\Models\Message;
+use App\Http\Middleware\LandlordPropertyScope;
+use App\Models\Conversation;
+use App\Models\Notification;
 use App\Models\Payment;
 use App\Models\PaymentClaim;
 use App\Models\Property;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
-use App\Models\Review;
-use App\Models\User;
 use App\Models\ViewingRequest;
 use App\Services\RentLedger;
 use Illuminate\Http\Request;
@@ -22,6 +22,9 @@ class DashboardController extends Controller
     /** Rows shown in the action queue before "and N more". */
     private const QUEUE_LIMIT = 6;
 
+    /** Notifications listed on the dashboard before "View all". */
+    private const NOTIFICATION_LIMIT = 6;
+
     /** Days the dashboard's viewings card counts as "soon", today included. */
     private const VIEWING_DAYS = 14;
 
@@ -31,7 +34,9 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $landlordId = Auth::id();
-        $propertyIds = Property::where('landlord_id', $landlordId)->pluck('property_id');
+        // The sidebar's Property filter: one property's numbers, or null for all of them.
+        $only = LandlordPropertyScope::current($landlordId);
+        $propertyIds = Property::where('landlord_id', $landlordId)->when($only, fn ($q) => $q->whereKey($only))->pluck('property_id');
 
         $units = PropertyUnit::whereIn('property_id', $propertyIds)->get();
         $totalUnits = $units->count();
@@ -48,6 +53,7 @@ class DashboardController extends Controller
         // Per-property occupancy breakdown (approved listings only)
         $properties = Property::where('landlord_id', $landlordId)
             ->where('verification_status', 'Approved')
+            ->when($only, fn ($q) => $q->whereKey($only))
             ->with(['units', 'media' => fn ($q) => $q->where('media_type', 'Image')->orderBy('media_id')->limit(1)])
             ->get()
             ->map(function ($property) {
@@ -69,11 +75,11 @@ class DashboardController extends Controller
             ->sortBy(fn ($p) => $p['total_units'] > 0 ? $p['occupied_units'] / $p['total_units'] : 0)
             ->values();
 
-        [$rent, $overdueItems] = $this->rentThisMonth($landlordId);
+        [$rent, $overdueItems] = $this->rentThisMonth($landlordId, $only);
 
         $pendingPayout = (float) Payment::whereHas(
             'reservation.property',
-            fn ($q) => $q->where('landlord_id', $landlordId)
+            fn ($q) => $q->where('landlord_id', $landlordId)->when($only, fn ($q) => $q->whereKey($only))
         )->pendingPayout()->sum('amount');
 
         $actionQueue = $this->actionQueue($landlordId, $propertyIds, $overdueItems);
@@ -85,8 +91,8 @@ class DashboardController extends Controller
             default => 'Good evening',
         };
 
-        $recentActivity = $this->recentActivity($landlordId, $propertyIds);
-        $setupAlerts = $this->setupAlerts($landlordId);
+        $notifications = $this->latestNotifications($landlordId);
+        $setupAlerts = $this->setupAlerts($landlordId, $only);
 
         return view('landlord.dashboard.index', [
             'totalUnits' => $totalUnits,
@@ -96,7 +102,7 @@ class DashboardController extends Controller
             'rentRoll' => $rentRoll,
             'vacantRoll' => $vacantRoll,
             'openInquiries' => $openInquiries,
-            'recentActivity' => $recentActivity,
+            'notifications' => $notifications,
             'properties' => $properties,
             'rent' => $rent,
             'pendingPayout' => $pendingPayout,
@@ -104,7 +110,7 @@ class DashboardController extends Controller
             'actionQueueOverflow' => max(0, $actionQueue->count() - self::QUEUE_LIMIT),
             'greeting' => $greeting,
             'setupAlerts' => $setupAlerts,
-            'viewings' => $this->viewingSchedule($landlordId),
+            'viewings' => $this->viewingSchedule($landlordId, $only),
         ]);
     }
 
@@ -115,11 +121,12 @@ class DashboardController extends Controller
      * @return array{0: array<string, mixed>, 1: Collection} totals, then the
      *                                                       overdue tenancies (oldest first) for the action queue.
      */
-    private function rentThisMonth(int $landlordId): array
+    private function rentThisMonth(int $landlordId, ?int $only = null): array
     {
         $rows = Reservation::where('rental_status', 'Occupied')
             ->whereHas('property', fn ($q) => $q->where('landlord_id', $landlordId))
-            ->with(['tenant', 'property:property_id,title', 'unit:unit_id,unit_label,rental_fee', 'payments', 'depositCharges'])
+            ->when($only, fn ($q) => $q->where('property_id', $only))
+            ->with(['tenant', 'property:property_id,title', 'unit:unit_id,unit_label,rental_fee', 'payments', 'depositCharges', 'lateFeeWaivers', 'renewals'])
             ->get()
             ->map(fn (Reservation $r) => ['reservation' => $r, 'summary' => RentLedger::for($r)->summary()]);
 
@@ -163,6 +170,7 @@ class DashboardController extends Controller
                     . ($days ? " · {$days} " . ($days === 1 ? 'day' : 'days') . ' overdue' : ' · overdue')),
                 'cta' => 'View ledger',
                 'url' => route('landlord.payments.ledger', $r),
+                'panel' => 'Dashboard', // opens over the dashboard instead of leaving it (page panel)
             ]);
         }
 
@@ -218,15 +226,13 @@ class DashboardController extends Controller
                 ]);
             });
 
-        $unread = Message::whereHas('conversation', fn ($q) => $q->where('landlord_id', $landlordId))
-            ->where('sender_id', '!=', $landlordId)
-            ->where('is_read', false)
-            ->count();
+        // Chats, by the same rule as the Messages badge, so the queue and the sidebar say the same number.
+        $unread = Conversation::unreadCountFor($landlordId);
 
         if ($unread > 0) {
             $items->push([
                 'level' => 'warn',
-                'title' => $unread . ' unread ' . ($unread === 1 ? 'message' : 'messages'),
+                'title' => $unread . ' unread ' . ($unread === 1 ? 'chat' : 'chats'),
                 'meta' => 'Waiting on your reply',
                 'cta' => 'Open inbox',
                 'url' => route('conversations.index'),
@@ -237,189 +243,98 @@ class DashboardController extends Controller
     }
 
     /**
-     * Things blocking this landlord from earning: listings stuck in review,
-     * rejected or unfinished, and a missing payout destination.
-     * Each: level (danger|warn|info), text, cta, url.
+     * Things blocking this landlord from earning: a payment to answer, listings rejected, suspended or unfinished,
+     * a missing payout destination, and (quietly) listings waiting on the admin.
+     * Each: group ('fix' = the landlord can act, 'waiting' = nothing to do yet), title, sub, cta, url.
+     * A single listing links straight to that listing; several link to the Properties list with the matching filter.
      */
-    private function setupAlerts(int $landlordId): Collection
+    private function setupAlerts(int $landlordId, ?int $only = null): Collection
     {
         $alerts = collect();
-        $counts = ['rejected' => 0, 'suspended' => 0, 'draft' => 0, 'pending' => 0];
 
-        Property::where('landlord_id', $landlordId)
-            ->selectRaw('verification_status, publication_status, count(*) as c')
-            ->groupBy('verification_status', 'publication_status')
-            ->get()
-            ->each(function ($row) use (&$counts) {
-                $n = (int) $row->c;
-                if ($row->publication_status === 'Draft') {
-                    $counts['draft'] += $n;
-                } elseif ($row->publication_status === 'Suspended') {
-                    $counts['suspended'] += $n;
-                } elseif ($row->verification_status === 'Rejected') {
-                    $counts['rejected'] += $n;
-                } elseif ($row->verification_status === 'Pending') {
-                    $counts['pending'] += $n;
-                }
-            });
+        $properties = Property::where('landlord_id', $landlordId)
+            ->when($only, fn ($q) => $q->whereKey($only))
+            ->get(['property_id', 'title', 'verification_status', 'publication_status']);
 
-        $listings = fn (int $n) => $n . ' ' . ($n === 1 ? 'listing' : 'listings');
+        $by = [
+            'draft' => $properties->where('publication_status', 'Draft'),
+            'suspended' => $properties->where('publication_status', 'Suspended'),
+            'rejected' => $properties->where('publication_status', '!=', 'Draft')->where('publication_status', '!=', 'Suspended')->where('verification_status', 'Rejected'),
+            'pending' => $properties->where('publication_status', '!=', 'Draft')->where('publication_status', '!=', 'Suspended')->where('verification_status', 'Pending'),
+        ];
 
-        $toConfirm = PaymentClaim::pending()
-            ->whereHas('reservation.property', fn ($q) => $q->where('landlord_id', $landlordId))
-            ->count();
+        $claims = PaymentClaim::pending()
+            ->whereHas('reservation.property', fn ($q) => $q->where('landlord_id', $landlordId)->when($only, fn ($q) => $q->whereKey($only)))
+            ->with(['reservation.tenant', 'reservation.unit'])
+            ->oldest()
+            ->get();
 
-        if ($toConfirm > 0) {
+        if ($claims->isNotEmpty()) {
+            $first = $claims->first();
+            $single = $claims->count() === 1;
             $alerts->push([
-                'level' => 'danger',
-                'text' => $toConfirm.' '.($toConfirm === 1 ? 'payment is' : 'payments are').' waiting for you to confirm.',
-                'cta' => 'Review',
-                'url' => route('landlord.reservations.index'),
+                'group' => 'fix',
+                'title' => $single
+                    ? 'Confirm '.($first->reservation?->tenant?->first_name ?? 'a tenant').'’s ₱'.number_format((float) $first->amount, 2).' payment'
+                    : 'Confirm '.$claims->count().' payments',
+                'sub' => $single ? ($first->reservation?->unit?->unit_label ?? 'They are waiting for you') : 'Tenants are waiting for you',
+                'cta' => 'Confirm',
+                // The reports are listed on Payments, above the figures; Reservations never showed them.
+                'url' => route('landlord.payments.index').'#payments-to-confirm',
             ]);
         }
 
         if (Auth::user()->showsPayoutTools() && ! Auth::user()->hasPayoutDestination()) {
             $alerts->push([
-                'level' => 'warn',
-                'text' => 'Add your GCash details so AbangananHub can send your payouts.',
+                'group' => 'fix',
+                'title' => 'Add your GCash details',
+                'sub' => 'So AbangananHub can send your payouts',
                 'cta' => 'Add details',
                 'url' => route('landlord.payouts.index').'#payout-account',
             ]);
         }
-        if ($counts['rejected'] > 0) {
+
+        $listing = function (string $key, string $one, string $many, string $sub, string $cta, string $group, ?string $filter, ?callable $single = null) use ($by, $alerts) {
+            $set = $by[$key];
+            if ($set->isEmpty()) {
+                return;
+            }
+
+            $only1 = $set->count() === 1;
+            $p = $set->first();
             $alerts->push([
-                'level' => 'danger',
-                'text' => $listings($counts['rejected']) . ' rejected by admin. Review and resubmit.',
-                'cta' => 'Review',
-                'url' => route('landlord.properties.index', ['status' => 'Rejected']),
+                'group' => $group,
+                'title' => $only1 ? $p->title.' '.$one : $set->count().' listings '.$many,
+                'sub' => $sub,
+                'cta' => $cta,
+                'url' => $only1
+                    ? ($single ? $single($p) : route('landlord.properties.show', $p))
+                    : route('landlord.properties.index', array_filter(['status' => $filter])),
             ]);
-        }
-        if ($counts['suspended'] > 0) {
-            $alerts->push([
-                'level' => 'danger',
-                'text' => $listings($counts['suspended']) . ' suspended and hidden from tenants.',
-                'cta' => 'View',
-                'url' => route('landlord.properties.index'),
-            ]);
-        }
-        if ($counts['draft'] > 0) {
-            $alerts->push([
-                'level' => 'warn',
-                'text' => $listings($counts['draft']) . ' not finished yet, so tenants cannot see ' . ($counts['draft'] === 1 ? 'it' : 'them') . '.',
-                'cta' => 'Continue setup',
-                'url' => route('landlord.properties.index'),
-            ]);
-        }
-        if ($counts['pending'] > 0) {
-            $alerts->push([
-                'level' => 'info',
-                'text' => $listings($counts['pending']) . ' waiting for admin approval.',
-                'cta' => 'View',
-                'url' => route('landlord.properties.index', ['status' => 'Pending']),
-            ]);
-        }
+        };
+
+        $listing('rejected', 'was rejected', 'were rejected', 'Fix what the admin flagged, then resubmit', 'Fix and resubmit', 'fix', 'Rejected');
+        $listing('suspended', 'is suspended', 'are suspended', 'Hidden from tenants until this is sorted out', 'See why', 'fix', 'Suspended');
+        $listing('draft', 'is not finished', 'are not finished', 'Tenants cannot see it yet', 'Continue setup', 'fix', 'Draft',
+            fn ($p) => route('properties.wizard.resume', $p));
+        $listing('pending', 'is waiting for admin approval', 'are waiting for admin approval', 'Nothing to do until the admin answers', 'View', 'waiting', 'Pending');
 
         return $alerts;
     }
 
     /**
-     * Payments, reservation changes and reviews merged into one newest-first
-     * feed. Unit edits are deliberately left out: they say nothing a landlord
-     * needs to act on.
-     * Each: kind (payment|reservation|review), text, meta, timestamp, url.
+     * The latest notifications, the same rows as the bell. The old "Recent activity" feed was built from record
+     * timestamps, so an edit read as something new and every row opened Reservations. A notification is something
+     * that happened to this landlord and links to the page that answers it.
      */
-    private function recentActivity(int $landlordId, Collection $propertyIds): Collection
+    private function latestNotifications(int $landlordId): Collection
     {
-        $titles = Property::where('landlord_id', $landlordId)->pluck('title', 'property_id');
-        $where = fn ($r) => trim(($r->unit?->unit_label ? $r->unit->unit_label . ' · ' : '') . ($titles[$r->property_id] ?? ''));
-        $name = fn ($u) => trim(($u->first_name ?? '') . ' ' . ($u->last_name ?? '')) ?: 'A tenant';
-
-        $paymentRows = Payment::whereHas('reservation.property', fn ($q) => $q->where('landlord_id', $landlordId))
-            ->whereIn('status', ['Paid', 'Held', 'Released'])
-            ->where('amount', '>', 0)
-            ->whereNull('voided_at')
-            ->with(['reservation', 'reservation.unit:unit_id,unit_label'])
-            ->latest('paid_at')
-            ->limit(5)
+        return Notification::where('user_id', $landlordId)
+            ->where('type', '!=', 'message')
+            // Several can land in the same second; the id breaks the tie so the newest is always first.
+            ->latest()->latest('notification_id')
+            ->limit(self::NOTIFICATION_LIMIT)
             ->get();
-
-        $reservationRows = Reservation::whereIn('property_id', $propertyIds)
-            ->with(['unit:unit_id,unit_label'])
-            ->latest('updated_at')
-            ->limit(5)
-            ->get();
-
-        $reviewRows = Review::whereIn('property_id', $propertyIds)
-            ->where('is_hidden', false)
-            ->latest()
-            ->limit(3)
-            ->get();
-
-        // The three feeds all name a tenant, so fetch every one in a single
-        // query rather than one per feed.
-        $tenants = User::whereIn('user_id', $paymentRows->pluck('reservation.tenant_id')
-            ->merge($reservationRows->pluck('tenant_id'))
-            ->merge($reviewRows->pluck('tenant_id'))
-            ->filter()->unique()->values())
-            ->get()
-            ->keyBy('user_id');
-
-        $payments = $paymentRows
-            ->map(function ($p) use ($name, $where, $tenants) {
-                $r = $p->reservation;
-                $amount = '₱' . number_format((float) $p->amount);
-                $who = $name($tenants[$r->tenant_id] ?? null);
-                $text = $p->status === 'Held'
-                    ? "{$amount} held in escrow for {$who}"
-                    : ($p->payment_type === 'Monthly'
-                        ? "{$amount} rent received from {$who}"
-                        : "{$amount} " . strtolower($p->payment_type) . " payment from {$who}");
-
-                return [
-                    'kind' => 'payment',
-                    'text' => $text,
-                    'meta' => $where($r),
-                    'timestamp' => $p->paid_at ?? $p->created_at,
-                    'url' => in_array($r->rental_status, ['Occupied', 'Completed'], true)
-                        ? route('landlord.payments.ledger', $r)
-                        : route('landlord.payments.index'),
-                ];
-            });
-
-        $phrases = [
-            'Inquiry' => 'sent an inquiry',
-            'Negotiation' => 'is negotiating terms',
-            'Rental Agreement Signed' => 'signed the rental agreement',
-            'Occupied' => 'moved in',
-            'Completed' => 'finished their tenancy',
-            'Cancelled' => 'cancelled their reservation',
-            'Rejected' => 'was declined',
-        ];
-
-        $reservations = $reservationRows
-            ->map(fn ($r) => [
-                'kind' => 'reservation',
-                'text' => $name($tenants[$r->tenant_id] ?? null) . ' ' . ($phrases[$r->rental_status] ?? 'is ' . strtolower($r->rental_status)),
-                'meta' => $where($r),
-                'timestamp' => $r->updated_at,
-                'url' => $r->conversation_id
-                    ? route('conversations.index', ['active' => $r->conversation_id])
-                    : route('landlord.reservations.index'),
-            ]);
-
-        $reviews = $reviewRows
-            ->map(fn ($rv) => [
-                'kind' => 'review',
-                'text' => $name($tenants[$rv->tenant_id] ?? null) . ' left a ' . $rv->rating . '-star review',
-                'meta' => $titles[$rv->property_id] ?? '',
-                'timestamp' => $rv->created_at,
-                'url' => route('landlord.reviews.index'),
-            ]);
-
-        return $payments->concat($reservations)->concat($reviews)
-            ->sortByDesc('timestamp')
-            ->take(5)
-            ->values();
     }
 
     /**
@@ -430,13 +345,14 @@ class DashboardController extends Controller
      *
      * @return array{months: Collection, byDay: Collection, next: ?ViewingRequest, soon: int, toAnswer: int, needsAnswerDays: array<int, string>}
      */
-    private function viewingSchedule(int $landlordId): array
+    private function viewingSchedule(int $landlordId, ?int $only = null): array
     {
         $today = now()->startOfDay();
         $firstMonth = $today->copy()->startOfMonth();
         $months = collect(range(0, self::VIEWING_MONTHS - 1))->map(fn ($i) => $firstMonth->copy()->addMonthsNoOverflow($i));
 
         $viewings = ViewingRequest::where('landlord_id', $landlordId)
+            ->when($only, fn ($q) => $q->where('property_id', $only))
             ->active()
             ->whereBetween('scheduled_at', [$firstMonth, $months->last()->copy()->endOfMonth()])
             ->with(['tenant:user_id,first_name,last_name', 'property:property_id,title', 'unit:unit_id,unit_label'])

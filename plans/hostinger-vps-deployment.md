@@ -127,6 +127,7 @@ apply the deltas below. Full template:
 APP_NAME=AbangananHub
 APP_ENV=production
 APP_DEBUG=false
+DEBUGBAR_ENABLED=false                   # adds ~100 KB to every page and slows it; never true in production
 APP_KEY=base64:...                       # keep the existing key, or php artisan key:generate
 APP_URL=https://abangananhub.com
 
@@ -302,7 +303,15 @@ server {
     add_header X-Frame-Options "SAMEORIGIN";
     add_header X-Content-Type-Options "nosniff";
     # CSP, Permissions-Policy, Referrer-Policy and HSTS come from the app (SecurityHeaders middleware), not nginx.
-    # Start with CSP_MODE=report-only in .env, check the "CSP violation" lines in laravel.log, then CSP_MODE=enforce.
+    # CSP rollout (reporting is proven: a POST to /csp-report writes a "CSP violation" line to laravel.log):
+    #   1. Deploy with CSP_MODE=report-only. Click through the admin dashboard, browse + map, lease editor, chat
+    #      (Reverb), a PayMongo checkout and the sign-in providers.
+    #   2. After a week, `grep "CSP violation" storage/logs/laravel.log`. Each line is a real blocked source: add it
+    #      to App\Support\ContentSecurityPolicy, or drop the thing that loads it. Zero lines means ready.
+    #   3. Set CSP_MODE=enforce and `php artisan config:clear`; repeat the click-through.
+    # What enforce does today: stops other sites framing ours, blocks plugins, <base> tricks and posting forms to other
+    # sites, and limits where images, fonts, frames and connections may come from. It does NOT stop an injected inline
+    # script, because script-src still needs 'unsafe-inline' and 'unsafe-eval' (see ContentSecurityPolicy docblock).
     # HSTS only reaches the browser if TRUSTED_PROXIES is set, so the app can see the request was https.
 
     # --- Compression ---
@@ -442,7 +451,7 @@ sudo crontab -u www-data -e
 * * * * * cd /var/www/abangananhub && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-This one line drives all three scheduled commands (`routes/console.php`):
+This one line drives every scheduled command (`routes/console.php`; the table lists the three money and history jobs, §10b the backup ones):
 
 | Time | Command | Consequence if it never runs |
 |---|---|---|
@@ -455,6 +464,35 @@ Confirm the server clock is Philippine time, or all three fire at the wrong loca
 ```bash
 sudo timedatectl set-timezone Asia/Manila
 ```
+
+## 10b. Nightly backup to Cloudflare R2
+
+`backup:run` (02:30) copies the database plus `storage/app/private` (every government ID, selfie, lease and
+property document, the only copy) and `storage/app/public` into one **encrypted** archive and uploads it to R2.
+`backup:list --check` (08:00) alerts the admins if there has been no good backup for 36 hours. Both ride on the
+cron line above. Design: `plans/database-and-files-backup.md`.
+
+**One-time setup**
+1. Cloudflare dashboard → R2 → create a **private** bucket (e.g. `abangananhub-backups`). Do not enable public access.
+2. R2 → Manage API tokens → create a token with **Object Read & Write**, limited to that bucket. Note the access key, the secret and the account endpoint `https://<account-id>.r2.cloudflarestorage.com`.
+3. In the server `.env` set `BACKUP_R2_ENDPOINT`, `BACKUP_R2_BUCKET`, `BACKUP_R2_KEY`, `BACKUP_R2_SECRET`, and `BACKUP_PASSPHRASE` (16+ random characters).
+4. **Copy `BACKUP_PASSPHRASE` and the whole `.env` into the password manager now.** Backups do not include `.env`, and without the passphrase they cannot be opened.
+5. `sudo apt install -y mysql-client` if `mysqldump` is missing (`which mysqldump`).
+6. Run it once by hand: `sudo -u www-data php artisan backup:run`, then `php artisan backup:list`. The file should also show in the R2 dashboard.
+7. Optional: in R2 → bucket → Settings → Object lifecycle, nothing is needed; the job prunes by itself (14 daily, 8 weekly, 6 monthly).
+
+**Restore (new or broken server)**
+```bash
+# 1. Deploy the code and a fresh .env (from the password manager) first, with the same BACKUP_PASSPHRASE and R2 keys.
+php artisan backup:list                                  # pick a name
+php artisan backup:restore abangananhub-2026-11-20-0230.tar.gz.enc   # unpacks into storage/app/backups/restored-...
+mysql -u USER -p DATABASE < storage/app/backups/restored-.../dump.sql
+cp -a storage/app/backups/restored-.../private/. storage/app/private/
+cp -a storage/app/backups/restored-.../public/.  storage/app/public/
+rm -rf storage/app/backups/restored-...                   # it holds private data
+```
+Practise the restore once on a throwaway folder before the defense (`backup:restore <name> --to=/tmp/restore-test`).
+A backup nobody has restored is only a hope.
 
 ---
 
@@ -563,8 +601,7 @@ Same for the FPM reload, since opcache is set not to check timestamps.
 - Publishing the Google/Facebook OAuth apps out of Testing mode
 - Redis for cache/session (DB-backed is fine at this volume — see §16 for the switch)
 - A queue worker (only if something starts implementing `ShouldQueue`)
-- Off-server backups — at minimum a nightly `mysqldump` plus `storage/app/private`, which holds the
-  only copy of every government ID and property document
+- Off-server backups: **done**, see §10b
 
 ---
 

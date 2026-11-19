@@ -138,7 +138,7 @@
 
                         <x-view-all-tile :href="route('properties.index', ['sort' => 'top_rated'])" label="View all popular properties"
                             sub="Highest rated by tenants"
-                            :photos="$popularProperties->reverse()->map(fn ($p) => $p->media->firstWhere('media_type', 'Image')?->media_url)->all()"
+                            :photos="$popularProperties->reverse()->map(fn ($p) => \App\Support\Images::src($p->media->firstWhere('media_type', 'Image')?->media_url, 'card'))->all()"
                             class="w-[72%] sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-4rem)/5)]" />
                     </div>
                         <x-row-arrows top="top-[88px]" />
@@ -624,7 +624,7 @@
                         @if($heroStats)
                             <x-view-all-tile :href="route('properties.index', ['sort' => 'newest'])" label="View all rental properties"
                                 :sub="$properties->total() . ' ' . Str::plural('listing', $properties->total())"
-                                :photos="$properties->reverse()->map(fn ($p) => $p->media->firstWhere('media_type', 'Image')?->media_url)->all()"
+                                :photos="$properties->reverse()->map(fn ($p) => \App\Support\Images::src($p->media->firstWhere('media_type', 'Image')?->media_url, 'card'))->all()"
                                 class="min-h-[260px]" />
                         @endif
                     </div>
@@ -736,7 +736,7 @@
             <x-section-texture compact />
             <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16 grid gap-10 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] md:items-center lg:gap-16">
                 <div>
-                    <p class="font-jakarta text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#B35A3D]">For property owners</p>
+                    <p class="font-jakarta text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#B35A3D]">For landlords</p>
                     <h2 id="landlord-cta-title" class="mt-2 font-jakarta text-[26px] sm:text-[34px] font-extrabold leading-[1.15] tracking-tight text-[#060D26] text-balance">Have a room or unit to rent out?</h2>
                     <ul class="mt-7 grid gap-3 sm:grid-cols-2">
                         @foreach($ownerPerks as [$perk, $icon])
@@ -748,7 +748,9 @@
                             </li>
                         @endforeach
                     </ul>
+                    {{-- Guests get the sign-up modal (the href stays as the no-JS fallback). --}}
                     <a href="{{ auth()->check() ? route('landlord.verification.create') : route('register') }}"
+                        @guest onclick="openAuthModal('register'); return false;" @endguest
                         class="group relative isolate mt-9 w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-9 py-4 rounded-2xl bg-[#FF8A66] text-[#060D26] text-[17px] font-extrabold font-jakarta shadow-[0_14px_32px_rgba(255,138,102,0.55)] transition-all duration-300 hover:bg-[#E96F4F] hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(255,138,102,0.65)] motion-reduce:hover:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#060D26] focus-visible:ring-offset-2 focus-visible:ring-offset-[#ECEEF6]">
                         {{-- Slow pulsing halo so the button reads as the primary action of the section. --}}
                         <span class="absolute inset-0 -z-10 rounded-2xl bg-[#FF8A66] motion-safe:animate-[owner-cta-pulse_2.4s_ease-out_infinite]" aria-hidden="true"></span>
@@ -813,6 +815,11 @@
                 <style>@keyframes owner-cta-pulse { 0% { opacity: .55; transform: scale(1); } 70%, 100% { opacity: 0; transform: scale(1.14, 1.35); } }</style>
             </div>
         </section>
+    @endif
+
+    {{-- Home only: not on the Browse rentals (/properties) page. --}}
+    @if($heroStats)
+        <x-platform-rating />
     @endif
 
     @push('scripts')

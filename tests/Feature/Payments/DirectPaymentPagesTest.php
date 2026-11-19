@@ -251,7 +251,9 @@ class DirectPaymentPagesTest extends TestCase
             'accept_terms' => '1', 'claim_type' => 'MoveIn', 'amount' => 10000, 'payment_method' => 'GCash', 'reference_no' => 'GC1', 'paid_on' => '2026-10-13',
         ]);
 
+        // The row names the tenant and the amount, and opens the Payments page where the report is listed.
         $this->actingAs($landlord)->get(route('landlord.dashboard'))
-            ->assertOk()->assertSee('1 payment is waiting for you to confirm');
+            ->assertOk()->assertSee('Confirm '.$tenant->first_name.'’s ₱10,000.00 payment')
+            ->assertSee(route('landlord.payments.index').'#payments-to-confirm', false);
     }
 }

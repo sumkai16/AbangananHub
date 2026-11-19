@@ -69,7 +69,7 @@ class LeaseTemplateController extends Controller
         $properties = Property::where('landlord_id', $landlord->user_id)
             ->with(['units' => fn ($q) => $q->orderBy('unit_label')->select('unit_id', 'property_id', 'unit_label', 'lease_template_id')])
             ->orderBy('title')
-            ->get(['property_id', 'landlord_id', 'title', 'property_type', 'lease_template_id']);
+            ->get(['property_id', 'landlord_id', 'title', 'property_type', 'lease_template_id', 'rent_grace_days', 'late_fee_type', 'late_fee_value']);
 
         return [$templates, $properties];
     }
@@ -104,7 +104,7 @@ class LeaseTemplateController extends Controller
         $this->syncProperties($request, $template);
 
         return redirect()->route('landlord.lease-templates.edit', $template)
-            ->with('success', 'Policy saved. Choose which properties and units use it on the Lease policies page.');
+            ->with('success', 'Policy saved. Choose which properties and units use it on the Rental policies page.');
     }
 
     public function edit(Request $request, LeaseTemplate $leaseTemplate)
@@ -175,6 +175,43 @@ class LeaseTemplateController extends Controller
         ]);
 
         $property = Property::with(['landlord', 'units'])->findOrFail($data['property_id']);
+        $template = new LeaseTemplate($request->templateAttributes());
+
+        return response()->json(['html' => $this->renderSample($property, $template)]);
+    }
+
+    /**
+     * A saved policy as a tenant would read it, for the read-only reader on the Policies page. Filled in with one of
+     * the landlord's own properties (one that uses the policy when there is one) and a sample tenant; nothing is saved.
+     */
+    public function read(Request $request, LeaseTemplate $leaseTemplate)
+    {
+        Gate::authorize('manage', $leaseTemplate);
+
+        $property = Property::with(['landlord', 'units'])
+            ->where('landlord_id', $request->user()->user_id)
+            ->orderByRaw('lease_template_id = ? desc', [$leaseTemplate->lease_template_id])
+            ->orderBy('title')
+            ->first();
+
+        return response()->json(['html' => $this->renderSample($property, $leaseTemplate)]);
+    }
+
+    /** The built-in standard policy, read the same way. */
+    public function readStandard(Request $request)
+    {
+        $property = Property::with(['landlord', 'units'])
+            ->where('landlord_id', $request->user()->user_id)
+            ->orderBy('title')
+            ->first();
+
+        return response()->json(['html' => $this->renderSample($property, null)]);
+    }
+
+    /** The lease document for a sample tenant on one property (none yet: the built-in wording with blanks). Nothing is saved. */
+    private function renderSample(?Property $property, ?LeaseTemplate $template): string
+    {
+        $property ??= (new Property)->setRelation('landlord', auth()->user())->setRelation('units', collect());
         $unit = $property->units->sortBy('unit_label')->first();
 
         $reservation = new Reservation([
@@ -189,11 +226,7 @@ class LeaseTemplateController extends Controller
         $reservation->setRelation('unit', $unit);
         $reservation->setRelation('tenant', new User(['first_name' => 'Sample', 'last_name' => 'Tenant']));
 
-        $template = new LeaseTemplate($request->templateAttributes());
-
-        return response()->json([
-            'html' => view('leases._document', ['terms' => LeaseTerms::snapshot($reservation, template: $template)])->render(),
-        ]);
+        return view('leases._document', ['terms' => LeaseTerms::snapshot($reservation, template: $template)])->render();
     }
 
     private function ownProperties(User $landlord)

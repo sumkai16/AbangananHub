@@ -44,6 +44,25 @@ class LeaseController extends Controller
         $fromContracts = $request->input('from') === 'contracts';
         $backToModal = fn () => redirect()->route('landlord.tenants.index', ['open' => $reservation->reservation_id]);
 
+        // Signed online already: that is the signed agreement, there is nothing to upload.
+        if ($reservation->leaseStatus() === 'signed_online') {
+            $message = 'The tenant already signed this agreement online, so there is no signed copy to upload.';
+
+            return $fromContracts
+                ? $backToModal()->with('error', $message)
+                : back()->with('error', $message);
+        }
+
+        // A signed copy is on file already: it is not replaced from here. A new one is attached when the rental is
+        // renewed (ContractController::renew), which is when the terms change.
+        if ($reservation->leaseStatus() === 'uploaded') {
+            $message = 'A signed agreement is already on file. Attach a new one when you renew the rental.';
+
+            return $fromContracts
+                ? $backToModal()->with('error', $message)
+                : back()->with('error', $message);
+        }
+
         $validator = Validator::make($request->all(), [
             'lease_file' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
         ], [
@@ -66,21 +85,8 @@ class LeaseController extends Controller
         try {
             $oldPath = DB::transaction(function () use ($reservation, $path, $file) {
                 $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();
-                $old = $locked->lease_file_path;
 
-                // Freeze what was printed and signed: an unsigned paper lease has been following the current
-                // policy (LeaseTerms::followsPolicy), so its terms are taken now, before the upload ends that.
-                // A tenancy issued before snapshots existed gets one now too.
-                $terms = $locked->lease_snapshot ? LeaseTerms::for($locked) : LeaseTerms::snapshot($locked);
-
-                $locked->update([
-                    'lease_file_path'   => $path,
-                    'lease_file_name'   => $file->getClientOriginalName(),
-                    'lease_uploaded_at' => now(),
-                    'lease_snapshot'    => $terms,
-                ]);
-
-                return $old;
+                return self::attachSignedCopy($locked, $path, $file->getClientOriginalName());
             });
         } catch (\Throwable $e) {
             Storage::disk('local')->delete($path);
@@ -103,6 +109,29 @@ class LeaseController extends Controller
 
         return ($fromContracts ? $backToModal() : back())
             ->with('success', $oldPath ? 'Signed agreement replaced.' : 'Signed agreement uploaded.');
+    }
+
+    /**
+     * Points a (locked) reservation at a signed copy that is already stored, and returns the path it replaces so
+     * the caller can delete that file once the transaction has committed. Used by the first upload and by a renewal.
+     */
+    public static function attachSignedCopy(Reservation $locked, string $path, string $originalName): ?string
+    {
+        $old = $locked->lease_file_path;
+
+        // Freeze what was printed and signed: an unsigned paper lease has been following the current
+        // policy (LeaseTerms::followsPolicy), so its terms are taken now, before the upload ends that.
+        // A tenancy issued before snapshots existed gets one now too.
+        $terms = $locked->lease_snapshot ? LeaseTerms::for($locked) : LeaseTerms::snapshot($locked);
+
+        $locked->update([
+            'lease_file_path'   => $path,
+            'lease_file_name'   => $originalName,
+            'lease_uploaded_at' => now(),
+            'lease_snapshot'    => $terms,
+        ]);
+
+        return $old;
     }
 
     public function file(Reservation $reservation)

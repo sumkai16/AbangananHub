@@ -73,6 +73,19 @@ return [
         'key' => env('GOOGLE_VISION_API_KEY'),
     ],
 
+    // Face match for landlord verification (AWS Rekognition CompareFaces). Optional: with no keys the check is
+    // skipped and the admin sees "Not checked". Read via config() so it survives config:cache.
+    'rekognition' => [
+        'key' => env('AWS_REKOGNITION_KEY'),
+        'secret' => env('AWS_REKOGNITION_SECRET'),
+        'region' => env('AWS_REKOGNITION_REGION', 'ap-southeast-1'),
+        // Similarity percent at or above which the faces count as the same person. An ID photo is small and old,
+        // so this is lower than a strict 99; the admin still reviews every application.
+        'threshold' => (float) env('FACE_MATCH_THRESHOLD', 80),
+        // Between this and the threshold the admin sees "somewhat similar, compare by eye"; below it, "do not match".
+        'review_floor' => (float) env('FACE_MATCH_REVIEW_FLOOR', 60),
+    ],
+
     // AI search (config/ai_search.php picks the driver). Gemini's free tier is for
     // testing; model IDs change, so read the current one from AI Studio.
     'gemini' => [

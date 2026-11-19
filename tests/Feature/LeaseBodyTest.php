@@ -33,7 +33,7 @@ class LeaseBodyTest extends TestCase
 
     private function templateFor($prop, array $attrs): LeaseTemplate
     {
-        $template = new LeaseTemplate(['name' => 'Test lease'] + $attrs);
+        $template = new LeaseTemplate(['name' => 'Test rental'] + $attrs);
         $template->landlord_id = $prop->landlord_id;
         $template->save();
         $prop->forceFill(['lease_template_id' => $template->lease_template_id])->save();

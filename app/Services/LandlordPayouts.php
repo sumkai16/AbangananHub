@@ -40,50 +40,93 @@ class LandlordPayouts
         return (bool) config('rentals.automatic_payouts_enabled', true);
     }
 
-    /** Why this landlord's money must wait right now, or null when it can go out. */
+    /**
+     * What is holding this landlord's money back, as a key the admin page can group and style by, or null when
+     * nothing is. One of: no_details, paused, hold, not_approved, failed. The automatic-payouts switch is not
+     * part of it (that is a setting for everyone, see blockedReason()). The order is the order the rules apply in.
+     */
+    public static function blockedKind(User $landlord): ?string
+    {
+        $account = static::accountFor($landlord);
+
+        if (! $account || blank($account->gcash_number) || blank($account->gcash_account_name)) {
+            return 'no_details';
+        }
+
+        if ($account->isPaused()) {
+            return 'paused';
+        }
+
+        if ($account->isOnHold()) {
+            return 'hold';
+        }
+
+        if (! $account->isApproved()) {
+            return 'not_approved';
+        }
+
+        if (static::hasUnresolvedFailure($landlord)) {
+            return 'failed';
+        }
+
+        return null;
+    }
+
+    /** The landlord's payout account, from the loaded relation when a list page already eager-loaded it. */
+    private static function accountFor(User $landlord): ?UserPayoutAccount
+    {
+        return $landlord->relationLoaded('payoutAccount')
+            ? $landlord->payoutAccount
+            : UserPayoutAccount::find($landlord->user_id);
+    }
+
+    /** Why this landlord's money must wait right now, in words, or null when it can go out. */
     public static function blockedReason(User $landlord): ?string
     {
         if (! static::automaticEnabled()) {
             return 'automatic payouts are switched off (pay by hand, then press Mark Paid Out)';
         }
 
-        $account = UserPayoutAccount::find($landlord->user_id);
-
-        if (! $account || blank($account->gcash_number) || blank($account->gcash_account_name)) {
-            return 'no GCash details on file';
-        }
-
-        if ($account->isPaused()) {
-            return 'paused by an administrator';
-        }
-
-        if ($account->isOnHold()) {
-            return 'GCash details changed; payouts resume '.$account->payouts_hold_until->format('M j, g:i A');
-        }
-
-        if (! $account->isApproved()) {
-            return 'an administrator has not approved this GCash account yet';
-        }
-
-        if (static::hasUnresolvedFailure($landlord)) {
-            return 'a failed payout is waiting for an administrator';
-        }
-
-        return null;
+        return match (static::blockedKind($landlord)) {
+            'no_details' => 'no GCash details on file',
+            'paused' => 'paused by an administrator',
+            'hold' => 'GCash details changed; payouts resume '.static::accountFor($landlord)->payouts_hold_until->format('M j, g:i A'),
+            'not_approved' => 'an administrator has not approved this GCash account yet',
+            'failed' => 'a failed payout is waiting for an administrator',
+            default => null,
+        };
     }
 
     /**
      * The names this landlord is known by on record: the account name and the name read off their approved ID.
      *
+     * @param  array<int|string, ?string>|null  $idNames  Approved-ID names keyed by user id, from approvedIdNames(),
+     *                                                      so a list page asks once instead of once per landlord.
      * @return list<string>
      */
-    public static function identityNames(User $landlord): array
+    public static function identityNames(User $landlord, ?array $idNames = null): array
     {
-        $idName = LandlordVerification::where('user_id', $landlord->user_id)
-            ->where('verification_status', 'Approved')
-            ->value('ocr_name');
+        $idName = $idNames !== null
+            ? ($idNames[$landlord->user_id] ?? null)
+            : LandlordVerification::where('user_id', $landlord->user_id)
+                ->where('verification_status', 'Approved')
+                ->value('ocr_name');
 
         return array_values(array_filter([trim($landlord->first_name.' '.$landlord->last_name), $idName], fn ($n) => filled($n)));
+    }
+
+    /**
+     * Approved-ID names for many landlords in one query, keyed by user id, to pass to identityNames().
+     *
+     * @param  iterable<int|string>  $userIds
+     * @return array<int|string, ?string>
+     */
+    public static function approvedIdNames(iterable $userIds): array
+    {
+        return LandlordVerification::whereIn('user_id', collect($userIds)->unique()->values())
+            ->where('verification_status', 'Approved')
+            ->pluck('ocr_name', 'user_id')
+            ->all();
     }
 
     /**
@@ -91,10 +134,10 @@ class LandlordPayouts
      * Null when there is nothing to compare. A mismatch is a flag for the admin approving the account, not a block:
      * a landlord may legitimately be paid into a spouse's or a business account.
      */
-    public static function nameMatchesIdentity(User $landlord, ?string $accountName = null): ?bool
+    public static function nameMatchesIdentity(User $landlord, ?string $accountName = null, ?array $idNames = null): ?bool
     {
-        $accountName ??= UserPayoutAccount::find($landlord->user_id)?->gcash_account_name;
-        $names = static::identityNames($landlord);
+        $accountName ??= static::accountFor($landlord)?->gcash_account_name;
+        $names = static::identityNames($landlord, $idNames);
 
         if (blank($accountName) || $names === []) {
             return null;

@@ -360,7 +360,7 @@ class EscrowVerify extends Command
         $this->check('landlord marks turnover → starts the tenant clock', function () {
             $r = $this->scenario('h-turnover');
 
-            $ok = $r->markKeysTurnedOver();
+            $ok = $r->markKeysTurnedOver('https://example.test/handover.jpg', 'verify/handover');
             $f  = $r->fresh();
 
             return $this->all([
@@ -372,9 +372,9 @@ class EscrowVerify extends Command
 
         $this->check('marking turnover twice is rejected', function () {
             $r = $this->scenario('h-turnover-twice');
-            $r->markKeysTurnedOver();
+            $r->markKeysTurnedOver('https://example.test/handover.jpg', 'verify/handover');
 
-            return $this->eq($r->fresh()->markKeysTurnedOver(), false, 'second call');
+            return $this->eq($r->fresh()->markKeysTurnedOver('https://example.test/handover.jpg', 'verify/handover'), false, 'second call');
         });
 
         $this->check('turnover blocked while disputed', function () {
@@ -383,7 +383,7 @@ class EscrowVerify extends Command
                 'move_in_dispute_reason' => 'Keys never arrived.',
             ]);
 
-            return $this->eq($r->markKeysTurnedOver(), false, 'return value');
+            return $this->eq($r->markKeysTurnedOver('https://example.test/handover.jpg', 'verify/handover'), false, 'return value');
         });
 
         $this->check('tenant confirms with NO turnover ever marked → still releases', function () {

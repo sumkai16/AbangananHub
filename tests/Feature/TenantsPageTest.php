@@ -60,7 +60,8 @@ class TenantsPageTest extends TestCase
     {
         $landlord = $this->makeLandlord();
 
-        $this->addTenant($landlord)->assertRedirect(route('landlord.tenants.index'))->assertSessionHas('success');
+        $this->addTenant($landlord)->assertRedirect(route('landlord.tenants.index'))
+            ->assertSessionHas('tenant_added', fn ($added) => $added['code'] === 'TN-0001' && str_contains($added['lease_url'], 'new=1'));
 
         $tenant = User::where('email', 'ana.santos.tenant@example.test')->firstOrFail();
         $this->assertTrue($tenant->is_walk_in);
@@ -102,27 +103,35 @@ class TenantsPageTest extends TestCase
         Mail::assertQueued(TenantInviteMail::class);
     }
 
+    public function test_a_blank_end_date_makes_an_open_ended_rental(): void
+    {
+        $landlord = $this->makeLandlord();
+        $unit = $this->makeUnit($this->makeProperty($landlord));
+
+        $this->addTenant($landlord, ['unit_id' => $unit->unit_id] + $this->contractFields(['move_out_date' => '']))
+            ->assertSessionHasNoErrors();
+
+        $contract = Reservation::where('unit_id', $unit->unit_id)->firstOrFail();
+        $this->assertNull($contract->target_move_out_date, 'No end date: the rental keeps running until someone ends it.');
+    }
+
     public function test_a_failed_add_reopens_with_what_was_typed_and_says_what_to_fix(): void
     {
         $landlord = $this->makeLandlord();
         $unit = $this->makeUnit($this->makeProperty($landlord));
 
-        // Only the move-in date filled: the end date, and so the contract, is refused.
+        // An end date before the move-in date: the contract, and so the whole add, is refused.
         $this->actingAs($landlord)->from(route('landlord.tenants.index'))
             ->post(route('landlord.tenants.store'), [
                 '_form' => 'tenant', '_action' => '', 'first_name' => 'Ana', 'last_name' => 'Santos', 'contact_number' => '09175550123',
                 'unit_id' => $unit->unit_id, 'move_in_date' => now()->addDays(10)->toDateString(),
+                'move_out_date' => now()->addDays(5)->toDateString(),
             ])
             ->assertSessionHasErrors('move_out_date')
             ->assertRedirect(route('landlord.tenants.index'));
 
-        $page = $this->get(route('landlord.tenants.index'));
-
-        $page->assertSee('Nothing was saved', false)
-            ->assertSee('Enter the date the lease ends.')
-            ->assertSee('pendingReopen: true', false)
-            ->assertSee('Ana')
-            ->assertSee(now()->addDays(10)->toDateString(), false);
+        // The tenant-only form no longer shows the lease fields, so the page just stays put with the error on the session.
+        $this->get(route('landlord.tenants.index'))->assertOk()->assertSee('Add tenant');
         $this->assertNull(User::where('first_name', 'Ana')->where('last_name', 'Santos')->first(), 'Nothing was saved.');
     }
 
@@ -134,8 +143,8 @@ class TenantsPageTest extends TestCase
         // Already moved in, but no move-in money recorded: the contract rules refuse it.
         $this->addTenant($landlord, ['unit_id' => $unit->unit_id] + $this->contractFields(['move_in_date' => now()->subDay()->toDateString()]))
             ->assertSessionHasErrors('initial_amount');
-        // No end date.
-        $this->addTenant($landlord, ['unit_id' => $unit->unit_id] + $this->contractFields(['move_out_date' => '']))
+        // An end date before the move-in date.
+        $this->addTenant($landlord, ['unit_id' => $unit->unit_id] + $this->contractFields(['move_out_date' => now()->addDays(5)->toDateString()]))
             ->assertSessionHasErrors('move_out_date');
 
         $this->assertNull(User::where('email', 'ana.santos.tenant@example.test')->first(), 'No half-added tenant.');
@@ -162,7 +171,7 @@ class TenantsPageTest extends TestCase
         $unit = $this->makeUnit($this->makeProperty($landlord));
 
         $this->addTenant($landlord, ['unit_id' => $unit->unit_id, 'lease_mode' => 'now',
-            'lease_file' => UploadedFile::fake()->create('lease.pdf', 100, 'application/pdf')] + $this->contractFields())
+            'lease_file' => UploadedFile::fake()->create('rental.pdf', 100, 'application/pdf')] + $this->contractFields())
             ->assertSessionHasNoErrors();
 
         $contract = Reservation::where('unit_id', $unit->unit_id)->firstOrFail();
@@ -312,6 +321,25 @@ class TenantsPageTest extends TestCase
         $this->assertNotNull(User::find($row->tenant_id));
         $this->assertSame(1, Payment::where('reservation_id', $contract->reservation_id)->count());
         $this->actingAs($landlord)->get(route('landlord.tenants.index'))->assertDontSee($row->code());
+    }
+
+    public function test_former_tenants_stay_off_the_list_until_the_dropdown_asks_for_them(): void
+    {
+        $landlord = $this->makeLandlord();
+        $this->addTenant($landlord, ['email' => '']);
+        $row = LandlordTenant::where('landlord_id', $landlord->user_id)->firstOrFail();
+        $this->contractFor($row, 'Completed');
+
+        // The code also sits in the Add lease picker, so look at the rows the list was given, not the whole page.
+        $listed = fn (array $query) => $this->actingAs($landlord)->get(route('landlord.tenants.index', $query))
+            ->assertOk()->viewData('rows')->pluck('row.landlord_tenant_id')->all();
+
+        $this->assertSame([], $listed([]));
+        $this->actingAs($landlord)->get(route('landlord.tenants.index'))->assertSee('Former tenants (1)');
+        $this->assertSame([$row->landlord_tenant_id], $listed(['show' => 'former']));
+        $this->assertSame([$row->landlord_tenant_id], $listed(['show' => 'all']));
+        // The old Former chip link still lands on the former tenants.
+        $this->assertSame([$row->landlord_tenant_id], $listed(['status' => 'former']));
     }
 
     public function test_accepting_the_invite_turns_the_placeholder_into_a_real_account(): void

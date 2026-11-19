@@ -116,21 +116,21 @@ class LeaseTest extends TestCase
     {
         $this->walkIn([
             'lease_mode' => 'now',
-            'lease_file' => UploadedFile::fake()->create('lease.pdf', 200, 'application/pdf'),
+            'lease_file' => UploadedFile::fake()->create('rental.pdf', 200, 'application/pdf'),
         ])->assertRedirect();
 
         $reservation = $this->latestWalkIn();
         // walkIn() uses a future move-in date, so the unit is reserved, not occupied yet.
         $this->assertSame('Reserved', $reservation->rental_status);
         $this->assertNotNull($reservation->lease_snapshot);
-        $this->assertSame('lease.pdf', $reservation->lease_file_name);
+        $this->assertSame('rental.pdf', $reservation->lease_file_name);
         $this->assertSame('uploaded', $reservation->leaseStatus());
         Storage::disk('local')->assertExists($reservation->lease_file_path);
 
         $this->actingAs($this->landlord)->get(route('landlord.leases.file', $reservation))->assertOk();
     }
 
-    public function test_walk_in_upload_later_then_upload_and_replace(): void
+    public function test_walk_in_upload_later_then_upload_and_a_new_copy_only_when_renewing(): void
     {
         $this->walkIn()->assertRedirect();
         $reservation = $this->latestWalkIn();
@@ -145,7 +145,19 @@ class LeaseTest extends TestCase
         $first = $reservation->fresh()->lease_file_path;
         Storage::disk('local')->assertExists($first);
 
+        // Once a signed copy is on file, a plain second upload is refused and the file stays.
         $this->actingAs($this->landlord)->post(route('landlord.leases.upload', $reservation), [
+            'lease_file' => UploadedFile::fake()->create('signed-v2.pdf', 100, 'application/pdf'),
+        ])->assertSessionHas('error');
+        $reservation->refresh();
+        $this->assertSame($first, $reservation->lease_file_path);
+        $this->assertSame('signed.jpg', $reservation->lease_file_name);
+
+        // Renewing is where the new signed copy goes: it replaces the old one and the old file is deleted.
+        $this->actingAs($this->landlord)->post(route('landlord.contracts.renew', $reservation), [
+            'new_move_out_date' => ($reservation->target_move_out_date ?? now())->copy()->addYear()->toDateString(),
+            'new_monthly_rent' => 2500,
+            'rent_effective_from' => now()->format('Y-m'),
             'lease_file' => UploadedFile::fake()->create('signed-v2.pdf', 100, 'application/pdf'),
         ])->assertSessionHas('success');
 
@@ -153,6 +165,27 @@ class LeaseTest extends TestCase
         Storage::disk('local')->assertMissing($first);
         Storage::disk('local')->assertExists($reservation->lease_file_path);
         $this->assertSame('signed-v2.pdf', $reservation->lease_file_name);
+    }
+
+    public function test_a_lease_signed_online_takes_no_uploaded_copy(): void
+    {
+        $this->walkIn()->assertRedirect();
+        $reservation = $this->latestWalkIn();
+        $reservation->forceFill(['agreed_at' => now()])->save();
+        $this->assertSame('signed_online', $reservation->leaseStatus());
+
+        // The button is gone from the lease details modal...
+        $this->actingAs($this->landlord)->get(route('landlord.contracts.show', $reservation))
+            ->assertOk()->assertSee('Signed online '.$reservation->agreed_at->format('M j, Y'))->assertDontSee('Upload agreement');
+
+        // ...and the server refuses the upload too, so hiding the button is not the only guard.
+        $this->actingAs($this->landlord)->post(route('landlord.leases.upload', $reservation), [
+            'lease_file' => UploadedFile::fake()->create('signed.pdf', 100, 'application/pdf'),
+        ])->assertSessionHas('error');
+
+        $reservation->refresh();
+        $this->assertNull($reservation->lease_file_path);
+        $this->assertSame('signed_online', $reservation->leaseStatus());
     }
 
     public function test_upload_now_requires_a_file(): void
@@ -166,7 +199,7 @@ class LeaseTest extends TestCase
         $reservation = $this->latestWalkIn();
 
         $this->actingAs($this->landlord)->post(route('landlord.leases.upload', $reservation), [
-            'lease_file' => UploadedFile::fake()->create('lease.docx', 50),
+            'lease_file' => UploadedFile::fake()->create('rental.docx', 50),
         ])->assertSessionHasErrors('lease_file');
 
         $this->actingAs($this->landlord)->post(route('landlord.leases.upload', $reservation), [
@@ -178,7 +211,7 @@ class LeaseTest extends TestCase
     {
         $this->walkIn([
             'lease_mode' => 'now',
-            'lease_file' => UploadedFile::fake()->create('lease.pdf', 50, 'application/pdf'),
+            'lease_file' => UploadedFile::fake()->create('rental.pdf', 50, 'application/pdf'),
         ]);
         $reservation = $this->latestWalkIn();
 

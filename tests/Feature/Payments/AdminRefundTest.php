@@ -388,6 +388,18 @@ class AdminRefundTest extends TestCase
             ->assertOk()->assertSee('Waiting for the tenant to claim it');
     }
 
+    public function test_the_payments_list_opens_on_all_with_held_money_first(): void
+    {
+        $t = $this->heldGroup();
+        // The deposit is settled and newer than the held rent, yet the held row still comes first.
+        $t['deposit']->update(['status' => 'Released', 'created_at' => now()->addDay()]);
+
+        $response = $this->actingAs($this->admin())->get(route('admin.payments.index'))->assertOk();
+
+        $this->assertSame('All', $response->viewData('status'));
+        $this->assertSame(['Held', 'Released'], $response->viewData('payments')->pluck('status')->take(2)->all());
+    }
+
     public function test_a_failed_refund_is_flagged_in_the_list(): void
     {
         $t = $this->heldGroup();

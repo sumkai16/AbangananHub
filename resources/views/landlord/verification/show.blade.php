@@ -1,6 +1,14 @@
-@extends('layouts.app', ['searchBar' => false])
+@extends(!empty($signupFlow) ? 'layouts.signup' : 'layouts.app', ['searchBar' => false])
 
 @section('content')
+    {{-- Reached from the landlord sign-up: same title and indicator as the earlier steps, now on step 4. --}}
+    @if(!empty($signupFlow))
+        <div class="max-w-lg mx-auto mt-6 mb-8 px-6 sm:px-0" x-data="{ step: 4 }">
+            <h2 class="font-jakarta text-[28px] sm:text-[32px] font-extrabold text-[#060D26] tracking-tight leading-tight">Sign up as a landlord</h2>
+            <p class="mt-1.5 text-[15px] text-[#5B6A8E]">Four short steps, so tenants can trust who they rent from.</p>
+            <div class="mt-6"><x-landlord-signup-steps /></div>
+        </div>
+    @endif
     @push('mobile-title')<x-page-icon class="!h-7 !w-7 !rounded-lg" path="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /><span class="truncate text-[15px] font-semibold tracking-tight text-[#060D26]">Landlord verification</span>@endpush
 
     @php
@@ -29,6 +37,7 @@
         $ocr = match ($verification->ocr_status) {
             'pass' => ['Name matched your account', 'bg-[#22C55E]/[0.08]', 'text-[#22C55E]', 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'],
             'partial' => ['Partial name match. An admin will verify.', 'bg-[#FBBF24]/10', 'text-[#FBBF24]', 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.814-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z'],
+            'unreadable' => ['We could not read the text on your ID automatically. An admin will check it by eye.', 'bg-[#FBBF24]/10', 'text-[#FBBF24]', 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.814-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z'],
             null => null,
             default => ['Name not verified. An admin will check manually.', 'bg-[#EF4444]/[0.07]', 'text-[#EF4444]', 'm9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'],
         };

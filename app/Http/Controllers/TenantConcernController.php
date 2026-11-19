@@ -18,6 +18,9 @@ class TenantConcernController extends Controller
 {
     public function store(StoreTenantConcernRequest $request, Conversation $conversation, ImageUploader $uploader): JsonResponse
     {
+        // A tenant on an unpaid-rent hold can only write to the landlord they owe.
+        abort_unless(\App\Services\Holds\HoldRestrictions::canUseConversation(Auth::user(), $conversation), 403, \App\Services\Holds\HoldRestrictions::deniedMessage());
+
         $photos = collect($request->file('photos', []))
             ->map(fn ($file) => $uploader->upload($file, 'abanganan/concerns'))
             ->values()

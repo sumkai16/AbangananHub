@@ -29,8 +29,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
             <div>
-                <p class="font-jakarta text-[15px] font-bold text-white">Protected agreements</p>
-                <p class="mt-0.5 text-[13.5px] leading-snug text-white/75">Sign online, and your deposit is held until move-in.</p>
+                <p class="font-jakarta text-[15px] font-bold text-white">Clear agreements</p>
+                <p class="mt-0.5 text-[13.5px] leading-snug text-white/75">Sign the rental agreement online and keep every payment and receipt in one place.</p>
             </div>
         </li>
     </ul>

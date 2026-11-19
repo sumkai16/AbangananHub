@@ -76,6 +76,10 @@ class PaymentQrShareController extends Controller
             return [$share, $message];
         });
 
+        // The tenant's request (if any) is answered.
+        \App\Models\Reservation::where('tenant_id', $conversation->tenant_id)->where('property_id', $conversation->property_id)
+            ->whereNotNull('qr_requested_at')->update(['qr_requested_at' => null]);
+
         $conversation->broadcastQuietly($message->load('sender'));
 
         Notification::notify(

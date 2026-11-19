@@ -7,6 +7,7 @@ use App\Rules\WithinCebu;
 use App\Support\PropertyPolicies;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Support\ListingPhotos;
 
 class StorePropertyRequest extends FormRequest
 {
@@ -27,8 +28,8 @@ class StorePropertyRequest extends FormRequest
             'barangay'          => ['nullable', 'string', 'max:100'],
             'latitude'          => ['required', 'numeric', 'between:-90,90', new WithinCebu($this->input('longitude'))],
             'longitude'         => ['required', 'numeric', 'between:-180,180'],
-            'photos'            => ['required', 'array', 'min:1', 'max:10'],
-            'photos.*'          => ['image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            'photos'            => ['required', 'array', 'min:1', 'max:'.ListingPhotos::MAX_PROPERTY],
+            'photos.*'          => ['image', 'mimes:jpeg,png,jpg,webp', 'max:'.ListingPhotos::MAX_KB],
             'amenities'         => ['nullable', 'array'],
             'amenities.*'       => ['integer', 'exists:amenities,amenity_id'],
         ];

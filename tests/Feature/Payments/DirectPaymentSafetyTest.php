@@ -312,7 +312,7 @@ class DirectPaymentSafetyTest extends TestCase
         $this->get(route('agreements.show', $reservation))
             ->assertOk()
             ->assertSee('Waiting for')
-            ->assertSee('withdraw this report first')
+            ->assertSee('cancel this report first')
             ->assertDontSee('Pay cash')
             ->assertDontSee('Stay safe when paying');
 

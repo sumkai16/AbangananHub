@@ -3,6 +3,9 @@
 <meta name="user-authenticated" content="{{ auth()->check() ? '1' : '0' }}">
 
 <head>
+    {{-- Shown inside the page panel (an iframe over the list): no sidebar, top bar, prefetch rules or notification
+         widgets, since the page around the frame already has them. See App\Http\Middleware\EmbeddedPage. --}}
+    @php $embedded = \App\Http\Middleware\EmbeddedPage::active(); @endphp
     @include('partials.theme-init')
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,6 +13,7 @@
     <title>{{ $title ?? 'AbangananHub' }}</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('images/brand/logo-app-icon.svg') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @unless($embedded)
     <script>
         (function () {
             if (localStorage.getItem('landlordSidebarCollapsed') === 'true') {
@@ -18,30 +22,18 @@
         })();
     </script>
     <style>
+        /* A page that has to load in full (Messages, Analytics) cross-fades instead of flashing, and the sidebar is held
+           still through it, so it reads as only the page changing. Browsers without cross-document transitions ignore this. */
+        @view-transition { navigation: auto; }
+        #landlord-sidebar { view-transition-name: landlord-sidebar; }
+        ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 140ms; }
+        ::view-transition-group(landlord-sidebar) { animation-duration: 0s; }
+        @media (prefers-reduced-motion: reduce) { ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; } }
+
         /* Paint the sidebar and content offset on first byte at desktop width, before Alpine boots. */
         @media (min-width: 1024px) {
             #landlord-sidebar[x-cloak] {
                 display: flex !important;
-            }
-        }
-
-        /* Cross-fade between landlord pages; the sidebar keeps its own layer so it never blinks. */
-        @view-transition {
-            navigation: auto;
-        }
-
-        #landlord-sidebar {
-            view-transition-name: landlord-sidebar;
-        }
-
-        ::view-transition-old(root),
-        ::view-transition-new(root) {
-            animation-duration: 140ms;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            @view-transition {
-                navigation: none;
             }
         }
 
@@ -52,6 +44,15 @@
 
             .sidebar-pre-collapsed #landlord-main {
                 margin-left: 5rem;
+            }
+
+            /* The page panel (and any overlay marked data-sidebar-offset, like the policy reader) starts at the sidebar's edge, so it follows a collapsed sidebar too. */
+            .sidebar-pre-collapsed [data-page-panel-section] {
+                left: 5rem;
+            }
+
+            .sidebar-pre-collapsed [data-sidebar-offset] {
+                left: 5rem;
             }
 
             .sidebar-pre-collapsed #landlord-sidebar nav a,
@@ -70,7 +71,7 @@
     @php
         $speculativeUrls = array_map(fn ($name) => route($name, [], false), [
             'landlord.dashboard', 'landlord.properties.index', 'landlord.reservations.index',
-            'landlord.tenants.index', 'landlord.payments.index', 'landlord.payouts.index',
+            'landlord.tenants.index', 'landlord.contracts.index', 'landlord.payments.index', 'landlord.payouts.index',
             'landlord.reviews.index', 'landlord.analytics.index', 'landlord.complaints.index',
             'landlord.profile.me',
         ]);
@@ -79,6 +80,7 @@
     <script type="speculationrules">
         @json($speculationRules)
     </script>
+    @endunless
 </head>
 
 <body class="font-sans bg-[#F7F8FC] text-[#060D26] min-h-screen" x-data="{
@@ -96,6 +98,7 @@
 
     <div class="landlord-shell flex min-h-screen">
 
+        @unless($embedded)
         {{-- Mobile overlay --}}
         <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false" class="fixed inset-0 bg-black/40 z-40 lg:hidden">
         </div>
@@ -103,7 +106,7 @@
         {{-- ============ SIDEBAR ============ --}}
         <aside id="landlord-sidebar" x-cloak
             :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-            class="print:hidden fixed inset-y-0 left-0 z-50 w-64 lg:w-64 bg-[#060D26] border-r border-white/[0.06] flex flex-col transition-all duration-300 lg:translate-x-0">
+            class="print:hidden fixed inset-y-0 left-0 z-50 w-64 lg:w-64 bg-[#060D26] border-r border-white/[0.06] flex flex-col transition-[width,transform] duration-200 lg:translate-x-0">
 
             {{-- Collapse toggle --}}
             <button @click="sidebarCollapsed = !sidebarCollapsed"
@@ -147,7 +150,7 @@
                         x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
                         x-transition:leave="transition ease-in duration-100"
                         x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                        class="absolute top-[calc(100%+10px)] left-0 w-[calc(100vw-2rem)] max-w-[360px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#5B6A8E]/15 z-50 overflow-hidden">
+                        class="absolute top-[calc(100%+10px)] max-lg:-left-[180px] lg:left-0 w-[calc(100vw-2rem)] max-w-[360px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#5B6A8E]/15 z-50 overflow-hidden">
                         <div x-ref="dropdownBody">
                             <div class="px-4 py-8 text-center">
                                 <div
@@ -158,6 +161,30 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Property filter: one choice for Dashboard, Units, Reservations, Tenants, Payments, Reviews and Analytics.
+                 A direct child of <aside>, not of <nav>, so the open list is not clipped by the nav's overflow. Hidden with one property. --}}
+            @php
+                $scopeProps = \App\Http\Middleware\LandlordPropertyScope::ENABLED
+                    ? \App\Models\Property::where('landlord_id', auth()->id())->where('verification_status', 'Approved')->orderBy('title')->pluck('title', 'property_id')->all()
+                    : [];
+                $scopeId = \App\Http\Middleware\LandlordPropertyScope::current(auth()->id());
+            @endphp
+            @if(\App\Http\Middleware\LandlordPropertyScope::ENABLED && count($scopeProps) > 1)
+                <form method="POST" action="{{ route('landlord.property-scope.update') }}" x-show="!sidebarCollapsed" class="shrink-0 px-3 pt-4">
+                    @csrf
+                    <label class="mb-1.5 block px-3 text-[11px] font-semibold uppercase tracking-widest text-white/50">Property</label>
+                    <x-styled-select name="property" :options="['' => 'All properties'] + $scopeProps" :selected="(string) ($scopeId ?? '')" autosubmit
+                        class="h-10 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 text-[13.5px] font-medium text-white hover:bg-white/10 {{ $scopeId ? 'border-[#FF8A66]/60' : '' }}" />
+                </form>
+                {{-- Collapsed: the filter still applies, so say so; a tap opens the sidebar to change it. --}}
+                <button type="button" x-show="sidebarCollapsed" x-cloak @click="sidebarCollapsed = false"
+                    title="{{ $scopeId ? 'Showing '.$scopeProps[$scopeId] : 'Showing all properties' }}. Open the sidebar to change it."
+                    class="relative mx-auto mt-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] text-white/70 hover:bg-white/10 cursor-pointer">
+                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" /></svg>
+                    @if($scopeId)<span class="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-[#FF8A66] ring-2 ring-[#060D26]"></span>@endif
+                </button>
+            @endif
 
             {{-- Nav --}}
             @php $current = request()->route()?->getName() ?? ''; @endphp
@@ -180,7 +207,7 @@
                             </svg>
                         </div>
                         <span
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-lg">
+                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#060D26] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-lg">
                             Notifications
                         </span>
                     </button>
@@ -203,40 +230,49 @@
             @php
                 // One list drives every link, so a design change (or a new item) is one edit, not fourteen.
                 // `icon` is static SVG inner markup defined here, never user input.
-                // The inbox's own rule (ConversationController::unreadIn), both inboxes: open chats whose latest
-                // message is unread. Counting loose messages also counted cancelled and resolved chats, which the
-                // inbox hides, so the badge said 1 over an empty list.
-                $navUnreadMessages = \App\Models\Conversation::where('landlord_id', auth()->id())
-                    ->whereNotIn('status', ['Cancelled', 'Resolved'])
-                    ->whereHas('latestMessage', fn ($q) => $q->where('sender_id', '!=', auth()->id())->where('is_read', false))
-                    ->count();
-                $navInquiries = \App\Models\Reservation::whereHas('property', fn ($q) => $q->where('landlord_id', auth()->id()))
-                    ->where('rental_status', 'Inquiry')->count();
+                // One rule for every messages badge (Conversation::unreadCountFor, the inbox's own rule: open chats whose
+                // latest message is unread). The Alpine store below keeps it live; this is its first value.
+                $navUnreadMessages = $unreadMessageCount;
+                // Tenancies that owe rent or wait on a payment answer: the same people as the Payments page's "Still owed".
+                $navPaymentsDue = \App\Services\LandlordRentDueCount::for(auth()->id());
+                // One rule per item, in one place (LandlordNavCounts); Messages and Payments have their own sources above.
+                $navCounts = \App\Services\LandlordNavCounts::for(auth()->id());
 
                 $navSections = [
-                    'Main' => [
+                    'Overview' => [
                         ['label' => 'Dashboard', 'href' => route('landlord.dashboard'), 'active' => $current === 'landlord.dashboard',
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />'],
-                        ['label' => 'Properties', 'href' => route('landlord.properties.index'), 'active' => str_starts_with($current, 'landlord.properties') && ! str_contains($current, 'units'),
+                        ['label' => 'Messages', 'href' => route('conversations.index'), 'active' => str_starts_with($current, 'conversations'), 'badge' => $navUnreadMessages, 'badgeKey' => 'messages',
+                            'icon' => '<circle cx="12" cy="12" r="9" /><circle cx="8.5" cy="12" r="0.75" fill="currentColor" stroke="none" /><circle cx="12" cy="12" r="0.75" fill="currentColor" stroke="none" /><circle cx="15.5" cy="12" r="0.75" fill="currentColor" stroke="none" />'],
+                    ],
+                    'Property Management' => [
+                        ['label' => 'Properties', 'href' => route('landlord.properties.index'), 'active' => str_starts_with($current, 'landlord.properties') && ! str_contains($current, 'units'), 'badge' => $navCounts['properties'],
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" />'],
                         // All units across properties. Also lit for the per-property unit pages, which Properties skips.
                         ['label' => 'Units', 'href' => route('landlord.units.index'), 'active' => str_starts_with($current, 'landlord.units') || str_contains($current, 'properties.units'),
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />'],
-                        ['label' => 'Reservations', 'href' => route('landlord.reservations.index'), 'active' => str_starts_with($current, 'landlord.reservations'), 'badge' => $navInquiries,
+                    ],
+                    'Rentals & Payments' => [
+                        ['label' => 'Reservations', 'href' => route('landlord.reservations.index'), 'active' => str_starts_with($current, 'landlord.reservations') || str_starts_with($current, 'landlord.viewings'), 'badge' => $navCounts['reservations'],
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />'],
-                        // One item for tenants, their contracts and the lease policies behind them. Also lit for the pages a contract opens:
-                        // the per-tenancy management page (ledger, lease), Lease policies and the policy editor.
-                        ['label' => 'Tenants', 'href' => route('landlord.tenants.index'),
-                            'active' => str_starts_with($current, 'landlord.tenants') || str_starts_with($current, 'landlord.contracts') || str_starts_with($current, 'landlord.tenancies')
-                                || $current === 'landlord.leases.index' || str_starts_with($current, 'landlord.lease-templates'),
+                        // Also lit for the per-tenancy page (ledger, lease).
+                        ['label' => 'Rentals', 'href' => route('landlord.contracts.index'),
+                            'active' => str_starts_with($current, 'landlord.contracts') || str_starts_with($current, 'landlord.tenancies'), 'badge' => $navCounts['rentals'],
+                            'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />'],
+                        // The rules and wording tenants agree to, per property and unit; also lit for the policy editor.
+                        ['label' => 'Policies', 'href' => route('landlord.leases.index'),
+                            'active' => in_array($current, ['landlord.leases.index', 'landlord.leases.agreement'], true) || str_starts_with($current, 'landlord.lease-templates'),
+                            'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />'],
+                        ['label' => 'Tenants', 'href' => route('landlord.tenants.index'), 'active' => str_starts_with($current, 'landlord.tenants'),
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />'],
-                        ['label' => 'Payments', 'href' => route('landlord.payments.index'), 'active' => str_starts_with($current, 'landlord.payments') || str_starts_with($current, 'landlord.payouts'),
+                        // What tenants reported from their chat; the badge counts the ones still open or in progress.
+                        ['label' => 'Concerns', 'href' => route('landlord.concerns.index'), 'active' => str_starts_with($current, 'landlord.concerns'), 'badge' => $navCounts['concerns'],
+                            'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />'],
+                        ['label' => 'Payments', 'href' => route('landlord.payments.index'), 'active' => str_starts_with($current, 'landlord.payments') || str_starts_with($current, 'landlord.payouts'), 'badge' => $navPaymentsDue,
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />'],
-                        ['label' => 'Messages', 'href' => route('conversations.index'), 'active' => str_starts_with($current, 'conversations'), 'badge' => $navUnreadMessages,
-                            'icon' => '<circle cx="12" cy="12" r="9" /><circle cx="8.5" cy="12" r="0.75" fill="currentColor" stroke="none" /><circle cx="12" cy="12" r="0.75" fill="currentColor" stroke="none" /><circle cx="15.5" cy="12" r="0.75" fill="currentColor" stroke="none" />'],
                     ],
                     'Insights' => [
-                        ['label' => 'Reviews', 'href' => route('landlord.reviews.index'), 'active' => str_starts_with($current, 'landlord.reviews'),
+                        ['label' => 'Reviews', 'href' => route('landlord.reviews.index'), 'active' => str_starts_with($current, 'landlord.reviews'), 'badge' => $navCounts['reviews'],
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.563.563 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5z" />'],
                         ['label' => 'Analytics', 'href' => route('landlord.analytics.index'), 'active' => str_starts_with($current, 'landlord.analytics'),
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />'],
@@ -256,39 +292,91 @@
             @endphp
 
             <nav class="flex-1 overflow-y-auto overflow-x-hidden px-3 py-5 scrollbar-thin" aria-label="Landlord navigation">
+                {{-- Each section folds. The open/closed choice is remembered per browser; the section holding the current page
+                     is always open (also after a sidebar click that swaps the page without a reload). A folded section still
+                     shows its waiting count, and a dot when it holds the current page. The icon-only rail shows every item. --}}
                 @foreach($navSections as $sectionTitle => $navItems)
-                    <p data-sidebar-label x-show="!sidebarCollapsed"
-                        class="px-3 text-[11px] font-semibold text-white/50 uppercase tracking-widest mb-2 whitespace-nowrap {{ $loop->first ? '' : 'mt-6' }}">
-                        {{ $sectionTitle }}</p>
-                    @unless($loop->first)
-                        <div x-show="sidebarCollapsed" x-cloak class="mx-3 mb-3 mt-4 border-t border-white/[0.08]"></div>
-                    @endunless
+                    @php
+                        $sectionActive = collect($navItems)->contains(fn ($i) => $i['active']);
+                        $sectionBadge = (int) collect($navItems)->filter(fn ($i) => empty($i['badgeKey']))->sum(fn ($i) => $i['badge'] ?? 0);
+                        $sectionLive = collect($navItems)->contains(fn ($i) => ($i['badgeKey'] ?? null) === 'messages');
+                    @endphp
+                    <div class="{{ $loop->first ? '' : 'mt-3' }}"
+                        x-data="{
+                            title: @js($sectionTitle),
+                            open: true,
+                            active: @js($sectionActive),
+                            init() {
+                                let saved = {};
+                                try { saved = JSON.parse(localStorage.getItem('landlordNavOpen') || '{}'); } catch (e) {}
+                                this.open = this.active ? true : saved[this.title] !== false;
+                            },
+                            toggle() {
+                                this.open = !this.open;
+                                try {
+                                    const saved = JSON.parse(localStorage.getItem('landlordNavOpen') || '{}');
+                                    saved[this.title] = this.open;
+                                    localStorage.setItem('landlordNavOpen', JSON.stringify(saved));
+                                } catch (e) {}
+                            },
+                            refresh() {
+                                this.active = !!this.$refs.items.querySelector('[aria-current=page]');
+                                if (this.active) this.open = true;
+                            },
+                        }"
+                        @live:swapped.document="setTimeout(() => refresh(), 60)">
+                        @unless($loop->first)
+                            <div x-show="sidebarCollapsed" x-cloak class="mx-3 mb-3 border-t border-white/[0.08]"></div>
+                        @endunless
 
+                        <button type="button" data-sidebar-label x-show="!sidebarCollapsed" @click="toggle()" :aria-expanded="open"
+                            class="group flex w-full items-center gap-2 rounded-lg px-3 py-2 min-h-11 text-left text-[11px] font-semibold uppercase tracking-widest whitespace-nowrap transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/60 cursor-pointer"
+                            :class="!open && active ? 'text-white' : 'text-white/50 hover:text-white/80'">
+                            <span class="flex-1">{{ $sectionTitle }}</span>
+                            <span x-show="!open && active" x-cloak class="h-1.5 w-1.5 rounded-full bg-[#FF8A66]" aria-hidden="true"></span>
+                            <span x-show="!open && ({{ $sectionBadge }}{{ $sectionLive ? ' + ($store.navBadges.messages || 0)' : '' }}) > 0" x-cloak
+                                class="min-w-[18px] rounded-full bg-[#FF8A66] px-1.5 text-center text-[10px] font-bold leading-[18px] text-[#060D26] tabular-nums normal-case tracking-normal"
+                                x-text="{{ $sectionBadge }}{{ $sectionLive ? ' + ($store.navBadges.messages || 0)' : '' }}"></span>
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="shrink-0 transition-transform duration-200" :class="open ? '' : '-rotate-90'" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" /></svg>
+                        </button>
+
+                    <div x-ref="items" x-show="open || sidebarCollapsed" x-transition.opacity.duration.150ms>
                     @foreach($navItems as $item)
-                        @php $badge = $item['badge'] ?? 0; @endphp
+                        @php $badge = $item['badge'] ?? 0; $badgeKey = $item['badgeKey'] ?? null; @endphp
                         <a href="{{ $item['href'] }}" @if($item['active']) aria-current="page" @endif
+                            data-page-swap="nav" @click="sidebarOpen = false"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
-                            class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium mb-0.5 transition-colors duration-200
-                                {{ $item['active'] ? 'bg-white/[0.08] text-white font-semibold' : 'text-white/65 hover:bg-white/[0.06] hover:text-[#FF8A66]' }}">
-                            @if($item['active'])
-                                <span class="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-[#FF8A66]" aria-hidden="true"></span>
-                            @endif
+                            class="group relative flex items-center gap-3 px-3 py-2.5 min-h-11 rounded-xl text-[14px] font-medium mb-0.5 transition-colors duration-200
+                                {{ $item['active'] ? 'bg-white/[0.10] text-white font-semibold' : 'text-white/65 hover:bg-white/[0.06] hover:text-[#FF8A66]' }}">
                             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"
                                 class="shrink-0 {{ $item['active'] ? 'text-[#FF8A66]' : '' }}" aria-hidden="true">{!! $item['icon'] !!}</svg>
                             <span data-sidebar-label x-show="!sidebarCollapsed" class="flex-1 whitespace-nowrap">{{ $item['label'] }}</span>
-                            @if($badge > 0)
+                            @if($badgeKey)
+                                {{-- Live: the number comes from the Alpine store, so a new message updates it without a reload. --}}
+                                <span data-sidebar-label x-show="!sidebarCollapsed && $store.navBadges.{{ $badgeKey }} > 0" x-cloak
+                                    class="min-w-[20px] h-5 px-1.5 rounded-full bg-[#FF8A66] text-[#060D26] text-[11px] font-bold flex items-center justify-center tabular-nums">
+                                    <span class="sr-only" x-text="$store.navBadges.{{ $badgeKey }} + ' waiting'"></span><span aria-hidden="true" x-text="$store.navBadges.{{ $badgeKey }} > 99 ? '99+' : $store.navBadges.{{ $badgeKey }}"></span>
+                                </span>
+                                <span x-show="sidebarCollapsed && $store.navBadges.{{ $badgeKey }} > 0" x-cloak
+                                    class="absolute top-0.5 right-1 min-w-[16px] h-4 px-1 rounded-full bg-[#FF8A66] text-[#060D26] text-[10px] font-bold flex items-center justify-center tabular-nums border-2 border-[#060D26] box-content" aria-hidden="true"
+                                    x-text="$store.navBadges.{{ $badgeKey }} > 99 ? '99+' : $store.navBadges.{{ $badgeKey }}"></span>
+                            @elseif($badge > 0)
                                 <span data-sidebar-label x-show="!sidebarCollapsed"
                                     class="min-w-[20px] h-5 px-1.5 rounded-full bg-[#FF8A66] text-[#060D26] text-[11px] font-bold flex items-center justify-center tabular-nums">
                                     <span class="sr-only">{{ $badge }} waiting</span><span aria-hidden="true">{{ $badge > 99 ? '99+' : $badge }}</span>
                                 </span>
-                                <span x-show="sidebarCollapsed" x-cloak class="absolute top-1.5 right-3 w-2 h-2 rounded-full bg-[#FF8A66] border-2 border-[#060D26]" aria-hidden="true"></span>
+                                {{-- Collapsed rail: the number itself, not a bare dot, so it is still a count. --}}
+                                <span x-show="sidebarCollapsed" x-cloak
+                                    class="absolute top-0.5 right-1 min-w-[16px] h-4 px-1 rounded-full bg-[#FF8A66] text-[#060D26] text-[10px] font-bold flex items-center justify-center tabular-nums border-2 border-[#060D26] box-content" aria-hidden="true">{{ $badge > 99 ? '99+' : $badge }}</span>
                             @endif
                             <span x-show="sidebarCollapsed" x-cloak
-                                class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                                class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#060D26] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                                 {{ $item['label'] }}
                             </span>
                         </a>
                     @endforeach
+                    </div>
+                    </div>
                 @endforeach
             </nav>
 
@@ -305,7 +393,7 @@
                     </svg>
                     <span data-sidebar-label x-show="!sidebarCollapsed" class="whitespace-nowrap">View public rentals</span>
                     <span x-show="sidebarCollapsed" x-cloak
-                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#060D26] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                         View public rentals
                     </span>
                 </a>
@@ -337,7 +425,7 @@
                                     d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
                             </svg>
                             <span x-show="sidebarCollapsed" x-cloak
-                                class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover/so:opacity-100 transition-opacity z-50 shadow-xl">
+                                class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#060D26] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover/so:opacity-100 transition-opacity z-50 shadow-xl">
                                 Sign out
                             </span>
                         </button>
@@ -345,53 +433,56 @@
                 </div>
             </div>
         </aside>
+        @endunless
 
         {{-- ============ MAIN ============ --}}
         <div id="landlord-main"
-            class="lg:ml-64 print:!ml-0 flex-1 flex flex-col min-w-0 transition-all duration-300">
+            class="{{ $embedded ? '' : 'lg:ml-64' }} print:!ml-0 flex-1 flex flex-col min-w-0 transition-all duration-300">
 
-            {{-- Mobile-only slim bar --}}
-            <div
-                class="lg:hidden print:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-[#E2E4EC] sticky top-0 z-30">
-                <button @click="sidebarOpen = !sidebarOpen"
-                    class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#E2E4EC] text-[#060D26] transition-colors duration-200">
+            @unless($embedded)
+            {{-- Mobile-only top bar: the same lockup as the tenant site (logo and name), then the page's title on a strip under it. --}}
+            <div class="lg:hidden print:hidden sticky top-0 z-30">
+            <div class="flex items-center justify-between gap-2 px-4 py-3 bg-white border-b border-[#E2E4EC]">
+                <button @click="sidebarOpen = !sidebarOpen" aria-label="Open menu"
+                    class="w-11 h-11 flex items-center justify-center rounded-lg hover:bg-[#E2E4EC] text-[#060D26] transition-colors duration-200">
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
                     </svg>
                 </button>
 
-                {{-- Page title: pages push it from <x-page-header> (or by hand) and the in-page title hides below lg. --}}
-                <div class="flex min-w-0 flex-1 items-center gap-2 px-3">@stack('mobile-title')</div>
+                {{-- Brand: the logo is always here, so the bar reads the same on every page and matches the tenant bar. --}}
+                <a href="{{ route('landlord.dashboard') }}" data-page-swap="nav" aria-label="AbangananHub, landlord dashboard"
+                    class="group flex min-w-0 flex-1 items-center no-underline">
+                    <x-brand-logo mark="w-8 h-8" text="text-[16px] max-[380px]:hidden" gap="gap-1.5" />
+                </a>
 
                 <div class="flex shrink-0 items-center gap-2">
-                    <x-theme-toggle class="w-9 h-9 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26] hover:bg-[#ECEEF6]" />
+                    <x-theme-toggle class="w-11 h-11 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26] hover:bg-[#ECEEF6]" />
 
                     {{-- Messages — mobile equivalent of the floating chat bubble,
                          which is desktop-only (see partials.message-notifications).
                          Links to the full messages page instead of a popup panel. --}}
                     @auth
-                        @php
-                            $mobileUnreadMsgCount = $unreadMessageCount;
-                        @endphp
                         <a href="{{ route('conversations.index') }}"
                             aria-label="Messages"
-                            class="relative flex items-center justify-center w-9 h-9 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26]/70 hover:bg-[#ECEEF6] transition-colors duration-200">
+                            class="relative flex items-center justify-center w-11 h-11 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26]/70 hover:bg-[#ECEEF6] transition-colors duration-200">
                             <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                             </svg>
-                            @if($mobileUnreadMsgCount > 0)
-                                <span class="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold ring-2 ring-white">{{ $mobileUnreadMsgCount > 99 ? '99+' : $mobileUnreadMsgCount }}</span>
-                            @endif
+                            <span x-show="$store.navBadges.messages > 0" x-cloak
+                                class="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold ring-2 ring-white"
+                                x-text="$store.navBadges.messages > 99 ? '99+' : $store.navBadges.messages"></span>
                         </a>
                     @endauth
 
                     <div class="relative" x-data="notificationDropdown()" @click.away="close()"
                     @keydown.escape.window="close()">
-                    <button type="button" @click="toggle()"
-                        class="relative flex items-center justify-center w-9 h-9 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26]/70 hover:bg-[#E2E4EC] transition-colors duration-200">
+                    <button type="button" @click="toggle()" aria-label="Notifications"
+                        class="relative flex items-center justify-center w-11 h-11 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26]/70 hover:bg-[#E2E4EC] transition-colors duration-200">
                         <span x-show="unreadCount > 0" x-cloak
-                            class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#EF4444] border-2 border-white"></span>
+                            class="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold ring-2 ring-white"
+                            x-text="unreadCount > 99 ? '99+' : unreadCount"></span>
                         <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                             stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -415,6 +506,11 @@
                     </div>
                 </div>
             </div>
+            {{-- Page title: pages push it from <x-page-header> (or by hand) and the in-page title hides below lg.
+                 Empty on a page without one, so the strip is not drawn. page-swap.js refreshes it between pages. --}}
+            <div id="mobile-title" class="flex min-h-11 min-w-0 items-center gap-2 border-b border-[#E2E4EC] bg-white px-4 py-1.5 empty:hidden">@stack('mobile-title')</div>
+            </div>
+            @endunless
 
             <main id="main" class="flex-1 overflow-x-clip">
                 @yield('content')
@@ -422,6 +518,7 @@
         </div>
     </div>
 
+    @unless($embedded)
     <script>
         function notificationDropdown() {
             return {
@@ -509,12 +606,28 @@
         }
     </script>
     @include('partials.message-notifications')
+    @include('partials.notification-toast')
+    <x-page-panel />
+    @endunless
 
     <x-confirm-modal />
     <script src="{{ asset('js/modal-confirm.js') }}"></script>
     @include('partials.flash-modal')
 
-    @stack('scripts')
+    @if($embedded)
+        {{-- A link inside the panel that leaves the page (a receipt, another section) opens in the full window, not
+             inside the frame. Forms are not touched: they post inside the frame and come back embedded. --}}
+        <script>
+            document.addEventListener('click', function (e) {
+                var a = e.target.closest('a[href]');
+                if (!a || a.target || (a.getAttribute('href') || '').charAt(0) === '#' || /^(javascript|mailto|tel):/i.test(a.getAttribute('href'))) return;
+                a.target = '_top';
+            }, true);
+        </script>
+    @endif
+
+    {{-- Page scripts. A page that pushes one is opened with a normal load, never swapped (see page-swap.js). --}}
+    <div id="page-scripts">@stack('scripts')</div>
 
 </body>
 

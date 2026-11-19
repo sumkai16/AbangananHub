@@ -24,39 +24,61 @@ class PaymentController extends Controller
 
     public function index(Request $request)
     {
-        $status = $request->query('status', 'Held');
+        $status = $request->query('status', 'All');
 
         if (! in_array($status, self::STATUSES, true)) {
-            $status = 'Held';
+            $status = 'All';
         }
 
-        $payments = Payment::with(['reservation.tenant', 'reservation.property', 'reservation.unit'])
+        $search = trim((string) $request->query('search', ''));
+        $sort = $request->query('sort', 'newest');
+
+        // Search and the counts share one base query, so the strip and the status dropdown follow the search.
+        $base = fn () => Payment::query()->when($search !== '', fn ($q) => $q->whereHas('reservation', function ($r) use ($search) {
+            $r->whereHas('tenant', fn ($t) => $t->where('first_name', 'like', "%{$search}%")
+                ->orWhere('last_name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%"))
+                ->orWhereHas('property', fn ($p) => $p->where('title', 'like', "%{$search}%")
+                    ->orWhere('address', 'like', "%{$search}%"))
+                ->orWhereHas('property.landlord', fn ($l) => $l->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%"));
+        }));
+
+        $payments = $base()->with(['reservation.tenant', 'reservation.property.landlord', 'reservation.unit'])
             ->when($status !== 'All', fn ($q) => $q->where('status', $status))
-            ->latest('created_at')
+            // On All with the default sort, money waiting on the admin (Held) comes first.
+            ->when($status === 'All' && $sort === 'newest', fn ($q) => $q->orderByRaw("status = 'Held' desc"))
+            ->when($sort === 'oldest', fn ($q) => $q->oldest('created_at'), fn ($q) => $q->when(
+                in_array($sort, ['amount_desc', 'amount_asc'], true),
+                fn ($q) => $q->orderBy('amount', $sort === 'amount_desc' ? 'desc' : 'asc'),
+                fn ($q) => $q->latest('created_at')
+            ))
             ->paginate(15)
             ->withQueryString();
 
-        $counts = [
-            'Held' => Payment::where('status', 'Held')->count(),
-            'Released' => Payment::where('status', 'Released')->count(),
-            'Paid' => Payment::where('status', 'Paid')->count(),
-            'Voided' => Payment::where('status', 'Voided')->count(),
-            'Pending' => Payment::where('status', 'Pending')->count(),
-            'Refunded' => Payment::where('status', 'Refunded')->count(),
-        ];
-        $counts['All'] = Payment::count();
+        // Every count and sum on the page from one grouped query (it follows the search, like the list).
+        $byStatus = $base()->groupBy('status')
+            ->selectRaw('status, COUNT(*) as c, SUM(amount) as total')
+            ->get()
+            ->keyBy('status');
 
-        $sums = [
-            'Held' => Payment::where('status', 'Held')->sum('amount'),
-            'Released' => Payment::where('status', 'Released')->sum('amount'),
-            'Paid' => Payment::where('status', 'Paid')->sum('amount'),
-        ];
+        $counts = ['All' => (int) $byStatus->sum('c')];
+        foreach (['Held', 'Released', 'Paid', 'Voided', 'Pending', 'Refunded'] as $st) {
+            $counts[$st] = (int) ($byStatus[$st]->c ?? 0);
+        }
+
+        $sums = [];
+        foreach (['Held', 'Released', 'Paid'] as $st) {
+            $sums[$st] = $byStatus[$st]->total ?? 0;
+        }
 
         return view('admin.payments.index', [
             'payments' => $payments,
             'status' => $status,
             'counts' => $counts,
             'sums' => $sums,
+            'search' => $search,
+            'sort' => in_array($sort, ['oldest', 'amount_desc', 'amount_asc'], true) ? $sort : 'newest',
             // What "Refund tenant" would send for each Held row on this page, from one query.
             'heldGroups' => PaymentRefunds::heldGroups($payments->getCollection()),
         ]);

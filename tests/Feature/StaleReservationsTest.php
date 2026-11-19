@@ -61,7 +61,8 @@ class StaleReservationsTest extends TestCase
     public function test_a_fresh_reservation_is_left_alone(): void
     {
         foreach (['Inquiry', 'Under Negotiation', 'Pending Rental Agreement'] as $status) {
-            $r = $this->reservation($status, 1);
+            // Brand new (an hour old). An agreement is reminded after 1 day since the 3-day payment deadlines (Nov 13).
+            $r = $this->reservation($status, 0);
             $this->sweep();
             $this->assertSame($status, $r->fresh()->rental_status);
             $this->assertNull($r->fresh()->stale_reminder_sent_at);
@@ -90,9 +91,11 @@ class StaleReservationsTest extends TestCase
 
     public function test_an_unsigned_agreement_reminds_the_tenant_then_frees_the_unit(): void
     {
-        $r = $this->reservation('Pending Rental Agreement', 3);
+        // The agreement stage reminds after 1 day and cancels at 3 (config/rentals.php, Nov 13): 2 days is in between.
+        $r = $this->reservation('Pending Rental Agreement', 2);
 
         $this->sweep();
+        $this->assertSame('Pending Rental Agreement', $r->fresh()->rental_status);
         $this->assertSame(1, $this->notices($this->tenant->user_id, 'Please sign your rental agreement'));
         $this->assertSame(1, $this->notices($this->landlord->user_id, 'Agreement still unsigned'));
 
@@ -192,9 +195,9 @@ class StaleReservationsTest extends TestCase
 
     public function test_a_document_review_restarts_the_signing_clock(): void
     {
-        // Sent 20 days ago, but the landlord only approved the document yesterday: the tenant has had one day, not twenty.
+        // Sent 20 days ago, but the landlord only approved the document just now: the tenant has had no time, not twenty days.
         $r = $this->reservation('Pending Rental Agreement', 20);
-        $this->document($r, 'Approved', 1);
+        $this->document($r, 'Approved', 0);
 
         $this->sweep();
 
@@ -225,7 +228,8 @@ class StaleReservationsTest extends TestCase
 
     public function test_a_signed_lease_with_no_payment_reminds_then_frees_the_unit(): void
     {
-        $r = $this->signed(4);
+        // Signed and unpaid: reminded after 1 day, cancelled at 3 (config/rentals.php, Nov 13). 2 days is in between.
+        $r = $this->signed(2);
 
         $this->sweep();
         $this->assertSame('Rental Agreement Signed', $r->fresh()->rental_status);

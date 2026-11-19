@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use App\Observers\ReviewObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 
+#[ObservedBy(ReviewObserver::class)]
 class Review extends Model
 {
     protected $primaryKey = 'review_id';

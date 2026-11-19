@@ -4,7 +4,12 @@
 --}}
 @foreach($claims as $claim)
     @php
-        $label = $claim->claim_type === 'MoveIn' ? 'Move-in payment' : 'Rent for '.$claim->billing_period->format('F Y');
+        // "Rent for August 2026", or "Rent for Aug 2026 – Oct 2026" when the money spreads over several months
+        // (PaymentClaim::monthsCovered asks the same allocator that writes the rows on confirm).
+        $label = ucfirst($claim->coverageLabel());
+        $months = $claim->monthsCovered();
+        // The ledger page passes the one tenant's name; the Payments page lists several tenants' reports, so it falls back to each claim's own.
+        $who = $tenantName ?? ($claim->reservation->tenant?->first_name ?? 'Your tenant');
         // A move-in payment on or after the move-in date also starts the tenancy, so it is one button, not two.
         $andMoveIn = $claim->claim_type === 'MoveIn'
             && $claim->reservation->rental_status === 'Rental Agreement Signed'
@@ -13,7 +18,7 @@
     <div class="rounded-2xl border border-[#FF8A66]/40 bg-[#FF8A66]/[0.06] p-4" x-data="{ reject: false }">
         <p class="text-[11px] font-bold uppercase tracking-wider text-[#B35A3D]">Payment to confirm &middot; {{ $label }}</p>
         <p class="mt-1 text-[13.5px] text-[#060D26]">
-            <span class="font-bold">{{ $tenantName ?? 'Your tenant' }}</span>
+            <span class="font-bold">{{ $who }}</span>
             @if($claim->isCash())
                 says they handed you <span class="font-bold tabular-nums">&#8369;{{ number_format($claim->amount, 2) }}</span> in cash
                 on {{ $claim->paid_on->format('M j') }}.
@@ -22,6 +27,15 @@
                 on {{ $claim->paid_on->format('M j') }}.
             @endif
         </p>
+        @if(! empty($showWhere))
+            <p class="mt-0.5 text-[12.5px] text-[#5B6A8E]">{{ collect([$claim->reservation->unit?->unit_label, $claim->reservation->property?->title])->filter()->implode(' · ') }}</p>
+        @endif
+        @if(count($months) > 1)
+            <p class="mt-1 text-[12.5px] text-[#060D26]">
+                Covers
+                @foreach($months as $covered)<span class="tabular-nums">{{ $covered['billing_period']->format('M') }} &#8369;{{ number_format($covered['amount'], 2) }}</span>@unless($loop->last), @endunless @endforeach
+            </p>
+        @endif
         @if($claim->isCash())
             <p class="mt-0.5 text-[12.5px] text-[#5B6A8E]">Confirm only if you actually received this cash. If you didn&rsquo;t, press Not received and say why.</p>
         @else

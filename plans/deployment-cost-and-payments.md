@@ -21,7 +21,7 @@ checkout before paying, and look at the renewal price, not the first-term price.
 | Email | Resend free tier | Free | 3,000 emails/mo, **capped at 100/day** |
 | ID OCR | Google Vision free tier | Free | Free-tier limit not verified |
 | Social login | Google / Facebook OAuth | Free | Both apps still in Testing mode; publishing may need review |
-| Backups | Nightly `mysqldump` + `storage/app/private` to Cloudflare R2 | Free tier (limit not verified) | Required: `storage/app/private` holds the only copy of every government ID and property document |
+| Backups | Nightly encrypted `mysqldump` + `storage/app/private` to Cloudflare R2 (built Nov 16 2026: `backup:run`, runbook §10b) | Free tier (limit not verified) | Required: `storage/app/private` holds the only copy of every government ID and property document |
 
 **Estimate:** ~US$7–13/mo for the server and domain together. First year: ~US$90–160, depending on
 the server term.

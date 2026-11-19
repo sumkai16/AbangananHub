@@ -26,7 +26,7 @@ php artisan config:cache && php artisan route:cache && php artisan view:cache &&
 - [ ] Browse via `http://127.0.0.1:8000`, **not** `localhost`
 - [ ] Open every page you plan to show once (warms OPcache and the browser cache)
 
-> Do **not** run `php artisan test` — it wipes the dev database (`RefreshDatabase` on MySQL).
+> `php artisan test` is safe to run: the tests use their own database (`abanganan_hub_test`, see `phpunit.xml`), not the one you browse. For the defense data and demo flow, see `docs/defense-script.md`.
 
 ---
 

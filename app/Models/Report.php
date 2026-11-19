@@ -55,6 +55,12 @@ class Report extends Model
         return $this->hasOne(PaymentClaim::class, 'dispute_report_id', 'report_id');
     }
 
+    /** The reservation whose kept money this report is about, when it is a "Refund not returned" report. */
+    public function refundReservation()
+    {
+        return $this->hasOne(Reservation::class, 'refund_report_id', 'report_id');
+    }
+
     // ─── Status Helpers ──────────────────────────────────────
 
     public function isPending(): bool

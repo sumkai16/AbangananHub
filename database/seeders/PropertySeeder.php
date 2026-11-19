@@ -24,6 +24,9 @@ use Illuminate\Database\Seeder;
  * kitchen, floor, avail, deposit (months of rent), desc.
  *
  * Runs after AmenitySeeder and LandlordSeeder.
+ *
+ * Listing and unit photos are local files (public/images/seed/<unsplash-id>.jpg, stored as /images/seed/<id>.jpg), so the
+ * demo needs no internet connection.
  */
 class PropertySeeder extends Seeder
 {
@@ -58,7 +61,7 @@ class PropertySeeder extends Seeder
         '1522771739844-6a9f6d5f14af', '1540518614846-7eded433c457', '1616594039964-ae9021a400a0',
         '1560185007-cde436f6a4d0', '1615874959474-d609969a20ed', '1585412727339-54e4bae3bbf9',
         '1505693416388-ac5ce068fe85', '1560448204-603b3fc33ddc', '1556909114-f6e7ad7d3136',
-        '1594560913095-8cf34bab82ad', '1560185008-b033106af5c8', '1631049307264-da0ec9d70304',
+        '1594560913095-8cf34bab82ad', '1560448204-e02f11c3d0e2', '1631049307264-da0ec9d70304',
     ];
 
     private const CAPTIONS = [
@@ -123,6 +126,22 @@ class PropertySeeder extends Seeder
         ],
     ];
 
+    /**
+     * Which catalogue rows are seeded (Nov 6 2026). The catalogue holds 77 properties; the demo uses 22, so every list,
+     * the browse page and the admin tables load faster and read cleanly. The 22 are the ones with reservations or chats
+     * plus a spread of landlords, cities and types (plans/image-and-demo-data-cleanup.md). Zero-based positions in
+     * catalogue(); to seed the full set again, set this to null.
+     *
+     * Labangon Bedspace, Private Rooms Colon, Female Bedspace Punta Princesa, Rooms near SM Seaside, Lahug Dormitory,
+     * Bedspace near Cebu Doctors, Talamban Student Rooms, Maguikay Duplex, Liloan Poblacion, Gabi Rooms Cordova,
+     * Maribago Staff Rooms, Tunghaan Rooms, Poblacion Naga, Sabang Danao, Compostela Family House, San Remigio
+     * Beachside, Argao Poblacion, Dalaguete Rooms, Aloguinsan Seaside, Samboan Room, Carmen Poblacion, Ladies' Bedspace
+     * near USC Talamban.
+     *
+     * @var list<int>|null
+     */
+    private const DEMO_KEEP = [0, 1, 2, 3, 6, 7, 9, 12, 14, 15, 18, 21, 24, 26, 27, 30, 34, 38, 42, 46, 50, 63];
+
     public function run(): void
     {
         $landlords = [self::MARIA => User::where('email', 'landlord@abangananhub.com')->firstOrFail()];
@@ -131,6 +150,10 @@ class PropertySeeder extends Seeder
         }
 
         foreach ($this->catalogue() as $n => $row) {
+            if (self::DEMO_KEEP !== null && ! in_array($n, self::DEMO_KEEP, true)) {
+                continue;
+            }
+
             [$owner, $title, $type, $barangay, $city, $lat, $lng, $arrangement, $utilities, $description, $units] = $row;
             // The catalogue predates the split: gender values become the occupancy preference; couples/family have no equivalent.
             [$arrangement, $occupancy] = match ($arrangement) {
@@ -185,7 +208,7 @@ class PropertySeeder extends Seeder
             PropertyMedia::create([
                 'property_id' => $property->property_id,
                 'media_type'  => 'Image',
-                'media_url'   => 'https://images.unsplash.com/photo-'.$pool[($n + $k) % count($pool)].'?w=1200&q=80',
+                'media_url'   => '/images/seed/'.$pool[($n + $k) % count($pool)].'.jpg',
             ]);
         }
     }
@@ -214,7 +237,7 @@ class PropertySeeder extends Seeder
             UnitMedia::create([
                 'unit_id'    => $unit->unit_id,
                 'media_type' => 'Image',
-                'media_url'  => 'https://images.unsplash.com/photo-'.self::UNIT_PHOTOS[($seed + $k * 5) % count(self::UNIT_PHOTOS)].'?w=800&q=80',
+                'media_url'  => '/images/seed/'.self::UNIT_PHOTOS[($seed + $k * 5) % count(self::UNIT_PHOTOS)].'.jpg',
                 'source'     => 'camera',
                 'caption'    => $k === 0 ? self::CAPTIONS[$seed % count(self::CAPTIONS)] : null,
             ]);

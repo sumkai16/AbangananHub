@@ -1,6 +1,8 @@
 @extends(auth()->user()->usesLandlordShell() ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
 
 @section('content')
+    {{-- Any change to one of this tenant's reservations redraws the list live (resources/js/live-page.js). --}}
+    <div hidden data-live-page data-live-any data-live-user="{{ auth()->id() }}"></div>
     <div class="{{ auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-14 min-h-[calc(100vh-72px)] flex flex-col" x-data="{
             modalOpen: false,
             selected: null,
@@ -78,7 +80,7 @@
             ] as $key => $label)
                 {{-- Empty tabs are noise: keep All, the active tab, and any tab with results. --}}
                 @continue($key !== 'all' && $status !== $key && ($counts[$key] ?? 0) === 0)
-                <a href="{{ route('reservations.index', $key === 'all' ? [] : ['status' => $key]) }}"
+                <a href="{{ route('reservations.index', $key === 'all' ? [] : ['status' => $key]) }}" data-page-swap="nav"
                     class="px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors duration-150 whitespace-nowrap
                               {{ $status === $key ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#5B6A8E] hover:text-[#060D26]' }}">
                     {{ $label }}
@@ -108,7 +110,7 @@
                             Browse properties
                         </a>
                     @else
-                        <a href="{{ route('reservations.index') }}"
+                        <a href="{{ route('reservations.index') }}" data-page-swap="nav"
                             class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13px] font-semibold text-[#060D26] bg-white ring-1 ring-[#5B6A8E]/15 hover:bg-[#ECEEF6] transition-all">
                             View all reservations
                         </a>
@@ -137,7 +139,7 @@
 
                         return [
                             'r' => $r,
-                            'photo' => $r->property->media->first()?->media_url,
+                            'photo' => \App\Support\Images::src($r->property->media->first()?->media_url, 'card'),
                             'unit' => $r->unit->unit_label ?? 'No unit',
                             'landlord' => $landlordName !== '' ? $landlordName : 'Unknown',
                             'moveIn' => $moveIn,
@@ -165,7 +167,7 @@
                                 'landlord_contact' => $landlord->contact_number ?? '—',
                                 'property_title' => $r->property->title,
                                 'unit_label' => $r->unit->unit_label ?? 'No unit',
-                                'property_photo' => $r->property->media->first()?->media_url,
+                                'property_photo' => \App\Support\Images::src($r->property->media->first()?->media_url, 'card'),
                                 'is_terminal' => $closed,
                                 'step_index' => $closed ? -1 : array_search($r->rental_status, $journeySteps),
                             ],
@@ -188,7 +190,7 @@
                                         <p class="min-w-0 text-[14px] font-semibold leading-snug {{ $row['closed'] ? 'text-[#5B6A8E]' : 'text-[#060D26]' }}">{{ $row['r']->property->title }}</p>
                                         <span class="shrink-0 inline-flex items-center h-6 px-2.5 rounded-full text-[11px] font-bold whitespace-nowrap {{ $row['pill'][1] }}">{{ $row['pill'][0] }}</span>
                                     </div>
-                                    <p class="mt-0.5 text-[12.5px] text-[#5B6A8E] truncate">{{ $row['unit'] }} · {{ $row['landlord'] }}</p>
+                                    <p class="mt-0.5 text-[12.5px] text-[#5B6A8E] truncate">{{ $row['unit'] }} · <x-person-link :user="$row['r']->property->landlord" :name="$row['landlord']" /></p>
                                     <p class="mt-1 text-[12.5px] text-[#060D26] tabular-nums">
                                         Move-in: {{ $row['moveIn'] }} <span class="text-[#5B6A8E]">· {{ $row['duration'] }}</span>
                                     </p>
@@ -229,7 +231,7 @@
                                         </div>
                                         <div class="min-w-0">
                                             <p class="text-[14px] font-semibold truncate {{ $row['closed'] ? 'text-[#5B6A8E]' : 'text-[#060D26]' }}" title="{{ $row['r']->property->title }}">{{ $row['r']->property->title }}</p>
-                                            <p class="text-[12.5px] text-[#5B6A8E] truncate">{{ $row['unit'] }} · {{ $row['landlord'] }}</p>
+                                            <p class="text-[12.5px] text-[#5B6A8E] truncate">{{ $row['unit'] }} · <x-person-link :user="$row['r']->property->landlord" :name="$row['landlord']" /></p>
                                             @if($row['details']['rejection_reason'])
                                                 <p class="text-[12.5px] text-[#B91C1C] truncate" title="{{ $row['details']['rejection_reason'] }}">Reason: {{ $row['details']['rejection_reason'] }}</p>
                                             @endif

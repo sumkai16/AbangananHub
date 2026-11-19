@@ -32,7 +32,7 @@
 
             {{-- Background image with darker overlay --}}
             <div class="absolute inset-0">
-                <img src="{{ asset('images/auth-bg-1600.jpg') }}" class="w-full h-full object-cover" alt="" />
+                <img src="{{ asset('images/auth-bg-1600.webp') }}" class="w-full h-full object-cover" alt="" />
                 {{-- Photo shows through at the top; navy builds toward the bottom where the copy sits --}}
                 <div class="absolute inset-0 bg-gradient-to-t from-[#060D26]/95 via-[#060D26]/70 to-[#060D26]/15"></div>
             </div>

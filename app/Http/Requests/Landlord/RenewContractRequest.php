@@ -26,6 +26,8 @@ class RenewContractRequest extends FormRequest
             'new_monthly_rent' => ['required', 'numeric', 'min:0', 'max:1000000'],
             // A month, posted as Y-m from the form.
             'rent_effective_from' => ['required', 'date_format:Y-m'],
+            // The signed agreement for the renewed term. Optional: a later renewal can attach it too.
+            'lease_file' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
         ];
     }
 
@@ -74,6 +76,8 @@ class RenewContractRequest extends FormRequest
             'new_move_out_date.required' => 'Enter the new end date.',
             'new_monthly_rent.required' => 'Enter the rent, even if it stays the same.',
             'rent_effective_from.required' => 'Choose the month the new rent starts.',
+            'lease_file.mimes' => 'Upload the signed agreement as a PDF, JPG or PNG.',
+            'lease_file.max' => 'The agreement file must be 10 MB or smaller.',
         ];
     }
 }

@@ -68,6 +68,8 @@ erDiagram
     users ||--o{ occupancy_snapshots : "landlord_id"
     property_units ||--o{ occupancy_activities : "unit_id"
     users |o--o{ audit_logs : "actor_id (set null)"
+    properties ||--o{ property_activities : "property_id"
+    users |o--o{ property_activities : "actor_id (set null)"
 ```
 
 ## 2. Tables — Identity
@@ -97,6 +99,10 @@ A person. Tenants, landlords and admins are all rows here; the role lives in `us
 | remember_token | varchar(100) | null | | |
 | created_at | timestamp | null | | |
 | updated_at | timestamp | null | | |
+| two_factor_secret | text | null | | Authenticator secret, encrypted (`encrypted` cast). Hidden from serialisation. Set only once the user confirms a first code |
+| two_factor_recovery_codes | text | null | | Encrypted JSON array of bcrypt hashes of the unused `XXXX-XXXX` recovery codes; a used code's hash is removed |
+| two_factor_confirmed_at | timestamp | null | | Two-factor is on when this is set (`User::hasTwoFactor()`). Required for every Admin (`security.admin_two_factor`) |
+| two_factor_last_step | bigint unsigned | null | | Last accepted 30-second TOTP step; a code at or below it is refused (replay guard) |
 
 Rules:
 - Walk-in and social-login accounts get a random unknowable password. A walk-in is also `inactive`, so it can never log in or leave a review; keeping walk-ins in `users` is what lets `reservations.tenant_id` stay NOT NULL.
@@ -184,6 +190,11 @@ One application per landlord. Government ID, selfie and ID back live on the **pr
 | ocr_name | varchar(255) | null | | |
 | ocr_confidence | tinyint unsigned | null | | |
 | ocr_status | varchar(255) | null | | |
+| id_check_status | varchar(20) | null | | `pass`, `unsure`, `fail` or `unavailable`: did the ID photos look like an ID (`App\Services\IdDocumentCheck`, from one Google Vision reading of text, faces and labels). `fail` if either side failed. An admin signal, never a decision. Null on applications made before Nov 18 2026 |
+| id_type_match | varchar(20) | null | | `match`, `mismatch` or `unknown`: do the words on the front belong to the ID type the applicant chose |
+| id_check_overridden | boolean | NN, = 0 | | True when the check failed and the application was sent anyway (after the allowed tries, an answer that never reached the phone, or a photo the preview never read). The submit never refuses for the check, so this equals `id_check_status = 'fail'`; it is kept so the admin page can say "sent with a failed ID check" |
+| face_match_status | varchar(20) | null | | `match` (at or above 80%), `review` (60 to 80%, similar: compare by eye), `mismatch` (below 60%), `no_face` or `unavailable` (no keys or an AWS error). Set by `App\Services\FaceMatch` when the application is submitted; an admin signal, never an automatic decision. Null on older applications |
+| face_match_score | decimal(5,2) | null | | Similarity percent of the best match, 0 on a mismatch, null when not checked |
 | business_name | varchar(255) | null | | Copied to `rental_businesses` on approval |
 | description | text | null | | |
 | logo_url | varchar(255) | null | | |
@@ -299,6 +310,11 @@ The atomic rentable thing: a room, bedspace or whole apartment.
 | description | text | null | | |
 | rental_fee | decimal(10,2) | NN | | |
 | security_deposit | decimal(8,2) | null | | Null = "no deposit", never ₱0. Required on create; optional on edit |
+| advance_months | tinyint unsigned | NN, default 1 | | Months of advance rent asked at move-in: 0 (none), 1 or 2. Seeds the Send-agreement form (`Reservation::agreementDefaults`); the agreement may still use 0 to 3 |
+| payment_arrangement | varchar(20) | NN | advance_deposit | `reservation_fee` / `advance_deposit` / `full_payment` |
+| reservation_fee_amount | decimal(10,2) | null | | Required when arrangement is `reservation_fee` |
+| payment_deadline_days | tinyint unsigned | null | | 1-7; null = platform default (`rentals.stale_reservations`) |
+| reservation_conditions | varchar(500) | null | | Landlord's free-text conditions |
 | occupancy_limit | int unsigned | NN | | |
 | availability_status | enum('Available','Reserved','Occupied','Maintenance') | null, = 'Available' | | Cached from reservations; see §3 |
 | vacated_at | timestamp | null | | |
@@ -445,6 +461,19 @@ One tenant's inquiry-to-tenancy record on one unit. `rental_status` walks Inquir
 | lease_file_path | varchar(255) | null | | Signed paper copy, private disk |
 | lease_file_name | varchar(255) | null | | |
 | lease_uploaded_at | timestamp | null | | |
+| deposit_returned_amount | decimal(10,2) | null | | What the landlord noted as given back after the lease ended. Capped at the deposit left after deposit charges |
+| deposit_returned_at | timestamp | null | | When that was noted; null = not returned yet. A record only, no money moves |
+| move_in_refund_decision | varchar(10) | null | | `refunded` or `kept`: the landlord's record of move-in money (e.g. a reservation fee) the tenant paid directly on a reservation that ended. Null = not settled yet |
+| move_in_refund_amount | decimal(10,2) | null | | Amount recorded as returned (0 when kept) |
+| move_in_refund_note | varchar(255) | null | | Reason; required when any of it is kept |
+| move_in_refund_at | timestamp | null | | When the landlord recorded it |
+| move_in_refund_requested_at | timestamp | null | | When the tenant asked for the refund (once) |
+| refund_report_id | bigint unsigned | null | FK → reports, set null | The `reports` row the tenant filed with "Escalate to admin" when the landlord kept money paid directly (once); shown on Admin → Refund requests |
+| qr_requested_at | timestamp | null | | When the tenant last tapped "Ask {landlord} to share a payment QR" (open for an hour, then they may ask again). Cleared when the landlord shares a QR |
+| rent_written_off_amount | decimal(10,2) | null | | Unpaid rent at the moment it was written off (by the daily job or Write off now) |
+| rent_written_off_at | timestamp | null | | Set = written off: `RentLedger::summary()` reports no balance and no reminders go out. Null again on Collect again |
+| rent_write_off_source | varchar(10) | null | | `auto` (daily job, `rentals.write_off_after_days` after move-out) or `manual` (Write off now) |
+| rent_write_off_resumed_at | timestamp | null | | Set by Collect again: the daily job never writes this rental off again |
 | agreed_at | timestamp | null | | Set by `signAgreement()` |
 | agreed_ip | varchar(255) | null | | |
 | landlord_tc_accepted_at | timestamp | null | | |
@@ -452,6 +481,8 @@ One tenant's inquiry-to-tenancy record on one unit. `rental_status` walks Inquir
 | tenant_confirmed_move_in_at | timestamp | null | | Only a genuine tenant confirmation writes this |
 | move_in_paid_at | timestamp | null | | Move-in money paid straight to the landlord and settled (a confirmed claim, or the landlord recorded it). Means "paid directly" only: for "settled by either channel" use `moveInSettled()` / `scopeMoveInSettled()`, which also count an online Initial payment Held/Paid/Released. Set while status is `Rental Agreement Signed`, before either party confirms move-in |
 | keys_turned_over_at | timestamp | null | | The clock switch: null = Clock 1, set = Clock 2 |
+| keys_handover_photo_url | varchar(500) | null | | Photo the landlord attached when marking keys turned over (required since Nov 10 2026; null on countdowns started before). Evidence, not proof |
+| keys_handover_photo_public_id | varchar(255) | null | | Cloudinary public id of that photo |
 | move_in_deadline_at | timestamp | null | index with `move_in_disputed_at` | Whichever clock is active; null = no clock |
 | move_in_disputed_at | timestamp | null | | Non-null = frozen in the admin queue |
 | move_in_dispute_reason | text | null | | |
@@ -647,7 +678,7 @@ One money movement on a tenancy: online escrow, landlord-recorded, or a correcti
 |---|---|---|---|---|
 | payment_id | bigint unsigned | NN | PK | |
 | reservation_id | bigint unsigned | NN | FK → reservations, cascade | Index `(reservation_id, billing_period)` |
-| payment_type | enum('Initial','Monthly','Deposit','Utility','Other') | NN | | |
+| payment_type | enum('Initial','Monthly','Deposit','Utility','Other','Reservation Fee') | NN | | |
 | billing_period | date | null | | The month a `Monthly` payment settles; required for `Monthly`, null otherwise |
 | amount | decimal(10,2) | NN | | What the landlord is owed. Serializes as a string; `parseFloat()` client-side |
 | service_fee | decimal(10,2) | NN, = 0 | | The online payment fee the tenant paid on top of `amount`. Not owed to the landlord (payouts sum `amount` only). Set on the `Initial` / `Monthly` row of an online checkout, frozen when the checkout is created; 0 on every other row |
@@ -852,9 +883,114 @@ Append-only record of consequential admin and landlord actions. Written by `Audi
 | reason | text | null | | |
 | metadata | json | null | | Before/after values, amounts |
 | ip_address | varchar(45) | null | | Fits IPv6 |
+| prev_hash | char(64) | null | | Hash chain: the previous row's `row_hash` (64 zeros for the first row). `App\Services\Security\AuditChain` |
+| row_hash | char(64) | null | index | HMAC-SHA256 (key `security.audit_chain_key`) over this row's content and `prev_hash`; `audit:verify` re-checks it nightly, so an edited or deleted row is detectable |
 | created_at | timestamp | null | index | No `updated_at` (`UPDATED_AT = null`) |
 
 New consequential action: add its key to `ACTION_LABELS` (the filter dropdown reads it) and call `AuditLog::record()` inside that action's transaction.
+
+### auth_events
+Account and security events: sign-ins, failures, lockouts, password and email changes, social links, access denied (403). Written only by `AuthEventRecorder` (listeners in `RecordAuthEvents`, plus explicit calls). A failed write is logged and never blocks a login. Kept apart from `audit_logs` on purpose: anyone can generate failed logins, and that noise must not bury the admin trail. Rows are pruned after 90 days (`security.auth_events_retention_days`, `model:prune`). Never holds a password, token, 2FA code or session id.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| event_id | bigint unsigned | NN | PK | |
+| user_id | bigint unsigned | null | FK → users, set null; index `(user_id, created_at)` | Null when no account matched the typed email, and after the account is deleted |
+| email | varchar(255) | null | | The address typed or on the account, kept when `user_id` is null |
+| event | varchar(40) | NN | index `(event, created_at)` | A key of `AuthEvent::EVENTS` |
+| channel | varchar(20) | NN, default `web` | | `web`, `google`, `facebook`, `webview`, `api` |
+| ip_address | varchar(45) | null | index `(ip_address, created_at)` | Fits IPv6 |
+| user_agent | varchar(255) | null | | Truncated. Shown as "Chrome on Android" via `UserAgentSummary` |
+| device_id | char(36) | null | | The `ah_device` cookie, used to tell a new browser from a known one |
+| metadata | json | null | | `from`/`to` on email change, `path`/`method` on access denied, `provider` on social link |
+| created_at | timestamp | null | index | No `updated_at` (`UPDATED_AT = null`) |
+
+New event type: add its key to `AuthEvent::EVENTS` (the filter reads it) and record it through `AuthEventRecorder::record()`.
+
+### trusted_devices
+Browsers an admin chose to remember after passing two-factor ("Don't ask again for 30 days"). Written only by `TrustedDevices`. The cookie `ah_2fa_trusted` holds a random token; only its sha256 is stored. Wiped for a user on password change/reset, Sign out everywhere, 2FA on/off and new recovery codes.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| id | bigint unsigned | NN | PK | |
+| user_id | bigint unsigned | NN | FK → users, cascade; index `(user_id, expires_at)` | |
+| token_hash | char(64) | NN | unique | sha256 of the cookie token |
+| user_agent | varchar(255) | null | | Shown as "Chrome on Android" |
+| ip_address | varchar(45) | null | | At the time it was remembered |
+| last_used_at | timestamp | null | | Updated at most once an hour |
+| expires_at | timestamp | NN | | `security.trusted_device_days` (30) after creation |
+| created_at | timestamp | null | | No `updated_at` |
+
+### tenant_holds
+A landlord's report that a tenant has not paid, and what happened next. Status flow: `pending_admin` -> `active` -> `released`, or `pending_admin` -> `rejected`. Only an `active` hold restricts the tenant (no new reservations, viewings or chats; they can still pay and chat with the landlord who reported them). `account_status` is never touched, so a held tenant can always sign in and pay. Changed only through `HoldService`, which writes the `hold.*` audit rows. See `plans/tenant-payment-holds.md`.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| hold_id | bigint unsigned | NN | PK | |
+| tenant_id | bigint unsigned | NN | FK → users, cascade; index `(tenant_id, status)` | The tenant on hold |
+| landlord_id | bigint unsigned | null | FK → users, set null; index `(landlord_id, status)` | The landlord who reported; null for a hold an admin made on a duplicate account |
+| reservation_id | bigint unsigned | null | FK → reservations, set null | The tenancy the unpaid rent belongs to |
+| source_hold_id | bigint unsigned | null | FK → tenant_holds, set null | Set when an admin put a duplicate account on hold; it lifts with the source |
+| amount_owed | decimal(12,2) | NN, default 0 | | Snapshot of the overdue rent when flagged |
+| reason | text | NN | | The landlord's reason (min 10 characters) |
+| status | varchar(20) | NN, default `pending_admin` | index | `TenantHold::STATUSES` |
+| tenant_note | text | null | | The tenant's side, from the hold page |
+| flagged_at | timestamp | null | | When the landlord reported |
+| confirmed_by | bigint unsigned | null | FK → users, set null | The admin who confirmed |
+| confirmed_at | timestamp | null | | |
+| rejected_note | text | null | | Required when an admin rejects |
+| released_by | bigint unsigned | null | FK → users, set null | Null when the hold lifted by itself |
+| released_at | timestamp | null | | |
+| release_reason | varchar(20) | null | | `TenantHold::RELEASE_REASONS`: `paid`, `landlord`, `admin`, `source_released`, `debt_dropped` |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+### hold_match_alerts
+"This new account looks like a tenant on hold." A prompt for an admin to look, never a verdict; nothing is blocked because of it. Written by `HoldMatcher` on sign-up, new-device sign-in and walk-in creation. The rule is `security.hold_match`: a phone or device match alerts alone, name + IP together, never IP or name alone. Dismissed rows are pruned after 90 days (`model:prune`). The signals list never contains the other person's details.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| alert_id | bigint unsigned | NN | PK | |
+| hold_id | bigint unsigned | NN | FK → tenant_holds, cascade; unique `(hold_id, user_id)` | |
+| user_id | bigint unsigned | NN | FK → users, cascade | The new account |
+| signals | json | NN | | e.g. `["phone","device"]` |
+| status | varchar(20) | NN, default `open` | index | `open`, `dismissed`, `held` |
+| reviewed_by | bigint unsigned | null | FK → users, set null | |
+| reviewed_at | timestamp | null | | |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+### property_activities
+A property's Activity Log (Landlord > property > Activity Log tab, and Overview's recent activity). One line per thing that happened on the listing: who did it (as a role), what, when. Written by observers (`PropertyObserver`, `PropertyUnitObserver`, `PropertyMediaObserver`, `UnitMediaObserver`, `PropertyDocumentObserver`, `ReviewObserver`, `ReservationActivityObserver`, `PaymentActivityObserver`) through `PropertyActivity::record()` / `recordMerged()`, inside the acting transaction, so a rollback leaves no line. A failed write is logged and never blocks the action. Separate from `audit_logs` (admin's consequential-actions record) and `occupancy_activities` (Analytics reads it).
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| activity_id | bigint unsigned | NN | PK | |
+| property_id | bigint unsigned | NN | FK → properties, cascade; index `(property_id, created_at)` | The history goes with the property |
+| unit_id | bigint unsigned | null | | No FK on purpose: removing a unit keeps the line that says it was removed (the label is in `summary`) |
+| actor_id | bigint unsigned | null | FK → users, set null | Null for the system and after the account is deleted |
+| actor_role | enum('landlord','tenant','admin','system') | NN | index | Drives the You / Tenants / Admin chips. Landlord = the property's owner; admin wins over tenant for non-owners |
+| actor_name | varchar(255) | NN | | Snapshot. 'System' when nobody acted |
+| action | varchar(60) | NN | | `property.updated`, `unit.removed`, `payment.recorded`, `reservation.moved_in`, `review.posted`, ... |
+| summary | varchar(255) | NN | | Rendered verbatim. Names a tenant by name only, never a phone or e-mail |
+| metadata | json | null | | Changed field names, amounts, `reservation_id` / `conversation_id` for links, `batch` key and counts for roll-ups, `backfilled: true` on rows written by the backfill migration |
+| created_at | timestamp | null | | No `updated_at`. Rows are written once; the only edit is the roll-up of one request's photos, or one payment's months, into the line written seconds before (`recordMerged`, 120 s, same actor) |
+
+- Quiet while a property is a Draft (only its creation, and the submit, are recorded).
+- `unit.status_changed` rows exist only from the backfill (from `occupancy_activities`); live availability changes are told by the reservation lines.
+- `2026_11_05_000300_backfill_property_activities` fills it from properties, units, `audit_logs` listing/unit decisions, `occupancy_activities` and visible reviews. Idempotent; `down()` removes only `backfilled` rows.
+
+### platform_ratings
+How users rate AbangananHub itself (the landing page rating box). One row per account; rating again edits it. Admin reads them under platform feedback.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| platform_rating_id | bigint unsigned | NN | PK | |
+| user_id | bigint unsigned | NN | UNIQUE, FK → users, cascade | One rating per account |
+| rating | tinyint unsigned | NN | | 1 to 5 |
+| comment | varchar(1000) | null | | Optional |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | Bumped when the user changes their rating |
 
 ### settings
 Overrides only. A key with no row falls through to `config/rentals.php`; clearing a field in the admin form deletes the row.
@@ -967,3 +1103,4 @@ Laravel's own, not documented column by column: `cache`, `cache_locks`, `failed_
 
 - `AmenitySeeder` — 33 amenities, idempotent via `updateOrCreate` on `amenity_name` (an `amenity_id` never shifts); also sets `scope` and `category`. Runs before `PropertySeeder`.
 - Dev fixtures: `php artisan ratings:scenarios` (`--clean`) seeds `tenant_ratings` and `reviews`.
+- `PromoSeeder` — cast for the promo video, run on its own (`php artisan db:seed --class=PromoSeeder`, not in `DatabaseSeeder`): landlady `rosa@abangananhub.com` (approved, payout QR, "Abellana Apartments, Minglanilla" with 5 units: 3 rented with paid / overdue / due-on-the-20th ledgers via `TenantSeeder::rent()`, Room 2B and 3A free), tenant `mika@abangananhub.com` (complete `tenant_details`, nothing else), and two past tenants `carlo.promo@` / `trisha.promo@abangananhub.com` with one review each on the building (5★ with Rosa's reply, 4★ without; `updateOrCreate` on the review's tenant + property, so re-runs don't duplicate). Re-running it is the reset between takes: it deletes Mika's account (cascades her chats, reservations, payments, favorites), clears Rosa's notifications, deletes any property or unit Rosa added on camera, and frees the two free rooms. No profile photos, so no real faces on screen.

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Payments;
 
+use Tests\Support\PaidAmount;
 use App\Models\Notification;
 use App\Models\Payment;
 use App\Models\Reservation;
@@ -125,7 +126,7 @@ class TenantPaymentRecoveryTest extends TestCase
         $old = $this->abandoned($t['reservation']);
 
         Http::fake([
-            self::BASE.'/cs_old' => Http::response($this->sessionStatus('paid', [['id' => 'pay_1', 'attributes' => ['source' => ['type' => 'gcash']]]]), 200),
+            self::BASE.'/cs_old' => Http::response($this->sessionStatus('paid', [['id' => 'pay_1', 'attributes' => ['source' => ['type' => 'gcash'], 'amount' => PaidAmount::centavos('cs_old')]]]), 200),
         ] + $this->newSession());
 
         $this->pay($t)->assertSessionHasErrors('payment');

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Payments;
 
+use Tests\Support\PaidAmount;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Notification;
@@ -113,7 +114,17 @@ class TenantReconcileTest extends TestCase
 
     private function fakeSession(string $sessionId, array $body, int $status = 200): void
     {
-        Http::fake(["api.paymongo.com/v1/checkout_sessions/{$sessionId}" => Http::response($body, $status)]);
+        // Answered when the request arrives, because the payment row (and so the amount PayMongo took) is made after
+        // this runs. A paid entry without an amount gets the amount of the row's checkout.
+        Http::fake(["api.paymongo.com/v1/checkout_sessions/{$sessionId}" => function () use ($sessionId, $body, $status) {
+            foreach ($body['data']['attributes']['payments'] ?? [] as $i => $entry) {
+                if (! isset($entry['attributes']['amount'])) {
+                    $body['data']['attributes']['payments'][$i]['attributes']['amount'] = PaidAmount::centavos($sessionId);
+                }
+            }
+
+            return Http::response($body, $status);
+        }]);
     }
 
     private function paidSession(string $sessionId, string $method = 'gcash'): array

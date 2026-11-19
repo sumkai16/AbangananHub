@@ -8,7 +8,8 @@
             'rent' => ['label' => 'Rent', 'href' => route('landlord.payments.index')],
             'payouts' => ['label' => 'Payouts', 'href' => route('landlord.payouts.index')],
         ] as $key => $tab)
-            <a href="{{ $tab['href'] }}" @if ($active === $key) aria-current="page" @endif
+            {{-- data-page-swap: switching tabs swaps the work area in place (resources/js/page-swap.js); the href stays real. --}}
+            <a href="{{ $tab['href'] }}" data-page-swap @if ($active === $key) aria-current="page" @endif
                 class="inline-flex min-h-11 shrink-0 items-center gap-2 px-4 -mb-px border-b-2 text-[14px] sm:text-[13.5px] font-semibold whitespace-nowrap transition-colors duration-200
                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 focus-visible:rounded-t-lg
                     {{ $active === $key ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#5B6A8E] hover:text-[#060D26]' }}">

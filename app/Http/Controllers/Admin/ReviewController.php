@@ -17,37 +17,43 @@ class ReviewController extends Controller
         $search     = $request->input('search');
         $rating     = $request->input('rating', 'all');
         $visibility = $request->input('visibility', 'all');
+        $sort       = $request->input('sort', 'newest');
 
-        $reviews = Review::with(['tenant', 'property', 'landlord'])
-            ->when($search, function ($q) use ($search) {
-                $q->where(function ($inner) use ($search) {
-                    $inner->whereHas('tenant', fn($t) =>
-                        $t->where('first_name', 'like', "%{$search}%")
-                          ->orWhere('last_name',  'like', "%{$search}%")
-                    )->orWhereHas('property', fn($p) =>
-                        $p->where('title', 'like', "%{$search}%")
-                    )->orWhere('review_comment', 'like', "%{$search}%");
-                });
-            })
-            ->when($rating !== 'all', fn($q) => $q->where('rating', $rating))
-            ->when($visibility === 'visible', fn($q) => $q->where('is_hidden', false))
-            ->when($visibility === 'hidden', fn($q) => $q->where('is_hidden', true))
-            ->latest()
-            ->paginate(15)
-            ->withQueryString();
+        // Search is shared by the list and the numbers above it; rating and visibility only narrow the list.
+        $searched = Review::query()->when($search, function ($q) use ($search) {
+            $q->where(function ($inner) use ($search) {
+                $inner->whereHas('tenant', fn ($t) =>
+                    $t->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name',  'like', "%{$search}%")
+                )->orWhereHas('property', fn ($p) =>
+                    $p->where('title', 'like', "%{$search}%")
+                )->orWhere('review_comment', 'like', "%{$search}%");
+            });
+        });
+
+        $reviews = (clone $searched)->with(['tenant', 'property', 'landlord'])
+            ->when($rating !== 'all', fn ($q) => $q->where('rating', $rating))
+            ->when($visibility === 'visible', fn ($q) => $q->where('is_hidden', false))
+            ->when($visibility === 'hidden', fn ($q) => $q->where('is_hidden', true));
+
+        match ($sort) {
+            'oldest' => $reviews->oldest(),
+            'highest' => $reviews->orderByDesc('rating')->latest(),
+            'lowest' => $reviews->orderBy('rating')->latest(),
+            default => $reviews->latest(),
+        };
+
+        $reviews = $reviews->paginate(15)->withQueryString();
 
         $counts = [
-            'all'     => Review::count(),
-            'visible' => Review::where('is_hidden', false)->count(),
-            'hidden'  => Review::where('is_hidden', true)->count(),
-            1 => Review::where('rating', 1)->count(),
-            2 => Review::where('rating', 2)->count(),
-            3 => Review::where('rating', 3)->count(),
-            4 => Review::where('rating', 4)->count(),
-            5 => Review::where('rating', 5)->count(),
+            'all'     => (clone $searched)->count(),
+            'visible' => (clone $searched)->where('is_hidden', false)->count(),
+            'hidden'  => (clone $searched)->where('is_hidden', true)->count(),
+            'low'     => (clone $searched)->where('rating', '<=', 2)->count(),
+            'average' => (clone $searched)->avg('rating'),
         ];
 
-        return view('admin.reviews.index', compact('reviews', 'counts', 'search', 'rating', 'visibility'));
+        return view('admin.reviews.index', compact('reviews', 'counts', 'search', 'rating', 'visibility', 'sort'));
     }
 
     public function toggleHidden(Review $review)

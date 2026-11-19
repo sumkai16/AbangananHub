@@ -26,4 +26,36 @@ return [
         'port' => env('VITE_REVERB_PORT', env('REVERB_PORT')),
         'scheme' => env('VITE_REVERB_SCHEME', env('REVERB_SCHEME', 'https')),
     ],
+
+    /* Account & security events (auth_events). See plans/security-audit-hardening.md. */
+    'auth_events_retention_days'     => 90,
+    'auth_events_ip_cap_per_minute'  => 30,
+    'device_cookie'                  => 'ah_device',
+    // Most rows a single CSV export of an activity log will contain.
+    'export_row_cap'                 => 50000,
+
+    /* Phase 2-3 of plans/security-audit-hardening.md. */
+    // required: every Admin must set up and pass two-factor. off: the middleware is a no-op (tests, emergencies).
+    'admin_two_factor' => env('ADMIN_TWO_FACTOR', 'required'),
+    // Re-enter the password before the risky admin actions, fresh for this many seconds.
+    // "Remember this browser" after the 2FA code (TrustedDevices). Wiped on password / 2FA / recovery-code changes.
+    'trusted_device_cookie' => 'ah_2fa_trusted',
+    'trusted_device_days'   => 30,
+    'step_up_enabled' => env('STEP_UP_ENABLED', true),
+    'step_up_seconds' => 900,
+
+    // Key for the audit log's hash chain (AuditChain). Separate from APP_KEY so rotating APP_KEY never breaks the chain.
+    'audit_chain_key' => env('AUDIT_CHAIN_KEY', env('APP_KEY')),
+
+    /*
+     * Tenant payment holds and duplicate-account alerts. See plans/tenant-payment-holds.md.
+     * A new account alerts the admins when it matches a tenant on hold by any single signal in `alone`, or by every
+     * signal of one group in `together`. IP alone and name alone never alert: shared Wi-Fi and common names.
+     */
+    'hold_match' => [
+        'alone'                    => ['phone', 'device'],
+        'together'                 => [['name', 'ip']],
+        'dismissed_retention_days' => 90,
+        'min_reason_length'        => 10,
+    ],
 ];

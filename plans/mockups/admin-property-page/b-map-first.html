@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>B · Map first</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<script src="common.js"></script>
+<link rel="stylesheet" href="common.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+</head><body>
+<div id="page" class="mx-auto max-w-[1600px]">
+<a href="#" class="mb-2 inline-flex items-center gap-1.5 text-[13px] font-semibold text-muted hover:text-ink"><svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>Back</a><div class="mb-3 flex flex-wrap items-center gap-x-2.5 gap-y-1"><h1 class="text-[20px] font-semibold leading-7 tracking-tight">Two-Bedroom House near SRP Talisay</h1><span class="inline-flex h-[22px] items-center rounded-md bg-[#FBBF24]/[0.16] px-1.5 text-[12px] font-semibold text-[#B45309]">Pending</span></div><p class="-mt-2.5 mb-3 text-[13px] text-muted">Bulacao, Talisay City, Cebu</p>
+  <div class="grid items-start gap-3 lg:grid-cols-[minmax(0,1fr)_300px]">
+    <div class="min-w-0 space-y-3">
+      <div class="relative h-[24rem] overflow-hidden rounded-xl border border-line">
+        <div id="mapB" class="js-map h-full w-full" data-zoom="16" data-sat="1"></div>
+        <div class="absolute right-2.5 top-2.5 z-[500] flex gap-1.5"><button data-sat-toggle="mapB" data-on="1" class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-line bg-white px-2.5 text-[12.5px] font-semibold shadow-sm hover:bg-canvas"><span>Map</span></button><a href="https://www.google.com/maps?q=10.2571,123.8479" target="_blank" rel="noopener" class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-line bg-white px-2.5 text-[12.5px] font-semibold shadow-sm hover:bg-canvas">Open in Google Maps <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-4.5-7.5H21m0 0v7.5M21 3l-9 9"/></svg></a></div>
+        <div class="absolute inset-x-2.5 bottom-2.5 z-[500] flex items-end justify-between gap-3">
+          <div class="flex gap-1.5 rounded-xl bg-white p-1.5 shadow-lg"><button data-photo="https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&q=80" class="group relative block overflow-hidden bg-tint h-[4.5rem] w-28 rounded-lg" aria-label="Open photo 1 full size"><img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&q=80" alt="" class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"></button><button data-photo="https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1200&q=80" class="group relative block overflow-hidden bg-tint h-[4.5rem] w-28 rounded-lg" aria-label="Open photo 2 full size"><img src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1200&q=80" alt="" class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"></button><button data-photo="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&q=80" class="group relative block overflow-hidden bg-tint h-[4.5rem] w-28 rounded-lg" aria-label="Open photo 3 full size"><img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&q=80" alt="" class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"></button></div>
+          <div class="hidden rounded-xl bg-white px-3 py-2 shadow-lg sm:block"><p class="text-[13px] font-semibold">Bulacao, Talisay City</p><p class="text-[12px] tabular-nums text-muted">10.2571, 123.8479</p></div>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-5"><div class="bg-white px-4 py-2.5"><p class="text-[12px] text-muted">Type</p><p class="text-[16px] font-semibold tabular-nums leading-6">House</p></div><div class="bg-white px-4 py-2.5"><p class="text-[12px] text-muted">Units</p><p class="text-[16px] font-semibold tabular-nums leading-6">1</p></div><div class="bg-white px-4 py-2.5"><p class="text-[12px] text-muted">Rent</p><p class="text-[16px] font-semibold tabular-nums leading-6">₱8,000</p></div><div class="bg-white px-4 py-2.5"><p class="text-[12px] text-muted">Photos</p><p class="text-[16px] font-semibold tabular-nums leading-6">3</p></div><div class="bg-white px-4 py-2.5"><p class="text-[12px] text-muted">Documents</p><p class="text-[16px] font-semibold tabular-nums leading-6">0/0</p></div></div>
+      <p class="max-w-[75ch] text-[13px] leading-5 text-muted">Two-bedroom house with parking and a washing machine, twenty minutes from the SRP. Quiet street, pets welcome. Listed Oct 31, 2026.</p>
+      <div data-slot="units"></div><div class="grid items-start gap-3 xl:grid-cols-2"><div data-slot="documents"></div><div data-slot="activity"></div></div>
+    </div>
+    <div class="space-y-3 lg:sticky lg:top-4"><div data-slot="decision"></div><div data-slot="landlord"></div><div data-slot="reservations"></div></div>
+  </div>
+</div></body></html>

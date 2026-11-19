@@ -54,6 +54,6 @@ class PaymentClaimController extends Controller
 
         PaymentClaims::withdraw($claim, $request->user());
 
-        return back()->with('success', 'Payment report withdrawn.');
+        return back()->with('success', 'Payment report cancelled.');
     }
 }

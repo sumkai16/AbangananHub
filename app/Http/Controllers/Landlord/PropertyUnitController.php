@@ -6,11 +6,14 @@ use App\Http\Controllers\Concerns\AuthorizesPropertyOwnership;
 use App\Http\Controllers\Controller;
 use App\Models\Amenity;
 use App\Models\Property;
+use App\Models\PropertyActivity;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
+use App\Services\ImageUploader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use App\Support\ListingPhotos;
 
 class PropertyUnitController extends Controller
 {
@@ -32,8 +35,10 @@ class PropertyUnitController extends Controller
         $this->authorizeProperty($property);
         $amenities = Amenity::forUnit()->orderBy('amenity_name')->get();
         $fromWizard = request()->query('from') === 'wizard';
+        $returnTo = $this->returnTarget(request()->query('return_to'));
+        $backUrl = $this->backUrl(request(), $property);
 
-        return view('landlord.units.create', compact('property', 'amenities', 'fromWizard'));
+        return view('landlord.units.create', compact('property', 'amenities', 'fromWizard', 'returnTo', 'backUrl'));
     }
 
     public function store(Request $request, Property $property)
@@ -50,13 +55,18 @@ class PropertyUnitController extends Controller
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
             // Every monthly rental carries a deposit — no longer optional.
             'security_deposit'    => 'required|numeric|min:0|max:999999.99',
+            'advance_months'      => 'required|integer|in:0,1,2',
+            'payment_arrangement'    => 'required|in:reservation_fee,advance_deposit,full_payment',
+            'reservation_fee_amount' => 'nullable|required_if:payment_arrangement,reservation_fee|numeric|min:1|max:999999.99',
+            'payment_deadline_days'  => 'nullable|integer|min:1|max:7',
+            'reservation_conditions' => 'nullable|string|max:500',
             'occupancy_limit'     => 'required|integer|min:1|max:100',
             'availability_status' => 'required|in:Available,Reserved,Occupied,Maintenance',
             'description'         => 'nullable|string|max:300',
             'amenities'           => ['nullable', 'array', Amenity::exclusiveRule()],
             'amenities.*'         => 'bail|integer|exists:amenities,amenity_id',
-            'photos'              => 'required|array|min:3|max:10',
-            'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:5120',
+            'photos'              => 'required|array|min:'.ListingPhotos::MIN_UNIT.'|max:'.ListingPhotos::MAX_UNIT,
+            'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:'.ListingPhotos::MAX_KB,
             'photo_sources'       => 'required|array',
             'photo_sources.*'     => 'in:camera,upload',
             'photo_captions'      => 'nullable|array',
@@ -89,6 +99,11 @@ class PropertyUnitController extends Controller
                 'furnishing_status'   => $validated['furnishing_status'] ?? null,
                 'rental_fee'          => $validated['rental_fee'],
                 'security_deposit'    => $validated['security_deposit'] ?? null,
+                'advance_months'      => (int) $validated['advance_months'],
+                'payment_arrangement'    => $validated['payment_arrangement'],
+                'reservation_fee_amount' => $validated['payment_arrangement'] === 'reservation_fee' ? $validated['reservation_fee_amount'] : null,
+                'payment_deadline_days'  => $validated['payment_deadline_days'] ?? null,
+                'reservation_conditions' => $validated['reservation_conditions'] ?? null,
                 'occupancy_limit'     => $validated['occupancy_limit'],
                 'availability_status' => $validated['availability_status'],
                 'description'         => $validated['description'] ?? null,
@@ -100,10 +115,7 @@ class PropertyUnitController extends Controller
             }
 
             foreach ($photos as $i => $photo) {
-                $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
-                    'folder'        => 'abanganan/units',
-                    'resource_type' => 'image',
-                ]);
+                $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), ImageUploader::listingPhoto('abanganan/units'));
                 $unit->media()->create([
                     'media_type' => 'Image',
                     'media_url'  => $result['secure_url'],
@@ -127,11 +139,7 @@ class PropertyUnitController extends Controller
             }
         });
 
-        return redirect(
-            $request->input('from') === 'wizard'
-                ? route('properties.wizard.units', $property)
-                : route('landlord.properties.units.index', $property)
-        )
+        return redirect($this->backUrl($request, $property))
             ->with('success', 'Unit submitted for admin review.');
     }
 
@@ -146,8 +154,10 @@ class PropertyUnitController extends Controller
         $unit->load('media', 'amenities');
         $amenities = Amenity::forUnit()->orderBy('amenity_name')->get();
         $fromWizard = request()->query('from') === 'wizard';
+        $returnTo = $this->returnTarget(request()->query('return_to'));
+        $backUrl = $this->backUrl(request(), $property);
 
-        return view('landlord.units.edit', compact('property', 'unit', 'amenities', 'fromWizard'));
+        return view('landlord.units.edit', compact('property', 'unit', 'amenities', 'fromWizard', 'returnTo', 'backUrl'));
     }
 
     public function update(Request $request, Property $property, PropertyUnit $unit)
@@ -170,13 +180,18 @@ class PropertyUnitController extends Controller
             // every new unit. A unit that genuinely charges no deposit needs a
             // way to say so after creation; see SCHEMA.md.
             'security_deposit'    => 'nullable|numeric|min:0|max:999999.99',
+            'advance_months'      => 'nullable|integer|in:0,1,2',
+            'payment_arrangement'    => 'required|in:reservation_fee,advance_deposit,full_payment',
+            'reservation_fee_amount' => 'nullable|required_if:payment_arrangement,reservation_fee|numeric|min:1|max:999999.99',
+            'payment_deadline_days'  => 'nullable|integer|min:1|max:7',
+            'reservation_conditions' => 'nullable|string|max:500',
             'occupancy_limit'     => 'required|integer|min:1|max:100',
             'availability_status' => 'required|in:Available,Reserved,Occupied,Maintenance',
             'description'         => 'nullable|string|max:300',
             'amenities'           => ['nullable', 'array', Amenity::exclusiveRule()],
             'amenities.*'         => 'bail|integer|exists:amenities,amenity_id',
-            'photos'              => 'nullable|array|max:10',
-            'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:5120',
+            'photos'              => 'nullable|array|max:'.ListingPhotos::MAX_UNIT,
+            'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:'.ListingPhotos::MAX_KB,
             'photo_sources'       => 'nullable|array',
             'photo_sources.*'     => 'in:camera,upload',
             'photo_captions'      => 'nullable|array',
@@ -194,6 +209,11 @@ class PropertyUnitController extends Controller
         $photos = $request->file('photos', []);
         $sources = $request->input('photo_sources', []);
         $captions = $request->input('photo_captions', []);
+
+        // The limit is on the unit's total, not on one save: the unit may already hold some photos.
+        if (ListingPhotos::tooMany($unit->media()->where('media_type', 'Image')->count(), count($photos), ListingPhotos::MAX_UNIT)) {
+            throw ValidationException::withMessages(['photos' => ListingPhotos::unitLimitMessage()]);
+        }
 
         // Same alignment contract store() enforces — the capture UI keeps
         // photos[]/photo_sources[]/photo_captions[] in one shared iteration
@@ -226,6 +246,11 @@ class PropertyUnitController extends Controller
                 // silently null it (ARCHITECTURE.md documents this exact
                 // shape once already, for this same edit page).
                 'security_deposit'    => array_key_exists('security_deposit', $validated) ? $validated['security_deposit'] : $unit->security_deposit,
+                'advance_months'      => isset($validated['advance_months']) ? (int) $validated['advance_months'] : $unit->advance_months,
+                'payment_arrangement'    => $validated['payment_arrangement'],
+                'reservation_fee_amount' => $validated['payment_arrangement'] === 'reservation_fee' ? $validated['reservation_fee_amount'] : null,
+                'payment_deadline_days'  => $validated['payment_deadline_days'] ?? null,
+                'reservation_conditions' => $validated['reservation_conditions'] ?? null,
                 'occupancy_limit'     => $validated['occupancy_limit'],
                 'availability_status' => $validated['availability_status'],
                 'description'         => $validated['description'] ?? null,
@@ -235,10 +260,7 @@ class PropertyUnitController extends Controller
             $unit->amenities()->sync($validated['amenities'] ?? []);
 
             foreach ($photos as $i => $photo) {
-                $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
-                    'folder'        => 'abanganan/units',
-                    'resource_type' => 'image',
-                ]);
+                $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), ImageUploader::listingPhoto('abanganan/units'));
                 $unit->media()->create([
                     'media_type' => 'Image',
                     'media_url'  => $result['secure_url'],
@@ -262,15 +284,11 @@ class PropertyUnitController extends Controller
             }
         });
 
-        return redirect(
-            $request->input('from') === 'wizard'
-                ? route('properties.wizard.units', $property)
-                : route('landlord.properties.units.index', $property)
-        )
+        return redirect($this->backUrl($request, $property))
             ->with('success', $materialChanged ? 'Unit updated and resubmitted for review.' : 'Unit updated.');
     }
 
-    public function destroy(Property $property, PropertyUnit $unit)
+    public function destroy(Request $request, Property $property, PropertyUnit $unit)
     {
         $this->authorizeProperty($property);
 
@@ -286,16 +304,18 @@ class PropertyUnitController extends Controller
             return back()->withErrors(['unit' => 'This unit has an active reservation and cannot be deleted.']);
         }
 
-        foreach ($unit->media as $media) {
-            $media->destroyFromCloudinary();
-            $media->delete();
-        }
+        // The unit's own "Removed unit" line says it all: do not also log each of its photos going.
+        PropertyActivity::withoutRecording(function () use ($unit) {
+            foreach ($unit->media as $media) {
+                $media->destroyFromCloudinary();
+                $media->delete();
+            }
+        });
 
         $unit->amenities()->detach();
         $unit->delete();
 
-        return redirect()
-            ->route('landlord.properties.units.index', $property)
+        return redirect($this->backUrl($request, $property))
             ->with('success', 'Unit removed.');
     }
 
@@ -322,5 +342,28 @@ class PropertyUnitController extends Controller
         $photo->delete();
 
         return back()->with('success', 'Photo removed.');
+    }
+
+    /**
+     * Where saving or removing a unit brings the landlord back to: the wizard step it came from, the property's
+     * own Units tab (`return_to=property`, set by links on the property page), or the Units page (the default,
+     * and what any other value means).
+     */
+    private function backUrl(Request $request, Property $property): string
+    {
+        $from = $request->input('from');
+        if ($from === 'wizard') {
+            return route('properties.wizard.units', $property);
+        }
+
+        return $this->returnTarget($request->input('return_to')) === 'property'
+            ? route('landlord.properties.show', $property).'#units'
+            : route('landlord.properties.units.index', $property);
+    }
+
+    /** Only the two known places: anything else, including a link someone edited by hand, means the Units page. */
+    private function returnTarget(mixed $value): string
+    {
+        return $value === 'property' ? 'property' : 'units';
     }
 }

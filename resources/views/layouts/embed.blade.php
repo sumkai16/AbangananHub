@@ -1,5 +1,5 @@
 {{--
-    A bare page for content shown inside a modal's iframe (e.g. the agreement preview on the Leases page): the app's
+    A bare page for content shown inside a modal's iframe (e.g. the agreement preview on the Rentals page): the app's
     CSS and JS, no header, sidebar or chat bubble. Always light, since it is what gets printed.
 --}}
 <!DOCTYPE html>

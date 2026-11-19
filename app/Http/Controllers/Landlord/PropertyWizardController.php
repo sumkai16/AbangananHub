@@ -6,14 +6,19 @@ use App\Enums\PropertyType;
 use App\Http\Controllers\Concerns\AuthorizesPropertyOwnership;
 use App\Http\Controllers\Controller;
 use App\Models\Amenity;
+use App\Models\Notification;
 use App\Models\Property;
+use App\Models\User;
 use App\Rules\WithinCebu;
 use App\Support\PropertyPolicies;
+use App\Services\ImageUploader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use App\Support\ListingPhotos;
 
 /**
  * Multi-step property creation wizard: Info -> Location -> Amenities ->
@@ -166,13 +171,13 @@ class PropertyWizardController extends Controller
             'latitude'          => ['required', 'numeric', 'between:-90,90', new WithinCebu(request()->input('longitude'))],
             'longitude'         => ['required', 'numeric', 'between:-180,180'],
             'photos'            => $photosRequired
-                ? ['required', 'array', 'min:1', 'max:10']
+                ? ['required', 'array', 'min:1', 'max:'.ListingPhotos::MAX_PROPERTY]
                 : ['nullable', 'array', function ($attribute, $value, $fail) use ($existingPhotoCount) {
-                    if ($existingPhotoCount + count($value) > 10) {
-                        $fail('A property can have at most 10 photos total. Remove some before adding more.');
+                    if (ListingPhotos::tooMany($existingPhotoCount, count($value), ListingPhotos::MAX_PROPERTY)) {
+                        $fail(ListingPhotos::propertyLimitMessage());
                     }
                 }],
-            'photos.*'          => ['image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            'photos.*'          => ['image', 'mimes:jpeg,png,jpg,webp', 'max:'.ListingPhotos::MAX_KB],
         ];
     }
 
@@ -215,10 +220,7 @@ class PropertyWizardController extends Controller
             $property->save();
 
             foreach ($request->file('photos') as $photo) {
-                $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
-                    'folder'        => 'abanganan/properties',
-                    'resource_type' => 'image',
-                ]);
+                $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), ImageUploader::listingPhoto('abanganan/properties'));
                 $property->media()->create([
                     'media_type'           => 'Image',
                     'media_url'            => $result['secure_url'],
@@ -268,10 +270,7 @@ class PropertyWizardController extends Controller
 
             if ($request->hasFile('photos')) {
                 foreach ($request->file('photos') as $photo) {
-                    $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
-                        'folder'        => 'abanganan/properties',
-                        'resource_type' => 'image',
-                    ]);
+                    $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), ImageUploader::listingPhoto('abanganan/properties'));
                     $property->media()->create([
                         'media_type'           => 'Image',
                         'media_url'            => $result['secure_url'],
@@ -448,6 +447,18 @@ class PropertyWizardController extends Controller
 
         $property->update(['publication_status' => 'Published']);
         session()->forget($this->targetUnitsSessionKey($property));
+
+        // The listing now waits in the admin queue; without a ping it sits there until an admin opens the dashboard.
+        $units = $property->units->count();
+        User::whereHas('roles', fn ($q) => $q->where('role', 'Admin'))
+            ->pluck('user_id')
+            ->each(fn ($adminId) => Notification::notify(
+                $adminId,
+                'listing',
+                'Listing submitted for review',
+                "'{$property->title}' was submitted with {$units} ".Str::plural('unit', $units).' and is waiting for approval.',
+                route('admin.listings.approval', ['status' => 'Pending']),
+            ));
 
         return redirect()->route('landlord.properties.show', $property)
             ->with('success', "'{$property->title}' has been submitted for review.");

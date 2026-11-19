@@ -57,15 +57,20 @@ class ReportAnalyticsController extends Controller
         $reservedAll   = PropertyUnit::where('availability_status', 'Reserved')->count();
         $occupiedAll   = PropertyUnit::where('availability_status', 'Occupied')->count();
 
-        // Breakdown by property type
+        // Breakdown by property type: approved-unit totals for every type in one grouped query.
+        $unitsByType = PropertyUnit::join('properties', 'properties.property_id', '=', 'property_units.property_id')
+            ->where('property_units.verification_status', 'Approved')
+            ->groupBy('properties.property_type')
+            ->selectRaw("properties.property_type, COUNT(*) as total, SUM(property_units.availability_status = 'Occupied') as occupied")
+            ->get()
+            ->keyBy('property_type');
+
         $typeBreakdown = Property::selectRaw("property_type, COUNT(*) as property_count")
             ->groupBy('property_type')
             ->get()
-            ->map(function ($row) {
-                $units    = PropertyUnit::whereIn('property_id', Property::where('property_type', $row->property_type)->pluck('property_id'))
-                    ->where('verification_status', 'Approved');
-                $total    = (clone $units)->count();
-                $occupied = (clone $units)->where('availability_status', 'Occupied')->count();
+            ->map(function ($row) use ($unitsByType) {
+                $total    = (int) ($unitsByType[$row->property_type]->total ?? 0);
+                $occupied = (int) ($unitsByType[$row->property_type]->occupied ?? 0);
 
                 return [
                     'type'           => $row->property_type,
@@ -122,18 +127,19 @@ class ReportAnalyticsController extends Controller
             ? round(($approvedCount / $allReservations) * 100, 1)
             : 0;
 
-        // Breakdown by property type
+        // Breakdown by property type: reservation totals for every type in one grouped query.
+        $reservationsByType = Reservation::join('properties', 'properties.property_id', '=', 'reservations.property_id')
+            ->groupBy('properties.property_type')
+            ->selectRaw("properties.property_type, COUNT(*) as total, SUM(reservations.rental_status IN ('Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied')) as approved")
+            ->get()
+            ->keyBy('property_type');
+
         $typeBreakdown = Property::selectRaw("property_type")
             ->distinct()
             ->pluck('property_type')
-            ->map(function ($type) {
-                $propertyIds  = Property::where('property_type', $type)->pluck('property_id');
-                $total        = Reservation::whereIn('property_id', $propertyIds)->count();
-                $approved     = Reservation::whereIn('property_id', $propertyIds)
-                    ->whereIn('rental_status', [
-                        'Under Negotiation', 'Pending Rental Agreement',
-                        'Rental Agreement Signed', 'Occupied',
-                    ])->count();
+            ->map(function ($type) use ($reservationsByType) {
+                $total    = (int) ($reservationsByType[$type]->total ?? 0);
+                $approved = (int) ($reservationsByType[$type]->approved ?? 0);
 
                 return [
                     'type'     => $type,

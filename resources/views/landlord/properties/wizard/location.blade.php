@@ -6,13 +6,7 @@
 <div class="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
     <div class="max-w-[1200px] mx-auto">
 
-        <a href="{{ route('landlord.properties.index') }}"
-            class="inline-flex items-center gap-2 text-[13px] font-bold text-[#94A3B8] hover:text-[#060D26] transition-colors w-fit mb-6">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
-            </svg>
-            Back to My Properties
-        </a>
+        <x-back-link href="{{ route('landlord.properties.index') }}" to="My Properties" class="mb-6" />
 
         @if($errors->any())
             <div class="max-w-3xl mb-6 px-4 py-3 rounded-xl bg-[#EF4444]/[0.07] border border-[#EF4444]/20 text-[#DC2626] text-sm font-medium flex items-start gap-2.5">
@@ -107,7 +101,7 @@
                             <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 mb-3">
                                 @foreach($property->media as $media)
                                     <div class="aspect-square rounded-lg overflow-hidden bg-[#ECEEF6] border border-[#E2E4EC]">
-                                        <img loading="lazy" decoding="async" src="{{ $media->media_url }}" alt="" class="w-full h-full object-cover">
+                                        <img loading="lazy" decoding="async" src="{{ \App\Support\Images::src($media->media_url, 'card') }}" alt="" class="w-full h-full object-cover">
                                     </div>
                                 @endforeach
                             </div>
@@ -122,7 +116,7 @@
                                     </svg>
                                 </div>
                                 <span id="upload-label" data-default-label="Select photos to upload" class="text-[13.5px] font-semibold text-[#060D26] transition-colors">Select photos to upload</span>
-                                <p class="text-xs text-[#94A3B8] mt-1.5">JPEG, PNG, or WEBP. Max 5MB each, up to 10 photos.</p>
+                                <p class="text-xs text-[#94A3B8] mt-1.5">JPEG, PNG, or WEBP. Max 5MB each, up to {{ \App\Support\ListingPhotos::MAX_PROPERTY }} photos.</p>
                                 <input type="file" name="photos[]" id="photo-input" class="hidden" multiple accept="image/jpeg,image/png,image/jpg,image/webp" {{ ($property && $property->media->isNotEmpty()) ? '' : 'required' }} onchange="previewSelectedPhotos(this)">
                             </label>
                         </div>

@@ -67,13 +67,13 @@ class ReservationTermsTest extends TestCase
         $this->assertSame(2, $reservation->occupants_count);
     }
 
-    public function test_move_out_is_optional_but_move_in_and_occupants_are_required(): void
+    public function test_the_dates_and_occupants_are_optional_but_a_date_in_the_past_is_not(): void
     {
         $unit = $this->makeUnit($this->makeProperty($this->makeLandlord()));
 
         $this->inquire($this->makeTenant(), $unit)->assertSessionHasNoErrors();
-        $this->inquire($this->makeTenant(), $unit, ['target_move_in_date' => ''])->assertSessionHasErrors('target_move_in_date');
-        $this->inquire($this->makeTenant(), $unit, ['occupants_count' => ''])->assertSessionHasErrors('occupants_count');
+        $this->inquire($this->makeTenant(), $unit, ['target_move_in_date' => '', 'occupants_count' => ''])->assertSessionHasNoErrors();
+        $this->inquire($this->makeTenant(), $unit, ['target_move_in_date' => '2026-10-01'])->assertSessionHasErrors('target_move_in_date');
     }
 
     public function test_an_inquiry_is_refused_over_the_units_limit_or_for_under_a_month(): void

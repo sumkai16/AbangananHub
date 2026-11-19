@@ -9,10 +9,12 @@ use App\Models\Amenity;
 use App\Models\Property;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
+use App\Services\ImageUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use App\Support\ListingPhotos;
 
 /**
  * Mobile equivalent of Landlord\PropertyUnitController's store/update/
@@ -35,13 +37,14 @@ class UnitWriteController extends Controller
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
             // Every monthly rental carries a deposit — no longer optional.
             'security_deposit'    => 'required|numeric|min:0|max:999999.99',
+            'advance_months'      => 'nullable|integer|in:0,1,2',
             'occupancy_limit'     => 'required|integer|min:1|max:100',
             'availability_status' => 'required|in:Available,Reserved,Occupied,Maintenance',
             'description'         => 'nullable|string|max:300',
             'amenities'           => ['nullable', 'array', Amenity::exclusiveRule()],
             'amenities.*'         => 'bail|integer|exists:amenities,amenity_id',
-            'photos'              => 'required|array|min:3|max:10',
-            'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:5120',
+            'photos'              => 'required|array|min:'.ListingPhotos::MIN_UNIT.'|max:'.ListingPhotos::MAX_UNIT,
+            'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:'.ListingPhotos::MAX_KB,
             'photo_sources'       => 'required|array',
             'photo_sources.*'     => 'in:camera,upload',
             'photo_captions'      => 'nullable|array',
@@ -66,6 +69,7 @@ class UnitWriteController extends Controller
                 'floor_area_sqm'      => $validated['floor_area_sqm'] ?? null,
                 'rental_fee'          => $validated['rental_fee'],
                 'security_deposit'    => $validated['security_deposit'] ?? null,
+                'advance_months'      => (int) ($validated['advance_months'] ?? 1),
                 'occupancy_limit'     => $validated['occupancy_limit'],
                 'availability_status' => $validated['availability_status'],
                 'description'         => $validated['description'] ?? null,
@@ -77,10 +81,7 @@ class UnitWriteController extends Controller
             }
 
             foreach ($photos as $i => $photo) {
-                $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
-                    'folder'        => 'abanganan/units',
-                    'resource_type' => 'image',
-                ]);
+                $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), ImageUploader::listingPhoto('abanganan/units'));
                 $unit->media()->create([
                     'media_type' => 'Image',
                     'media_url'  => $result['secure_url'],
@@ -121,13 +122,14 @@ class UnitWriteController extends Controller
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
             // Every monthly rental carries a deposit — no longer optional.
             'security_deposit'    => 'required|numeric|min:0|max:999999.99',
+            'advance_months'      => 'nullable|integer|in:0,1,2',
             'occupancy_limit'     => 'required|integer|min:1|max:100',
             'availability_status' => 'required|in:Available,Reserved,Occupied,Maintenance',
             'description'         => 'nullable|string|max:300',
             'amenities'           => ['nullable', 'array', Amenity::exclusiveRule()],
             'amenities.*'         => 'bail|integer|exists:amenities,amenity_id',
-            'photos'              => 'nullable|array|max:10',
-            'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:5120',
+            'photos'              => 'nullable|array|max:'.ListingPhotos::MAX_UNIT,
+            'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:'.ListingPhotos::MAX_KB,
             'video'               => 'nullable|file|mimes:mp4,mov,avi,webm|max:102400',
         ]);
 
@@ -136,6 +138,11 @@ class UnitWriteController extends Controller
             throw ValidationException::withMessages([
                 'availability_status' => ['This unit has an active reservation — manage its status through the reservation instead of editing it manually.'],
             ]);
+        }
+
+        // The limit is on the unit's total, not on one save: the unit may already hold some photos.
+        if (ListingPhotos::tooMany($unit->media()->where('media_type', 'Image')->count(), count($request->file('photos', [])), ListingPhotos::MAX_UNIT)) {
+            throw ValidationException::withMessages(['photos' => [ListingPhotos::unitLimitMessage()]]);
         }
 
         $materialChanged = $unit->rental_fee != $validated['rental_fee']
@@ -150,6 +157,7 @@ class UnitWriteController extends Controller
                 'floor_area_sqm'      => $validated['floor_area_sqm'] ?? null,
                 'rental_fee'          => $validated['rental_fee'],
                 'security_deposit'    => $validated['security_deposit'] ?? null,
+                'advance_months'      => isset($validated['advance_months']) ? (int) $validated['advance_months'] : $unit->advance_months,
                 'occupancy_limit'     => $validated['occupancy_limit'],
                 'availability_status' => $validated['availability_status'],
                 'description'         => $validated['description'] ?? null,
@@ -160,10 +168,7 @@ class UnitWriteController extends Controller
 
             if ($request->hasFile('photos')) {
                 foreach ($request->file('photos') as $photo) {
-                    $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
-                        'folder'        => 'abanganan/units',
-                        'resource_type' => 'image',
-                    ]);
+                    $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), ImageUploader::listingPhoto('abanganan/units'));
                     $unit->media()->create([
                         'media_type' => 'Image',
                         'media_url'  => $result['secure_url'],
