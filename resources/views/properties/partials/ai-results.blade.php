@@ -21,6 +21,20 @@
     $linkable = $rows->pluck('property')->concat($alternatives->pluck('property'));
 @endphp
 
+{{-- "How I searched": what the planner did for a request with several places, written by PHP from its tool log (SearchPlanner),
+     never from anything the model wrote. Collapsed by default. --}}
+@if(!empty($intent['plan_steps']))
+    <details class="mb-4 max-w-3xl rounded-2xl border border-[#E2E4EC] bg-white px-4 py-3 text-[13.5px] text-[#060D26]">
+        <summary class="cursor-pointer font-semibold select-none">How I searched</summary>
+        <ol class="mt-2 list-decimal pl-5 space-y-1 text-[#5B6A8E]">
+            @foreach($intent['plan_steps'] as $step)
+                <li>{{ $step }}</li>
+            @endforeach
+            <li>Searched for places close to {{ collect($intent['anchors'])->pluck('name')->join(', ', ' and ') }}.</li>
+        </ol>
+    </details>
+@endif
+
 {{-- "Near me" (plans/near-me-search.md): which spot was used so the tenant can correct it, or why there is none.
      Only the area name reaches the page; the coordinates stay in the browser. `changeArea` and `useMyLocation`
      live in resources/js/ai-search.js. --}}
@@ -89,9 +103,10 @@
     </section>
 @elseif($total === 0)
     <section class="rounded-2xl border border-[#E2E4EC] bg-white px-5 py-8 text-center max-w-3xl">
-        <p class="font-jakarta text-[17px] font-bold text-[#060D26]">Nothing matches yet</p>
+        <p class="font-jakarta text-[17px] font-bold text-[#060D26]">{{ $alternatives->isNotEmpty() ? 'No exact match, but these could work' : 'Nothing matches yet' }}</p>
         <p class="mt-1.5 text-[14px] leading-[1.55] text-[#5B6A8E]">{{ \App\Services\AiSearch\SummaryFormatter::html($summary, $linkable, false) }}</p>
-        <a href="{{ $filtersUrl }}" class="mt-4 inline-flex items-center h-10 px-5 rounded-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[13.5px] font-bold transition-colors">Browse with filters</a>
+        {{-- With suggestions below, the filters link is secondary; with none it is the only way forward. --}}
+        <a href="{{ $filtersUrl }}" class="mt-4 inline-flex items-center h-10 px-5 rounded-full text-[13.5px] transition-colors {{ $alternatives->isEmpty() ? 'bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] font-bold' : 'border border-[#060D26] bg-white text-[#060D26] font-semibold hover:bg-[#F7F8FC]' }}">Browse with filters</a>
     </section>
 @else
     @if($notice && $notice['kind'] === 'name')
@@ -179,7 +194,7 @@
 
 @if($alternatives->isNotEmpty())
     <section aria-label="Other options" class="{{ $total === 0 ? 'mt-6' : 'mt-8' }}">
-        <h2 class="font-jakarta text-[17px] font-bold text-[#060D26]">You might also like</h2>
+        <h2 class="font-jakarta text-[17px] font-bold text-[#060D26]">{{ $total === 0 ? 'Suggested for you' : 'You might also like' }}</h2>
         @if(filled($alt_note))
             <p class="mt-0.5 mb-3 text-[13px] text-[#5B6A8E] max-w-3xl">{{ $alt_note }}</p>
         @endif

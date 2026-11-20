@@ -544,6 +544,39 @@ html.dark .map-pin--origin .map-pin__dot {
 
 .ai-fit:hover { background: #0E1A45; }
 
+/* "Search this area": shown after the tenant moves the map. The one coral CTA treatment (DESIGN.md). */
+.ai-area-btn {
+    display: none;
+    align-items: center;
+    height: 40px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 9999px;
+    background: #FF8A66;
+    color: #060D26;
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 6px 18px rgba(6, 13, 38, 0.22);
+    cursor: pointer;
+}
+
+.ai-area-btn.is-visible { display: inline-flex; }
+
+.ai-area-btn:hover { background: #E96F4F; }
+
+/* Label on a dashed "stay away from" circle */
+.ai-avoid-label {
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    background: #ffffff;
+    border: 1px solid #B3402A;
+    color: #8A2E1D;
+    font: 600 11px 'Inter', sans-serif;
+}
+
 /* Preview card on the selected pin (desktop) */
 .ai-popup .leaflet-popup-content-wrapper { border-radius: 16px; box-shadow: 0 18px 40px rgba(6, 13, 38, 0.22); }
 .ai-popup .leaflet-popup-content { width: 290px !important; }

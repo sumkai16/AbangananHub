@@ -22,10 +22,40 @@ const saveRecent = (q) => {
     } catch { /* private window: recents just don't persist */ }
 };
 
-export function aiSearchBox(initial = '') {
+export function aiSearchBox(initial = '', imageUrl = null) {
     return {
         q: initial,
         recent: [],
+        reading: false, // a screenshot is being read
+        imageError: '',
+
+        // Search by screenshot: the server reads the image into a plain sentence, which is then searched like typed text.
+        async readImage(event) {
+            const file = event.target.files?.[0];
+            event.target.value = '';
+            if (!file || !imageUrl) return;
+            if (file.size > 4 * 1024 * 1024) {
+                this.imageError = 'That image is over 4 MB. Try a smaller screenshot.';
+                return;
+            }
+            this.reading = true;
+            this.imageError = '';
+            try {
+                const body = new FormData();
+                body.append('image', file);
+                const res = await fetch(imageUrl, { method: 'POST', headers: { Accept: 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '' }, body });
+                const out = await res.json().catch(() => ({}));
+                if (!res.ok || !out.sentence) {
+                    this.imageError = out.message || 'Could not read that image.';
+                    return;
+                }
+                this.use(out.sentence);
+            } catch {
+                this.imageError = 'Could not reach the server. Check your connection.';
+            } finally {
+                this.reading = false;
+            }
+        },
         init() {
             this.recent = readRecent();
         },
@@ -82,7 +112,7 @@ const NOTICES = {
     network: ['Something went wrong', 'We could not reach the server. Check your connection and retry.'],
 };
 
-export function aiSearch({ query, interpretUrl, resultsUrl }) {
+export function aiSearch({ query, interpretUrl, resultsUrl, refineUrl = null, reasonsUrl = null, feedbackUrl = null }) {
     let controller = null;
     let runId = 0;
 
@@ -94,6 +124,15 @@ export function aiSearch({ query, interpretUrl, resultsUrl }) {
         intent: null,
         geo: null, // {lat, lng} once the browser has told us where the tenant is ("near me"); never stored
         usedAi: false,
+        usageToken: null, // what the interpret call spent; sent back so the log shows the whole search
+        // Follow-ups (Phase 3): quick chips and the cheapest rent shown come with every results response.
+        quick: [],
+        context: {},
+        history: [], // earlier searches of this visit (up to 5), for "Back"
+        refineText: '',
+        refining: false,
+        feedbackToken: null, // rates THIS search only (AiSearchFeedbackController)
+        feedbackGiven: 0, // 1 / -1 once the tenant has answered
         reason: null,
         html: '',
         filtersOpen: false, // the Filters panel (header button -> browse-open-filters)
@@ -106,7 +145,20 @@ export function aiSearch({ query, interpretUrl, resultsUrl }) {
         _scrollTimer: null,
 
         init() {
+            // "Search this area" on the results map: search what the map shows, keeping the other filters.
+            window.addEventListener('ai-search-area', (e) => this.searchArea(e.detail));
             this.run();
+        },
+
+        searchArea(box) {
+            if (!this.intent || !box) return;
+            this.intent.location = { kind: 'area', value: 'map area', name: 'Map area', south: box.south, west: box.west, north: box.north, east: box.east };
+            this.intent.near_me = false;
+            this.intent.max_minutes = null;
+            this.geo = null;
+            this.phase = 'finding';
+            this.html = '';
+            this.fetchResults();
         },
 
         get notice() {
@@ -124,7 +176,7 @@ export function aiSearch({ query, interpretUrl, resultsUrl }) {
             const id = ++runId;
             controller = new AbortController();
             const { signal } = controller;
-            Object.assign(this, { phase: 'reading', upgrading: false, html: '', chips: [], reason: null, usedAi: false });
+            Object.assign(this, { phase: 'reading', upgrading: false, html: '', chips: [], reason: null, usedAi: false, usageToken: null });
 
             const smart = post(interpretUrl, { q: this.query }, signal);
             smart.catch(() => {}); // handled below; stops an early rejection from being reported twice
@@ -145,6 +197,7 @@ export function aiSearch({ query, interpretUrl, resultsUrl }) {
                 if (id !== runId) return;
                 this.upgrading = false;
                 this.reason = read.fallback_reason;
+                this.usageToken = read.usage_token ?? null;
                 if (read.used_ai && JSON.stringify(withoutPoint(read.intent)) !== JSON.stringify(withoutPoint(this.intent))) {
                     this.apply(read);
                     this.phase = 'finding';
@@ -152,6 +205,7 @@ export function aiSearch({ query, interpretUrl, resultsUrl }) {
                     await this.fetchResults(id);
                 } else if (read.used_ai) {
                     this.usedAi = true;
+                    this.loadReasons(id);
                 }
             } catch (e) {
                 this.upgrading = false;
@@ -235,14 +289,20 @@ export function aiSearch({ query, interpretUrl, resultsUrl }) {
                     intent: this.intent,
                     used_ai: this.usedAi,
                     fallback_reason: this.reason === 'fast' ? null : this.reason,
+                    usage_token: this.usageToken ?? null,
                 }, controller.signal);
                 if (id !== runId) return;
                 this.html = out.html;
+                this.quick = out.quick || [];
+                this.feedbackToken = out.feedback_token ?? null;
+                this.feedbackGiven = 0;
+                this.context = out.context || {};
                 this.chips = out.chips;
                 this.intent = out.intent;
                 this.syncDraft();
                 this.phase = 'done';
-                this.showOnMap(out.map || [], out.map_origin ?? null);
+                this.showOnMap(out.map || [], out.map_origin ?? null, out.map_avoid || []);
+                this.loadReasons(id);
                 if (out.exact_count > 0) saveRecent(this.query); // typos and empty searches stay out of Recent
             } catch (e) {
                 if (id === runId) this.fail(e);
@@ -252,12 +312,12 @@ export function aiSearch({ query, interpretUrl, resultsUrl }) {
         // The results map (browse-map.js) is built the first time it is opened and reads #browse-map-data;
         // once it exists, browseMapUpdate redraws the pins (and the search origin + radius). Waits a tick so
         // the new cards are in the page (the pins and cards highlight each other).
-        showOnMap(pins, origin = null) {
+        showOnMap(pins, origin = null, avoid = []) {
             this.pins = pins;
             if (!pins.some((p) => String(p.property_id) === String(this.selectedId))) this.selectedId = null;
             const data = document.getElementById('browse-map-data');
-            if (data) data.textContent = JSON.stringify({ pins, origin });
-            this.$nextTick(() => window.browseMapUpdate?.(pins, { origin }));
+            if (data) data.textContent = JSON.stringify({ pins, origin, avoid });
+            this.$nextTick(() => window.browseMapUpdate?.(pins, { origin, avoid }));
         },
 
         // --- mobile card carousel (below lg) ---------------------------------------------------------
@@ -352,14 +412,92 @@ export function aiSearch({ query, interpretUrl, resultsUrl }) {
             this.reason = null;
         },
 
+        // "Why this fits you": one checked line per card, asked for once the cards are on screen and the AI has read the
+        // sentence. Never blocks the results; a failure just leaves the cards without the line.
+        async loadReasons(id) {
+            if (!reasonsUrl || !this.usedAi || !this.intent || this.phase !== 'done') return;
+            try {
+                const out = await post(reasonsUrl, { intent: this.intent }, controller?.signal);
+                if (id !== runId) return;
+                this.$nextTick(() => {
+                    Object.entries(out.reasons || {}).forEach(([pid, text]) => {
+                        document.querySelectorAll(`[data-reason="${CSS.escape(pid)}"]`).forEach((node) => {
+                            node.textContent = text;
+                            node.hidden = false;
+                        });
+                    });
+                });
+            } catch {
+                /* the cards simply have no line */
+            }
+        },
+
+        // Thumbs up / down under the results. Fire and forget: a failure just means no rating.
+        async rate(value) {
+            if (!feedbackUrl || !this.feedbackToken) return;
+            this.feedbackGiven = value;
+            try { await post(feedbackUrl, { token: this.feedbackToken, value }); } catch { /* ignore */ }
+        },
+
+        // A follow-up on the search on screen: typed text (one AI call) or a quick chip's ready-made patch (none).
+        // The new search replaces the old one; "Back" restores the last.
+        async refine(patch = null) {
+            const text = this.refineText.trim();
+            if (!refineUrl || this.refining || !this.intent || (!patch && !text)) return;
+
+            this.refining = true;
+            this.abort();
+            const id = ++runId;
+            controller = new AbortController();
+            const before = { query: this.query, intent: JSON.parse(JSON.stringify(this.intent)), chips: this.chips };
+
+            try {
+                const read = await post(refineUrl, { q: text || null, previous: this.intent, patch, context: this.context }, controller.signal);
+                if (id !== runId) return;
+                this.history.push(before);
+                if (this.history.length > 5) this.history.shift();
+                if (text) this.query = text;
+                this.refineText = '';
+                this.apply(read);
+                this.usageToken = read.usage_token ?? null;
+                await this.locate(id);
+                if (id !== runId) return;
+                this.phase = 'finding';
+                this.html = '';
+                await this.fetchResults(id);
+            } catch (e) {
+                if (id === runId && e?.name !== 'AbortError') this.reason = 'unavailable';
+            } finally {
+                this.refining = false;
+            }
+        },
+
+        back() {
+            const prev = this.history.pop();
+            if (!prev || this.refining) return;
+            this.abort();
+            runId++;
+            this.query = prev.query;
+            this.intent = prev.intent;
+            this.chips = prev.chips;
+            this.usageToken = null;
+            this.syncDraft();
+            this.phase = 'finding';
+            this.html = '';
+            this.fetchResults();
+        },
+
         // Drop one filter and search again without re-reading the sentence.
         removeChip(chip) {
             const { field, value } = chip.remove;
             if (field === 'location') {
                 this.intent.near_me = false;
+                this.intent.max_minutes = null; // minutes belong to the place; without it they mean nothing
                 this.geo = null;
             }
-            if (field === 'price') {
+            if (field === 'avoid') {
+                this.intent.avoid = (this.intent.avoid || []).filter((a) => a.name !== value);
+            } else if (field === 'price') {
                 this.intent.price_min = this.intent.price_max = null;
             } else if (field === 'amenities' || field === 'rules') {
                 this.intent[field] = this.intent[field].filter((v) => v !== value);

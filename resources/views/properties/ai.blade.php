@@ -7,7 +7,7 @@
 --}}
 @section('content')
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-16 min-h-[60vh]"
-        x-data="aiSearch({ query: @js($query), interpretUrl: @js(route('search.interpret')), resultsUrl: @js(route('search.results')) })"
+        x-data="aiSearch({ query: @js($query), interpretUrl: @js(route('search.interpret')), resultsUrl: @js(route('search.results')), refineUrl: @js(route('search.refine')), reasonsUrl: @js(route('search.reasons')), feedbackUrl: @js(route('search.feedback')) })"
         x-effect="window.dispatchEvent(new CustomEvent('browse-map-state', { detail: mapVisible }))"
         @browse-toggle-map.window="toggleMap()"
         @browse-open-filters.window="openFilters()"
@@ -87,6 +87,16 @@
                         </div>
                     @endforeach
                 </div>
+            </div>
+
+            @include('properties.partials.ai-refine')
+
+            {{-- Was this helpful? One tap; the answer is stored with the (30-day) search log and read in Admin > Search insights. --}}
+            <div x-show="phase === 'done' && feedbackToken" x-cloak class="mt-3 flex items-center gap-2 text-[13px] text-[#5B6A8E]">
+                <span x-show="!feedbackGiven">Was this helpful?</span>
+                <span x-show="feedbackGiven" x-cloak>Thanks for telling us.</span>
+                <button type="button" x-on:click="rate(1)" :disabled="feedbackGiven !== 0" aria-label="Helpful" class="h-9 px-3 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] font-semibold hover:bg-[#F7F8FC] cursor-pointer disabled:opacity-50" :class="feedbackGiven === 1 ? '!border-[#166534] !opacity-100' : ''">Yes</button>
+                <button type="button" x-on:click="rate(-1)" :disabled="feedbackGiven !== 0" aria-label="Not helpful" class="h-9 px-3 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] font-semibold hover:bg-[#F7F8FC] cursor-pointer disabled:opacity-50" :class="feedbackGiven === -1 ? '!border-[#8A5300] !opacity-100' : ''">No</button>
             </div>
 
             {{-- Results, rendered by the server --}}

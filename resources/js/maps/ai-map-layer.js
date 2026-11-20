@@ -21,6 +21,11 @@ const LEGEND = {
 let ctx = null; // { map, cluster, zoomPosition } while the map is showing search results
 let entries = new Map(); // property_id (string) -> { marker, pin }
 let origin = null;
+let areaBox = null; // [south, west, north, east] while the results are for a map area
+let avoid = []; // [{ name, lat, lng, radius_km }]: places the tenant wants to stay away from
+let moved = false; // the tenant panned or zoomed since the results were drawn
+let quietUntil = 0; // map moves before this time are our own fits, not the tenant's
+const SEARCH_AREA_EVENT = 'ai-search-area';
 let layers = []; // origin marker, radius circle and label: removed on the next update
 let controls = [];
 let popup = null;
@@ -58,6 +63,9 @@ export function aiUpdate(map, cluster, pins, opts = {}) {
     entries = new Map();
     selectedId = null;
     origin = opts.origin && Number.isFinite(parseFloat(opts.origin.lat)) ? opts.origin : null;
+    areaBox = opts.origin?.kind === 'area' && Array.isArray(opts.origin.bounds) ? opts.origin.bounds.map(Number) : null;
+    avoid = Array.isArray(opts.avoid) ? opts.avoid.filter((a) => Number.isFinite(Number(a.lat)) && Number.isFinite(Number(a.lng))) : [];
+    moved = false;
     bind(map);
     map.zoomControl?.setPosition('topright'); // top-left belongs to the summary chip
 
@@ -81,6 +89,7 @@ export function aiUpdate(map, cluster, pins, opts = {}) {
     });
 
     drawOrigin(map);
+    drawExtras(map);
     drawControls(map);
     aiFit();
     wireCards();
@@ -101,9 +110,12 @@ export function aiFit() {
     map.invalidateSize();
     const points = visibleEntries().map((e) => e.marker.getLatLng());
     const bounds = points.length ? L.latLngBounds(points) : null;
-    const circle = layers.find((l) => l instanceof L.Circle);
+    const circle = layers.find((l) => l instanceof L.Circle && !l._avoid);
+    const rect = layers.find((l) => l instanceof L.Rectangle);
     if (bounds && circle) bounds.extend(circle.getBounds());
-    const target = bounds || (circle ? circle.getBounds() : null);
+    if (bounds && rect) bounds.extend(rect.getBounds());
+    const target = bounds || (circle ? circle.getBounds() : (rect ? rect.getBounds() : null));
+    quietUntil = Date.now() + 900; // the fit below is ours: it must not light up "Search this area"
     // Leave room for the chip (top-left) and the legend / fit button (bottom-left).
     if (target) map.fitBounds(target.pad(0.1), { maxZoom: 16, paddingTopLeft: [40, 110], paddingBottomRight: [60, isDesktop() ? 200 : 80] });
 }
@@ -222,6 +234,12 @@ function bind(map) {
     if (bound) return;
     bound = true;
     map.on('click', () => { if (ctx && selectedId) deselect(); });
+    // The tenant moved the map: offer to search what is on screen now.
+    map.on('dragend zoomend', () => {
+        if (!ctx || mode !== 'search' || Date.now() < quietUntil || moved) return;
+        moved = true;
+        document.querySelectorAll('.ai-area-btn').forEach((b) => b.classList.add('is-visible'));
+    });
     map.on('popupclose', (e) => {
         if (ctx && !suppressClose && e.popup === popup && selectedId) {
             popup = null;
@@ -309,6 +327,30 @@ function drawOrigin(map) {
     layers = [circle, dot, label];
 }
 
+// ── Places to avoid and the searched map area ────────────────────────────────
+
+function drawExtras(map) {
+    avoid.forEach((a) => {
+        const km = Number(a.radius_km) > 0 ? Number(a.radius_km) : 1.5;
+        const circle = L.circle([Number(a.lat), Number(a.lng)], {
+            radius: km * 1000, color: '#B3402A', weight: 1.5, dashArray: '2 6', fillColor: '#B3402A', fillOpacity: 0.08, interactive: false,
+        }).addTo(map);
+        circle._avoid = true;
+        const label = L.marker([Number(a.lat), Number(a.lng)], {
+            interactive: false, keyboard: false, zIndexOffset: -600,
+            icon: L.divIcon({ className: 'ai-origin-wrapper', iconSize: [0, 0], iconAnchor: [0, 0], html: `<div class="ai-avoid-label">Away from ${esc(a.name)}</div>` }),
+        }).addTo(map);
+        layers.push(circle, label);
+    });
+
+    if (areaBox && areaBox.length === 4 && areaBox.every(Number.isFinite)) {
+        const rect = L.rectangle([[areaBox[0], areaBox[1]], [areaBox[2], areaBox[3]]], {
+            color: '#FF8A66', weight: 1.5, dashArray: '6 5', fillColor: '#FF8A66', fillOpacity: 0.06, interactive: false,
+        }).addTo(map);
+        layers.push(rect);
+    }
+}
+
 // ── Controls ─────────────────────────────────────────────────────────────────
 
 function control(map, position, build) {
@@ -347,6 +389,21 @@ function drawControls(map) {
         }
         chip.append(icon, text);
         panel.append(chip);
+
+        // Appears once the tenant has moved the map; searches exactly what is on screen (kept in Cebu by the server).
+        if (mode === 'search') {
+            const button = el('button', 'ai-area-btn');
+            button.type = 'button';
+            button.textContent = 'Search this area';
+            button.addEventListener('click', () => {
+                const b = ctx.map.getBounds();
+                window.dispatchEvent(new CustomEvent(SEARCH_AREA_EVENT, { detail: { south: b.getSouth(), west: b.getWest(), north: b.getNorth(), east: b.getEast() } }));
+                button.classList.remove('is-visible');
+                quietUntil = Date.now() + 1500;
+                moved = false;
+            });
+            panel.append(button);
+        }
 
         if (others.length) {
             const label = el('label', 'ai-switch');

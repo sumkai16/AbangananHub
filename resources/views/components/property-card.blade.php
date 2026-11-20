@@ -186,6 +186,10 @@
                 </span>
             @endif
         </div>
+        @if($fit && \App\Services\AiSearch\AiFeatures::on('reasons'))
+            {{-- "Why this fits you": filled in after the cards are shown (ai-search.js, ReasonGuard). Empty and hidden until then. --}}
+            <p data-reason="{{ $property->property_id }}" hidden class="mt-2.5 text-[12.5px] leading-[1.45] text-[#5B6A8E]"></p>
+        @endif
         @if($fit && ($fit['misses'] || $fit['hits']))
             {{-- What the search asked for vs. what this place has. Computed from real data (MatchExplainer), gaps first. Three chips, then "+N". --}}
             @php $fitChips = collect($fit['misses'])->map(fn ($c) => ['miss', $c['text']])->concat(collect($fit['hits'])->map(fn ($c) => ['hit', $c['text']])); @endphp

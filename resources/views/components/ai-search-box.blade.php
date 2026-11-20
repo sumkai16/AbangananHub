@@ -10,15 +10,17 @@
 @php
     $isHero = $variant === 'hero';
     $examples = [
-        'Dorm near IT Park, max ₱18k',
+        // One per language (the EN / TL / CEB badges). Each returns a full list of exact matches on the defense
+        // data (DefenseSearchSeeder::SEARCHES); change both together.
+        'Bedspace near Lahug, aircon, under 3k',
         'Bedspace para sa babae, may aircon',
-        'Apartment sa Mandaue ubos 4k',
+        'Kwarto duol sa CIT-U, ubos sa 3k',
     ];
     $placeholder = 'e.g. Room near USC Talamban, Wi-Fi, under ₱5,000. I have a cat.';
 @endphp
 
 @if($isHero)
-    <div class="w-full max-w-[760px] text-left" x-data="aiSearchBox(@js(request('q', '')))">
+    <div class="w-full max-w-[760px] text-left" x-data="aiSearchBox(@js(request('q', '')), @js(auth()->check() && \App\Services\AiSearch\AiFeatures::on('vision_search') ? route('search.image') : null))">
         <form action="{{ route('properties.index') }}" method="GET" role="search"
             class="bg-white rounded-[20px] border-[1.5px] border-[#FF8A66] ring-4 ring-[#FF8A66]/15 shadow-[0_10px_30px_rgba(6,13,38,0.22)] flex flex-col">
             <label for="ai-q-hero" class="flex items-center gap-1.5 px-4 pt-3.5 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-[#B35A3D]">
@@ -34,6 +36,16 @@
                         <span class="text-[10.5px] font-bold px-1.5 py-[3px] rounded-md bg-[#ECEEF6] text-[#5B6A8E]">{{ $lang }}</span>
                     @endforeach
                 </span>
+                @auth
+                    @if(\App\Services\AiSearch\AiFeatures::on('vision_search'))
+                        {{-- Search by screenshot: a rental post or a photo of a place. Signed-in users only (it costs AI credit). --}}
+                        <label class="ml-auto mr-1 inline-flex items-center gap-1.5 h-11 px-3 rounded-full border border-[#060D26]/20 text-[13px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] cursor-pointer" :class="reading ? 'opacity-60 pointer-events-none' : ''">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13" r="3.5" /></svg>
+                            <span x-text="reading ? 'Reading…' : 'Screenshot'">Screenshot</span>
+                            <input type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" x-on:change="readImage($event)" aria-label="Search from a screenshot of a rental post">
+                        </label>
+                    @endif
+                @endauth
                 <button type="submit"
                     class="h-11 px-5 rounded-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] font-jakarta font-bold text-[14.5px] inline-flex items-center gap-2 transition-colors cursor-pointer">
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
@@ -41,6 +53,7 @@
                 </button>
             </div>
         </form>
+        <p x-show="imageError" x-cloak x-text="imageError" role="alert" class="mt-2 text-[13px] font-semibold text-white"></p>
 
         <div class="mt-3.5 flex flex-wrap gap-2" aria-label="Try asking">
             @foreach($examples as $example)

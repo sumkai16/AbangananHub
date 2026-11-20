@@ -45,7 +45,7 @@ function readInitialData() {
     try {
         const data = JSON.parse(dataEl.textContent);
         if (Array.isArray(data)) return { pins: data, opts: undefined };
-        return { pins: data?.pins || [], opts: { origin: data?.origin ?? null } };
+        return { pins: data?.pins || [], opts: { origin: data?.origin ?? null, avoid: data?.avoid ?? [] } };
     } catch (err) {
         console.error('Browse map: could not parse property data', err);
         return { pins: [], opts: undefined };
