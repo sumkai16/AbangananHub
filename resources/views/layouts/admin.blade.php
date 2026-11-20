@@ -155,6 +155,7 @@
                     ],
                     'Insights' => [
                         ['label' => 'Analytics', 'href' => route('admin.report-analytics.index'), 'active' => str_starts_with($cur, 'admin.report-analytics'), 'icon' => 'M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z'],
+                        ['label' => 'Search insights', 'href' => route('admin.search-insights.index'), 'active' => str_starts_with($cur, 'admin.search-insights'), 'icon' => 'M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z'],
                         ['label' => 'Ratings', 'href' => route('admin.ratings.index'), 'active' => str_starts_with($cur, 'admin.ratings'), 'icon' => 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z', 'filled' => true],
                     ],
                     'System Management' => [

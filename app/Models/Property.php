@@ -85,6 +85,22 @@ class Property extends Model
         return $this->hasMany(PropertyMedia::class, 'property_id', 'property_id');
     }
 
+    /** The advisory AI look at the photos (admin only, Phase 7b of plans/ai-search-maps-and-haiku.md). */
+    public function photoCheck()
+    {
+        return $this->hasOne(ListingPhotoCheck::class, 'property_id', 'property_id');
+    }
+
+    /** A listing sent for approval is looked at in the background (off unless the photo_check feature is on). */
+    protected static function booted(): void
+    {
+        static::saved(function (Property $property) {
+            if (\App\Services\AiSearch\AiFeatures::on('photo_check') && $property->verification_status === 'Pending' && $property->wasChanged('verification_status')) {
+                \App\Jobs\CheckListingPhotos::dispatch($property->property_id)->afterCommit();
+            }
+        });
+    }
+
     public function amenities(): BelongsToMany
     {
         return $this->belongsToMany(

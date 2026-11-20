@@ -183,6 +183,21 @@
                                 @foreach ($p->house_rules as $rule)<span class="inline-flex h-6 items-center rounded-full bg-[#ECEEF6] px-2.5 text-[12px] font-medium text-[#060D26]">{{ $rule }}</span>@endforeach
                             </div>
                         @endif
+                        {{-- Advisory only (Phase 7b): what an AI saw in the photos against the amenities claimed. Never blocks approval; absent when no check ran. --}}
+                        @if ($p->photoCheck)
+                            <div class="mt-3 rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] p-3">
+                                <h4 class="text-[11px] font-semibold uppercase tracking-wide text-[#5B6A8E]">Photo check (AI, advisory) · {{ $p->photoCheck->photos_checked }} {{ \Illuminate\Support\Str::plural('photo', $p->photoCheck->photos_checked) }}</h4>
+                                <div class="mt-2 flex flex-wrap gap-1.5">
+                                    @foreach ($p->photoCheck->amenity_results as $amenity => $status)
+                                        <span class="inline-flex h-6 items-center rounded-full px-2.5 text-[12px] font-semibold {{ $status === 'seen' ? 'bg-[#EAF8EF] text-[#166534]' : ($status === 'not_seen' ? 'bg-[#FEF6E4] text-[#8A5300]' : 'bg-[#ECEEF6] text-[#5B6A8E]') }}">{{ $amenity }}: {{ str_replace('_', ' ', $status) }}</span>
+                                    @endforeach
+                                    @foreach ([['stock_or_watermarked', 'Looks like stock or watermarked photos'], ['different_kind_of_place', 'Photos show a different kind of place'], ['repeated_photos', 'Some photos repeat']] as [$flag, $label])
+                                        @if ($p->photoCheck->flags[$flag] ?? false)<span class="inline-flex h-6 items-center rounded-full bg-[#FEF6E4] px-2.5 text-[12px] font-semibold text-[#8A5300]">{{ $label }}</span>@endif
+                                    @endforeach
+                                </div>
+                                @if ($p->photoCheck->note)<p class="mt-2 text-[12.5px] text-[#5B6A8E]">{{ $p->photoCheck->note }}</p>@endif
+                            </div>
+                        @endif
                         @if ($utilitiesOut->isNotEmpty())
                             <p class="mt-2 text-[12.5px] text-[#5B6A8E]">Billed separately: {{ $utilitiesOut->map(fn ($l) => \Illuminate\Support\Str::lower($l))->implode(', ') }}@if ($p->utilities_separately_metered), separately metered @endif</p>
                         @endif

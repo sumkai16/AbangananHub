@@ -34,7 +34,7 @@ class ListingController extends Controller
             $status = 'All';
         }
 
-        $query = Property::with(['landlord', 'media', 'units', 'documents'])
+        $query = Property::with(['landlord', 'media', 'units', 'documents', 'photoCheck'])
             ->withCount(['media as photos_count' => fn ($q) => $q->where('media_type', 'Image'), 'documents', 'documents as verified_documents_count' => fn ($q) => $q->where('status', 'Verified')])
             ->submitted()
             ->when($status === 'Suspended', fn ($q) => $q->where('publication_status', 'Suspended'))

@@ -486,6 +486,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/ratings', [RatingController::class, 'index'])->name('ratings.index');
 
         // Audit logs — read-only by design; audit rows are append-only.
+        // What tenants search for, what it costs, where nothing was found (admin only; search text can hold personal details).
+        Route::get('/search-insights', [\App\Http\Controllers\Admin\SearchInsightsController::class, 'index'])->name('search-insights.index');
+        Route::post('/search-insights/review', [\App\Http\Controllers\Admin\SearchInsightsController::class, 'review'])->name('search-insights.review');
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
         Route::get('/audit-logs/export', [AuditLogController::class, 'export'])->middleware('throttle:5,1')->name('audit-logs.export');
         // Account & security events (sign-ins, failures, access denied). Read-only, like the audit log.
