@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuditLog;
 use App\Models\Conversation;
 use App\Models\Notification;
 use App\Models\Property;
 use App\Models\Reservation;
+use App\Models\User;
 use App\Services\Holds\HoldRestrictions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class ConversationController extends Controller
@@ -234,6 +237,41 @@ class ConversationController extends Controller
 
         return redirect()->route('conversations.show', $conversation)
             ->with('status', 'Conversation marked as resolved.');
+    }
+
+    /**
+     * A participant asks an administrator to read this thread (a dispute, a suspected scam). Until then the thread is
+     * closed to admins. Written to the audit trail so who opened it up, and when, can always be shown.
+     */
+    public function requestAdminReview(Conversation $conversation)
+    {
+        Gate::authorize('view', $conversation);
+
+        if ($conversation->adminMayRead()) {
+            return back()->with('status', 'An administrator can already read this conversation.');
+        }
+
+        DB::transaction(function () use ($conversation) {
+            $conversation->requestAdminReview(Auth::user());
+
+            AuditLog::record(
+                'conversation.review_requested',
+                'Asked an administrator to review a conversation about "'.($conversation->property?->title ?? 'a listing').'".',
+                $conversation,
+            );
+
+            $who = trim(Auth::user()->first_name.' '.Auth::user()->last_name);
+            User::whereHas('roles', fn ($q) => $q->where('role', 'Admin'))->pluck('user_id')->each(fn ($adminId) => Notification::notify(
+                $adminId,
+                'conversation_review',
+                'Conversation review requested',
+                ($who ?: 'A user').' asked for an administrator to review their conversation about "'.($conversation->property?->title ?? 'a listing').'".',
+                route('admin.conversations.show', $conversation),
+                $conversation->conversation_id,
+            ));
+        });
+
+        return back()->with('status', 'An administrator will review this conversation. You will see a notice here while they can read it.');
     }
 
     public function recentMessages()

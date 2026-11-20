@@ -11,6 +11,9 @@ use App\Support\VisionReading;
  * This catches the wrong photo (a wall, a selfie, a receipt, a page of a book), not a forged ID: a printed fake still
  * reaches the admin. Only a `fail` can hold the applicant back, and only for ATTEMPTS_BEFORE_CONTINUE tries; a worn
  * but real ID scores `unsure`, which never blocks.
+ *
+ * Which ID it is comes from IdTypeDetector. A real ID of another type than the one picked (a Driver's License picked
+ * as PhilSys) is not a `fail`, but it is held for the same tries so the applicant can switch the type or retake.
  */
 class IdDocumentCheck
 {
@@ -46,26 +49,27 @@ class IdDocumentCheck
     /** A label containing one of these, or equal to "card", counts as card-like. */
     private const CARD_LABEL_PARTS = ['identity document', 'license', 'passport', 'id card'];
 
-    public function __construct(private OcrService $ocr) {}
+    public function __construct(private OcrService $ocr, private IdTypeDetector $types) {}
 
     /**
-     * @return array{status: string, type_match: string, signals: array<string, bool>}
+     * @return array{status: string, type_match: string, detected_type: ?string, signals: array<string, bool>}
      */
     public function assessFront(VisionReading $reading, string $idType, string $firstName, string $lastName): array
     {
         if (! $reading->available) {
             return [
                 'status' => self::UNAVAILABLE,
-                'type_match' => 'unknown',
+                'type_match' => IdTypeDetector::UNKNOWN,
+                'detected_type' => null,
                 'signals' => array_fill_keys(['has_text', 'type_keyword', 'name', 'id_words', 'face', 'card_label'], false),
             ];
         }
 
-        $typeMatch = $this->ocr->matchIdType($reading->text, $idType)['status'];
+        ['status' => $typeMatch, 'detected' => $detected] = $this->types->matchFront($reading->text, $idType);
 
         $signals = [
             'has_text' => $this->charCount($reading->text) >= self::MIN_FRONT_CHARS,
-            'type_keyword' => $typeMatch === 'match',
+            'type_keyword' => $typeMatch === IdTypeDetector::MATCH,
             // A partial match (one of the two names) is not counted: on its own it can appear on any page of text.
             'name' => $this->ocr->matchName($reading->text, $firstName, $lastName)['status'] === 'pass',
             'id_words' => $this->idWordsIn($reading->text) >= self::MIN_ID_WORDS,
@@ -85,7 +89,7 @@ class IdDocumentCheck
             default => self::UNSURE,
         };
 
-        return ['status' => $status, 'type_match' => $typeMatch, 'signals' => $signals];
+        return ['status' => $status, 'type_match' => $typeMatch, 'detected_type' => $detected, 'signals' => $signals];
     }
 
     /** The back has no face to find, so it only has to show some text. */
@@ -98,10 +102,13 @@ class IdDocumentCheck
         return $this->charCount($reading->text) >= self::MIN_BACK_CHARS ? self::PASS : self::FAIL;
     }
 
-    /** Holds the applicant on the photo step: a failed side, and fewer than ATTEMPTS_BEFORE_CONTINUE failures so far. */
-    public function blocks(string $frontStatus, ?string $backStatus, int $failures): bool
+    /**
+     * Holds the applicant on the photo step: a failed side or a front that shows another ID type than the one picked,
+     * and fewer than ATTEMPTS_BEFORE_CONTINUE tries used so far.
+     */
+    public function blocks(string $frontStatus, ?string $backStatus, int $failures, bool $typeMismatch = false): bool
     {
-        return ($frontStatus === self::FAIL || $backStatus === self::FAIL)
+        return ($frontStatus === self::FAIL || $backStatus === self::FAIL || $typeMismatch)
             && $failures < self::ATTEMPTS_BEFORE_CONTINUE;
     }
 

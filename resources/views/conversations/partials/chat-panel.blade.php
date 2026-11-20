@@ -605,6 +605,9 @@
         </div>
     @endif
 
+    {{-- Transparency: both people can always see when an administrator is allowed to read this thread. --}}
+    @include('conversations.partials._admin-review', ['part' => 'banner'])
+
     {{-- Expandable details — secondary context only --}}
     <div x-show="detailsOpen" x-cloak
         x-transition:enter="transition ease-out duration-200"
@@ -616,6 +619,7 @@
         class="border-b border-[#E2E4EC] bg-[#F7F8FC] overflow-hidden flex-shrink-0 motion-reduce:transform-none">
 
         <div class="px-5 py-4">
+            @include('conversations.partials._admin-review', ['part' => 'request', 'formClass' => 'mb-3'])
             @if($reservation && ($reservation->target_move_in_date || $reservation->target_move_out_date))
                 <div class="flex flex-wrap items-center gap-4 px-1">
                     @if($reservation->target_move_in_date)

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\Conversation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ConversationController extends Controller
 {
@@ -45,6 +47,12 @@ class ConversationController extends Controller
 
     public function show(Conversation $conversation)
     {
+        // Private by default: a thread opens to an admin only while a participant's request is open.
+        if (! $conversation->adminMayRead()) {
+            return redirect()->route('admin.conversations.index')
+                ->with('error', 'This conversation is private. It can be read only after the tenant or landlord asks for a review.');
+        }
+
         // activeReservation + payments: without them the admin reviewing a
         // dispute could read the messages but not see where the rental
         // actually stands — no stage, no handover schedule, no escrow state,
@@ -58,5 +66,23 @@ class ConversationController extends Controller
             'conversation' => $conversation,
             'reservation'  => $conversation->activeReservation,
         ]);
+    }
+
+    /** The admin is done reading: the thread closes to admins again until a participant asks again. */
+    public function endReview(Conversation $conversation)
+    {
+        if ($conversation->adminMayRead()) {
+            DB::transaction(function () use ($conversation) {
+                $conversation->endAdminReview();
+
+                AuditLog::record(
+                    'conversation.review_ended',
+                    'Finished reviewing the conversation about "'.($conversation->property?->title ?? 'a listing').'".',
+                    $conversation,
+                );
+            });
+        }
+
+        return redirect()->route('admin.conversations.index')->with('success', 'Review finished. The conversation is private again.');
     }
 }

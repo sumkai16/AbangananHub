@@ -38,6 +38,13 @@ class AdminVerificationIdCheckChipsTest extends TestCase
             ->assertSee('Look closely at the ID photos before deciding');
     }
 
+    public function test_a_mismatch_with_a_detected_type_names_both_types(): void
+    {
+        $this->reviewPage(["id_check_status" => "pass", "id_type_match" => "mismatch", "id_type_detected" => "Driver's License", "id_check_overridden" => true])
+            ->assertOk()
+            ->assertSee("Picked PhilSys · looks like a Driver's License")
+            ->assertDontSee("ID type not confirmed");
+    }
     public function test_a_passing_check_shows_green_chips_and_no_warning(): void
     {
         $this->reviewPage(['id_check_status' => 'pass', 'id_type_match' => 'match', 'id_check_overridden' => false])

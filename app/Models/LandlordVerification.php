@@ -24,6 +24,7 @@ class LandlordVerification extends Model
         'ocr_status',
         'id_check_status',
         'id_type_match',
+        'id_type_detected',
         'id_check_overridden',
         'face_match_status',
         'face_match_score',

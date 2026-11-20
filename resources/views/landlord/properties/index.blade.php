@@ -25,6 +25,16 @@
             </x-slot:actions>
         </x-page-header>
 
+        @if(!empty($wizardDraft))
+            <div class="mb-4 flex flex-col gap-3 rounded-2xl border border-[#FF8A66]/40 bg-[#FF8A66]/[0.07] p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div class="min-w-0">
+                    <p class="text-[13.5px] font-bold text-[#060D26]">You have an unfinished property</p>
+                    <p class="truncate text-[12.5px] text-[#5B6A8E]">{{ $wizardDraft['title'] ?? 'Untitled' }} — details saved, location still to add.</p>
+                </div>
+                <a href="{{ route('properties.wizard.location.create') }}" class="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-[#FF8A66] px-6 text-sm font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#E96F4F]">Continue</a>
+            </div>
+        @endif
+
         {{-- Summary strip — account-wide totals, not affected by the filter toolbar below --}}
         <div class="stat-strip stat-strip-grid grid grid-cols-2 lg:grid-cols-4 gap-px mb-4 sm:mb-6 overflow-hidden rounded-2xl border border-[#E2E4EC] bg-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
             <div class="stat-strip-cell bg-white p-4 sm:p-5">

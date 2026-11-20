@@ -170,7 +170,7 @@
                     @endphp
 
                     {{-- Back to list (mobile only) --}}
-                    <x-back-link href="{{ route('notifications.index', request()->except(['selected', 'page'])) }}" to="notifications" class="lg:hidden px-6 pt-5 -mb-1" />
+                    <x-back-link fixed href="{{ route('notifications.index', request()->except(['selected', 'page'])) }}" to="notifications" class="lg:hidden px-6 pt-5 -mb-1" />
 
                     {{-- Panel header --}}
                     <div class="px-6 py-4 border-b border-[#E2E4EC] bg-white">

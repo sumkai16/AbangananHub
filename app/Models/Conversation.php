@@ -29,7 +29,40 @@ class Conversation extends Model
         'type',
         'reservation_id',
         'status',
+        'admin_review_requested_at',
+        'admin_review_requested_by',
+        'admin_review_ended_at',
     ];
+
+    protected $casts = [
+        'admin_review_requested_at' => 'datetime',
+        'admin_review_ended_at'     => 'datetime',
+    ];
+
+    /**
+     * Private by default: an admin can read this thread only while a participant's request for a review is open
+     * (asked, and the admin has not yet finished). See plans/conversation-scam-detection.md, option B.
+     */
+    public function adminMayRead(): bool
+    {
+        return $this->admin_review_requested_at !== null && $this->admin_review_ended_at === null;
+    }
+
+    /** A participant asks an administrator to read this thread (also reopens a finished review). */
+    public function requestAdminReview(User $by): void
+    {
+        $this->forceFill([
+            'admin_review_requested_at' => now(),
+            'admin_review_requested_by' => $by->user_id,
+            'admin_review_ended_at'     => null,
+        ])->save();
+    }
+
+    /** The admin is done: the thread is closed to admins again until someone asks again. */
+    public function endAdminReview(): void
+    {
+        $this->forceFill(['admin_review_ended_at' => now()])->save();
+    }
 
     public function scopeInquiries(Builder $query): Builder
     {

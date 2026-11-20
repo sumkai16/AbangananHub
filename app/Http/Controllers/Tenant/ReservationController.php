@@ -132,6 +132,9 @@ class ReservationController extends Controller
 
             $locked->forceFill(['refund_report_id' => $report->report_id])->save();
 
+            // Asking AbangananHub to look at the money is also asking an admin to read the thread it happened in.
+            $locked->conversation?->requestAdminReview(Auth::user());
+
             AuditLog::record('refund.escalate', '₱'.number_format($kept, 2).' kept by the landlord sent to admin', $locked, null, [
                 'reservation_id' => $locked->reservation_id, 'report_id' => $report->report_id,
             ]);

@@ -20,6 +20,12 @@ export function pagePanel() {
         clearTimer: null,
 
         init() {
+            // A fresh load never has the panel open. A leftover panel entry in history (in-app browsers restore it
+            // when a link is reopened) would otherwise make popstate open an empty panel over the page.
+            if (window.history.state?.pagePanel) {
+                window.history.replaceState(null, '', window.location.href);
+            }
+
             document.addEventListener('click', (e) => this.onLinkClick(e));
             window.addEventListener('popstate', (e) => this.onPopState(e));
         },

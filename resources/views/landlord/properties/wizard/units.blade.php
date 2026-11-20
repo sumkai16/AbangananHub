@@ -4,7 +4,7 @@
 <div class="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
     <div class="max-w-[1200px] mx-auto">
 
-        <x-back-link href="{{ route('landlord.properties.index') }}" to="My Properties" class="mb-6" />
+        <x-back-link fixed href="{{ route('landlord.properties.index') }}" to="My Properties" class="mb-6" />
 
 
         <div class="grid lg:grid-cols-[248px_minmax(0,1fr)] lg:gap-11">

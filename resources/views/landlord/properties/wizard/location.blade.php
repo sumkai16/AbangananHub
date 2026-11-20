@@ -6,7 +6,7 @@
 <div class="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
     <div class="max-w-[1200px] mx-auto">
 
-        <x-back-link href="{{ route('landlord.properties.index') }}" to="My Properties" class="mb-6" />
+        <x-back-link fixed href="{{ route('landlord.properties.index') }}" to="My Properties" class="mb-6" />
 
         @if($errors->any())
             <div class="max-w-3xl mb-6 px-4 py-3 rounded-xl bg-[#EF4444]/[0.07] border border-[#EF4444]/20 text-[#DC2626] text-sm font-medium flex items-start gap-2.5">
@@ -69,7 +69,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
                             <label class="block text-[13px] font-semibold text-[#060D26] mb-1.5">City / Municipality</label>
-                            <div id="city-municipality-picker" data-lgus="{{ json_encode(config('cebu.lgus')) }}">
+                            <div id="city-municipality-picker" data-lgus="{{ json_encode(config('cebu.lgus')) }}" data-hucs="{{ json_encode(config('cebu.independent_cities')) }}">
                                 <x-styled-select name="city_municipality"
                                     :options="array_combine(config('cebu.lgus'), config('cebu.lgus'))"
                                     :selected="old('city_municipality', $property->city_municipality ?? '')" placeholder="Select — Cebu only" required
@@ -116,7 +116,7 @@
                                     </svg>
                                 </div>
                                 <span id="upload-label" data-default-label="Select photos to upload" class="text-[13.5px] font-semibold text-[#060D26] transition-colors">Select photos to upload</span>
-                                <p class="text-xs text-[#94A3B8] mt-1.5">JPEG, PNG, or WEBP. Max 5MB each, up to {{ \App\Support\ListingPhotos::MAX_PROPERTY }} photos.</p>
+                                <p class="text-xs text-[#94A3B8] mt-1.5">JPEG, PNG, or WEBP. Max 10MB each, up to {{ \App\Support\ListingPhotos::MAX_PROPERTY }} photos.</p>
                                 <input type="file" name="photos[]" id="photo-input" class="hidden" multiple accept="image/jpeg,image/png,image/jpg,image/webp" {{ ($property && $property->media->isNotEmpty()) ? '' : 'required' }} onchange="previewSelectedPhotos(this)">
                             </label>
                         </div>

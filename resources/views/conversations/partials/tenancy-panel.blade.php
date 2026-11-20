@@ -66,6 +66,11 @@
         @endif
     </div>
 
+    @include('conversations.partials._admin-review', ['part' => 'banner'])
+    <div class="flex-shrink-0 border-b border-[#E2E4EC] px-4 empty:hidden">
+        @include('conversations.partials._admin-review', ['part' => 'request'])
+    </div>
+
     {{-- Open concerns --}}
     @if($openConcerns > 0)
         <div class="px-5 py-2.5 border-b border-[#E2E4EC] bg-[#FBBF24]/10 flex items-center justify-between gap-3 flex-shrink-0">

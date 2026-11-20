@@ -3,7 +3,7 @@
 @section('content')
     <div class="min-h-[calc(100vh-72px)] py-8 px-4 sm:px-6 lg:px-8">
         <div class="max-w-[1200px] mx-auto"
-            x-data="verificationWizard({ ocrCheckUrl: '{{ route('landlord.verification.ocrCheck') }}', csrfToken: '{{ csrf_token() }}', modelUrl: '{{ asset('models/face-api') }}' })"
+            x-data="verificationWizard({ idTypes: @js(\App\Support\IdTemplates::names()), ocrCheckUrl: '{{ route('landlord.verification.ocrCheck') }}', csrfToken: '{{ csrf_token() }}', modelUrl: '{{ asset('models/face-api') }}' })"
             x-init="init()">
 
             {{-- Page-level notices — capped to a readable measure above the grid --}}
@@ -370,13 +370,31 @@
                                                 <div class="min-w-0 flex-1">
                                                     <p class="text-sm font-semibold text-[#060D26]" x-text="idCheckCard.title"></p>
                                                     <p class="mt-1 text-xs leading-relaxed text-[#5B6A8E]" x-text="idCheckCard.body"></p>
-                                                    <button type="button" x-show="idCheckCard.retake" @click="retakePhoto(idCheckCard.retake)"
-                                                        class="mt-3 inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-[#FF8A66] px-5 text-sm font-semibold text-[#060D26] transition-colors duration-150 hover:bg-[#E96F4F] sm:w-auto">
-                                                        Retake photo
-                                                    </button>
+                                                    <div class="mt-3 flex flex-col gap-2 sm:flex-row">
+                                                        {{-- The ID is real but another type than picked: one tap keeps the photos and changes the type. --}}
+                                                        <button type="button" x-show="idCheckCard.switchTo" @click="switchIdType(idCheckCard.switchTo)"
+                                                            class="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-[#FF8A66] px-5 text-sm font-semibold text-[#060D26] transition-colors duration-150 hover:bg-[#E96F4F] sm:w-auto">
+                                                            Use <span class="ml-1" x-text="idCheckCard.switchTo"></span>
+                                                        </button>
+                                                        <button type="button" x-show="idCheckCard.retake" @click="retakePhoto(idCheckCard.retake)"
+                                                            :class="idCheckCard.switchTo ? 'border border-[#E2E4EC] bg-white text-[#060D26] hover:bg-[#F7F8FC]' : 'bg-[#FF8A66] text-[#060D26] hover:bg-[#E96F4F]'"
+                                                            class="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl px-5 text-sm font-semibold transition-colors duration-150 sm:w-auto">
+                                                            Retake photo
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </template>
+
+                                        {{-- The back shows another ID than the front: a note only, it never holds the applicant. --}}
+                                        <div x-show="backIdDiffers" class="mb-4 rounded-xl bg-[#FBBF24]/[0.10] p-3" role="status">
+                                            <p class="text-sm font-semibold text-[#060D26]">The back looks like a different ID</p>
+                                            <p class="mt-1 text-xs leading-relaxed text-[#5B6A8E]">It looks like the back of a <span x-text="ocrResult?.back_detected_type"></span>, not your <span x-text="ocrResult?.detected_type || idType"></span>. Retake the back if that was a mistake, or continue and our team will check it.</p>
+                                            <button type="button" @click="retakePhoto('idBack')"
+                                                class="mt-3 inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border border-[#E2E4EC] bg-white px-5 text-sm font-semibold text-[#060D26] transition-colors duration-150 hover:bg-[#F7F8FC] sm:w-auto">
+                                                Retake back
+                                            </button>
+                                        </div>
 
                                         {{-- With nothing read from the front, "What we found" would only show dashes. --}}
                                         <div x-show="!idFrontUnread">
@@ -450,7 +468,7 @@
                                                 <span class="text-sm text-[#060D26]">This looks like a <span
                                                         class="font-medium" x-text="idType"></span></span>
                                             </div>
-                                            <div x-show="ocrResult?.type_match === 'mismatch'"
+                                            <div x-show="ocrResult?.type_match === 'unknown' && ocrResult?.id_check?.status !== 'unavailable'"
                                                 class="flex items-start gap-2.5 p-3 rounded-xl bg-[#FBBF24]/[0.10]">
                                                 <svg class="w-4 h-4 text-[#FBBF24] mt-0.5 shrink-0"
                                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -459,7 +477,7 @@
                                                         d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.814-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                                                 </svg>
                                                 <div>
-                                                    <p class="text-sm font-semibold text-[#060D26]">This doesn't look like a
+                                                    <p class="text-sm font-semibold text-[#060D26]">We couldn't confirm this is a
                                                         <span x-text="idType"></span>
                                                     </p>
                                                     <p class="text-xs text-[#5B6A8E] mt-1">Make sure you photographed the

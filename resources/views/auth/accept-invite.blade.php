@@ -1,7 +1,7 @@
 <x-guest-layout>
     {{-- Right panel top action --}}
     <x-slot name="rightTopAction">
-        <x-back-link href="{{ route('login') }}" to="login" tone="light" />
+        <x-back-link fixed href="{{ route('login') }}" to="login" tone="light" />
     </x-slot>
 
     {{-- Right panel headline & feature area --}}

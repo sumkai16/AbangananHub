@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Landlord\StorePropertyDocumentRequest;
 use App\Models\Property;
 use App\Models\PropertyDocument;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 
@@ -22,8 +23,17 @@ class PropertyDocumentController extends Controller
         return redirect($this->documentsUrl($property));
     }
 
-    private function documentsUrl(Property $property): string
+    /**
+     * Where an upload, a replacement or a removal brings the landlord back to: the wizard's Documents step when the
+     * form was in the wizard (`from=wizard`) and the listing is still a Draft, so they carry on with the next required
+     * document; otherwise the property page's Documents tab. A non-draft never goes to a wizard URL.
+     */
+    private function documentsUrl(Property $property, ?Request $request = null): string
     {
+        if ($request?->input('from') === 'wizard' && $property->isDraft()) {
+            return route('properties.wizard.documents', $property);
+        }
+
         return route('landlord.properties.show', $property) . '#documents';
     }
 
@@ -43,7 +53,7 @@ class PropertyDocumentController extends Controller
             'status'           => 'Pending',
         ]);
 
-        return redirect($this->documentsUrl($property))->with('success', 'Document uploaded and submitted for review.');
+        return redirect($this->documentsUrl($property, $request))->with('success', 'Document uploaded and submitted for review.');
     }
 
     public function replace(StorePropertyDocumentRequest $request, Property $property, PropertyDocument $document)
@@ -75,10 +85,10 @@ class PropertyDocumentController extends Controller
             Storage::disk('local')->delete($oldPath);
         }
 
-        return redirect($this->documentsUrl($property))->with('success', 'Document resubmitted for review.');
+        return redirect($this->documentsUrl($property, $request))->with('success', 'Document resubmitted for review.');
     }
 
-    public function destroy(Property $property, PropertyDocument $document)
+    public function destroy(Request $request, Property $property, PropertyDocument $document)
     {
         $this->authorizeProperty($property);
 
@@ -87,7 +97,7 @@ class PropertyDocumentController extends Controller
         }
 
         if ($document->status === 'Verified') {
-            return redirect($this->documentsUrl($property))->withErrors(['document' => 'A verified document cannot be removed — contact an admin if it needs to be reversed.']);
+            return redirect($this->documentsUrl($property, $request))->withErrors(['document' => 'A verified document cannot be removed — contact an admin if it needs to be reversed.']);
         }
 
         if ($document->file_path) {
@@ -96,7 +106,7 @@ class PropertyDocumentController extends Controller
 
         $document->delete();
 
-        return redirect($this->documentsUrl($property))->with('success', 'Document removed.');
+        return redirect($this->documentsUrl($property, $request))->with('success', 'Document removed.');
     }
 
     public function preview(Property $property, PropertyDocument $document)

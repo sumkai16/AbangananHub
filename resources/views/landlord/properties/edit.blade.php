@@ -153,7 +153,7 @@
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label class="{{ $label }}">City / Municipality</label>
-                                    <div id="city-municipality-picker" data-lgus="{{ json_encode(config('cebu.lgus')) }}">
+                                    <div id="city-municipality-picker" data-lgus="{{ json_encode(config('cebu.lgus')) }}" data-hucs="{{ json_encode(config('cebu.independent_cities')) }}">
                                         <x-styled-select name="city_municipality"
                                             :options="array_combine(config('cebu.lgus'), config('cebu.lgus'))"
                                             :selected="old('city_municipality', $property->city_municipality)" placeholder="Select — Cebu only" required
@@ -332,7 +332,7 @@
                             </div>
                         </x-form-section>
 
-                        <x-form-section title="Add more photos" description="JPEG, PNG or WEBP, up to 5 MB each.">
+                        <x-form-section title="Add more photos" description="JPEG, PNG or WEBP, up to 10 MB each.">
                             <x-slot:icon>{!! $ico('M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5') !!}</x-slot:icon>
 
                             <label class="group block cursor-pointer rounded-xl border-2 border-dashed border-[#E2E4EC] hover:border-[#FF8A66] bg-[#F7F8FC] p-6 text-center transition-colors duration-200">
@@ -362,7 +362,7 @@
 
                         {{-- Footer bar (DESIGN §6f): ghost cancel left, the one primary action right. --}}
                         <div class="flex items-center gap-3 pt-5 border-t border-[#E2E4EC]">
-                            <a href="{{ route('landlord.properties.index') }}"
+                            <a href="{{ route('landlord.properties.show', $property) }}"
                                 class="h-11 px-6 inline-flex items-center justify-center rounded-full border border-[#E2E4EC] bg-white hover:bg-[#ECEEF6] text-[#060D26] text-sm font-semibold transition-colors duration-200">
                                 Cancel
                             </a>

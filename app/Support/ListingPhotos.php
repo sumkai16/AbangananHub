@@ -19,7 +19,7 @@ final class ListingPhotos
     public const MIN_UNIT = 3;
 
     /** Per-file limit in kilobytes. Cloudinary shrinks the stored copy, so a large phone photo is still accepted. */
-    public const MAX_KB = 5120;
+    public const MAX_KB = 10240;
 
     /** Longest side of a stored image, in pixels (see ImageUploader::listingPhoto()). */
     public const MAX_SIDE = 2000;

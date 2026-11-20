@@ -75,6 +75,8 @@ class PersonLinkAdminTest extends TestCase
             'property_id' => $t['reservation']->property_id, 'unit_id' => $t['reservation']->unit_id, 'type' => 'inquiry',
         ]);
 
+        $conversation->requestAdminReview($t['tenant']);
+
         $this->actingAs($this->makeUserWithRole('Admin'))->get(route('admin.conversations.show', $conversation))
             ->assertOk()
             ->assertSee($this->link($t['tenant']), false)

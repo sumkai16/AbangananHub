@@ -168,8 +168,22 @@
         });
 
         // ── Camera ──────────────────────────────────────────────
+        const nativeCapture = document.createElement('input');
+        nativeCapture.type = 'file';
+        nativeCapture.accept = 'image/*';
+        nativeCapture.setAttribute('capture', 'environment');
+        nativeCapture.addEventListener('change', () => {
+            for (const file of nativeCapture.files) addPhoto(file, 'camera');
+            nativeCapture.value = '';
+        });
         enableBtn.addEventListener('click', async () => {
             cameraError.classList.add('hidden');
+            // Phones block getUserMedia on plain http (LAN IPs); navigator.mediaDevices is then undefined.
+            // Fall back to the phone's own camera app via a capture input.
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                nativeCapture.click();
+                return;
+            }
             try {
                 stream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: { ideal: 'environment' } }, audio: false

@@ -78,7 +78,7 @@ Route::middleware(['auth:sanctum', 'active', 'throttle:60,1'])->group(function (
 
     // Conversations & messages
     Route::get('/conversations', [ConversationController::class, 'index']);
-    Route::post('/conversations', [ConversationController::class, 'store'])->middleware('tenant.hold');
+    Route::post('/conversations', [ConversationController::class, 'store'])->middleware(['not.admin', 'tenant.hold']);
     Route::get('/conversations/{conversation}', [ConversationController::class, 'show']);
     Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store']);
     Route::post('/conversations/{conversation}/resolve', [ConversationController::class, 'resolve']);
@@ -106,7 +106,7 @@ Route::middleware(['auth:sanctum', 'active', 'throttle:60,1'])->group(function (
             ->whereNumber('propertyId');
 
         Route::get('/tenant/reservations', [TenantReservationController::class, 'index']);
-        Route::post('/tenant/reservations', [TenantReservationController::class, 'store'])->middleware('tenant.hold');
+        Route::post('/tenant/reservations', [TenantReservationController::class, 'store'])->middleware(['not.admin', 'tenant.hold']);
         Route::patch('/tenant/reservations/{reservation}/cancel', [TenantReservationController::class, 'cancel']);
 
         // Agreement + escrow — mirrors Tenant\AgreementController.

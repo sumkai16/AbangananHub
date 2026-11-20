@@ -3,7 +3,7 @@
     reservation_fee_amount, payment_deadline_days, reservation_conditions. See Reservation::paymentArrangement().
 --}}
 @php
-    $arrangement = old('payment_arrangement', $unit->payment_arrangement ?? 'advance_deposit');
+    $arrangement = old('payment_arrangement', $unit->payment_arrangement ?? '');
     $options = [
         'reservation_fee' => ['Reservation fee', 'A small fee holds the unit. The rest is due before move-in.'],
         'advance_deposit' => ['Advance + deposit', 'Agreed advance rent and the security deposit.'],

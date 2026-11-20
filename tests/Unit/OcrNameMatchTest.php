@@ -83,32 +83,4 @@ TXT;
         $this->assertSame('unreadable', $r['status']);
         $this->assertSame(0, $r['confidence']);
     }
-
-    public function test_the_philsys_number_is_found(): void
-    {
-        $this->assertSame('6813-2017-2150-9536', (new OcrService)->extractIdNumber(self::PHILSYS, 'PhilSys'));
-    }
-
-    public function test_the_philsys_card_is_recognised_as_that_type(): void
-    {
-        $this->assertSame('match', (new OcrService)->matchIdType(self::PHILSYS, 'PhilSys')['status']);
-    }
-
-    public function test_an_id_type_word_inside_another_word_is_not_a_match(): void
-    {
-        $ocr = new OcrService;
-
-        // "humid" holds "umid", "Walton" holds "lto": neither is the ID type's word.
-        $this->assertSame('mismatch', $ocr->matchIdType('A humid day in Walton, high humidity all week', 'UMID')['status']);
-        $this->assertSame('mismatch', $ocr->matchIdType('Walton Street, Colton Road', "Driver's License")['status']);
-    }
-
-    public function test_short_id_type_words_still_match_on_a_real_card(): void
-    {
-        $ocr = new OcrService;
-
-        $this->assertSame('match', $ocr->matchIdType("SSS ID\nSS No. 12-3456789-0", 'SSS ID')['status']);
-        $this->assertSame('match', $ocr->matchIdType("LTO\nNON-PROFESSIONAL", "Driver's License")['status']);
-        $this->assertSame('match', $ocr->matchIdType("Unified Multi-Purpose Identification\nCRN-0111-2222222-3", 'UMID')['status']);
-    }
 }

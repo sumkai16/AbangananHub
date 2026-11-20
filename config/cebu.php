@@ -62,6 +62,10 @@ return [
         'Tudela',
     ],
 
+    // Independent of Cebu province, so the map's reverse geocoder (Nominatim) gives these three a region (Central
+    // Visayas) but no province. The location picker uses this list to avoid warning that a pin here is outside Cebu.
+    'independent_cities' => ['Cebu City', 'Lapu-Lapu City', 'Mandaue City'],
+
     'bounds' => [
         'min_lat' => 9.30,
         'max_lat' => 11.40,

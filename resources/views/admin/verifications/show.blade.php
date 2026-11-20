@@ -39,9 +39,13 @@
         'fail' => ['Not an ID by the check', 'red'],
         default => ['ID not checked', 'neutral'],
     };
-    $typeChip = match ($verification->id_type_match) {
-        'match' => ['ID type matches', 'green'],
-        null => null,
+    // Picked vs shown: a mismatch with a detected type says what the card looks like (App\Services\IdTypeDetector).
+    // Rows saved before detection existed have no detected type and keep the plain "not confirmed".
+    $typeChip = match (true) {
+        $verification->id_type_match === 'match' => ['ID type matches', 'green'],
+        $verification->id_type_match === null => null,
+        $verification->id_type_match === 'mismatch' && $verification->id_type_detected
+            => ['Picked '.$verification->id_type.' · looks like a '.$verification->id_type_detected, 'red'],
         default => ['ID type not confirmed', 'amber'],
     };
 @endphp

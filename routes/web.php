@@ -172,7 +172,7 @@ Route::middleware('auth')->group(function () {
     // Tenant-specific routes
     Route::middleware('tenant')->prefix('tenant')->group(function () {
         Route::get('/reservations', [ReservationController::class, 'index'])->name('reservations.index');
-        Route::post('/reservations', [ReservationController::class, 'store'])->middleware('tenant.hold')->name('reservations.store');
+        Route::post('/reservations', [ReservationController::class, 'store'])->middleware(['not.admin', 'tenant.hold'])->name('reservations.store');
         Route::patch('/reservations/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel');
         Route::post('/reservations/{reservation}/request-refund', [ReservationController::class, 'requestRefund'])->name('reservations.requestRefund');
         // The landlord kept money paid directly: send it to AbangananHub as a report, once.
@@ -427,6 +427,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/conversations', [AdminConversationController::class, 'index'])->name('conversations.index');
         Route::get('/conversations/{conversation}', [AdminConversationController::class, 'show'])->name('conversations.show');
+        Route::post('/conversations/{conversation}/end-review', [AdminConversationController::class, 'endReview'])->name('conversations.endReview');
 
         Route::get('/units', [AdminPropertyUnitController::class, 'index'])->name('units.index');
         Route::get('/properties/{property}/units/{unit}', [AdminPropertyUnitController::class, 'show'])->name('units.show');
@@ -491,6 +492,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/search-insights/review', [\App\Http\Controllers\Admin\SearchInsightsController::class, 'review'])->name('search-insights.review');
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
         Route::get('/audit-logs/export', [AuditLogController::class, 'export'])->middleware('throttle:5,1')->name('audit-logs.export');
+        // Everything every signed-in user did (one row per state-changing request). Read-only, like the audit log.
+        Route::get('/user-activity', [\App\Http\Controllers\Admin\UserActivityController::class, 'index'])->name('user-activity.index');
+        Route::get('/user-activity/export', [\App\Http\Controllers\Admin\UserActivityController::class, 'export'])->middleware('throttle:5,1')->name('user-activity.export');
         // Account & security events (sign-ins, failures, access denied). Read-only, like the audit log.
         // Admin two-factor setup and the step-up password check (the middleware lets these through).
         Route::get('/security/two-factor', [\App\Http\Controllers\Admin\TwoFactorSetupController::class, 'show'])->name('security.two-factor');
@@ -520,10 +524,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/conversations/unread-count', [ConversationController::class, 'unreadCount'])->middleware('throttle:60,1')->name('conversations.unreadCount');
     Route::get('/conversations/recent-messages', [ConversationController::class, 'recentMessages'])->name('conversations.recentMessages');
     Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
-    Route::post('/conversations', [ConversationController::class, 'store'])->middleware('tenant.hold')->name('conversations.store');
+    Route::post('/conversations', [ConversationController::class, 'store'])->middleware(['not.admin', 'tenant.hold'])->name('conversations.store');
     Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
     Route::post('/conversations/{conversation}/read', [ConversationController::class, 'markRead'])->name('conversations.read');
     Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
+    // A participant opens the thread to an administrator (admins cannot read a thread until someone asks).
+    Route::post('/conversations/{conversation}/admin-review', [ConversationController::class, 'requestAdminReview'])->middleware('throttle:10,1')->name('conversations.adminReview.request');
 
     // Post-move-in chat and its concern cards. Both sides use the same URLs; policies decide.
     Route::get('/tenancy/{reservation}/chat', [ConversationController::class, 'tenancyChat'])->name('tenancy.chat');

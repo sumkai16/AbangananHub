@@ -24,6 +24,8 @@ class AdminConversationViewTest extends TestCase
         $conversation->messages()->create(['sender_id' => $t['tenant']->user_id, 'message' => '', 'kind' => 'inquiry_summary']);
         $conversation->postSystemMessage('Escrow was funded for this unit.');
 
+        $conversation->requestAdminReview($t['tenant']);
+
         $this->actingAs($this->makeUserWithRole('Admin'))
             ->get(route('admin.conversations.show', $conversation))
             ->assertOk()

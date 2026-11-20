@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Support\IdTemplates;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreVerificationRequest extends FormRequest
 {
@@ -21,7 +23,7 @@ class StoreVerificationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id_type'          => ['required', 'string', 'in:PhilSys,Professional ID Card,Driver\'s License,Passport,UMID,Postal ID,SSS ID'],
+            'id_type'          => ['required', 'string', Rule::in(IdTemplates::names())],
             'id_image'         => ['required', 'string', 'max:8000000'], // base64 from camera (front)
             'id_back'          => ['required_unless:id_type,Passport', 'nullable', 'string', 'max:8000000'], // base64 from camera (back)
             'selfie'           => ['required', 'string', 'max:8000000'], // base64 from camera

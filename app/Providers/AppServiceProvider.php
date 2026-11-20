@@ -19,7 +19,10 @@ use App\Services\AiSearch\GeminiDriver;
 use App\Services\AiSearch\NameMatcher;
 use App\Services\AiSearch\NullDriver;
 use App\Services\AiSearch\OpenRouterDriver;
+use App\Support\UploadMessages;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\View;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\ServiceProvider;
@@ -45,6 +48,21 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
+     * Specific messages for a file that does not upload, for every upload form at once (see App\Support\UploadMessages):
+     * Laravel's "failed to upload" and "may not be greater than 10240 kilobytes" say neither which file nor what to do.
+     * A replacer returns the whole message, so each one falls back to Laravel's wording for values that are not files.
+     */
+    private function registerUploadMessages(): void
+    {
+        $value = fn ($validator, $attribute) => Arr::get($validator->getData(), $attribute);
+
+        Validator::replacer('uploaded', fn ($message, $attribute, $rule, $parameters, $validator) => UploadMessages::uploaded($value($validator, $attribute)));
+        Validator::replacer('max', fn ($message, $attribute, $rule, $parameters, $validator) => UploadMessages::tooBig($value($validator, $attribute), $parameters, $message));
+        Validator::replacer('mimes', fn ($message, $attribute, $rule, $parameters, $validator) => UploadMessages::wrongType($value($validator, $attribute), $parameters, $message));
+        Validator::replacer('image', fn ($message, $attribute, $rule, $parameters, $validator) => UploadMessages::wrongType($value($validator, $attribute), [], $message));
+    }
+
+    /**
      * Bootstrap any application services.
      */
     public function boot(): void
@@ -53,6 +71,8 @@ class AppServiceProvider extends ServiceProvider
         Model::preventLazyLoading(! app()->isProduction());
 
         $this->applyRentalSettingOverrides();
+
+        $this->registerUploadMessages();
 
         Event::subscribe(RecordAuthEvents::class);
 

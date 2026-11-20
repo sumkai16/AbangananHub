@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-2xl mx-auto">
 
-    <x-back-link href="{{ route('admin.users.show', $user) }}" to="user" class="mb-6" />
+    <x-back-link fixed href="{{ route('admin.users.show', $user) }}" to="user" class="mb-6" />
 
     <x-card flush>
         <div class="px-7 py-5 border-b border-[#E2E4EC] flex items-center gap-4">

@@ -191,7 +191,8 @@ One application per landlord. Government ID, selfie and ID back live on the **pr
 | ocr_confidence | tinyint unsigned | null | | |
 | ocr_status | varchar(255) | null | | |
 | id_check_status | varchar(20) | null | | `pass`, `unsure`, `fail` or `unavailable`: did the ID photos look like an ID (`App\Services\IdDocumentCheck`, from one Google Vision reading of text, faces and labels). `fail` if either side failed. An admin signal, never a decision. Null on applications made before Nov 18 2026 |
-| id_type_match | varchar(20) | null | | `match`, `mismatch` or `unknown`: do the words on the front belong to the ID type the applicant chose |
+| id_type_match | varchar(20) | null | | `match`, `mismatch` or `unknown`: does the front belong to the ID type the applicant chose (`App\Services\IdTypeDetector`, scored against `App\Support\IdTemplates`). `mismatch` always has `id_type_detected` set on applications from Nov 19 2026 on |
+| id_type_detected | varchar(40) | null | | The ID type the front looked like, when one clearly led (for example `Driver's License` when the applicant picked `PhilSys`). Null when nothing clearly led, and on applications made before Nov 19 2026. SSS is never detected (no samples yet) |
 | id_check_overridden | boolean | NN, = 0 | | True when the check failed and the application was sent anyway (after the allowed tries, an answer that never reached the phone, or a photo the preview never read). The submit never refuses for the check, so this equals `id_check_status = 'fail'`; it is kept so the admin page can say "sent with a failed ID check" |
 | face_match_status | varchar(20) | null | | `match` (at or above 80%), `review` (60 to 80%, similar: compare by eye), `mismatch` (below 60%), `no_face` or `unavailable` (no keys or an AWS error). Set by `App\Services\FaceMatch` when the application is submitted; an admin signal, never an automatic decision. Null on older applications |
 | face_match_score | decimal(5,2) | null | | Similarity percent of the best match, 0 on a mismatch, null when not checked |
@@ -757,6 +758,9 @@ Rules:
 | type | varchar(20) | NN, = 'inquiry' | | `inquiry` (the deal chat) or `tenancy` (after move-in, holds concern cards) |
 | reservation_id | bigint unsigned | null | FK → reservations, set null | Tenancy threads only; re-pointed when the same property is rented again |
 | status | varchar(255) | NN, = 'Open' | | `Open` / `Resolved` / `Cancelled`. A tenancy thread is `Resolved` when the tenancy ends (read-only), never `Cancelled` |
+| admin_review_requested_at | timestamp | null | | A participant asked an administrator to read this thread (or a tenant escalated a refund). Null = nobody asked: the thread is closed to admins |
+| admin_review_requested_by | bigint unsigned | null | FK → users, set null | Who asked |
+| admin_review_ended_at | timestamp | null | | The admin pressed Finish review. Admins may read only while requested is set and ended is null (`Conversation::adminMayRead()`); asking again clears it |
 | created_at | timestamp | null | | |
 | updated_at | timestamp | null | | |
 
@@ -906,6 +910,30 @@ Account and security events: sign-ins, failures, lockouts, password and email ch
 | created_at | timestamp | null | index | No `updated_at` (`UPDATED_AT = null`) |
 
 New event type: add its key to `AuthEvent::EVENTS` (the filter reads it) and record it through `AuthEventRecorder::record()`.
+
+### user_activities
+Everything every signed-in person did: one row per state-changing request (POST, PUT, PATCH, DELETE) plus downloads and exports. Written only by the `LogUserActivity` middleware (web and API groups), after the response, so a new route is logged with no code. Never holds the request body or the real URL (both can carry passwords, ID numbers, one-time tokens). Append-only. Pruned after 365 days (`security.user_activity_retention_days`, `model:prune`). Kept apart from `audit_logs` (tamper-evident admin trail) and `auth_events` (sign-in and failure events, anonymous ones too) on purpose: this one is high-volume.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| activity_id | bigint unsigned | NN | PK | |
+| user_id | bigint unsigned | null | FK → users, set null; index `(user_id, created_at)` | Null after the account is deleted |
+| actor_name | varchar(255) | null | | Snapshot, so the row reads after the account is gone |
+| actor_email | varchar(255) | null | | Snapshot, same reason |
+| actor_role | varchar(20) | null | index `(actor_role, created_at)` | Highest role held: Admin, Landlord, Tenant |
+| action | varchar(160) | NN | index `(action, created_at)` | The route name, or `METHOD uri` for an unnamed route |
+| summary | varchar(255) | NN | | The sentence shown ("Approved a listing"), from `ActivityCatalog` |
+| method | varchar(7) | NN | | |
+| path | varchar(255) | NN | | The route pattern (`/admin/users/{user}/status`), never the real URL |
+| channel | varchar(10) | NN, default `web` | | `web` or `api` |
+| status | smallint unsigned | NN | | HTTP status of the response |
+| outcome | varchar(10) | NN, default `ok` | index `(outcome, created_at)` | `ok`, `failed` (4xx/5xx, or a redirect back with errors or an error flash), `denied` (401/403) |
+| target_type | varchar(60) | null | | The record acted on: the first bound model in the route, or a numeric `{thing_id}` (class name) |
+| target_id | bigint unsigned | null | | Its id |
+| ip_address | varchar(45) | null | | |
+| user_agent | varchar(255) | null | | |
+| device_id | char(36) | null | | The `ah_device` cookie |
+| created_at | timestamp | null | index | No `updated_at` |
 
 ### trusted_devices
 Browsers an admin chose to remember after passing two-factor ("Don't ask again for 30 days"). Written only by `TrustedDevices`. The cookie `ah_2fa_trusted` holds a random token; only its sha256 is stored. Wiped for a user on password change/reset, Sign out everywhere, 2FA on/off and new recovery codes.

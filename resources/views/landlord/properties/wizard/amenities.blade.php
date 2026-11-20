@@ -4,7 +4,7 @@
 <div class="py-8 px-4 sm:px-6 lg:px-8">
     <div class="max-w-[1200px] mx-auto">
 
-        <x-back-link href="{{ route('landlord.properties.index') }}" to="My Properties" class="mb-6" />
+        <x-back-link fixed href="{{ route('landlord.properties.index') }}" to="My Properties" class="mb-6" />
 
         @if($errors->any())
             <div class="max-w-3xl mb-6 px-4 py-3 rounded-xl bg-[#EF4444]/[0.07] border border-[#EF4444]/20 text-[#DC2626] text-sm font-medium flex items-start gap-2.5">

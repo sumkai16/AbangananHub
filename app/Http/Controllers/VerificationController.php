@@ -8,11 +8,14 @@ use App\Models\LandlordVerification;
 use App\Models\User;
 use App\Services\FaceMatch;
 use App\Services\IdDocumentCheck;
+use App\Services\IdTypeDetector;
 use App\Services\OcrService;
+use App\Support\IdTemplates;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class VerificationController extends Controller
 {
@@ -83,12 +86,12 @@ class VerificationController extends Controller
      * costs one try per request (front and back together). After ATTEMPTS_BEFORE_CONTINUE failed tries the applicant
      * may carry on anyway; the admin sees that they did.
      */
-    public function ocrCheck(Request $request, OcrService $ocr, IdDocumentCheck $idCheck)
+    public function ocrCheck(Request $request, OcrService $ocr, IdDocumentCheck $idCheck, IdTypeDetector $types)
     {
         $request->validate([
             'id_image' => ['required', 'string', 'max:8000000'],
             'id_back'  => ['nullable', 'string', 'max:8000000'],
-            'id_type'  => ['required', 'string', 'in:PhilSys,Professional ID Card,Driver\'s License,Passport,UMID,Postal ID,SSS ID'],
+            'id_type'  => ['required', 'string', Rule::in(IdTemplates::names())],
         ]);
 
         $front = $this->decodeBase64Image($request->input('id_image'));
@@ -100,7 +103,7 @@ class VerificationController extends Controller
                 'confidence' => 0,
                 'status'     => 'fail',
                 'message'    => 'Invalid image data.',
-                'id_check'   => $this->idCheckPayload(IdDocumentCheck::UNAVAILABLE, null, false, (int) session('id_check_failures', 0)),
+                'id_check'   => $this->idCheckPayload(IdDocumentCheck::UNAVAILABLE, null, false, (int) session('id_check_failures', 0), false),
             ]);
         }
 
@@ -112,28 +115,32 @@ class VerificationController extends Controller
 
         $frontCheck = $idCheck->assessFront($frontReading, $idType, $user->first_name, $user->last_name);
         $backStatus = $backReading ? $idCheck->assessBack($backReading) : null;
-        $failures = $this->recordIdCheckResult($frontCheck['status'], $backStatus);
+        $typeMismatch = $frontCheck['type_match'] === IdTypeDetector::MISMATCH;
+        $failures = $this->recordIdCheckResult($frontCheck['status'], $backStatus, $typeMismatch);
         $nameResult = $ocr->matchName($frontReading->text, $user->first_name, $user->last_name);
 
         return response()->json([
             'name'           => $nameResult['name'],
             'confidence'     => $nameResult['confidence'],
             'status'         => $nameResult['status'],
-            'id_number'      => $ocr->extractIdNumber($frontReading->text, $idType),
+            'id_number'      => $types->idNumber($frontReading->text, $idType),
             'extracted'      => $frontReading->text,
             'back_extracted' => $backReading?->text,
             'user_name'      => $user->first_name . ' ' . $user->last_name,
             'type_match'     => $frontCheck['type_match'],
+            'detected_type'  => $frontCheck['detected_type'],
+            'back_detected_type' => $backReading ? $types->detectBack($backReading->text) : null,
             'id_check'       => $this->idCheckPayload(
                 $frontCheck['status'],
                 $backStatus,
-                $idCheck->blocks($frontCheck['status'], $backStatus, $failures),
+                $idCheck->blocks($frontCheck['status'], $backStatus, $failures, $typeMismatch),
                 $failures,
+                $typeMismatch,
             ),
         ]);
     }
 
-    public function store(StoreVerificationRequest $request, OcrService $ocr, IdDocumentCheck $idCheck, FaceMatch $faceMatch)
+    public function store(StoreVerificationRequest $request, OcrService $ocr, IdDocumentCheck $idCheck, IdTypeDetector $types, FaceMatch $faceMatch)
     {
         $user = $request->user();
 
@@ -181,7 +188,7 @@ class VerificationController extends Controller
         $backStatus = $backReading ? $idCheck->assessBack($backReading) : null;
 
         $nameResult = $ocr->matchName($frontReading->text, $user->first_name, $user->last_name);
-        $idNumber = $ocr->extractIdNumber($frontReading->text, $idType);
+        $idNumber = $types->idNumber($frontReading->text, $idType);
 
         // ── ID number dedup ───────────────────────────────────
         if ($idNumber) {
@@ -199,8 +206,10 @@ class VerificationController extends Controller
         // ── Face on the ID against the selfie (a signal for the admin, never a reject) ──
         $face = $faceMatch->compare($idImageData, $selfieData);
 
-        // A failed side makes the whole check "fail", and the admin is told the application was sent anyway.
+        // A failed side makes the whole check "fail", and the admin is told the application was sent anyway. So is a
+        // front that shows another ID type than the one picked: the wizard held it for the allowed tries too.
         $idCheckStatus = $backStatus === IdDocumentCheck::FAIL ? IdDocumentCheck::FAIL : $frontCheck['status'];
+        $typeMismatch = $frontCheck['type_match'] === IdTypeDetector::MISMATCH;
 
         // ── Store images to local disk (the refusals above, a duplicate photo or ID number, all happen before any file changes) ──
         $folder = "verifications/{$user->user_id}";
@@ -246,7 +255,8 @@ class VerificationController extends Controller
                 'ocr_status'          => $nameResult['status'],
                 'id_check_status'     => $idCheckStatus,
                 'id_type_match'       => $frontCheck['type_match'],
-                'id_check_overridden' => $idCheckStatus === IdDocumentCheck::FAIL,
+                'id_type_detected'    => $frontCheck['detected_type'],
+                'id_check_overridden' => $idCheckStatus === IdDocumentCheck::FAIL || $typeMismatch,
                 'face_match_status'   => $face['status'],
                 'face_match_score'    => $face['similarity'],
                 'business_name'       => $request->validated('business_name'),
@@ -332,28 +342,30 @@ class VerificationController extends Controller
     // ─── Helpers ──────────────────────────────────────────────
 
     /**
-     * One failed look at the photos costs one try, whichever side failed. A look that is not a fail (a pass, unsure, or
-     * Vision unavailable) costs nothing. Returns the tries used so far.
+     * One failed look at the photos costs one try, whichever side failed, or a front that shows another ID type than the
+     * one picked. A look that is none of these (a pass, unsure, or Vision unavailable) costs nothing. Returns the tries
+     * used so far.
      */
-    private function recordIdCheckResult(string $frontStatus, ?string $backStatus): int
+    private function recordIdCheckResult(string $frontStatus, ?string $backStatus, bool $typeMismatch): int
     {
         $failures = (int) session('id_check_failures', 0);
 
-        if ($frontStatus === IdDocumentCheck::FAIL || $backStatus === IdDocumentCheck::FAIL) {
+        if ($frontStatus === IdDocumentCheck::FAIL || $backStatus === IdDocumentCheck::FAIL || $typeMismatch) {
             session(['id_check_failures' => ++$failures]);
         }
 
         return $failures;
     }
 
-    /** @return array{status: string, back_status: ?string, blocked: bool, attempts_left: int} */
-    private function idCheckPayload(string $status, ?string $backStatus, bool $blocked, int $failures): array
+    /** @return array{status: string, back_status: ?string, blocked: bool, attempts_left: int, type_mismatch: bool} */
+    private function idCheckPayload(string $status, ?string $backStatus, bool $blocked, int $failures, bool $typeMismatch): array
     {
         return [
             'status'        => $status,
             'back_status'   => $backStatus,
             'blocked'       => $blocked,
             'attempts_left' => max(0, IdDocumentCheck::ATTEMPTS_BEFORE_CONTINUE - $failures),
+            'type_mismatch' => $typeMismatch,
         ];
     }
 

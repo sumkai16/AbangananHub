@@ -7,13 +7,7 @@
 
     {{-- Back + header --}}
     <div class="flex items-start gap-4 mb-6">
-        <a href="{{ route('admin.conversations.index') }}"
-            class="mt-0.5 inline-flex items-center gap-1.5 h-9 px-3.5 text-[13px] font-semibold border border-[#E2E4EC] text-[#5B6A8E] rounded-xl hover:text-[#060D26] hover:bg-[#F7F8FC] transition-colors shrink-0">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-            Back
-        </a>
+        <x-back-link href="{{ route('admin.conversations.index') }}" to="conversations" class="mt-1.5 shrink-0" />
         <div class="flex-1">
             <div class="flex items-center gap-3 flex-wrap">
                 <h1 class="text-xl font-semibold text-[#060D26] tracking-tight">Conversation Thread</h1>
@@ -22,6 +16,18 @@
                     {{ $conversation->status ?? 'Open' }}
                 </span>
                 <span class="text-[12px] text-[#5B6A8E] font-medium">Admin view</span>
+            </div>
+            <div class="mt-2 flex flex-wrap items-center gap-3 rounded-xl border border-[#FF8A66]/25 bg-[#FFF6F2] px-3.5 py-2.5">
+                <p class="min-w-0 flex-1 basis-60 text-[12.5px] text-[#060D26]">
+                    Opened because
+                    <span class="font-semibold">{{ $conversation->admin_review_requested_by === $conversation->tenant_id ? 'the tenant' : ($conversation->admin_review_requested_by === $conversation->landlord_id ? 'the landlord' : 'a participant') }}</span>
+                    asked for a review on {{ $conversation->admin_review_requested_at?->timezone(config('rentals.timezone'))->format('M j, Y g:i A') }}.
+                    Both of them can see that you can read it. Close it when you are done.
+                </p>
+                <form method="POST" action="{{ route('admin.conversations.endReview', $conversation) }}">
+                    @csrf
+                    <button type="submit" class="h-9 rounded-xl border border-[#E2E4EC] bg-white px-3.5 text-[12.5px] font-semibold text-[#060D26] transition-colors hover:bg-[#F7F8FC] cursor-pointer">Finish review</button>
+                </form>
             </div>
             @if($conversation->property)
                 <p class="text-[13px] text-[#5B6A8E] mt-1">

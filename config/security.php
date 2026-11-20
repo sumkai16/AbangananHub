@@ -30,6 +30,8 @@ return [
     /* Account & security events (auth_events). See plans/security-audit-hardening.md. */
     'auth_events_retention_days'     => 90,
     'auth_events_ip_cap_per_minute'  => 30,
+    // The all-users activity log (user_activities): one row per state-changing request. Plenty of rows, so it is pruned.
+    'user_activity_retention_days'   => 365,
     'device_cookie'                  => 'ah_device',
     // Most rows a single CSV export of an activity log will contain.
     'export_row_cap'                 => 50000,

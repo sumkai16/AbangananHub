@@ -117,6 +117,130 @@ class VerificationIdCheckTest extends TestCase
         return LandlordVerification::where('user_id', $user->user_id)->first();
     }
 
+    // ── Another ID type than the one picked ───────────────────────────────────
+
+    /** What Vision reads on a Driver's License in the applicant's own name (made-up numbers). */
+    private function licenseText(User $user): string
+    {
+        return "REPUBLIC OF THE PHILIPPINES\nDEPARTMENT OF TRANSPORTATION\nLAND TRANSPORTATION OFFICE\nDRIVER'S LICENSE\n"
+            .strtoupper($user->last_name).', '.strtoupper($user->first_name)."\nLicense No. Expiration Date Agency Code\n"
+            ."A12-34-567890 2030/01/01 A12\nDate of Birth 1990/01/01\nAddress SAMPALOK, MANILA";
+    }
+
+    /** @return array{text: string, faces: int, labels: array<string, float>} */
+    private function licenseReading(User $user): array
+    {
+        return ['text' => $this->licenseText($user), 'faces' => 1, 'labels' => ['identity document' => 0.9]];
+    }
+
+    public function test_a_license_picked_as_philsys_is_held_and_the_real_type_is_named(): void
+    {
+        $user = $this->makeTenant();
+        $front = $this->photo(10);
+        $this->fakeVision([sha1($front) => $this->licenseReading($user)]);
+
+        $this->preview($user, $front, null, 'PhilSys')
+            ->assertOk()
+            ->assertJsonPath('type_match', 'mismatch')
+            ->assertJsonPath('detected_type', "Driver's License")
+            ->assertJsonPath('id_check.type_mismatch', true)
+            ->assertJsonPath('id_check.blocked', true)
+            ->assertJsonPath('id_check.attempts_left', 1);
+
+        $this->assertSame(1, session('id_check_failures'));
+    }
+
+    public function test_switching_to_the_detected_type_clears_the_hold_without_costing_another_try(): void
+    {
+        $user = $this->makeTenant();
+        $front = $this->photo(10);
+        $this->fakeVision([sha1($front) => $this->licenseReading($user)]);
+        $this->preview($user, $front, null, 'PhilSys');
+
+        $this->preview($user, $front, null, "Driver's License")
+            ->assertOk()
+            ->assertJsonPath('type_match', 'match')
+            ->assertJsonPath('id_check.type_mismatch', false)
+            ->assertJsonPath('id_check.blocked', false)
+            ->assertJsonPath('id_check.attempts_left', 1)
+            ->assertJsonPath('id_number', 'A12-34-567890');
+
+        $this->assertSame(1, session('id_check_failures'));
+    }
+
+    public function test_a_second_mismatch_lets_the_applicant_continue(): void
+    {
+        $user = $this->makeTenant();
+        [$one, $two] = [$this->photo(10), $this->photo(11)];
+        $this->fakeVision([sha1($one) => $this->licenseReading($user), sha1($two) => $this->licenseReading($user)]);
+
+        $this->preview($user, $one, null, 'PhilSys');
+        $this->preview($user, $two, null, 'PhilSys')
+            ->assertJsonPath('id_check.type_mismatch', true)
+            ->assertJsonPath('id_check.blocked', false)
+            ->assertJsonPath('id_check.attempts_left', 0);
+    }
+
+    public function test_the_back_of_another_id_is_named_without_costing_a_try(): void
+    {
+        $user = $this->makeTenant();
+        [$front, $back] = [$this->photo(10), $this->photo(20)];
+        $this->fakeVision([
+            sha1($front) => $this->goodId($user),
+            sha1($back) => ['text' => "PHLPOST\nwww.phlpost.gov.ph\nIf found, please return to the nearest Post Office.\nproof of identity of the cardholder"],
+        ]);
+
+        $this->preview($user, $front, $back)
+            ->assertOk()
+            ->assertJsonPath('back_detected_type', 'Postal ID')
+            ->assertJsonPath('id_check.blocked', false)
+            ->assertJsonPath('id_check.attempts_left', 2);
+    }
+
+    public function test_store_saves_what_the_photo_looked_like_and_flags_a_sent_mismatch(): void
+    {
+        $user = $this->makeTenant();
+        [$front, $back, $selfie] = [$this->photo(10), $this->photo(20), $this->photo(30)];
+        $this->fakeVision([
+            sha1($front) => $this->licenseReading($user),
+            sha1($back) => ['text' => "I. DL CODES\nA MOTORCYCLE\nSerial Number 123456789"],
+        ]);
+
+        // submit() sends id_type PhilSys: the applicant carried on past the allowed tries.
+        $this->submit($user, $front, $back, $selfie)->assertSessionDoesntHaveErrors();
+
+        $saved = $this->saved($user);
+        $this->assertSame('PhilSys', $saved->id_type);
+        $this->assertSame('mismatch', $saved->id_type_match);
+        $this->assertSame("Driver's License", $saved->id_type_detected);
+        $this->assertTrue($saved->id_check_overridden);
+        $this->assertNull($saved->id_number); // a license number is not a PhilSys number
+    }
+
+    public function test_store_saves_the_detected_type_on_a_normal_pass(): void
+    {
+        $user = $this->makeTenant();
+        [$front, $back, $selfie] = [$this->photo(10), $this->photo(20), $this->photo(30)];
+        $this->fakeVision([
+            sha1($front) => $this->goodId($user),
+            sha1($back) => ['text' => "Conditions: 1 Wear eyeglasses\nRestrictions A B"],
+        ]);
+
+        $this->submit($user, $front, $back, $selfie)->assertSessionDoesntHaveErrors();
+
+        $saved = $this->saved($user);
+        $this->assertSame('PhilSys', $saved->id_type_detected);
+        $this->assertFalse($saved->id_check_overridden);
+    }
+
+    public function test_an_unsupported_id_type_is_refused(): void
+    {
+        $user = $this->makeTenant();
+        $this->fakeVision([]);
+
+        $this->preview($user, $this->photo(10), null, 'Library Card')->assertStatus(422);
+    }
+
     // ── The wizard page ───────────────────────────────────────────────────────
 
     public function test_the_wizard_loads_its_script_with_a_version_so_phones_never_run_a_stale_copy(): void
@@ -127,7 +251,11 @@ class VerificationIdCheckTest extends TestCase
             ->get(route('landlord.verification.create'))
             ->assertOk()
             ->assertSee('js/verification-wizard.js?v='.$version, false)
-            ->assertSee('idCheckCard', false);
+            ->assertSee('idCheckCard', false)
+            ->assertSee('switchIdType', false)
+            // The accepted ID types come from App\Support\IdTemplates, not a second list in the script.
+            ->assertSee('idTypes:', false)
+            ->assertSee('Postal ID', false);
     }
 
     public function test_the_face_check_screen_describes_three_movements_then_the_photo(): void

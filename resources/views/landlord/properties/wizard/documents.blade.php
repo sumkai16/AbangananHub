@@ -4,7 +4,7 @@
 <div class="min-h-screen py-8 px-4 sm:px-6 lg:px-8" x-data="{ openType: null, addingOptional: false }">
     <div class="max-w-[1200px] mx-auto">
 
-        <x-back-link href="{{ route('landlord.properties.index') }}" to="My Properties" class="mb-6" />
+        <x-back-link fixed href="{{ route('landlord.properties.index') }}" to="My Properties" class="mb-6" />
 
         @if($errors->any())
             <div class="max-w-2xl mb-6 px-4 py-3 rounded-xl bg-[#EF4444]/[0.07] border border-[#EF4444]/20 text-[#DC2626] text-sm font-medium flex items-start gap-2.5">
@@ -69,6 +69,7 @@
                         <div x-show="addingOptional" x-cloak class="border border-[#E2E4EC] rounded-xl p-4 bg-[#F7F8FC]">
                             <form method="POST" action="{{ route('landlord.properties.documents.store', $property) }}" enctype="multipart/form-data" class="space-y-3">
                                 @csrf
+                                <input type="hidden" name="from" value="wizard">
                                 <div>
                                     <label class="block text-[11.5px] font-semibold text-[#060D26] mb-1.5">Document type</label>
                                     <x-styled-select name="document_type" required :options="$availableOptionalTypes->all()" placeholder="Choose a type"

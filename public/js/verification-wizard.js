@@ -12,7 +12,7 @@
  * (no camera models, unsupported browser) the applicant can still capture
  * manually, but livenessPassed stays false and admin review sees the flag.
  *
- * Config: { ocrCheckUrl: string, csrfToken: string, modelUrl?: string }
+ * Config: { ocrCheckUrl: string, csrfToken: string, idTypes: string[], modelUrl?: string }
  */
 function verificationWizard(config) {
     // Liveness tuning. Yaw is how far the head is turned, in degrees from the 68 landmarks (0 = facing the camera).
@@ -44,10 +44,7 @@ function verificationWizard(config) {
         step: 0,
         totalSteps: 5,
 
-        idTypes: [
-            'PhilSys', 'Professional ID Card', "Driver's License",
-            'Passport', 'UMID', 'Postal ID', 'SSS ID',
-        ],
+        idTypes: config.idTypes, // from App\Support\IdTemplates: the one list of accepted IDs
         idType: '',
 
         idImageBase64: '',
@@ -73,6 +70,7 @@ function verificationWizard(config) {
         ocrError: false,
         _ocrSeq: 0,      // which ID check is the current one; an answer for an older one is ignored
         _ocrAbort: null, // aborts the check in flight (a retake, a new ID type, a newer check, or the timeout)
+        _switchingType: false, // set by switchIdType so the idType watcher keeps the photos
 
         faceDetected: false,
         faceCheckDone: false,
@@ -147,6 +145,29 @@ function verificationWizard(config) {
             if (!c) return null;
 
             const frontFailed = c.status === 'fail';
+            const detected = this.ocrResult?.detected_type;
+
+            // A real ID of another type than the one picked (a license picked as PhilSys): offer the switch, which
+            // keeps the photos, or a retake. It costs a try like a failed check, so it holds for the same two tries.
+            if (!frontFailed && c.type_mismatch && detected) {
+                if (c.blocked) {
+                    return {
+                        tone: 'red',
+                        title: 'This looks like a ' + detected + ', not a ' + this.idType,
+                        body: 'Use ' + detected + " if that's the ID you photographed, or retake a photo of your " + this.idType + '.',
+                        switchTo: detected,
+                        retake: 'id',
+                    };
+                }
+                return {
+                    tone: 'amber',
+                    title: 'This still looks like a ' + detected,
+                    body: 'You can continue, and our team will check it. Or switch your ID type to ' + detected + '.',
+                    switchTo: detected,
+                    retake: null,
+                };
+            }
+
             const backFailed = !frontFailed && c.back_status === 'fail';
 
             if (frontFailed || backFailed) {
@@ -157,6 +178,7 @@ function verificationWizard(config) {
                         tone: 'red',
                         title: "This doesn't look like " + what,
                         body: 'Lay the ID flat, fill the frame, and avoid glare. ' + tries + ' before you can continue anyway.',
+                        switchTo: null,
                         retake: frontFailed ? 'id' : 'idBack',
                     };
                 }
@@ -164,19 +186,26 @@ function verificationWizard(config) {
                     tone: 'amber',
                     title: "We still can't confirm this is " + what,
                     body: 'You can continue, and our team will check it by hand.',
+                    switchTo: null,
                     retake: null,
                 };
             }
 
             if (c.status === 'unsure') {
-                return { tone: 'amber', title: 'Some details were hard to read', body: 'Retake for a clearer photo, or continue.', retake: null };
+                return { tone: 'amber', title: 'Some details were hard to read', body: 'Retake for a clearer photo, or continue.', switchTo: null, retake: null };
             }
 
             if (c.status === 'unavailable') {
-                return { tone: 'neutral', title: "We couldn't check this photo right now", body: 'Our team will check it by hand.', retake: null };
+                return { tone: 'neutral', title: "We couldn't check this photo right now", body: 'Our team will check it by hand.', switchTo: null, retake: null };
             }
 
             return null;
+        },
+
+        // The back shows a different ID than the front: a note, never a hold and never a try.
+        get backIdDiffers() {
+            const r = this.ocrResult;
+            return !!(r?.back_detected_type && r.back_detected_type !== (r.detected_type || this.idType));
         },
 
         // Nothing was read from the front, so "What we found" would only show dashes.
@@ -210,6 +239,7 @@ function verificationWizard(config) {
             });
 
             this.$watch('idType', (newType, oldType) => {
+                if (this._switchingType) { this._switchingType = false; return; } // the photos stay: switchIdType took over
                 if (oldType && newType !== oldType) {
                     this._cancelOcrCheck();
                     this.ocrResult = null;
@@ -219,6 +249,32 @@ function verificationWizard(config) {
                     this.idCapturePhase = 'choose';
                 }
             });
+        },
+
+        // The applicant accepts the ID type the check named ("Use Driver's License"). The photos stay: the check runs again
+        // as the new type. A type with no back drops the back photo; a type that needs one asks for it if missing.
+        switchIdType(type) {
+            if (!type || type === this.idType) return;
+            this._cancelOcrCheck();
+            this._switchingType = true;
+            this.idType = type;
+            this.ocrResult = null;
+            this.ocrError = false;
+            this.duplicateSideWarning = false;
+
+            if (!this.needsBack) {
+                this.idBackBase64 = '';
+                this.idBackBlurry = false;
+                this.idCapturePhase = 'done';
+                this.runOcrCheck();
+            } else if (!this.idBackBase64) {
+                this.cameraError = '';
+                this.idCapturePhase = 'capture-back';
+                this.$nextTick(() => setTimeout(() => this.startCamera('environment', this.$refs.videoIdBack), 500));
+            } else {
+                this.idCapturePhase = 'done';
+                this.runOcrCheck();
+            }
         },
 
         // ── Starting a capture ────────────────────────────────
@@ -634,6 +690,14 @@ function verificationWizard(config) {
             this.cameraActive = false;
             this.cameraError = '';
             if (videoEl) videoEl.srcObject = null;
+            // Browsers only expose the camera on https:// or localhost. Over a plain http:// LAN address
+            // (e.g. http://192.168.1.12:8000) navigator.mediaDevices is undefined, so say that instead of "close other apps".
+            if (!navigator.mediaDevices?.getUserMedia) {
+                this.cameraError = window.isSecureContext
+                    ? 'This browser cannot open the camera. Try Chrome or Safari.'
+                    : 'The camera only works on a secure (https) link. Open the site through its https address, not an http:// IP address.';
+                return;
+            }
             try {
                 // The back camera photographs the ID, where small print has to survive OCR: ask for more pixels.
                 // The front camera only needs enough for a face.

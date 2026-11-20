@@ -225,6 +225,8 @@ class AdminDesignPagesTest extends TestCase
             'unit_id' => $unit->unit_id,
         ]);
 
+        $conversation->requestAdminReview($t['tenant']);
+
         $this->actingAs($this->makeUserWithRole('Admin'))
             ->get(route('admin.conversations.show', $conversation))
             ->assertOk()

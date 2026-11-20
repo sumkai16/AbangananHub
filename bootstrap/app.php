@@ -12,6 +12,7 @@ use App\Http\Middleware\EnsureNotOnHold;
 use App\Http\Middleware\LandlordPropertyScope;
 use App\Http\Middleware\EnsureTenant;
 use App\Http\Middleware\ForceJsonResponse;
+use App\Http\Middleware\LogUserActivity;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -35,12 +36,16 @@ $app = Application::configure(basePath: dirname(__DIR__))
             DropArrayFilters::class,
             EnsureAccountActive::class,
             EnsureDeviceCookie::class,
+            // The activity log: every state-changing request by a signed-in user (writes after the response).
+            LogUserActivity::class,
         ]);
         $middleware->alias([
             'tenant'   => EnsureTenant::class,
             'landlord' => EnsureLandlord::class,
             'property.scope' => LandlordPropertyScope::class,
             'admin'    => EnsureAdmin::class,
+            // Routes that start an inquiry: an administrator may browse as a tenant but never opens a deal.
+            'not.admin' => \App\Http\Middleware\EnsureNotAdmin::class,
             'two-factor'      => EnsureTwoFactor::class,
             'recent.password' => RequireRecentPassword::class,
             // Tenants on an unpaid-rent hold cannot start anything new (plans/tenant-payment-holds.md).
@@ -57,6 +62,8 @@ $app = Application::configure(basePath: dirname(__DIR__))
 
         $middleware->api(prepend: [
             ForceJsonResponse::class,
+        ], append: [
+            LogUserActivity::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [

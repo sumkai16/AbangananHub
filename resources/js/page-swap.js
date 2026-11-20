@@ -204,7 +204,9 @@ async function go(url, push, inPage = false, only = null) {
         if (push) {
             // Tag the entry we are leaving too, so Back from here knows it is ours to swap.
             window.history.replaceState({ ...(window.history.state || {}), pageSwap: true }, '');
-            window.history.pushState({ pageSwap: true }, '', url);
+            // `swapped` marks entries made here, so components/back-link can tell "an earlier page of this site is
+            // behind me" even though document.referrer still holds whatever the first full load had.
+            window.history.pushState({ pageSwap: true, swapped: true }, '', url);
         }
         shownPath = url.pathname;
         shownHref = url.href;

@@ -21,6 +21,8 @@ function init() {
     const cebuWarning = document.getElementById('location-picker-cebu-warning');
     const lguPicker = document.getElementById('city-municipality-picker');
     const lguList = lguPicker ? JSON.parse(lguPicker.dataset.lgus || '[]') : [];
+    // Cebu City, Mandaue and Lapu-Lapu are independent of Cebu province: the geocoder returns no province for them.
+    const independentCities = lguPicker ? JSON.parse(lguPicker.dataset.hucs || '[]') : [];
 
     const oldLat = parseFloat(latInput?.value);
     const oldLng = parseFloat(lngInput?.value);
@@ -89,9 +91,11 @@ function init() {
             }
         }
 
+        // A province that says Cebu, or (for the independent cities, which have none) a matched city from that list.
         const province = (address.state ?? address.province ?? '').toLowerCase();
+        const inCebu = province.includes('cebu') || (province === '' && matched !== null && independentCities.includes(matched));
         if (cebuWarning) {
-            cebuWarning.classList.toggle('hidden', province.includes('cebu'));
+            cebuWarning.classList.toggle('hidden', inCebu);
         }
     }
 

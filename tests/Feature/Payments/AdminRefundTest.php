@@ -413,6 +413,7 @@ class AdminRefundTest extends TestCase
     public function test_the_admin_conversation_view_offers_the_refund_for_a_held_payment(): void
     {
         $t = $this->heldGroup();
+        \App\Models\Conversation::findOrFail($t['reservation']->conversation_id)->requestAdminReview($t['tenant']);
 
         $this->actingAs($this->admin())->get(route('admin.conversations.show', $t['reservation']->conversation_id))
             ->assertOk()->assertSee('Refund tenant');

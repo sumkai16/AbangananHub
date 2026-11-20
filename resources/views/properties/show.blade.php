@@ -639,6 +639,10 @@
                             <div class="flex-1 py-3 text-center rounded-xl bg-[#ECEEF6] text-[#5B6A8E] text-sm font-bold cursor-not-allowed">
                                 This is your listing
                             </div>
+                        @elseif(auth()->user()->hasRole('Admin'))
+                            <div class="flex-1 py-3 px-3 text-center rounded-xl bg-[#ECEEF6] text-[#5B6A8E] text-sm font-bold cursor-not-allowed">
+                                Admins can't send inquiries
+                            </div>
                         @else
                             <button type="button" x-on:click="inquireOpen = true"
                                 class="flex-1 py-3 rounded-xl text-sm font-semibold transition-colors duration-200"
@@ -651,7 +655,7 @@
 
                     {{-- ===== LEGAL CONSENT — contacting the landlord (inquiry, login-to-contact),
                          gates the button above. ===== --}}
-                    @unless($isOwner)
+                    @unless($isOwner || (auth()->check() && auth()->user()->hasRole('Admin')))
                         <label class="mt-3 flex items-start gap-2.5 cursor-pointer text-[12px] leading-snug text-[#5B6A8E]">
                             <input type="checkbox" x-model="agreed"
                                 class="mt-0.5 h-4 w-4 shrink-0 rounded border-[#C9CEDD] text-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/40 cursor-pointer">

@@ -82,6 +82,8 @@ class AuditLog extends Model
         'report.resolve'            => 'Report resolved',
         'settings.update'           => 'System settings updated',
         'tenancy_document.view'     => 'Tenant document opened',
+        'conversation.review_requested' => 'Conversation review requested',
+        'conversation.review_ended'     => 'Conversation review finished',
         'payout.mark_paid_out'      => 'Payout recorded by hand',
         'payout.retry'              => 'Payout retried',
         'payout.check'              => 'Payout status checked',

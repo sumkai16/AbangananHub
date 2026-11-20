@@ -67,7 +67,10 @@ class PropertyController extends Controller
         ];
         $stats['occupancyRate'] = $totalUnitsCount > 0 ? round($stats['occupied'] / $totalUnitsCount * 100) : 0;
 
-        return view('landlord.properties.index', compact('properties', 'stats'));
+        // Step 1 of the wizard saved but Location never finished: offer to pick it up again.
+        $wizardDraft = \App\Models\PropertyWizardDraft::where('landlord_id', $landlordId)->value('payload');
+
+        return view('landlord.properties.index', compact('properties', 'stats', 'wizardDraft'));
     }
 
     public function show(Request $request, Property $property)

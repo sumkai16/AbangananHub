@@ -8,10 +8,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Amenity;
 use App\Models\Notification;
 use App\Models\Property;
+use App\Models\PropertyWizardDraft;
 use App\Models\User;
 use App\Rules\WithinCebu;
 use App\Support\PropertyPolicies;
 use App\Services\ImageUploader;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -27,7 +29,7 @@ use App\Support\ListingPhotos;
  * No property row exists until Location is saved (properties.address/
  * city_municipality/latitude/longitude are all NOT NULL, so there is
  * nothing valid to insert after Info alone) — Info's fields are stashed in
- * the session for that one hop. From Location onward every step operates
+ * a saved draft (property_wizard_drafts) for that one hop. From Location onward every step operates
  * on a real Property row with publication_status = 'Draft'.
  */
 class PropertyWizardController extends Controller
@@ -41,22 +43,32 @@ class PropertyWizardController extends Controller
      * through the standalone edit page (PropertyController::edit/update)
      * instead — re-entering the wizard on a live listing would let a
      * landlord silently drop it back into an unlisted state.
+     *
+     * A landlord who gets here after submitting (the browser Back button, an old tab) is sent to the property page
+     * with a note, not shown a bare 409. Thrown as a response so every caller stops without handling a return value.
+     * The flash key is `warning`: partials/flash-modal renders only success, warning and error.
      */
     private function guardIsDraft(Property $property): void
     {
-        abort_if(! $property->isDraft(), 409, 'This listing has already been submitted for review — edit it from its property page instead.');
+        if (! $property->isDraft()) {
+            throw new HttpResponseException(
+                redirect()->route('landlord.properties.show', $property)
+                    ->with('warning', 'This listing has already been submitted for review. You can edit it from here.')
+            );
+        }
     }
 
-    private function targetUnitsSessionKey(Property $property): string
+    /** Step 1 answers saved for this landlord, or null. Kept in the database so they outlive the session. */
+    private function draftInfo(): ?array
     {
-        return "property_wizard.target_units.{$property->property_id}";
+        return PropertyWizardDraft::where('landlord_id', Auth::id())->value('payload');
     }
 
     // ─── Step 1: Property Information ────────────────────────
 
     public function createInfo()
     {
-        $old = session('property_wizard.info', []);
+        $old = $this->draftInfo() ?? [];
 
         // The session keeps house_rules as one compiled list; the form wants presets and custom text apart.
         $split = PropertyPolicies::splitRules($old['house_rules'] ?? null);
@@ -92,7 +104,7 @@ class PropertyWizardController extends Controller
         unset($validated['custom_house_rules']);
         $validated = array_merge($validated, PropertyPolicies::fromRequest($request));
 
-        session(['property_wizard.info' => $validated]);
+        PropertyWizardDraft::updateOrCreate(['landlord_id' => Auth::id()], ['payload' => $validated]);
 
         return redirect()->route('properties.wizard.location.create');
     }
@@ -112,7 +124,7 @@ class PropertyWizardController extends Controller
             'association_fees_included'      => $property->association_fees_included,
             'utilities_separately_metered'   => $property->utilities_separately_metered,
             'description'                    => $property->description,
-            'number_of_units'                => session($this->targetUnitsSessionKey($property)),
+            'number_of_units'                => $property->target_units,
         ];
 
         $property->load(['amenities', 'documents', 'units.media']);
@@ -144,9 +156,8 @@ class PropertyWizardController extends Controller
             'association_fees_included'      => $request->boolean('association_fees_included'),
             'utilities_separately_metered'   => $request->boolean('utilities_separately_metered'),
             'description'                    => $validated['description'],
+            'target_units'                   => $validated['number_of_units'],
         ]);
-
-        session([$this->targetUnitsSessionKey($property) => $validated['number_of_units']]);
 
         return redirect()->route('properties.wizard.location.edit', $property)->with('success', 'Property information updated.');
     }
@@ -155,7 +166,7 @@ class PropertyWizardController extends Controller
 
     public function createLocation()
     {
-        if (! session()->has('property_wizard.info')) {
+        if (! $this->draftInfo()) {
             return redirect()->route('properties.create')->with('error', 'Start with property information first.');
         }
 
@@ -183,7 +194,7 @@ class PropertyWizardController extends Controller
 
     public function storeLocation(Request $request)
     {
-        $info = session('property_wizard.info');
+        $info = $this->draftInfo();
 
         if (! $info) {
             return redirect()->route('properties.create');
@@ -217,6 +228,7 @@ class PropertyWizardController extends Controller
             $property->longitude           = $validated['longitude'];
             $property->verification_status = 'Pending';
             $property->publication_status  = 'Draft';
+            $property->target_units        = $info['number_of_units'] ?? null;
             $property->save();
 
             foreach ($request->file('photos') as $photo) {
@@ -229,8 +241,7 @@ class PropertyWizardController extends Controller
             }
         });
 
-        session()->forget('property_wizard.info');
-        session([$this->targetUnitsSessionKey($property) => $info['number_of_units']]);
+        PropertyWizardDraft::where('landlord_id', Auth::id())->delete();
 
         return redirect()->route('properties.wizard.amenities', $property)
             ->with('success', 'Property created. Continue setting it up below.');
@@ -355,7 +366,7 @@ class PropertyWizardController extends Controller
                 ->with('warning', 'Please add the required documents before continuing to Units.');
         }
 
-        $targetUnits = session($this->targetUnitsSessionKey($property));
+        $targetUnits = $property->target_units;
 
         return view('landlord.properties.wizard.units', compact('property', 'targetUnits', 'checklist'));
     }
@@ -424,7 +435,7 @@ class PropertyWizardController extends Controller
         }
 
         $canSubmit = collect($checklist)->every(fn ($item) => $item['complete']);
-        $targetUnits = session($this->targetUnitsSessionKey($property));
+        $targetUnits = $property->target_units;
 
         return view('landlord.properties.wizard.review', compact('property', 'checklist', 'canSubmit', 'targetUnits'));
     }
@@ -446,7 +457,6 @@ class PropertyWizardController extends Controller
         }
 
         $property->update(['publication_status' => 'Published']);
-        session()->forget($this->targetUnitsSessionKey($property));
 
         // The listing now waits in the admin queue; without a ping it sits there until an admin opens the dashboard.
         $units = $property->units->count();

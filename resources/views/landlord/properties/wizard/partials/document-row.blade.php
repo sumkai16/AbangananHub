@@ -38,6 +38,7 @@
                     <form method="POST" action="{{ route('landlord.properties.documents.destroy', [$property, $document]) }}"
                         data-confirm="Remove this document?" data-confirm-type="error" data-confirm-button="Remove">
                         @csrf @method('DELETE')
+                        <input type="hidden" name="from" value="wizard">
                         <button type="submit" class="text-[11.5px] font-semibold text-[#EF4444] hover:text-[#DC2626] transition-colors">Remove</button>
                     </form>
                 @endif
@@ -53,6 +54,7 @@
     @else
         <form method="POST" action="{{ route('landlord.properties.documents.store', $property) }}" enctype="multipart/form-data" class="mt-3 pt-3 border-t border-[#E2E4EC]">
             @csrf
+            <input type="hidden" name="from" value="wizard">
             <input type="hidden" name="document_type" value="{{ $type }}">
             <label class="flex items-center gap-3 px-3.5 py-3 rounded-xl border-2 border-dashed border-[#E2E4EC] hover:border-[#FF8A66] bg-[#F7F8FC] cursor-pointer transition-colors duration-150 group">
                 <div class="w-9 h-9 rounded-lg bg-white shadow-sm border border-[#E2E4EC] flex items-center justify-center shrink-0 text-[#94A3B8] group-hover:text-[#060D26] transition-colors duration-150">

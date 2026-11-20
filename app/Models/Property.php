@@ -28,6 +28,7 @@ class Property extends Model
 
     protected $fillable = [
         'landlord_id',
+        'target_units',
         'title',
         'description',
         'house_rules',

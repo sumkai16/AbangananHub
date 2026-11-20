@@ -30,7 +30,7 @@
         {{-- Back to profile: tenants reach Settings from their profile page. A landlord has Settings as its own
              sidebar item next to My Profile, so there is nothing to go back to. --}}
         @unless($isLandlord)
-        <x-back-link href="{{ route('profile.show') }}" to="profile" class="mb-3" />
+        <x-back-link fixed href="{{ route('profile.show') }}" to="profile" class="mb-3" />
         @endunless
 
         {{-- ID-card hero --}}

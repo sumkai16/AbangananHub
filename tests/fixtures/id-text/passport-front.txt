@@ -1,0 +1,16 @@
+REPUBLIKA NG PILIPINAS | REPUBLIC OF THE PHILIPPINES
+PASAPORTE/ PASSPORT
+Uri/Type Kodigo ng bansa/Country code Pasaporte blg/Passport no
+P PHL P1234567A
+Apelyido/Surname
+DELA CRUZ
+Pangalan/Given names
+JUANA
+Petsa ng kapanganakan/Date of birth
+01 JAN 1990
+Nasyonalidad/Nationality
+FILIPINO
+Maykapangyarihang nagkaloob/Issuing authority
+DFA MANILA
+P<PHLDELA<CRUZ<<JUANA<<<<<<<<<<<<<<<<<<<<<<
+P1234567A1PHL9001011F3001011<<<<<<<<<<<<<<02

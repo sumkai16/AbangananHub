@@ -19,7 +19,7 @@
         setView(v) { this.view = v; try { localStorage.setItem('adminConversationsView', v); } catch (e) {} }
     }">
 
-    <x-page-header icon-path="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" title="Conversations" subtitle="Tenant and landlord threads, for dispute support." />
+    <x-page-header icon-path="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" title="Conversations" subtitle="Tenant and landlord threads stay private. You can read one only after the tenant or landlord asks for a review." />
 
     <x-stat-strip data-swap-region="cards" :cells="$summary" class="mb-4" />
 
@@ -68,8 +68,9 @@
     @else
         <x-card flush class="divide-y divide-[#E2E4EC]" x-show="view === 'table'">
             @foreach($conversations as $conv)
-                <a href="{{ route('admin.conversations.show', $conv) }}"
-                    class="flex flex-wrap sm:flex-nowrap items-center gap-4 px-6 py-4 hover:bg-[#F7F8FC]/70 transition-all duration-200 group">
+                {{-- No href unless a participant has asked for a review: the thread is private until then. --}}
+                <a @if($conv->adminMayRead()) href="{{ route('admin.conversations.show', $conv) }}" @endif
+                    class="flex flex-wrap sm:flex-nowrap items-center gap-4 px-6 py-4 transition-all duration-200 group {{ $conv->adminMayRead() ? 'hover:bg-[#F7F8FC]/70' : 'cursor-default' }}">
                     <div class="min-w-0 flex-1 basis-40">
                         <p class="text-[11px] font-semibold uppercase tracking-wider text-[#5B6A8E]">Tenant</p>
                         <p class="text-[13.5px] font-semibold text-[#060D26] truncate">
@@ -91,12 +92,13 @@
                     </div>
 
                     <div class="min-w-0 flex-1 basis-52">
-                        <p class="text-[11px] font-semibold uppercase tracking-wider text-[#5B6A8E]">Last Message</p>
-                        @if($conv->latestMessage)
-                            <p class="text-[12.5px] text-[#5B6A8E] truncate">{{ $conv->latestMessage->message }}</p>
-                            <p class="text-[11px] text-[#5B6A8E] mt-0.5">{{ $conv->latestMessage->sent_at?->diffForHumans() }}</p>
+                        <p class="text-[11px] font-semibold uppercase tracking-wider text-[#5B6A8E]">Access</p>
+                        @if($conv->adminMayRead())
+                            <p class="text-[12.5px] font-semibold text-[#B35A3D]">Review requested</p>
+                            <p class="text-[11px] text-[#5B6A8E] mt-0.5">{{ $conv->admin_review_requested_at?->diffForHumans() }}</p>
                         @else
-                            <span class="text-[12px] text-[#5B6A8E] italic">No messages</span>
+                            <p class="text-[12.5px] text-[#5B6A8E]">Private</p>
+                            <p class="text-[11px] text-[#5B6A8E] mt-0.5">Last activity {{ $conv->latestMessage?->sent_at?->diffForHumans() ?? 'none yet' }}</p>
                         @endif
                     </div>
 
@@ -108,9 +110,15 @@
                         </span>
                     </div>
 
-                    <svg class="w-4 h-4 text-[#5B6A8E] group-hover:text-[#B35A3D] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
+                    @if($conv->adminMayRead())
+                        <svg class="w-4 h-4 text-[#5B6A8E] group-hover:text-[#B35A3D] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                    @else
+                        <svg class="w-4 h-4 text-[#94A3B8] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-label="Private">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                        </svg>
+                    @endif
                 </a>
             @endforeach
         </x-card>
@@ -118,7 +126,7 @@
         {{-- Grid view --}}
         <div x-show="view === 'grid'" x-cloak class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
             @foreach($conversations as $conv)
-                <a href="{{ route('admin.conversations.show', $conv) }}" class="group block rounded-xl border border-[#E2E4EC] bg-white p-4 transition-shadow duration-200 hover:shadow-md">
+                <a @if($conv->adminMayRead()) href="{{ route('admin.conversations.show', $conv) }}" @endif class="group block rounded-xl border border-[#E2E4EC] bg-white p-4 transition-shadow duration-200 {{ $conv->adminMayRead() ? 'hover:shadow-md' : 'cursor-default' }}">
                     <div class="flex items-start justify-between gap-2">
                         <p class="min-w-0 truncate text-[13px] font-semibold text-[#060D26]">{{ $conv->property->title ?? '—' }}</p>
                         <span class="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-bold {{ $conv->status === 'Resolved' ? 'bg-[#E2E4EC] text-[#5B6A8E]' : 'bg-[#FBBF24]/15 text-[#B45309]' }}">
@@ -127,11 +135,10 @@
                     </div>
                     <p class="mt-2 truncate text-[12.5px] text-[#060D26]">{{ trim(($conv->tenant->first_name ?? '') . ' ' . ($conv->tenant->last_name ?? '')) ?: '—' }}
                         <span class="text-[#5B6A8E]">with</span> {{ trim(($conv->landlord->first_name ?? '') . ' ' . ($conv->landlord->last_name ?? '')) ?: '—' }}</p>
-                    @if($conv->latestMessage)
-                        <p class="mt-2 line-clamp-2 text-[12.5px] text-[#5B6A8E]">{{ $conv->latestMessage->message }}</p>
-                        <p class="mt-1 text-[11px] text-[#5B6A8E]">{{ $conv->latestMessage->sent_at?->diffForHumans() }}</p>
+                    @if($conv->adminMayRead())
+                        <p class="mt-2 text-[12.5px] font-semibold text-[#B35A3D]">Review requested {{ $conv->admin_review_requested_at?->diffForHumans() }}</p>
                     @else
-                        <p class="mt-2 text-[12px] italic text-[#5B6A8E]">No messages</p>
+                        <p class="mt-2 text-[12px] text-[#5B6A8E]">Private · last activity {{ $conv->latestMessage?->sent_at?->diffForHumans() ?? 'none yet' }}</p>
                     @endif
                 </a>
             @endforeach

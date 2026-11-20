@@ -22,7 +22,7 @@ Run the checks in order. Reuse anything already running; never start a duplicate
    answer, start `php artisan serve --port=8000` with `run_in_background: true`.
 3. **Tunnel.** `curl -s http://127.0.0.1:4040/api/tunnels` and read `public_url`. If there is none, start
    `ngrok http 8000 --log=stdout` in the background, wait ~4 s, read `public_url` again. The free account has
-   one static domain, so the URL should be the same every run: `https://unbeaten-jarring-sniff.ngrok-free.dev`.
+   one static domain, so the URL should be the same every run: `https://gents-tiptop-drool.ngrok-free.dev` (run `ngrok http --url=gents-tiptop-drool.ngrok-free.dev 8000`).
 4. **`.env`.** Set `APP_URL=<public_url>` with **no trailing slash** and make sure `TRUSTED_PROXIES=*` is
    there (add the line if missing). Then `php artisan config:clear`. If `APP_URL` changed, restart
    `artisan serve` too (it keeps the old value).
@@ -71,6 +71,6 @@ When he says he is done ("done", "stop ngrok", "restore .env"):
 
 ## Rules
 
-- Never print or store the ngrok authtoken. It lives in `~/.config/ngrok/ngrok.yml`.
+- Never print or store the ngrok authtoken. It lives in `~/.config/ngrok/ngrok.yml` (Windows: `%LOCALAPPDATA%\ngrok\ngrok.yml`).
 - Do not commit `.env`. Tell him the `.env` changes are temporary until Stop is run.
 - Do not suggest merging or deploying anything as part of this.

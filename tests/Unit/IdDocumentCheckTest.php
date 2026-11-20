@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Services\IdDocumentCheck;
+use App\Services\IdTypeDetector;
 use App\Services\OcrService;
 use App\Support\VisionReading;
 use Tests\TestCase;
@@ -31,7 +32,7 @@ TXT;
 
     private function check(): IdDocumentCheck
     {
-        return new IdDocumentCheck(new OcrService);
+        return new IdDocumentCheck(new OcrService, new IdTypeDetector);
     }
 
     private function reading(string $text, int $faces = 0, array $labels = []): VisionReading
@@ -136,6 +137,7 @@ TXT;
         $result = $this->front($this->reading($license, 1, ["driver's license" => 0.9]), 'PhilSys');
 
         $this->assertSame('mismatch', $result['type_match']);
+        $this->assertSame("Driver's License", $result['detected_type']);
         $this->assertSame('pass', $result['status']);
     }
 
@@ -168,5 +170,15 @@ TXT;
         $this->assertTrue($check->blocks('pass', 'fail', 0));
         $this->assertFalse($check->blocks('unavailable', null, 0));
         $this->assertFalse($check->blocks('pass', 'unavailable', 0));
+    }
+
+    public function test_a_type_mismatch_holds_for_the_same_two_tries_as_a_failed_check(): void
+    {
+        $check = $this->check();
+
+        $this->assertTrue($check->blocks('pass', 'pass', 0, true));
+        $this->assertTrue($check->blocks('pass', null, 1, true));
+        $this->assertFalse($check->blocks('pass', null, 2, true));
+        $this->assertFalse($check->blocks('pass', null, 0, false));
     }
 }
