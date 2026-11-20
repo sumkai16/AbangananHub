@@ -74,7 +74,15 @@ class VerificationController extends Controller
             return response()->json(['message' => 'Already verified.'], 422);
         }
 
-        Mail::to($user->email)->send(new VerificationLinkMail($user));
+        try {
+            Mail::to($user->email)->send(new VerificationLinkMail($user));
+        } catch (\Throwable $e) {
+            // The mail server refused or was unreachable (e.g. the Mailtrap test inbox is full). Say so plainly
+            // instead of a bare 500, and keep the cause in the log.
+            report($e);
+
+            return response()->json(['message' => 'We could not send the email right now. Please try again later.'], 503);
+        }
 
         return response()->json(['message' => 'Verification link sent to ' . $user->email]);
     }

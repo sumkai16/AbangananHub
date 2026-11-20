@@ -1158,6 +1158,8 @@
                                 this.showResult(false, 'Please wait a few minutes before requesting again.');
                             } else if (r.ok) {
                                 this.showResult(true, 'Link sent! Check your inbox.');
+                            } else if (r.status === 503) {
+                                this.showResult(false, 'We could not send the email right now. Try again later.');
                             } else {
                                 this.showResult(false, 'Something went wrong. Please try again.');
                             }
