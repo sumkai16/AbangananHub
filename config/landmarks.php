@@ -42,4 +42,14 @@ return [
     ['key' => 'south_bus', 'name' => 'Cebu South Bus Terminal', 'aliases' => ['south bus terminal', 'south terminal', 'south bus'], 'lat' => 10.2985, 'lng' => 123.8775, 'city' => 'Cebu City'],
     ['key' => 'north_bus', 'name' => 'Cebu North Bus Terminal', 'aliases' => ['north bus terminal', 'north terminal', 'north bus'], 'lat' => 10.3240, 'lng' => 123.9210, 'city' => 'Cebu City'],
     ['key' => 'mactan_airport', 'name' => 'Mactan-Cebu Airport', 'aliases' => ['airport', 'mactan airport', 'mactan cebu airport', 'mcia'], 'lat' => 10.3071, 'lng' => 123.9794, 'city' => 'Lapu-Lapu City'],
+
+    // Neighbourhoods tenants name as a place ("bedspace near Lahug"). Centres are approximate; they give the
+    // search a distance and a wider area to fall back on, which a plain-text place never had.
+    ['key' => 'lahug', 'name' => 'Lahug', 'aliases' => ['lahug', 'lahug cebu'], 'lat' => 10.3330, 'lng' => 123.9010, 'city' => 'Cebu City'],
+    ['key' => 'banilad', 'name' => 'Banilad', 'aliases' => ['banilad'], 'lat' => 10.3425, 'lng' => 123.9095, 'city' => 'Cebu City'],
+    ['key' => 'talamban', 'name' => 'Talamban', 'aliases' => ['talamban'], 'lat' => 10.3520, 'lng' => 123.9120, 'city' => 'Cebu City'],
+    ['key' => 'mabolo', 'name' => 'Mabolo', 'aliases' => ['mabolo'], 'lat' => 10.3140, 'lng' => 123.9150, 'city' => 'Cebu City'],
+    ['key' => 'guadalupe', 'name' => 'Guadalupe', 'aliases' => ['guadalupe'], 'lat' => 10.3240, 'lng' => 123.8940, 'city' => 'Cebu City'],
+    ['key' => 'labangon', 'name' => 'Labangon', 'aliases' => ['labangon'], 'lat' => 10.2965, 'lng' => 123.8750, 'city' => 'Cebu City'],
+    ['key' => 'punta_princesa', 'name' => 'Punta Princesa', 'aliases' => ['punta princesa', 'punta'], 'lat' => 10.2900, 'lng' => 123.8830, 'city' => 'Cebu City'],
 ];

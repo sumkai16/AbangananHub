@@ -29,6 +29,42 @@ class CandidateFinder
     public function find(array $intent): array
     {
         $min = (int) config('ai_search.min_results', 3);
+        [$properties, $relaxed] = $this->relaxedQuery($intent, $min);
+
+        $rows = $properties->map(function (Property $property) use ($intent) {
+            return ['property' => $property] + $this->explainer->explain($property, $intent);
+        })
+            ->sort(fn ($a, $b) => $this->sortKey($a, $intent) <=> $this->sortKey($b, $intent))
+            ->take((int) config('ai_search.max_candidates', 20))
+            ->values();
+
+        // A named business has its own "More from ..." strip (moreFromHost), which already covers its other types.
+        $alternatives = $rows->count() < $min && ! ($intent['host'] ?? null) ? $this->alternatives($intent, $rows->pluck('property.property_id')->all()) : collect();
+        $closest = false;
+
+        // Never leave the tenant with an empty page: when not even another type fits exactly, show the closest
+        // places of any type, loosened step by step. Each card still says what differs (misses).
+        if ($rows->isEmpty() && $alternatives->isEmpty() && ! ($intent['host'] ?? null) && ! IntentValidator::isEmpty($intent)) {
+            $alternatives = $this->closestOfAnyType($intent, $min);
+            $closest = $alternatives->isNotEmpty();
+        }
+
+        return [
+            'rows' => $rows,
+            'exact_count' => $rows->filter(fn ($r) => empty($r['misses']))->count(),
+            'relaxed' => $relaxed,
+            'alternatives' => $alternatives,
+            'alternatives_closest' => $closest,
+        ];
+    }
+
+    /**
+     * Runs the query, then loosens one step at a time until `$min` places turn up.
+     *
+     * @return array{0: Collection<int, Property>, 1: list<string>}
+     */
+    private function relaxedQuery(array $intent, int $min): array
+    {
         $properties = $this->query($intent);
         $relaxed = [];
 
@@ -42,20 +78,25 @@ class CandidateFinder
             }
         }
 
-        $rows = $properties->map(function (Property $property) use ($intent) {
-            return ['property' => $property] + $this->explainer->explain($property, $intent);
-        })
-            ->sort(fn ($a, $b) => $this->sortKey($a, $intent) <=> $this->sortKey($b, $intent))
-            ->take((int) config('ai_search.max_candidates', 20))
-            ->values();
+        return [$properties, $relaxed];
+    }
 
-        return [
-            'rows' => $rows,
-            'exact_count' => $rows->filter(fn ($r) => empty($r['misses']))->count(),
-            'relaxed' => $relaxed,
-            // A named business has its own "More from ..." strip (moreFromHost), which already covers its other types.
-            'alternatives' => $rows->count() < $min && ! ($intent['host'] ?? null) ? $this->alternatives($intent, $rows->pluck('property.property_id')->all()) : collect(),
-        ];
+    /**
+     * Last resort: the same search with the property type dropped and every filter loosened, so a sentence like
+     * "dorm near IT Park" with no dorm anywhere still shows the nearest places that could work.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function closestOfAnyType(array $intent, int $min): Collection
+    {
+        $other = array_merge($intent, ['property_type' => null]);
+        [$properties] = $this->relaxedQuery($other, $min);
+
+        return $properties
+            ->map(fn (Property $p) => ['property' => $p] + $this->explainer->explain($p, $intent))
+            ->sort(fn ($a, $b) => $this->sortKey($a, $intent) <=> $this->sortKey($b, $intent))
+            ->take(3)
+            ->values();
     }
 
     /**
@@ -114,7 +155,17 @@ class CandidateFinder
      */
     private function sortKey(array $row, array $intent): array
     {
-        $key = [empty($row['misses']) ? 0 : 1, -$row['score']];
+        // A requested order replaces "best fit first" inside the exact and the close group, never across them.
+        $fee = (float) $row['property']->min_rental_fee;
+        $key = [empty($row['misses']) ? 0 : 1, ...match ($intent['sort'] ?? null) {
+            'price_asc' => [$fee],
+            'price_desc' => [-$fee],
+            'rating' => [-(float) $row['property']->avg_rating, -(int) $row['property']->review_count],
+            'newest' => [-($row['property']->created_at?->getTimestamp() ?? 0)],
+            'nearest' => [$row['distance_km'] ?? INF],
+            // With several places to be close to, the one whose farthest place is nearest comes first.
+            default => [-$row['score'], ...(($intent['anchors'] ?? []) ? [$row['distance_km'] ?? INF] : [])],
+        }];
 
         if (($intent['location']['kind'] ?? null) === 'point') {
             $key[] = $row['distance_km'] ?? INF;
@@ -160,13 +211,20 @@ class CandidateFinder
                 'city' => $query->where('city_municipality', $loc['value']),
                 'cities' => $query->whereIn('city_municipality', $loc['value']),
                 'barangay' => $query->where('barangay', $loc['value']),
-                'landmark' => $this->withinBox($query, $loc, $intent['radius_km']),
+                'landmark' => $this->withinBox($query, $loc, Travel::effectiveRadiusKm($intent)),
+                // The box the tenant was looking at on the map.
+                'area' => $query->whereBetween('latitude', [$loc['south'], $loc['north']])->whereBetween('longitude', [$loc['west'], $loc['east']]),
                 // A named business shows all of its places, nearest first, so there is no radius to cut at.
-                'point' => ($intent['host'] ?? null) ? null : $this->withinBox($query, $loc, $intent['radius_km']),
+                'point' => ($intent['host'] ?? null) ? null : $this->withinBox($query, $loc, Travel::effectiveRadiusKm($intent)),
                 default => $query->where(fn ($q) => $q
                     ->where('address', 'like', '%' . addcslashes($loc['value'], '%_\\') . '%')
                     ->orWhere('title', 'like', '%' . addcslashes($loc['value'], '%_\\') . '%')),
             };
+        }
+
+        // Places that all have to be close (the planner's anchors): a box around each is the cheap pre-filter.
+        foreach ($intent['anchors'] ?? [] as $anchor) {
+            $this->withinBox($query, $anchor, $anchor['radius_km']);
         }
 
         // Named business or listing. Never relaxed by ladder(): asking for Santos Rentals' places means only theirs.
@@ -189,12 +247,41 @@ class CandidateFinder
             'rules' => $intent['rules'],
         ]);
 
+        // Bedrooms, deposit and group size are facts of a unit, and one unit has to satisfy all of them together.
+        if (($intent['bedrooms_min'] ?? null) !== null || ($intent['deposit_max'] ?? null) !== null || ($intent['occupants'] ?? null) !== null) {
+            $query->whereHas('units', function ($units) use ($intent) {
+                $units->where('availability_status', 'Available')->where('verification_status', 'Approved');
+                if (($intent['bedrooms_min'] ?? null) !== null) {
+                    $units->where('bedrooms', '>=', $intent['bedrooms_min']);
+                }
+                if (($intent['deposit_max'] ?? null) !== null) {
+                    $units->where('security_deposit', '<=', $intent['deposit_max']);
+                }
+                if (($intent['occupants'] ?? null) !== null) {
+                    $units->where('occupancy_limit', '>=', $intent['occupants']);
+                }
+            });
+        }
+
         // browseFilters already orders newest first; property_id breaks created_at ties so the 60 are stable.
         $found = $query->orderByDesc('property_id')->limit(60)->get();
 
         // The box is a cheap pre-filter; the circle is the real test.
         if (($loc['kind'] ?? null) === 'landmark' || (($loc['kind'] ?? null) === 'point' && ! ($intent['host'] ?? null))) {
-            $found = $found->filter(fn (Property $p) => Landmarks::distanceKm((float) $p->latitude, (float) $p->longitude, $loc['lat'], $loc['lng']) <= $intent['radius_km'])->values();
+            $radius = Travel::effectiveRadiusKm($intent);
+            $found = $found->filter(fn (Property $p) => Landmarks::distanceKm((float) $p->latitude, (float) $p->longitude, $loc['lat'], $loc['lng']) <= $radius)->values();
+        }
+
+        foreach ($intent['anchors'] ?? [] as $anchor) {
+            $found = $found->filter(fn (Property $p) => Landmarks::distanceKm((float) $p->latitude, (float) $p->longitude, $anchor['lat'], $anchor['lng']) <= $anchor['radius_km'])->values();
+        }
+
+        // "Far from X": nothing inside a circle around X. Entries without coordinates (not found) are ignored.
+        foreach ($intent['avoid'] ?? [] as $avoid) {
+            if ($avoid['lat'] === null) {
+                continue;
+            }
+            $found = $found->reject(fn (Property $p) => Landmarks::distanceKm((float) $p->latitude, (float) $p->longitude, $avoid['lat'], $avoid['lng']) < $avoid['radius_km'])->values();
         }
 
         return $found;
@@ -228,6 +315,7 @@ class CandidateFinder
         $add('furnishing, living and who it is for', array_merge($current, ['furnishing' => null, 'living' => null, 'for' => null]));
         $add('some amenities', array_merge($current, ['amenities' => array_slice($current['amenities'], 0, 2)]));
         $add('house rules', array_merge($current, ['rules' => []]));
+        $add('bedrooms, deposit and group size', array_merge($current, ['bedrooms_min' => null, 'deposit_max' => null, 'occupants' => null]));
 
         if ($current['price_max'] !== null) {
             $add('budget +15%', array_merge($current, ['price_max' => (int) round($current['price_max'] * 1.15)]));
@@ -236,8 +324,17 @@ class CandidateFinder
 
         if ($loc = $current['location']) {
             if ($loc['kind'] === 'landmark' || ($loc['kind'] === 'point' && ! ($current['host'] ?? null))) {
-                $add('wider area', array_merge($current, ['radius_km' => min(10.0, $intent['radius_km'] * 2)]));
-                $add('much wider area', array_merge($current, ['radius_km' => min(10.0, $intent['radius_km'] * 4)]));
+                // "10 minutes walk" widens as a plain radius from here on: the minutes are what is being relaxed.
+                $base = Travel::effectiveRadiusKm($intent);
+                $add('wider area', array_merge($current, ['max_minutes' => null, 'radius_km' => min(10.0, $base * 2)]));
+                $add('much wider area', array_merge($current, ['max_minutes' => null, 'radius_km' => min(10.0, $base * 4)]));
+            } elseif ($loc['kind'] === 'area') {
+                $grow = fn (float $by) => array_merge($loc, [
+                    'south' => $loc['south'] - ($loc['north'] - $loc['south']) * $by, 'north' => $loc['north'] + ($loc['north'] - $loc['south']) * $by,
+                    'west' => $loc['west'] - ($loc['east'] - $loc['west']) * $by, 'east' => $loc['east'] + ($loc['east'] - $loc['west']) * $by,
+                ]);
+                $add('wider area', array_merge($current, ['location' => $grow(0.25)]));
+                $add('much wider area', array_merge($current, ['location' => $grow(0.75)]));
             } elseif ($loc['kind'] === 'barangay' && ! empty($loc['city'])) {
                 $add('the whole city', array_merge($current, ['location' => ['kind' => 'city', 'value' => $loc['city'], 'name' => $loc['city']]]));
             } elseif ($loc['kind'] === 'city') {
@@ -248,7 +345,14 @@ class CandidateFinder
             }
         }
 
+        if (($current['anchors'] ?? []) !== []) {
+            $grow = fn (int $by) => array_map(fn ($a) => array_merge($a, ['radius_km' => min(10.0, $a['radius_km'] * $by)]), $current['anchors']);
+            $add('wider area around each place', array_merge($current, ['anchors' => $grow(2)]));
+            $add('much wider area around each place', array_merge($current, ['anchors' => $grow(4)]));
+        }
+
         $add('remaining amenities', array_merge($current, ['amenities' => []]));
+        $add('places to avoid', array_merge($current, ['avoid' => []]));
 
         return $steps;
     }

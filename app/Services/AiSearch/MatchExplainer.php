@@ -35,18 +35,30 @@ class MatchExplainer
 
         // ── Location ──
         if ($loc = $intent['location']) {
-            if ($loc['kind'] === 'landmark' || $loc['kind'] === 'point') {
+            if ($loc['kind'] === 'area') {
+                $inside = $property->latitude >= $loc['south'] && $property->latitude <= $loc['north'] && $property->longitude >= $loc['west'] && $property->longitude <= $loc['east'];
+                if ($inside) {
+                    $hits[] = ['facet' => 'location', 'text' => 'In the map area'];
+                } else {
+                    $misses[] = ['facet' => 'location', 'text' => 'Outside the map area'];
+                    $penalty += 20;
+                }
+            } elseif ($loc['kind'] === 'landmark' || $loc['kind'] === 'point') {
                 $distance = Landmarks::distanceKm((float) $property->latitude, (float) $property->longitude, $loc['lat'], $loc['lng']);
                 $km = number_format($distance, 1);
                 $from = $loc['kind'] === 'point' ? 'you' : $loc['name'];
+                $radius = Travel::effectiveRadiusKm($intent);
+                $trip = $intent['max_minutes'] ?? null;
+                // With minutes asked for, say minutes ("about 8 min walk to IT Park"); otherwise kilometres.
+                $how = is_array($trip) ? Travel::label(Travel::minutes($distance, $trip['mode']), $trip['mode']) : null;
                 // A named business shows all of its places (nearest first), so distance is never a miss there.
                 $named = $loc['kind'] === 'point' && ($intent['host'] ?? null) !== null;
-                if ($named || $distance <= $intent['radius_km']) {
-                    $hits[] = ['facet' => 'location', 'text' => $km . ' km from ' . $from];
+                if ($named || $distance <= $radius) {
+                    $hits[] = ['facet' => 'location', 'text' => $how ? $how . ' to ' . $from : $km . ' km from ' . $from];
                 } else {
                     // Reads inside "it fits X, but 7.7 km away" as well as on its own chip.
-                    $misses[] = ['facet' => 'location', 'text' => $km . ' km away'];
-                    $penalty += min(30, 10 + (int) round(($distance - $intent['radius_km']) * 5));
+                    $misses[] = ['facet' => 'location', 'text' => $how ?: $km . ' km away'];
+                    $penalty += min(30, 10 + (int) round(($distance - $radius) * 5));
                 }
             } else {
                 $ok = match ($loc['kind']) {
@@ -60,6 +72,32 @@ class MatchExplainer
                     $misses[] = ['facet' => 'location', 'text' => 'Not in ' . $loc['name']];
                     $penalty += 30;
                 }
+            }
+        }
+
+        // ── Places that all have to be close (planner anchors): a fact per place, the farthest decides the distance ──
+        foreach ($intent['anchors'] ?? [] as $anchor) {
+            $to = Landmarks::distanceKm((float) $property->latitude, (float) $property->longitude, $anchor['lat'], $anchor['lng']);
+            $distance = $distance === null ? $to : max($distance, $to);
+            if ($to <= $anchor['radius_km']) {
+                $hits[] = ['facet' => 'anchor:' . $anchor['name'], 'text' => number_format($to, 1) . ' km to ' . $anchor['name']];
+            } else {
+                $misses[] = ['facet' => 'anchor:' . $anchor['name'], 'text' => number_format($to, 1) . ' km from ' . $anchor['name']];
+                $penalty += min(30, 10 + (int) round(($to - $anchor['radius_km']) * 5));
+            }
+        }
+
+        // ── Places to stay away from ──
+        foreach ($intent['avoid'] ?? [] as $i => $avoid) {
+            if ($avoid['lat'] === null) {
+                continue;
+            }
+            $away = Landmarks::distanceKm((float) $property->latitude, (float) $property->longitude, $avoid['lat'], $avoid['lng']);
+            if ($away >= $avoid['radius_km']) {
+                $hits[] = ['facet' => 'avoid:' . $i, 'text' => number_format($away, 1) . ' km from ' . $avoid['name']];
+            } else {
+                $misses[] = ['facet' => 'avoid:' . $i, 'text' => 'Only ' . number_format($away, 1) . ' km from ' . $avoid['name']];
+                $penalty += 20;
             }
         }
 
@@ -151,6 +189,35 @@ class MatchExplainer
             } else {
                 $misses[] = ['facet' => 'furnishing', 'text' => 'Not ' . strtolower($intent['furnishing'])];
                 $penalty += 8;
+            }
+        }
+
+        // ── Unit facts: the best unit decides ──
+        if (($intent['bedrooms_min'] ?? null) !== null) {
+            $most = (int) $units->max('bedrooms');
+            if ($most >= $intent['bedrooms_min']) {
+                $hits[] = ['facet' => 'bedrooms', 'text' => $intent['bedrooms_min'] . '+ bedrooms'];
+            } else {
+                $misses[] = ['facet' => 'bedrooms', 'text' => 'Only ' . $most . ' ' . ($most === 1 ? 'bedroom' : 'bedrooms')];
+                $penalty += 10;
+            }
+        }
+        if (($intent['deposit_max'] ?? null) !== null && $units->isNotEmpty()) {
+            $least = (float) $units->min('security_deposit');
+            if ($least <= $intent['deposit_max']) {
+                $hits[] = ['facet' => 'deposit', 'text' => $intent['deposit_max'] === 0 ? 'No deposit' : 'Deposit within budget'];
+            } else {
+                $misses[] = ['facet' => 'deposit', 'text' => '₱' . number_format($least) . ' deposit'];
+                $penalty += 10;
+            }
+        }
+        if (($intent['occupants'] ?? null) !== null && $units->isNotEmpty()) {
+            $fits = (int) $units->max('occupancy_limit');
+            if ($fits >= $intent['occupants']) {
+                $hits[] = ['facet' => 'occupants', 'text' => 'Fits ' . $intent['occupants']];
+            } else {
+                $misses[] = ['facet' => 'occupants', 'text' => 'For ' . $fits . ' only'];
+                $penalty += 12;
             }
         }
 

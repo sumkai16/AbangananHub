@@ -74,6 +74,11 @@ class NameMatcher
         $intent['host'] = $read['host'];
         $intent['name_miss'] = $read['miss'];
 
+        // "maria santos" with no "ni": nothing else in the sentence is searchable, so it can only be a name.
+        if ($read['host'] === null && $read['miss'] === null && IntentValidator::isEmpty($intent) && $this->looksLikeBareName($query)) {
+            $intent['name_miss'] = Landmarks::normalize($query);
+        }
+
         if ($read['host'] !== null && $read['phrases'] !== []) {
             $intent = $this->withoutNameFilters($query, $intent, $read['phrases']);
         }
@@ -269,6 +274,14 @@ class NameMatcher
         }
 
         return $intent;
+    }
+
+    /** Two to four words, letters only (a lone word stays a plain search: a first name must not trigger a "no such name" answer), no number: what a person or business name looks like. */
+    private function looksLikeBareName(string $query): bool
+    {
+        $text = Landmarks::normalize($query);
+
+        return $text !== '' && preg_match('/^\p{L}+(?: \p{L}+){1,3}$/u', $text) === 1;
     }
 
     /**

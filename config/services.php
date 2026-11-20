@@ -99,6 +99,18 @@ return [
     'openrouter' => [
         'key' => env('OPENROUTER_API_KEY'),
         'model' => env('OPENROUTER_MODEL', 'openrouter/free'),
+        // Leave unset for Claude Haiku 5.5 and other models that reject it. e.g. 0.1 for older free models.
+        'temperature' => env('OPENROUTER_TEMPERATURE'),
+        // Strict JSON-schema answers (the Haiku / Gemini / GPT endpoints support it). Off for free models, which often do not.
+        'schema' => (bool) env('OPENROUTER_SCHEMA', false),
+        // Mark the long fixed part of the prompt cacheable (cache reads cost a tenth of normal input).
+        'cache_prompt' => (bool) env('OPENROUTER_CACHE_PROMPT', true),
+    ],
+
+    // OpenRouteService (free key at openrouteservice.org): real walking and driving minutes for AI search. Without it the
+    // straight-line estimate ("about 8 min walk") is used. AI_SEARCH_FEATURE_ROUTING must be on too.
+    'openrouteservice' => [
+        'key' => env('ORS_API_KEY'),
     ],
 
     'anthropic' => [

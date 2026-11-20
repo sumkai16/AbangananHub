@@ -273,6 +273,19 @@ class NameSearchTest extends AiSearchTestCase
 
     // ─── not on AbangananHub ────────────────────────────────────
 
+    public function test_a_bare_name_with_no_marker_and_no_filters_says_so(): void
+    {
+        // What the AI returns for "maria santos": nothing it can filter on.
+        $empty = app(IntentValidator::class)->validate([]);
+        $matcher = app(NameMatcher::class);
+
+        $this->assertSame('juan dela cruz', $matcher->apply('juan dela cruz', $empty)['name_miss']);
+
+        // A number, or any filter already read, makes it a normal search rather than a name.
+        $this->assertNull($matcher->apply('juan 5000', $empty)['name_miss']);
+        $this->assertNull($matcher->apply('juan', array_merge($empty, ['property_type' => 'Bedspace']))['name_miss']);
+    }
+
     public function test_a_name_we_do_not_have_says_so_and_keeps_the_rest_of_the_search(): void
     {
         [$intent, $result] = $this->search('boarding house ni Juan Dela Cruz');

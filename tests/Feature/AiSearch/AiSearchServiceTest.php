@@ -61,6 +61,94 @@ class AiSearchServiceTest extends AiSearchTestCase
         $this->assertSame(1, AiSearchLog::where('query', $interp['query'])->count());
     }
 
+    public function test_wishes_no_filter_can_check_are_said_out_loud(): void
+    {
+        $this->listing('Talamban Rooms', [], 4500);
+        $this->useDriver(['language' => 'en', 'property_type' => 'Boarding House', 'unmapped' => ['no deposit', 'near the beach']]);
+
+        $svc = app(AiSearchService::class);
+        $interp = $svc->interpret('boarding house with no deposit near the beach');
+        $result = $svc->results($interp['query'], $interp['intent'], true);
+
+        // "fits everything" is only true for what a filter can check; the rest is named, never silently dropped.
+        $this->assertStringContainsString('fits everything', $result['summary']);
+        $this->assertStringContainsString('“no deposit” and “near the beach”', $result['summary']);
+        $this->assertStringContainsString('check each listing', $result['summary_en']);
+
+        // No results, or nothing unmapped: no note.
+        $none = $svc->results('x', array_merge($interp['intent'], ['property_type' => 'Dormitory']), true);
+        $this->assertStringNotContainsString('check each listing', $none['summary']);
+        $plain = $svc->results('x', array_merge($interp['intent'], ['unmapped' => []]), true);
+        $this->assertStringNotContainsString('check each listing', $plain['summary']);
+    }
+
+    public function test_the_unmapped_note_follows_the_search_language(): void
+    {
+        $this->listing('Talamban Rooms', [], 4500);
+        $this->useDriver(['language' => 'tl', 'property_type' => 'Boarding House', 'unmapped' => ['walang deposito']]);
+
+        $svc = app(AiSearchService::class);
+        $interp = $svc->interpret('kwarto na walang deposito');
+        $result = $svc->results($interp['query'], $interp['intent'], true);
+
+        $this->assertStringContainsString('tingnan sa bawat listing', $result['summary']);
+        $this->assertStringContainsString('check each listing', $result['summary_en']);
+    }
+
+    public function test_a_neighbourhood_is_a_place_with_a_distance_not_plain_text(): void
+    {
+        // "bedspace near Lahug" used to be an address text match that could never widen to nearby areas.
+        foreach (['Lahug', 'lahug', 'Banilad', 'Mabolo'] as $name) {
+            $loc = app(\App\Services\AiSearch\IntentValidator::class)->validate(['location' => ['kind' => 'text', 'value' => $name]])['location'];
+            $this->assertSame('landmark', $loc['kind'], $name);
+            $this->assertSame('Cebu City', $loc['city']);
+        }
+    }
+
+    public function test_a_search_never_ends_on_an_empty_page_when_something_is_listed(): void
+    {
+        $this->listing('Talamban Flats', ['property_type' => 'Apartment'], 4500);
+        $finder = app(\App\Services\AiSearch\CandidateFinder::class);
+        $validator = app(\App\Services\AiSearch\IntentValidator::class);
+
+        // No dormitory exists: an apartment that fits everything else is suggested, with the right article.
+        $dorm = $finder->find($validator->validate(['property_type' => 'Dormitory', 'price_max' => 18000]));
+        $this->assertSame(0, $dorm['rows']->count());
+        $this->assertSame(1, $dorm['alternatives']->count());
+        $this->assertFalse($dorm['alternatives_closest']);
+
+        // Not even another type fits exactly (a little over budget): the closest places still show, with what differs.
+        $tight = $finder->find($validator->validate(['property_type' => 'House', 'price_max' => 4000]));
+        $this->assertSame(0, $tight['rows']->count());
+        $this->assertTrue($tight['alternatives_closest']);
+        $this->assertNotEmpty($tight['alternatives']->first()['misses']);
+
+        // A sentence with nothing searchable in it stays empty: there is nothing to be close to.
+        $none = $finder->find($validator->validate([]));
+        $this->assertSame(0, $none['alternatives']->count());
+    }
+
+    public function test_the_suggestion_sentence_uses_an_before_a_vowel(): void
+    {
+        $this->listing('Talamban Flats', ['property_type' => 'Apartment'], 4500);
+        $this->useDriver(['language' => 'en', 'property_type' => 'Dormitory']);
+        $svc = app(AiSearchService::class);
+        $i = $svc->interpret('dorm please');
+        $r = $svc->results($i['query'], $i['intent'], true);
+
+        $this->assertStringContainsString('an Apartment', $r['summary']);
+    }
+
+    public function test_studio_is_an_apartment_and_walang_is_tagalog(): void
+    {
+        // Studio units are listed as Apartment here; the keyword fallback must agree with the prompt.
+        $intent = (new \App\Services\AiSearch\KeywordFallback)->parse('furnished studio near Ayala');
+        $this->assertSame('Apartment', $intent['property_type']);
+
+        $this->assertSame('tl', \App\Services\AiSearch\LanguageDetector::detect('walang curfew, pwede magluto, Talisay'));
+        $this->assertSame('ceb', \App\Services\AiSearch\LanguageDetector::detect('walay curfew, pwede magluto, Talisay'));
+    }
+
     public function test_ai_intent_is_validated_and_cached(): void
     {
         $driver = $this->useDriver(['location' => ['kind' => 'city', 'value' => 'Mandaue'], 'price_max' => 4000, 'property_type' => 'Castle', 'language' => 'ceb']);
@@ -197,6 +285,20 @@ class AiSearchServiceTest extends AiSearchTestCase
             && $r['response_format'] === ['type' => 'json_object']
             && str_contains($r['messages'][1]['content'], '<query>ubos sa 4k</query>')
             && str_contains($r['messages'][0]['content'], 'OUTPUT FORMAT'));
+    }
+
+    public function test_openrouter_driver_omits_temperature_unless_configured(): void
+    {
+        // Claude Haiku 5.5 rejects `temperature`; sent with require_parameters it makes OpenRouter answer 404 (no endpoint).
+        Http::fake(['openrouter.ai/*' => Http::response(['choices' => [['message' => ['content' => '{"price_max":4000}']]]])]);
+        config(['services.openrouter.key' => 'k', 'services.openrouter.model' => 'anthropic/claude-haiku-5.5', 'services.openrouter.temperature' => null]);
+
+        (new OpenRouterDriver)->interpret('x', Vocabulary::forPrompt());
+        Http::assertSent(fn ($r) => ! isset($r->data()['temperature']) && $r['provider'] === ['require_parameters' => true]);
+
+        config(['services.openrouter.temperature' => '0.1']);
+        (new OpenRouterDriver)->interpret('x', Vocabulary::forPrompt());
+        Http::assertSent(fn ($r) => ($r->data()['temperature'] ?? null) === 0.1);
     }
 
     public function test_openrouter_quota_and_garbage_are_unavailable(): void

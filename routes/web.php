@@ -66,6 +66,10 @@ Route::get('/areas', [PropertyController::class, 'areas'])->name('properties.are
 // AI search: read the sentence, then fetch results for the (chip-edited) filters.
 Route::post('/search/interpret', [AiSearchController::class, 'interpret'])->middleware('throttle:60,1')->name('search.interpret');
 Route::post('/search/results', [AiSearchController::class, 'results'])->middleware('throttle:60,1')->name('search.results');
+Route::post('/search/refine', [AiSearchController::class, 'refine'])->middleware('throttle:60,1')->name('search.refine');
+Route::post('/search/reasons', [AiSearchController::class, 'reasons'])->middleware('throttle:60,1')->name('search.reasons');
+Route::post('/search/feedback', [\App\Http\Controllers\AiSearchFeedbackController::class, 'store'])->middleware('throttle:30,1')->name('search.feedback');
+Route::post('/search/image', [AiSearchController::class, 'image'])->middleware(['auth', 'throttle:10,1'])->name('search.image');
 Route::get('/about', fn () => view('about'))->name('about');
 Route::post('/platform-rating', [App\Http\Controllers\PlatformRatingController::class, 'store'])->middleware('auth')->name('platform-rating.store');
 Route::view('/privacy', 'legal.privacy')->name('privacy');

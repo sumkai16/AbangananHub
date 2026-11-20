@@ -19,13 +19,16 @@ class SummaryComposer
             'mixed' => ':best fits everything you asked for: :hits, :price/month. :close is close, but :misses.',
             'closest' => 'No exact match. Closest options: :list.',
             'none' => "I couldn't find a match yet. Try removing a filter or searching a nearby area.",
-            'suggest' => 'I also have a suggestion: :alt, a :type in :area from :price.',
-            'suggest_only' => "I couldn't find any :wanted for that, but I have a suggestion: :alt, a :type in :area from :price.",
+            'suggest' => 'I also have a suggestion: :alt, :article :type in :area from :price.',
+            'suggest_only' => "I couldn't find any :wanted for that, but I have a suggestion: :alt, :article :type in :area from :price.",
             'note' => 'No other :wanted fits. These are other types in your budget and area.',
             'and' => 'and',
             'host' => 'Showing places by :name.',
             'host_near' => 'Showing places by :name, the closest business name to “:typed”.',
             'nearest' => 'Nearest to you first.',
+            'sort' => ['price_asc' => 'Cheapest first.', 'price_desc' => 'Most expensive first.', 'rating' => 'Best rated first.', 'newest' => 'Newest first.', 'nearest' => 'Nearest first.'],
+            'note_closest' => 'No exact match, so these are the closest places. Each card shows what differs.',
+            'unmapped' => 'I can\'t filter by :wishes yet, so check each listing for it.',
         ],
         'tl' => [
             'exact_one' => 'Swak ang :best sa lahat ng hiniling mo: :hits, :price/month.',
@@ -40,6 +43,9 @@ class SummaryComposer
             'host' => 'Mga lugar ng :name.',
             'host_near' => 'Mga lugar ng :name, ang pinakamalapit na pangalan ng negosyo sa “:typed”.',
             'nearest' => 'Pinakamalapit sa iyo muna.',
+            'sort' => ['price_asc' => 'Pinakamura muna.', 'price_desc' => 'Pinakamahal muna.', 'rating' => 'Pinakamataas ang rating muna.', 'newest' => 'Pinakabago muna.', 'nearest' => 'Pinakamalapit muna.'],
+            'note_closest' => 'Walang eksaktong tugma, kaya ito ang pinakamalapit. Makikita sa bawat card ang pagkakaiba.',
+            'unmapped' => 'Hindi ko pa ma-check ang :wishes, kaya tingnan sa bawat listing.',
         ],
         'ceb' => [
             'exact_one' => 'Haum ang :best sa tanan nimong gihangyo: :hits, :price/month.',
@@ -54,6 +60,9 @@ class SummaryComposer
             'host' => 'Mga lugar sa :name.',
             'host_near' => 'Mga lugar sa :name, ang pinakaduol nga ngalan sa negosyo sa “:typed”.',
             'nearest' => 'Pinakaduol nimo una.',
+            'sort' => ['price_asc' => 'Pinakabarato una.', 'price_desc' => 'Pinakamahal una.', 'rating' => 'Pinakamaayo ang rating una.', 'newest' => 'Pinakabag-o una.', 'nearest' => 'Pinakaduol una.'],
+            'note_closest' => 'Walay eksaktong tugma, busa kini ang pinakaduol. Makita sa matag card ang kalainan.',
+            'unmapped' => 'Dili pa nako ma-check ang :wishes, busa tan-awa sa matag listing.',
         ],
     ];
 
@@ -63,17 +72,19 @@ class SummaryComposer
      * @param  ?string  $wanted  the property type the tenant asked for, if any
      * @param  ?array<string, mixed>  $host  the business or listing the sentence named (NameMatcher), if any
      * @param  bool  $nearest  the results are ordered by distance from the tenant ("near me")
+     * @param  list<string>  $unmapped  wishes the sentence made that no filter can check ("no deposit"); said out loud so "fits everything" is never an overclaim
+     * @param  bool  $closest  the suggestions are the closest places of any type, loosened (nothing fit exactly)
      * @return array{summary: string, summary_en: string, alt_note: string}
      */
-    public function compose(Collection $rows, int $exactCount, string $language, ?Collection $alternatives = null, ?string $wanted = null, ?array $host = null, bool $nearest = false): array
+    public function compose(Collection $rows, int $exactCount, string $language, ?Collection $alternatives = null, ?string $wanted = null, ?array $host = null, bool $nearest = false, array $unmapped = [], bool $closest = false, ?string $sort = null): array
     {
         $lang = in_array($language, ['tl', 'ceb'], true) ? $language : 'en';
         $alternatives ??= collect();
 
         return [
-            'summary' => $this->withLead($this->build($rows, $exactCount, $lang, $alternatives, $wanted), $rows, $host, $nearest, $lang),
-            'summary_en' => $this->withLead($this->build($rows, $exactCount, 'en', $alternatives, $wanted), $rows, $host, $nearest, 'en'),
-            'alt_note' => $alternatives->isEmpty() ? '' : strtr(self::WORDS[$lang]['note'], [':wanted' => $this->label($wanted)]),
+            'summary' => $this->withUnmapped($this->withLead($this->build($rows, $exactCount, $lang, $alternatives, $wanted), $rows, $host, $nearest, $lang, $sort), $rows, $unmapped, $lang),
+            'summary_en' => $this->withUnmapped($this->withLead($this->build($rows, $exactCount, 'en', $alternatives, $wanted), $rows, $host, $nearest, 'en', $sort), $rows, $unmapped, 'en'),
+            'alt_note' => $alternatives->isEmpty() ? '' : ($closest ? self::WORDS[$lang]['note_closest'] : strtr(self::WORDS[$lang]['note'], [':wanted' => $this->label($wanted)])),
         ];
     }
 
@@ -82,7 +93,7 @@ class SummaryComposer
      * business (and, when the tenant typed a fuller name than the business has, that this is the closest name,
      * so a near miss is never passed off as an exact match), then "Nearest to you first." for "near me".
      */
-    private function withLead(string $summary, Collection $rows, ?array $host, bool $nearest, string $lang): string
+    private function withLead(string $summary, Collection $rows, ?array $host, bool $nearest, string $lang, ?string $sort = null): string
     {
         if ($rows->isEmpty()) {
             return $summary;
@@ -101,7 +112,24 @@ class SummaryComposer
             $lead[] = self::WORDS[$lang]['nearest'];
         }
 
+        if ($sort !== null && isset(self::WORDS[$lang]['sort'][$sort])) {
+            $lead[] = self::WORDS[$lang]['sort'][$sort];
+        }
+
         return $lead === [] ? $summary : implode(' ', $lead) . ' ' . $summary;
+    }
+
+    /** @param  list<string>  $unmapped */
+    private function withUnmapped(string $summary, Collection $rows, array $unmapped, string $lang): string
+    {
+        $wishes = array_values(array_filter(array_map(fn ($w) => trim((string) $w), $unmapped)));
+        if ($rows->isEmpty() || $wishes === []) {
+            return $summary;
+        }
+
+        $quoted = array_map(fn ($w) => '“' . $w . '”', $wishes);
+
+        return $summary . ' ' . strtr(self::WORDS[$lang]['unmapped'], [':wishes' => $this->join($quoted, self::WORDS[$lang]['and'], 5)]);
     }
 
     private function build(Collection $rows, int $exactCount, string $lang, Collection $alternatives, ?string $wanted): string
@@ -124,6 +152,7 @@ class SummaryComposer
         return strtr($w[$key], [
             ':alt' => $p->title,
             ':type' => $p->property_type,
+            ':article' => preg_match('/^[aeiou]/i', (string) $p->property_type) ? 'an' : 'a',
             ':area' => $p->barangay ?: $p->city_municipality,
             ':price' => '₱' . number_format((float) $p->min_rental_fee),
             ':wanted' => $this->label($wanted),

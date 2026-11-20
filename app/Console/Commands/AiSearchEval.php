@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Services\AiSearch\AiSearchDriver;
+use App\Services\AiSearch\AiSearchService;
 use App\Services\AiSearch\IntentValidator;
 use App\Services\AiSearch\LanguageDetector;
 use App\Services\AiSearch\NullDriver;
@@ -18,11 +19,11 @@ use Throwable;
  */
 class AiSearchEval extends Command
 {
-    protected $signature = 'ai-search:eval {--delay=7 : seconds between calls (free tier is ~10 requests/minute)} {--only= : run only cases whose sentence contains this text} {--verbose-fail : print what the AI returned for each failure}';
+    protected $signature = 'ai-search:eval {--delay=7 : seconds between calls (free tier is ~10 requests/minute)} {--only= : run only cases whose sentence contains this text} {--file= : another fixture file (default tests/fixtures/ai-search-cases.json). A case with "previous" is a follow-up} {--verbose-fail : print what the AI returned for each failure}';
 
     protected $description = 'Score the configured AI driver on the sample search sentences';
 
-    private const FIELDS = ['location', 'property_type', 'price_min', 'price_max', 'amenities', 'rules', 'for', 'furnishing', 'language'];
+    private const FIELDS = ['location', 'property_type', 'price_min', 'price_max', 'amenities', 'rules', 'for', 'furnishing', 'language', 'sort', 'bedrooms_min', 'deposit_max', 'occupants', 'max_minutes', 'avoid', 'radius_km', 'mode'];
 
     public function handle(AiSearchDriver $driver, IntentValidator $validator): int
     {
@@ -32,7 +33,7 @@ class AiSearchEval extends Command
             return self::FAILURE;
         }
 
-        $cases = json_decode(file_get_contents(base_path('tests/fixtures/ai-search-cases.json')), true);
+        $cases = json_decode(file_get_contents(base_path($this->option('file') ?: 'tests/fixtures/ai-search-cases.json')), true);
         if ($only = $this->option('only')) {
             $cases = array_values(array_filter($cases, fn ($c) => stripos($c['q'], $only) !== false));
         }
@@ -43,7 +44,14 @@ class AiSearchEval extends Command
         foreach ($cases as $i => $case) {
             $this->line(sprintf('[%d/%d] %s', $i + 1, count($cases), $case['q']));
             try {
-                $intent = $validator->validate($driver->interpret($case['q'], Vocabulary::forPrompt()));
+                if (isset($case['previous'])) {
+                    // A follow-up: the search so far plus a message. Runs the whole service path, safeguards included.
+                    $out = app(AiSearchService::class)->refine($case['q'], $case['previous']);
+                    $out['used_ai'] || throw new \RuntimeException('answered by the keyword reader, not the AI: ' . ($out['fallback_reason'] ?? 'unknown'));
+                    $intent = $out['intent'] + ['mode' => $out['mode']];
+                } else {
+                    $intent = $validator->validate($driver->interpret($case['q'], Vocabulary::forPrompt()));
+                }
                 // Same override the app applies (AiSearchService::interpret), so the score matches what users get.
                 $intent['language'] = LanguageDetector::detect($case['q']) ?? $intent['language'];
             } catch (Throwable $e) {
@@ -98,6 +106,7 @@ class AiSearchEval extends Command
         return match ($field) {
             'location' => ($intent['location']['value'] ?? null) === $want,
             'amenities', 'rules' => array_diff((array) $want, $intent[$field]) === [],
+            'avoid' => array_column($intent['avoid'] ?? [], 'name') === $want,
             default => ($intent[$field] ?? null) === $want,
         };
     }

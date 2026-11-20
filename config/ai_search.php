@@ -7,7 +7,7 @@
  */
 return [
 
-    // gemini | anthropic | null. 'null' (or a missing key) means the keyword
+    // openrouter | gemini | anthropic | null. 'null' (or a missing key) means the keyword
     // fallback answers every search and the UI shows the "smart search is busy" notice.
     'driver' => env('AI_SEARCH_DRIVER', 'null'),
 
@@ -38,6 +38,35 @@ return [
     // only ~20 calls per model per day (Oct 2026), so set AI_SEARCH_DAILY_CAP=8 in .env for free
     // testing. The default stays 600 so a server that never set it is not capped at a handful a day.
     'daily_cap' => (int) env('AI_SEARCH_DAILY_CAP', 600),
+
+    // Features of plans/ai-search-maps-and-haiku.md. Each one is on in local development and off elsewhere until it
+    // has been checked by hand: set AI_SEARCH_FEATURE_<NAME>=true|false to override. A failure of any of them falls
+    // back to the plain search, never to an error page.
+    'features' => [
+        'sort' => (bool) env('AI_SEARCH_FEATURE_SORT', env('APP_ENV') === 'local'),
+        'geo_lookup' => (bool) env('AI_SEARCH_FEATURE_GEO_LOOKUP', env('APP_ENV') === 'local'),
+        'area' => (bool) env('AI_SEARCH_FEATURE_AREA', env('APP_ENV') === 'local'),
+        'refine' => (bool) env('AI_SEARCH_FEATURE_REFINE', env('APP_ENV') === 'local'),
+        'routing' => (bool) env('AI_SEARCH_FEATURE_ROUTING', env('APP_ENV') === 'local'),
+        'planner' => (bool) env('AI_SEARCH_FEATURE_PLANNER', env('APP_ENV') === 'local'),
+        'reasons' => (bool) env('AI_SEARCH_FEATURE_REASONS', env('APP_ENV') === 'local'),
+        'vision_search' => (bool) env('AI_SEARCH_FEATURE_VISION_SEARCH', env('APP_ENV') === 'local'),
+        'photo_check' => (bool) env('AI_SEARCH_FEATURE_PHOTO_CHECK', env('APP_ENV') === 'local'),
+    ],
+
+    // Travel-time estimates, shared by PHP and the map (resources/js/maps/property-map.js uses the same numbers).
+    // Straight-line distance x detour = road distance; speed in km/h. Walking and the jeepney are estimates until
+    // OpenRouteService answers (ORS_API_KEY), and are always shown as "about".
+    'travel' => [
+        'detour' => 1.3,
+        'walk_kmh' => 4.5,
+        'drive_kmh' => 22.0,
+        'jeep_kmh' => 14.0,
+        'jeep_wait_min' => 6,
+    ],
+
+    // Planner (tool use): at most this many tool rounds and this many seconds for the whole plan.
+    'planner' => ['max_rounds' => 3, 'budget_seconds' => 12],
 
     'cache' => [
         'interpret_ttl' => 86400, // same sentence -> same filters

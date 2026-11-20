@@ -6,6 +6,7 @@ use App\Models\AiSearchLog;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -26,6 +27,7 @@ class AiSearchService
         private SummaryComposer $composer,
         private ChipBuilder $chips,
         private NameMatcher $names,
+        private GeoLookup $geo,
     ) {}
 
     /** @return array{query: string, intent: array<string, mixed>, chips: list<array<string, mixed>>, used_ai: bool, fallback_reason: ?string} */
@@ -64,7 +66,9 @@ class AiSearchService
                             throw $e;
                         }
                     });
-                    $intent = $this->validator->validate($raw);
+                    // A place OpenStreetMap knows becomes a map point before the intent is cached, so a repeat is free.
+                    $intent = $this->geo->apply($this->validator->validate($raw));
+                    $intent = $this->planned($query, $raw, $intent);
                     $usedAi = true;
                     Cache::put($cacheKey, $intent, (int) config('ai_search.cache.interpret_ttl'));
                 } catch (AiSearchBusy $e) {
@@ -88,12 +92,296 @@ class AiSearchService
         // after the AI and keyword readings, so both paths agree and the cached AI intent stays name-free.
         $intent = $this->names->apply($query, $intent);
 
+        $token = $this->parkUsage();
+
         return [
             'query' => $query,
             'intent' => $intent,
             'chips' => $this->chips->build($intent),
             'used_ai' => $usedAi,
             'fallback_reason' => $reason,
+            'usage_token' => $token,
+        ];
+    }
+
+    /**
+     * Reads a screenshot into a search (Phase 7). Returns the validated intent and a plain sentence to search, or
+     * null when the feature is off, the AI is not available, a limit is hit, or the image holds no search.
+     *
+     * @return null|array{intent: array<string, mixed>, sentence: string}
+     */
+    public function interpretImage(string $dataUri): ?array
+    {
+        if (! AiFeatures::on('vision_search') || ! ($this->driver instanceof AiSearchAdvanced) || $this->driver instanceof NullDriver) {
+            return null;
+        }
+
+        try {
+            $raw = $this->inSlot(function () use ($dataUri) {
+                $this->withinDailyCap() || throw new AiSearchBusy('busy');
+
+                try {
+                    return $this->driver->interpretImage($dataUri, Vocabulary::forPrompt());
+                } catch (Throwable $e) {
+                    $this->refundDailyCap();
+
+                    throw $e;
+                }
+            });
+        } catch (Throwable $e) {
+            $e instanceof AiSearchBusy || Log::warning('AI search image failed', ['error' => $e->getMessage()]);
+
+            return null;
+        }
+
+        $intent = $this->geo->apply($this->validator->validate($raw));
+        app(AiUsage::class)->feature('vision_search');
+
+        return IntentValidator::isEmpty($intent) ? null : ['intent' => $intent, 'sentence' => IntentSentence::from($intent)];
+    }
+
+    /**
+     * The "Why this fits you" lines (Phase 6). The page asks for them after the cards are on screen, so a slow or failed
+     * call never delays results. The listings are found again from the intent (never from anything the browser could
+     * have edited), at most 8, and the model's answer is kept only where ReasonGuard says it cannot be wrong.
+     *
+     * @param  array<string, mixed>  $intent
+     * @return array{reasons: array<int, string>, summary: string, summary_en: string}
+     */
+    public function reasons(array $intent, ?int $userId = null): array
+    {
+        $empty = ['reasons' => [], 'summary' => '', 'summary_en' => ''];
+        if (! AiFeatures::on('reasons') || ! ($this->driver instanceof AiSearchAdvanced) || $this->driver instanceof NullDriver) {
+            return $empty;
+        }
+
+        $intent = $this->validator->validate($intent);
+        if (IntentValidator::isEmpty($intent)) {
+            return $empty;
+        }
+
+        $found = $this->finder->find($intent);
+        $rows = $found['rows']->take(8);
+        if ($rows->isEmpty()) {
+            return $empty;
+        }
+
+        $facts = $rows->mapWithKeys(fn ($r) => [$r['property']->property_id => $this->reasonFacts($r, $intent)])->all();
+        $searchNumbers = array_values(array_filter([$intent['price_min'], $intent['price_max'], $intent['bedrooms_min'] ?? null, $intent['occupants'] ?? null], fn ($n) => $n !== null));
+        $language = $intent['language'];
+        $key = 'ai_search:reasons:' . $this->driverName() . ':' . md5(json_encode([$intent, $facts, $language]));
+
+        try {
+            $answer = Cache::get($key) ?: $this->inSlot(function () use ($intent, $facts, $language) {
+                $this->withinDailyCap() || throw new AiSearchBusy('busy');
+
+                try {
+                    return $this->driver->reasons($intent, array_values($facts), $language);
+                } catch (Throwable $e) {
+                    $this->refundDailyCap();
+
+                    throw $e;
+                }
+            });
+            Cache::put($key, $answer, (int) config('ai_search.cache.rank_ttl', 600));
+        } catch (Throwable $e) {
+            $e instanceof AiSearchBusy || Log::warning('AI search reasons failed', ['error' => $e->getMessage()]);
+
+            return $empty;
+        }
+
+        app(AiUsage::class)->feature('reasons');
+        $safe = ReasonGuard::summaryIsSafe($answer['summary'], $facts, $searchNumbers) && ReasonGuard::summaryIsSafe($answer['summary_en'], $facts, $searchNumbers);
+
+        return [
+            'reasons' => ReasonGuard::clean($answer['reasons'], $facts, $searchNumbers),
+            'summary' => $safe ? $answer['summary'] : '',
+            'summary_en' => $safe ? $answer['summary_en'] : '',
+        ];
+    }
+
+    /**
+     * The public facts of one listing a reason may be built from: nothing that is not already on its card.
+     *
+     * @param  array<string, mixed>  $row  a CandidateFinder row
+     * @return array<string, mixed>
+     */
+    private function reasonFacts(array $row, array $intent): array
+    {
+        $p = $row['property'];
+        $fee = (int) round((float) $p->min_rental_fee);
+        // Worked out here so the model never has to calculate (a number it calculated is a number we cannot check).
+        $budget = $intent['price_max'] === null ? [] : ($fee <= $intent['price_max'] ? ['under_budget_by' => $intent['price_max'] - $fee] : ['over_budget_by' => $fee - $intent['price_max']]);
+
+        return $budget + [
+            'id' => $p->property_id,
+            'title' => $p->title,
+            'type' => $p->property_type,
+            'area' => trim(($p->barangay ? $p->barangay . ', ' : '') . $p->city_municipality),
+            'price_from' => $fee,
+            'rating' => $p->avg_rating !== null ? round((float) $p->avg_rating, 1) : null,
+            'reviews' => (int) $p->review_count,
+            'amenities' => $p->amenities->pluck('amenity_name')->merge($p->units->flatMap(fn ($u) => $u->amenities->pluck('amenity_name')))->unique()->values()->all(),
+            'meets' => array_column($row['hits'], 'text'),
+            'misses' => array_column($row['misses'], 'text'),
+        ];
+    }
+
+    /**
+     * Runs the planner (tools, a few rounds) when the reading says the sentence needs it: several places at once, a
+     * commute, a comparison. On any failure the first reading stands. Costs up to 4 AI calls, all counted against the day.
+     *
+     * @param  array<string, mixed>  $raw  the model's own answer (for `plan`)
+     * @param  array<string, mixed>  $intent  its validated reading
+     * @return array<string, mixed>
+     */
+    private function planned(string $query, array $raw, array $intent): array
+    {
+        $plan = in_array($raw['plan'] ?? null, ['multi_place', 'commute', 'compare'], true) ? $raw['plan'] : null;
+        if ($plan === null || ! AiFeatures::on('planner') || ! ($this->driver instanceof OpenRouterDriver)) {
+            return $intent;
+        }
+
+        $extra = (int) config('ai_search.planner.max_rounds', 3);
+        if (! $this->withinDailyCap($extra)) {
+            return $intent;
+        }
+
+        try {
+            $result = app(SearchPlanner::class)->run($query, $intent, $plan);
+        } catch (Throwable $e) {
+            Log::warning('AI search planner failed', ['error' => $e->getMessage()]);
+            $this->refundDailyCap($extra);
+
+            return $intent;
+        }
+
+        if ($result === null) {
+            $this->refundDailyCap($extra);
+
+            return $intent;
+        }
+
+        app(AiUsage::class)->feature('planner');
+
+        return $this->geo->apply($result['intent']);
+    }
+
+    /** The results call is a separate request: park what this one spent so the log can add it up. */
+    private function parkUsage(): ?string
+    {
+        $usage = app(AiUsage::class);
+        if ($usage->calls === 0 && $usage->features === []) {
+            return null;
+        }
+
+        $token = Str::random(20);
+        Cache::put('ai_usage:' . $token, $usage->snapshot(), 900);
+
+        return $token;
+    }
+
+    /**
+     * A follow-up on the search the tenant already has (Phase 3). `$patch` is a ready-made change from a quick chip
+     * (no AI); otherwise the message goes to the model, or to the keyword reader when it is not available. The
+     * answer has the shape interpret() returns, plus `mode`: "refine" (the current search was changed) or "new".
+     *
+     * @param  array<string, mixed>  $previous  the intent the page holds (validated again here)
+     * @param  array<string, mixed>  $patch  RefinePatch shape
+     * @param  array<string, mixed>  $context  what the page knows, e.g. cheapest_fee of the results shown
+     * @return array{query: string, intent: array<string, mixed>, chips: list<array<string, mixed>>, used_ai: bool, fallback_reason: ?string, usage_token: ?string, mode: string}
+     */
+    public function refine(string $message, array $previous, array $patch = [], array $context = [], ?string $skipAi = null): array
+    {
+        $message = $this->clean($message);
+        $previous = $this->validator->validate($previous);
+        $reason = $skipAi;
+        $usedAi = false;
+        $mode = 'refine';
+
+        if ($patch !== [] || $message === '') {
+            $intent = $this->validator->validate(RefinePatch::apply($previous, $patch, $context));
+
+            return $this->refined($message, $intent, false, null, 'refine');
+        }
+
+        [$text, $nearMe] = NearMe::split($message);
+        $intent = null;
+
+        if ($text !== '' && $skipAi === null && $this->driver instanceof AiSearchAdvanced && ! ($this->driver instanceof NullDriver) && AiFeatures::on('refine')) {
+            $key = 'ai_search:refine:' . $this->driverName() . ':' . md5(json_encode(RefinePatch::forPrompt($previous)) . '|' . Landmarks::normalize($text));
+
+            try {
+                $answer = Cache::get($key) ?: $this->inSlot(function () use ($text, $previous) {
+                    $this->withinDailyCap() || throw new AiSearchBusy('busy');
+
+                    try {
+                        return $this->driver->refine(RefinePatch::forPrompt($previous), $text, Vocabulary::forPrompt());
+                    } catch (Throwable $e) {
+                        $this->refundDailyCap();
+
+                        throw $e;
+                    }
+                });
+                Cache::put($key, $answer, 86400);
+
+                $mode = $answer['mode'];
+                $candidate = $answer['intent'];
+                if ($mode === 'refine') {
+                    // What the provider never saw stays: the tenant's position or map area, the radius, "near me".
+                    if (in_array($previous['location']['kind'] ?? null, ['point', 'area'], true) && empty($candidate['location'])) {
+                        $candidate['location'] = $previous['location'];
+                    }
+                    $candidate['radius_km'] = $previous['radius_km'];
+                    $candidate['near_me'] = $previous['near_me'];
+                    // A model sometimes forgets to copy a field. A core filter the message does not release stays.
+                    if (! RefinePatch::releasesFilters($text)) {
+                        foreach (['location', 'property_type', 'price_min', 'price_max', 'for', 'furnishing', 'living'] as $field) {
+                            if (($candidate[$field] ?? null) === null && ($previous[$field] ?? null) !== null) {
+                                $candidate[$field] = $previous[$field];
+                            }
+                        }
+                    }
+                }
+                $intent = $this->validator->validate($candidate);
+                $intent = $this->validator->validate(RefinePatch::apply($intent, ['ops' => $answer['ops']], $context));
+                $usedAi = true;
+                app(AiUsage::class)->feature('refine');
+            } catch (AiSearchBusy $e) {
+                $reason = $e->reason;
+            } catch (Throwable $e) {
+                Log::warning('AI search refine failed', ['error' => $e->getMessage()]);
+                $reason = 'unavailable';
+            }
+        }
+
+        if ($intent === null) {
+            $merged = RefinePatch::mergeKeywords($previous, $this->validator->validate($this->fallback->parse($text)), $text);
+            $intent = $this->validator->validate(RefinePatch::apply($this->validator->validate($merged['intent']), ['ops' => $merged['ops']], $context));
+        }
+
+        $intent['language'] = LanguageDetector::detect($message) ?? $intent['language'];
+        $intent['near_me'] = $nearMe || ($mode === 'refine' && $previous['near_me'] && ($intent['location']['kind'] ?? null) === 'point');
+        $intent = $this->geo->apply($this->names->apply($text, $intent));
+        // A name from the earlier search stays when the follow-up does not mention one.
+        if ($mode === 'refine' && $intent['host'] === null && $intent['name_miss'] === null && $previous['host'] !== null) {
+            $intent['host'] = $previous['host'];
+        }
+
+        return $this->refined($message, $intent, $usedAi, $reason, $mode);
+    }
+
+    /** @return array{query: string, intent: array<string, mixed>, chips: list<array<string, mixed>>, used_ai: bool, fallback_reason: ?string, usage_token: ?string, mode: string} */
+    private function refined(string $message, array $intent, bool $usedAi, ?string $reason, string $mode): array
+    {
+        return [
+            'query' => $message,
+            'intent' => $intent,
+            'chips' => $this->chips->build($intent),
+            'used_ai' => $usedAi,
+            'fallback_reason' => $reason,
+            'usage_token' => $this->parkUsage(),
+            'mode' => $mode,
         ];
     }
 
@@ -111,13 +399,20 @@ class AiSearchService
             ? ['rows' => collect(), 'exact_count' => 0, 'relaxed' => [], 'alternatives' => collect()]
             : $this->finder->find($intent);
         $rows = $found['rows'];
+        // Real minutes when a router answers (OpenRouteService); otherwise the rows keep their straight-line estimate.
+        $routed = app(TravelTime::class)->annotate($rows, $intent);
+        if ($routed !== $rows) {
+            $rows = $routed;
+            $found['exact_count'] = $rows->filter(fn ($r) => empty($r['misses']))->count();
+            app(AiUsage::class)->feature('routing');
+        }
         $exact = $found['exact_count'];
         $language = $intent['language'];
 
         $alternatives = $found['alternatives'];
         $more = $this->finder->moreFromHost($intent, $rows->pluck('property.property_id')->merge($alternatives->pluck('property.property_id'))->all());
         $nearest = ($intent['location']['kind'] ?? null) === 'point';
-        $summary = $this->composer->compose($rows, $exact, $language, $alternatives, $intent['property_type'], $intent['host'], $nearest);
+        $summary = $this->composer->compose($rows, $exact, $language, $alternatives, $intent['property_type'], $intent['host'], $nearest, $intent['unmapped'], $found['alternatives_closest'] ?? false, $intent['sort'] ?? null);
         $aiSummary = false;
 
         if ($usedAi && $rows->isNotEmpty() && config('ai_search.rank_with_ai')) {
@@ -144,6 +439,7 @@ class AiSearchService
             'alternatives' => $alternatives,
             'more_from_host' => $more === null ? null : $more + ['name' => $intent['host']['name']],
             'alt_note' => $summary['alt_note'] ?? '',
+            'alternatives_closest' => $found['alternatives_closest'] ?? false,
             'exact_count' => $exact,
             'relaxed' => $found['relaxed'],
             'summary' => $summary['summary'],
@@ -154,7 +450,7 @@ class AiSearchService
             'fallback_reason' => $fallbackReason,
         ];
 
-        $this->log($result, $userId, (int) round((microtime(true) - $started) * 1000));
+        $result['feedback_token'] = $this->log($result, $userId, (int) round((microtime(true) - $started) * 1000));
 
         return $result;
     }
@@ -271,21 +567,22 @@ class AiSearchService
     }
 
     /** Counts one search against today's cap (resets at midnight Manila time); false once it is spent. */
-    private function withinDailyCap(): bool
+    /** Counts $calls AI calls against the day (a plain search is 1, a planner search up to 5). */
+    private function withinDailyCap(int $calls = 1): bool
     {
         $key = $this->dailyCapKey();
         Cache::add($key, 0, now('Asia/Manila')->endOfDay()->addMinutes(5));
 
-        return Cache::increment($key) <= (int) config('ai_search.daily_cap', 600);
+        return Cache::increment($key, $calls) <= (int) config('ai_search.daily_cap', 600);
     }
 
     /** Gives back the search withinDailyCap() counted when the driver call then failed; never goes below 0. */
-    private function refundDailyCap(): void
+    private function refundDailyCap(int $calls = 1): void
     {
         $key = $this->dailyCapKey();
 
         if ((int) Cache::get($key, 0) > 0) {
-            Cache::decrement($key);
+            Cache::decrement($key, min($calls, (int) Cache::get($key, 0)));
         }
     }
 
@@ -294,7 +591,8 @@ class AiSearchService
         return 'ai_search:daily:' . now('Asia/Manila')->format('Ymd');
     }
 
-    private function log(array $result, ?int $userId, int $latencyMs): void
+    /** @return ?string the token the page rates this search with (AiSearchFeedbackController) */
+    private function log(array $result, ?int $userId, int $latencyMs): ?string
     {
         try {
             // A tenant's position is for one search: the log keeps the area it was named as, never the coordinates.
@@ -303,7 +601,7 @@ class AiSearchService
                 $intent['location'] = ['kind' => 'point', 'name' => $intent['location']['name']];
             }
 
-            AiSearchLog::create([
+            $log = AiSearchLog::create([
                 'user_id' => $userId,
                 'query' => $result['query'],
                 'language' => $result['language'],
@@ -315,9 +613,16 @@ class AiSearchService
                 'used_ai' => $result['used_ai'],
                 'fallback_reason' => $result['fallback_reason'],
                 'latency_ms' => $latencyMs,
+                'ai_calls' => app(AiUsage::class)->calls,
+                'cost_usd' => round(app(AiUsage::class)->costUsd, 6),
+                'features' => app(AiUsage::class)->features ?: null,
             ]);
+
+            return \App\Http\Controllers\AiSearchFeedbackController::tokenFor($log);
         } catch (Throwable $e) {
             Log::warning('AI search log failed', ['error' => $e->getMessage()]);
+
+            return null;
         }
     }
 }

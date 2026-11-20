@@ -308,6 +308,1298 @@
  },
  {
   "q": "hello",
-  "expect": {}
+  "expect": []
+ },
+ {
+  "q": "Bedspace near IT Park, aircon, under 3k",
+  "expect": {
+   "location": "it_park",
+   "property_type": "Bedspace",
+   "price_max": 3000,
+   "amenities": [
+    "Air Conditioning"
+   ]
+  }
+ },
+ {
+  "q": "bedspace near Ayala for a call center agent, 2500 max",
+  "expect": {
+   "location": "ayala_center",
+   "property_type": "Bedspace",
+   "price_max": 2500
+  }
+ },
+ {
+  "q": "Apartment near Robinsons Galleria, furnished, 10k to 15k",
+  "expect": {
+   "location": "robinsons_galleria",
+   "property_type": "Apartment",
+   "price_min": 10000,
+   "price_max": 15000,
+   "furnishing": "Furnished"
+  }
+ },
+ {
+  "q": "boarding house near UC Main, girls only, with wifi",
+  "expect": {
+   "location": "uc_main",
+   "property_type": "Boarding House",
+   "for": "Women",
+   "amenities": [
+    "Wi-Fi"
+   ]
+  }
+ },
+ {
+  "q": "room near UV Main for 2 students sharing, 6k",
+  "expect": {
+   "location": "uv_main",
+   "price_max": 6000
+  }
+ },
+ {
+  "q": "Studio near Mactan Newtown, 9k max",
+  "expect": {
+   "location": "mactan_newtown",
+   "property_type": "Apartment",
+   "price_max": 9000
+  }
+ },
+ {
+  "q": "house for rent in Consolacion, pet friendly, 12k",
+  "expect": {
+   "location": "Consolacion",
+   "property_type": "House",
+   "price_max": 12000,
+   "rules": [
+    "pets"
+   ]
+  }
+ },
+ {
+  "q": "apartment in Cebu City near Fuente Osmena",
+  "expect": {
+   "location": "fuente",
+   "property_type": "Apartment"
+  }
+ },
+ {
+  "q": "dorm near SWU PHINMA, men only, no curfew",
+  "expect": {
+   "location": "swu",
+   "property_type": "Dormitory",
+   "for": "Men",
+   "rules": [
+    "curfew"
+   ]
+  }
+ },
+ {
+  "q": "place near Carbon Market, cheap, under 2k",
+  "expect": {
+   "location": "carbon",
+   "price_max": 2000
+  }
+ },
+ {
+  "q": "I work at Chong Hua, need a room with aircon, 5k",
+  "expect": {
+   "location": "chong_hua",
+   "price_max": 5000,
+   "amenities": [
+    "Air Conditioning"
+   ]
+  }
+ },
+ {
+  "q": "nursing student at VSMMC, bedspace please, up to 2k",
+  "expect": {
+   "location": "vsmmc",
+   "property_type": "Bedspace",
+   "price_max": 2000
+  }
+ },
+ {
+  "q": "near south bus terminal, boarding house, 3000 pababa",
+  "expect": {
+   "location": "south_bus",
+   "property_type": "Boarding House",
+   "price_max": 3000,
+   "language": "tl"
+  }
+ },
+ {
+  "q": "apartment near the airport, smoking allowed, 8k",
+  "expect": {
+   "location": "mactan_airport",
+   "property_type": "Apartment",
+   "price_max": 8000,
+   "rules": [
+    "smoking"
+   ]
+  }
+ },
+ {
+  "q": "Bedspace duol sa CIT-U, babaye, ubos sa 2k",
+  "expect": {
+   "location": "cit_u",
+   "property_type": "Bedspace",
+   "for": "Women",
+   "price_max": 2000,
+   "language": "ceb"
+  }
+ },
+ {
+  "q": "Kwarto duol sa IT Park nga naay wifi, 5k ang max",
+  "expect": {
+   "location": "it_park",
+   "price_max": 5000,
+   "amenities": [
+    "Wi-Fi"
+   ],
+   "language": "ceb"
+  }
+ },
+ {
+  "q": "Apartment sa Talisay, 2 ka kwarto, naay parking, 9k hangtod",
+  "expect": {
+   "location": "Talisay City",
+   "property_type": "Apartment",
+   "price_max": 9000,
+   "amenities": [
+    "Parking Space"
+   ],
+   "language": "ceb"
+  }
+ },
+ {
+  "q": "Pet friendly na bahay sa Mandaue, hindi lalampas ng 15k",
+  "expect": {
+   "location": "Mandaue City",
+   "property_type": "House",
+   "price_max": 15000,
+   "rules": [
+    "pets"
+   ],
+   "language": "tl"
+  }
+ },
+ {
+  "q": "apartmnt in mandaue with parkin, 6k",
+  "expect": {
+   "location": "Mandaue City",
+   "property_type": "Apartment",
+   "price_max": 6000,
+   "amenities": [
+    "Parking Space"
+   ]
+  }
+ },
+ {
+  "q": "cheap bedspase near colon",
+  "expect": {
+   "location": "colon",
+   "property_type": "Bedspace"
+  }
+ },
+ {
+  "q": "Fully furnished apartment sa Lapu-Lapu, 20k to 30k",
+  "expect": {
+   "location": "Lapu-Lapu City",
+   "property_type": "Apartment",
+   "price_min": 20000,
+   "price_max": 30000,
+   "furnishing": "Furnished"
+  }
+ },
+ {
+  "q": "room with own cr and kitchen near USC Main, 4500",
+  "expect": {
+   "location": "usc_main",
+   "price_max": 4500
+  }
+ },
+ {
+  "q": "looking for a place",
+  "expect": []
+ },
+ {
+  "q": "salamat po",
+  "expect": []
+ },
+ {
+  "q": "Looking for bedspace near USC Talamban, hindi lalampas ng 3k",
+  "expect": {
+   "location": "usc_talamban",
+   "property_type": "Bedspace",
+   "price_max": 3000
+  }
+ },
+ {
+  "q": "Need ko ng room near IT Park, may wifi and aircon, max 6k",
+  "expect": {
+   "location": "it_park",
+   "price_max": 6000,
+   "amenities": [
+    "Wi-Fi",
+    "Air Conditioning"
+   ]
+  }
+ },
+ {
+  "q": "Hanap ako ng apartment sa Mandaue na pet friendly, budget 8k",
+  "expect": {
+   "location": "Mandaue City",
+   "property_type": "Apartment",
+   "rules": [
+    "pets"
+   ],
+   "price_max": 8000
+  }
+ },
+ {
+  "q": "Pwede ba magluto sa boarding house near Colon? under 3500",
+  "expect": {
+   "location": "colon",
+   "property_type": "Boarding House",
+   "price_max": 3500
+  }
+ },
+ {
+  "q": "Female lang na bedspace malapit sa CIT-U, with aircon",
+  "expect": {
+   "location": "cit_u",
+   "property_type": "Bedspace",
+   "for": "Women",
+   "amenities": [
+    "Air Conditioning"
+   ]
+  }
+ },
+ {
+  "q": "Dorm for guys near UC Main, hanggang 4k",
+  "expect": {
+   "location": "uc_main",
+   "property_type": "Dormitory",
+   "for": "Men",
+   "price_max": 4000
+  }
+ },
+ {
+  "q": "May parking ba yung house sa Talisay? 10k lang budget ko",
+  "expect": {
+   "location": "Talisay City",
+   "property_type": "House",
+   "amenities": [
+    "Parking Space"
+   ],
+   "price_max": 10000
+  }
+ },
+ {
+  "q": "Gusto ko ng studio sa Ayala area, furnished, 12k to 18k",
+  "expect": {
+   "location": "ayala_center",
+   "property_type": "Apartment",
+   "furnishing": "Furnished",
+   "price_min": 12000,
+   "price_max": 18000
+  }
+ },
+ {
+  "q": "Walang curfew dapat, boarding house sa Lapu-Lapu, around 4k",
+  "expect": {
+   "location": "Lapu-Lapu City",
+   "property_type": "Boarding House",
+   "rules": [
+    "curfew"
+   ],
+   "price_max": 4000
+  }
+ },
+ {
+  "q": "Pet friendly na apartment near SM City, above 10k",
+  "expect": {
+   "location": "sm_city_cebu",
+   "property_type": "Apartment",
+   "rules": [
+    "pets"
+   ],
+   "price_min": 10000
+  }
+ },
+ {
+  "q": "Singko mil budget ko, room near Chong Hua, may wifi",
+  "expect": {
+   "location": "chong_hua",
+   "price_max": 5000,
+   "amenities": [
+    "Wi-Fi"
+   ]
+  }
+ },
+ {
+  "q": "Bedspace sa Colon under dos mil",
+  "expect": {
+   "location": "colon",
+   "property_type": "Bedspace",
+   "price_max": 2000
+  }
+ },
+ {
+  "q": "Nag-aaral ako sa UV, kailangan ko ng murang kwarto, may wifi",
+  "expect": {
+   "location": "uv_main",
+   "amenities": [
+    "Wi-Fi"
+   ]
+  }
+ },
+ {
+  "q": "Ano may smoking allowed na apartment sa Cebu City up to 9k?",
+  "expect": {
+   "location": "Cebu City",
+   "property_type": "Apartment",
+   "rules": [
+    "smoking"
+   ],
+   "price_max": 9000
+  }
+ },
+ {
+  "q": "House near airport na pwede ang dogs, 15k max",
+  "expect": {
+   "location": "mactan_airport",
+   "property_type": "House",
+   "rules": [
+    "pets"
+   ],
+   "price_max": 15000
+  }
+ },
+ {
+  "q": "Boarding house for ladies sa Banilad, with CCTV",
+  "expect": {
+   "location": "banilad",
+   "property_type": "Boarding House",
+   "for": "Women",
+   "amenities": [
+    "CCTV"
+   ]
+  }
+ },
+ {
+  "q": "Need a place near Carbon market, bedspace, 1500 lang",
+  "expect": {
+   "location": "carbon",
+   "property_type": "Bedspace",
+   "price_max": 1500
+  }
+ },
+ {
+  "q": "Studio apartment sa Mabolo, may aircon, below 10k",
+  "expect": {
+   "location": "mabolo",
+   "property_type": "Apartment",
+   "amenities": [
+    "Air Conditioning"
+   ],
+   "price_max": 10000
+  }
+ },
+ {
+  "q": "Room near SWU, pwede ang bisita overnight, 3k below",
+  "expect": {
+   "location": "swu",
+   "rules": [
+    "overnight"
+   ],
+   "price_max": 3000
+  }
+ },
+ {
+  "q": "Hanap bahay sa Naga City, 2 bedrooms, parking, hindi hihigit ng 12k",
+  "expect": {
+   "location": "Naga City",
+   "property_type": "House",
+   "amenities": [
+    "Parking Space"
+   ],
+   "price_max": 12000
+  }
+ },
+ {
+  "q": "Looking for kwarto duol sa USC Main, ubos sa 4k",
+  "expect": {
+   "location": "usc_main",
+   "price_max": 4000
+  }
+ },
+ {
+  "q": "Naa ba'y bedspace near IT Park with aircon? 3k max",
+  "expect": {
+   "location": "it_park",
+   "property_type": "Bedspace",
+   "amenities": [
+    "Air Conditioning"
+   ],
+   "price_max": 3000
+  }
+ },
+ {
+  "q": "Apartment sa Mandaue, naay parking, budget is 6k",
+  "expect": {
+   "location": "Mandaue City",
+   "property_type": "Apartment",
+   "amenities": [
+    "Parking Space"
+   ],
+   "price_max": 6000
+  }
+ },
+ {
+  "q": "Gusto nako ug boarding house sa Lapu-Lapu, walay curfew, 4k ra",
+  "expect": {
+   "location": "Lapu-Lapu City",
+   "property_type": "Boarding House",
+   "rules": [
+    "curfew"
+   ],
+   "price_max": 4000
+  }
+ },
+ {
+  "q": "Pet friendly nga house sa Talisay please, up to 12k",
+  "expect": {
+   "location": "Talisay City",
+   "property_type": "House",
+   "rules": [
+    "pets"
+   ],
+   "price_max": 12000
+  }
+ },
+ {
+  "q": "Female only nga bedspace duol sa CIT-U, naay wifi",
+  "expect": {
+   "location": "cit_u",
+   "property_type": "Bedspace",
+   "for": "Women",
+   "amenities": [
+    "Wi-Fi"
+   ]
+  }
+ },
+ {
+  "q": "Dormitory for boys duol sa UC Main, below 3500",
+  "expect": {
+   "location": "uc_main",
+   "property_type": "Dormitory",
+   "for": "Men",
+   "price_max": 3500
+  }
+ },
+ {
+  "q": "Naay washing machine nga apartment near Ayala? max 15k",
+  "expect": {
+   "location": "ayala_center",
+   "property_type": "Apartment",
+   "amenities": [
+    "Washing Machine"
+   ],
+   "price_max": 15000
+  }
+ },
+ {
+  "q": "Kuan, room duol sa Colon, cheap lang, ubos sa 2k",
+  "expect": {
+   "location": "colon",
+   "price_max": 2000
+  }
+ },
+ {
+  "q": "Furnished nga studio duol sa IT Park, 10k to 15k",
+  "expect": {
+   "location": "it_park",
+   "property_type": "Apartment",
+   "furnishing": "Furnished",
+   "price_min": 10000,
+   "price_max": 15000
+  }
+ },
+ {
+  "q": "Nag-trabaho ko sa Chong Hua, need kwarto with wifi, 5k",
+  "expect": {
+   "location": "chong_hua",
+   "amenities": [
+    "Wi-Fi"
+   ],
+   "price_max": 5000
+  }
+ },
+ {
+  "q": "Bedspace duol sa UP Cebu, walay deposit? 2500 ubos",
+  "expect": {
+   "location": "up_cebu",
+   "property_type": "Bedspace",
+   "price_max": 2500
+  }
+ },
+ {
+  "q": "Naa bay house sa Naga City with parking? 10k pababa",
+  "expect": {
+   "location": "Naga City",
+   "property_type": "House",
+   "amenities": [
+    "Parking Space"
+   ],
+   "price_max": 10000
+  }
+ },
+ {
+  "q": "Pwede ang cat ug dog nga apartment sa Banilad, 12k max",
+  "expect": {
+   "location": "banilad",
+   "property_type": "Apartment",
+   "rules": [
+    "pets"
+   ],
+   "price_max": 12000
+  }
+ },
+ {
+  "q": "Room for 2 persons duol sa SM Seaside, ubos sa 6k",
+  "expect": {
+   "location": "sm_seaside",
+   "price_max": 6000
+  }
+ },
+ {
+  "q": "Smoking is okay sa boarding house duol sa Fuente, 4k",
+  "expect": {
+   "location": "fuente",
+   "property_type": "Boarding House",
+   "rules": [
+    "smoking"
+   ],
+   "price_max": 4000
+  }
+ },
+ {
+  "q": "Duol sa airport nga apartment, may aircon, 8k lang",
+  "expect": {
+   "location": "mactan_airport",
+   "property_type": "Apartment",
+   "amenities": [
+    "Air Conditioning"
+   ],
+   "price_max": 8000
+  }
+ },
+ {
+  "q": "Kinse mil max, apartment sa Lahug with parking",
+  "expect": {
+   "location": "lahug",
+   "property_type": "Apartment",
+   "amenities": [
+    "Parking Space"
+   ],
+   "price_max": 15000
+  }
+ },
+ {
+  "q": "Maayong dorm for girls near IT Park, naay aircon, 8k",
+  "expect": {
+   "location": "it_park",
+   "property_type": "Dormitory",
+   "for": "Women",
+   "amenities": [
+    "Air Conditioning"
+   ],
+   "price_max": 8000
+  }
+ },
+ {
+  "q": "Unsa'y bedspace nga available duol sa Colon below 2000 pesos?",
+  "expect": {
+   "location": "colon",
+   "property_type": "Bedspace",
+   "price_max": 2000
+  }
+ },
+ {
+  "q": "Naghahanap ko ug kwarto malapit sa USC Talamban, ubos sa 5k",
+  "expect": {
+   "location": "usc_talamban",
+   "price_max": 5000
+  }
+ },
+ {
+  "q": "Gusto ko ng bedspace dapit sa Colon, 2k lang, babae ko",
+  "expect": {
+   "location": "colon",
+   "property_type": "Bedspace",
+   "for": "Women",
+   "price_max": 2000
+  }
+ },
+ {
+  "q": "Apartment sa Mandaue na naay parking, hanggang 7k",
+  "expect": {
+   "location": "Mandaue City",
+   "property_type": "Apartment",
+   "amenities": [
+    "Parking Space"
+   ],
+   "price_max": 7000
+  }
+ },
+ {
+  "q": "Pwede ang iro ug pusa, boarding house sa Talisay, hindi molapas 4k",
+  "expect": {
+   "location": "Talisay City",
+   "property_type": "Boarding House",
+   "rules": [
+    "pets"
+   ],
+   "price_max": 4000
+  }
+ },
+ {
+  "q": "Walay curfew na kwarto malapit sa IT Park, 5k pababa",
+  "expect": {
+   "location": "it_park",
+   "rules": [
+    "curfew"
+   ],
+   "price_max": 5000
+  }
+ },
+ {
+  "q": "Lalaki ko, gusto nako ng dorm duol sa CTU, 3k ubos",
+  "expect": {
+   "location": "ctu_main",
+   "property_type": "Dormitory",
+   "for": "Men",
+   "price_max": 3000
+  }
+ },
+ {
+  "q": "Hanap ko balay sa Naga, naay parking, 12k pababa",
+  "expect": {
+   "location": "Naga City",
+   "property_type": "House",
+   "amenities": [
+    "Parking Space"
+   ],
+   "price_max": 12000
+  }
+ },
+ {
+  "q": "Naa bay apartment malapit sa Ayala na may aircon at wifi? 14k",
+  "expect": {
+   "location": "ayala_center",
+   "property_type": "Apartment",
+   "amenities": [
+    "Air Conditioning",
+    "Wi-Fi"
+   ],
+   "price_max": 14000
+  }
+ },
+ {
+  "q": "Kwarto para sa babae dapit sa CIT-U, may wifi, lima ka libo hangtod",
+  "expect": {
+   "location": "cit_u",
+   "for": "Women",
+   "amenities": [
+    "Wi-Fi"
+   ],
+   "price_max": 5000
+  }
+ },
+ {
+  "q": "Dili lalampas ug 3k, bedspace malapit sa UC Main",
+  "expect": {
+   "location": "uc_main",
+   "property_type": "Bedspace",
+   "price_max": 3000
+  }
+ },
+ {
+  "q": "Furnished na studio duol sa Ayala, kinse mil ubos",
+  "expect": {
+   "location": "ayala_center",
+   "property_type": "Apartment",
+   "furnishing": "Furnished",
+   "price_max": 15000
+  }
+ },
+ {
+  "q": "Murang boarding house sa Cebu City na naay wifi, ubos sa 3500",
+  "expect": {
+   "location": "Cebu City",
+   "property_type": "Boarding House",
+   "amenities": [
+    "Wi-Fi"
+   ],
+   "price_max": 3500
+  }
+ },
+ {
+  "q": "Gusto ko ng house sa Lapu-Lapu, naay washing machine, 9k pababa",
+  "expect": {
+   "location": "Lapu-Lapu City",
+   "property_type": "House",
+   "amenities": [
+    "Washing Machine"
+   ],
+   "price_max": 9000
+  }
+ },
+ {
+  "q": "Pwede magdala ng bisita, kwarto duol sa SM City, ubos 4500",
+  "expect": {
+   "location": "sm_city_cebu",
+   "rules": [
+    "overnight"
+   ],
+   "price_max": 4500
+  }
+ },
+ {
+  "q": "Apartment dapit sa Mabolo, may parking, tulo ka libo pababa",
+  "expect": {
+   "location": "mabolo",
+   "property_type": "Apartment",
+   "amenities": [
+    "Parking Space"
+   ],
+   "price_max": 3000
+  }
+ },
+ {
+  "q": "Naghahanap ako ug bedspace para sa lalaki, malapit sa Carbon, 1500 lang",
+  "expect": {
+   "location": "carbon",
+   "property_type": "Bedspace",
+   "for": "Men",
+   "price_max": 1500
+  }
+ },
+ {
+  "q": "Smoking allowed sa boarding house sa Mandaue, 4k ra, hindi mahal",
+  "expect": {
+   "location": "Mandaue City",
+   "property_type": "Boarding House",
+   "rules": [
+    "smoking"
+   ],
+   "price_max": 4000
+  }
+ },
+ {
+  "q": "Gusto nako ng room na malapit sa Chong Hua, naay hot shower, 6k",
+  "expect": {
+   "location": "chong_hua",
+   "amenities": [
+    "Hot Shower"
+   ],
+   "price_max": 6000
+  }
+ },
+ {
+  "q": "Dormitory sa Lahug na pang-babae, naay aircon, ubos sa 7k",
+  "expect": {
+   "location": "lahug",
+   "property_type": "Dormitory",
+   "for": "Women",
+   "amenities": [
+    "Air Conditioning"
+   ],
+   "price_max": 7000
+  }
+ },
+ {
+  "q": "Nag-aaral ko sa SWU, kwarto lang na murang malapit, 3k hangtod",
+  "expect": {
+   "location": "swu",
+   "price_max": 3000
+  }
+ },
+ {
+  "q": "bedspace sa colon, 1.5k lang",
+  "expect": {
+   "location": "colon",
+   "property_type": "Bedspace",
+   "price_max": 1500
+  }
+ },
+ {
+  "q": "₱3,000-₱5,000 apartment sa mandaue",
+  "expect": {
+   "location": "Mandaue City",
+   "property_type": "Apartment",
+   "price_min": 3000,
+   "price_max": 5000
+  }
+ },
+ {
+  "q": "apartment mandaue 4000 to 6000 pesos",
+  "expect": {
+   "location": "Mandaue City",
+   "property_type": "Apartment",
+   "price_min": 4000,
+   "price_max": 6000
+  }
+ },
+ {
+  "q": "2.5k bedspace near USC Main",
+  "expect": {
+   "location": "usc_main",
+   "property_type": "Bedspace",
+   "price_max": 2500
+  }
+ },
+ {
+  "q": "Apartment 2 bedroom sa Banilad, 18k to 25k, furnished, parking",
+  "expect": {
+   "location": "banilad",
+   "property_type": "Apartment",
+   "furnishing": "Furnished",
+   "amenities": [
+    "Parking Space"
+   ],
+   "price_min": 18000,
+   "price_max": 25000
+  }
+ },
+ {
+  "q": "unfurnished house sa Naga, 8k",
+  "expect": {
+   "location": "Naga City",
+   "property_type": "House",
+   "furnishing": "Unfurnished",
+   "price_max": 8000
+  }
+ },
+ {
+  "q": "semi-furnished apartment sa Mandaue",
+  "expect": {
+   "location": "Mandaue City",
+   "property_type": "Apartment",
+   "furnishing": "Semi-furnished"
+  }
+ },
+ {
+  "q": "pang-lalaki na dorm sa Cebu City, 5k",
+  "expect": {
+   "location": "Cebu City",
+   "property_type": "Dormitory",
+   "for": "Men",
+   "price_max": 5000
+  }
+ },
+ {
+  "q": "babaye ra nga bedspace sa Talisay, 2k",
+  "expect": {
+   "location": "Talisay City",
+   "property_type": "Bedspace",
+   "for": "Women",
+   "price_max": 2000
+  }
+ },
+ {
+  "q": "bedspace 1,800 lang near Colon",
+  "expect": {
+   "location": "colon",
+   "property_type": "Bedspace",
+   "price_max": 1800
+  }
+ },
+ {
+  "q": "Php 4,500 max room near UP Cebu",
+  "expect": {
+   "location": "up_cebu",
+   "price_max": 4500
+  }
+ },
+ {
+  "q": "P3500 below, boarding house Mandaue",
+  "expect": {
+   "location": "Mandaue City",
+   "property_type": "Boarding House",
+   "price_max": 3500
+  }
+ },
+ {
+  "q": "naay laundry area ug 24/7 security nga dorm sa Lahug",
+  "expect": {
+   "location": "lahug",
+   "property_type": "Dormitory",
+   "amenities": [
+    "Laundry Area",
+    "24/7 Security"
+   ]
+  }
+ },
+ {
+  "q": "dorm near IT Park with study table and fridge",
+  "expect": {
+   "location": "it_park",
+   "property_type": "Dormitory",
+   "amenities": [
+    "Study Table",
+    "Refrigerator"
+   ]
+  }
+ },
+ {
+  "q": "rooftop access apartment in Banilad, balcony",
+  "expect": {
+   "location": "banilad",
+   "property_type": "Apartment",
+   "amenities": [
+    "Rooftop Access",
+    "Balcony"
+   ]
+  }
+ },
+ {
+  "q": "boarding house sa Consolacion, motorcycle parking, 3k",
+  "expect": {
+   "location": "Consolacion",
+   "property_type": "Boarding House",
+   "amenities": [
+    "Motorcycle Parking"
+   ],
+   "price_max": 3000
+  }
+ },
+ {
+  "q": "apartment with elevator near Ayala",
+  "expect": {
+   "location": "ayala_center",
+   "property_type": "Apartment",
+   "amenities": [
+    "Elevator"
+   ]
+  }
+ },
+ {
+  "q": "naay bed ug cabinet, bedspace sa Mandaue, 2500",
+  "expect": {
+   "location": "Mandaue City",
+   "property_type": "Bedspace",
+   "amenities": [
+    "Bed Included",
+    "Wardrobe / Cabinet"
+   ],
+   "price_max": 2500
+  }
+ },
+ {
+  "q": "hot shower and wifi, bedspace near Colon, 2k",
+  "expect": {
+   "location": "colon",
+   "property_type": "Bedspace",
+   "amenities": [
+    "Hot Shower",
+    "Wi-Fi"
+   ],
+   "price_max": 2000
+  }
+ },
+ {
+  "q": "visitors allowed overnight, apartment near Parkmall, 7k",
+  "expect": {
+   "location": "parkmall",
+   "property_type": "Apartment",
+   "rules": [
+    "overnight"
+   ],
+   "price_max": 7000
+  }
+ },
+ {
+  "q": "nursing student near Chong Hua budget 3000, female",
+  "expect": {
+   "location": "chong_hua",
+   "for": "Women",
+   "price_max": 3000
+  }
+ },
+ {
+  "q": "family of 4, house in Mandaue, 12k",
+  "expect": {
+   "location": "Mandaue City",
+   "property_type": "House",
+   "price_max": 12000
+  }
+ },
+ {
+  "q": "magpartner kami, apartment near IT Park, 9k",
+  "expect": {
+   "location": "it_park",
+   "property_type": "Apartment",
+   "price_max": 9000
+  }
+ },
+ {
+  "q": "solo traveler near the airport, short stay",
+  "expect": {
+   "location": "mactan_airport"
+  }
+ },
+ {
+  "q": "cheap bedspase near colon wiffi",
+  "expect": {
+   "location": "colon",
+   "property_type": "Bedspace",
+   "amenities": [
+    "Wi-Fi"
+   ]
+  }
+ },
+ {
+  "q": "bedspace for girls ,near USC Talamban,aircon,2800 max",
+  "expect": {
+   "location": "usc_talamban",
+   "property_type": "Bedspace",
+   "for": "Women",
+   "amenities": [
+    "Air Conditioning"
+   ],
+   "price_max": 2800
+  }
+ },
+ {
+  "q": "APARTMENT SA MANDAUE UBOS 4K!!!",
+  "expect": {
+   "location": "Mandaue City",
+   "property_type": "Apartment",
+   "price_max": 4000
+  }
+ },
+ {
+  "q": "hanap ako bedspace malapit sa IT park pls 3k budget po",
+  "expect": {
+   "location": "it_park",
+   "property_type": "Bedspace",
+   "price_max": 3000
+  }
+ },
+ {
+  "q": "Boarding house po sa Lapu-Lapu, pwede po ba ang aso? 4k",
+  "expect": {
+   "location": "Lapu-Lapu City",
+   "property_type": "Boarding House",
+   "rules": [
+    "pets"
+   ],
+   "price_max": 4000
+  }
+ },
+ {
+  "q": "Apartment near Ayala, 12k up, with aircon",
+  "expect": {
+   "location": "ayala_center",
+   "property_type": "Apartment",
+   "price_min": 12000,
+   "amenities": [
+    "Air Conditioning"
+   ]
+  }
+ },
+ {
+  "q": "bedspace sa Lapu-Lapu pwede magluto 2k",
+  "expect": {
+   "location": "Lapu-Lapu City",
+   "property_type": "Bedspace",
+   "price_max": 2000
+  }
+ },
+ {
+  "q": "place near SM City for a couple, 8k, with parking and wifi",
+  "expect": {
+   "location": "sm_city_cebu",
+   "price_max": 8000,
+   "amenities": [
+    "Parking Space",
+    "Wi-Fi"
+   ]
+  }
+ },
+ {
+  "q": "cheapest bedspace in Mandaue",
+  "expect": {
+   "location": "Mandaue City",
+   "property_type": "Bedspace",
+   "sort": "price_asc"
+  }
+ },
+ {
+  "q": "pinakamura nga apartment sa Lahug",
+  "expect": {
+   "location": "lahug",
+   "property_type": "Apartment",
+   "sort": "price_asc"
+  }
+ },
+ {
+  "q": "Pinakabarato nga kwarto duol sa CIT-U",
+  "expect": {
+   "location": "cit_u",
+   "sort": "price_asc"
+  }
+ },
+ {
+  "q": "most expensive house in Talisay",
+  "expect": {
+   "location": "Talisay City",
+   "property_type": "House",
+   "sort": "price_desc"
+  }
+ },
+ {
+  "q": "highest rated boarding house near USC Talamban",
+  "expect": {
+   "location": "usc_talamban",
+   "property_type": "Boarding House",
+   "sort": "rating"
+  }
+ },
+ {
+  "q": "newest apartments sa Mandaue",
+  "expect": {
+   "location": "Mandaue City",
+   "property_type": "Apartment",
+   "sort": "newest"
+  }
+ },
+ {
+  "q": "bag-o nga listings sa Lapu-Lapu",
+  "expect": {
+   "location": "Lapu-Lapu City",
+   "sort": "newest"
+  }
+ },
+ {
+  "q": "nearest bedspace to IT Park",
+  "expect": {
+   "location": "it_park",
+   "property_type": "Bedspace",
+   "sort": "nearest"
+  }
+ },
+ {
+  "q": "pinakamalapit na dorm sa Ayala",
+  "expect": {
+   "location": "ayala_center",
+   "property_type": "Dormitory",
+   "sort": "nearest"
+  }
+ },
+ {
+  "q": "2 bedroom apartment sa Banilad under 20k",
+  "expect": {
+   "location": "banilad",
+   "property_type": "Apartment",
+   "bedrooms_min": 2,
+   "price_max": 20000
+  }
+ },
+ {
+  "q": "house in Talisay with 3 bedrooms, parking",
+  "expect": {
+   "location": "Talisay City",
+   "property_type": "House",
+   "bedrooms_min": 3,
+   "amenities": [
+    "Parking Space"
+   ]
+  }
+ },
+ {
+  "q": "duha ka kwarto nga apartment sa Mandaue",
+  "expect": {
+   "location": "Mandaue City",
+   "property_type": "Apartment",
+   "bedrooms_min": 2
+  }
+ },
+ {
+  "q": "walay deposit nga kwarto duol sa IT Park",
+  "expect": {
+   "location": "it_park",
+   "deposit_max": 0
+  }
+ },
+ {
+  "q": "no deposit bedspace near Colon, 2k",
+  "expect": {
+   "location": "colon",
+   "property_type": "Bedspace",
+   "deposit_max": 0,
+   "price_max": 2000
+  }
+ },
+ {
+  "q": "walang deposit na apartment sa Mandaue",
+  "expect": {
+   "location": "Mandaue City",
+   "property_type": "Apartment",
+   "deposit_max": 0
+  }
+ },
+ {
+  "q": "apartment near Ayala, deposit up to 5k",
+  "expect": {
+   "location": "ayala_center",
+   "property_type": "Apartment",
+   "deposit_max": 5000
+  }
+ },
+ {
+  "q": "room for 2 persons near USC Talamban, 5k",
+  "expect": {
+   "location": "usc_talamban",
+   "occupants": 2,
+   "price_max": 5000
+  }
+ },
+ {
+  "q": "family of 4, house in Naga, 12k",
+  "expect": {
+   "location": "Naga City",
+   "property_type": "House",
+   "occupants": 4,
+   "price_max": 12000
+  }
+ },
+ {
+  "q": "magpartner kami, apartment near IT Park",
+  "expect": {
+   "location": "it_park",
+   "property_type": "Apartment",
+   "occupants": 2
+  }
+ },
+ {
+  "q": "cheap room near UP Cebu",
+  "expect": {
+   "location": "up_cebu",
+   "sort": null
+  }
+ },
+ {
+  "q": "Cheapest 2 bedroom apartment sa Banilad, walay deposit",
+  "expect": {
+   "location": "banilad",
+   "property_type": "Apartment",
+   "sort": "price_asc",
+   "bedrooms_min": 2,
+   "deposit_max": 0
+  }
  }
 ]

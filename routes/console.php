@@ -2,6 +2,7 @@
 
 use App\Models\AiSearchLog;
 use App\Models\AuthEvent;
+use App\Models\GeoPlace;
 use App\Models\HoldMatchAlert;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -36,7 +37,7 @@ Schedule::command('reservations:purge-tenant-documents')->dailyAt('03:30')->time
 // AI search logs are kept 30 days (App\Models\AiSearchLog::prunable()).
 // Account & security events are kept 90 days (config security.auth_events_retention_days).
 // Dismissed duplicate-account alerts are kept 90 days (config security.hold_match.dismissed_retention_days).
-Schedule::command('model:prune', ['--model' => [AiSearchLog::class, AuthEvent::class, HoldMatchAlert::class]])->dailyAt('03:00')->timezone(config('rentals.timezone'));
+Schedule::command('model:prune', ['--model' => [AiSearchLog::class, GeoPlace::class, AuthEvent::class, HoldMatchAlert::class]])->dailyAt('03:00')->timezone(config('rentals.timezone'));
 // Landlord payouts: the immediate job (SendLandlordPayout) does the work as money becomes payable; this sweep
 // polls transfers PayMongo has not confirmed and sends anything still owed (hold over, wallet was short, job missed).
 Schedule::command('payouts:send')->hourly()->withoutOverlapping()->onOneServer()->timezone(config('rentals.timezone'));

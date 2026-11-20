@@ -17,7 +17,7 @@ class AiSearchLog extends Model
 
     protected function casts(): array
     {
-        return ['intent' => 'array', 'relaxed' => 'array', 'used_ai' => 'boolean', 'created_at' => 'datetime'];
+        return ['intent' => 'array', 'relaxed' => 'array', 'features' => 'array', 'used_ai' => 'boolean', 'cost_usd' => 'float', 'created_at' => 'datetime'];
     }
 
     public function prunable(): Builder

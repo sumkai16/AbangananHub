@@ -31,6 +31,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // What this request's AI calls cost (read by AiSearchService::log). Scoped: each request and queue job starts at zero.
+        $this->app->scoped(\App\Services\AiSearch\AiUsage::class);
+
         // AI search: the configured driver, or NullDriver (keyword search only) when its key is missing.
         $this->app->bind(AiSearchDriver::class, function () {
             return match (config('ai_search.driver')) {

@@ -1,0 +1,15 @@
+[
+ {"q": "bedspace far from Colon, under 3k", "expect": {"location": null, "property_type": "Bedspace", "price_max": 3000, "avoid": ["Colon Street"]}},
+ {"q": "apartment sa Mandaue, layo sa Colon, 8k pababa", "expect": {"location": "Mandaue City", "property_type": "Apartment", "price_max": 8000, "avoid": ["Colon Street"]}},
+ {"q": "dorm malayo sa Carbon Market", "expect": {"location": null, "property_type": "Dormitory", "avoid": ["Carbon Market"]}},
+ {"q": "boarding house not near IT Park, Mandaue", "expect": {"location": "Mandaue City", "property_type": "Boarding House", "avoid": ["Cebu IT Park"]}},
+ {"q": "dili duol sa Colon nga kwarto, 3k", "expect": {"location": null, "price_max": 3000, "avoid": ["Colon Street"]}},
+ {"q": "bedspace 10 minutes walk to IT Park", "expect": {"location": "it_park", "property_type": "Bedspace", "max_minutes": {"minutes": 10, "mode": "walk"}}},
+ {"q": "walking distance to CIT-U, bedspace, 2k", "expect": {"location": "cit_u", "property_type": "Bedspace", "price_max": 2000, "max_minutes": {"minutes": 10, "mode": "walk"}}},
+ {"q": "room 5 min by jeep from Colon", "expect": {"location": "colon", "max_minutes": {"minutes": 5, "mode": "jeep"}}},
+ {"q": "apartment 15 minutes drive from Ayala, 12k", "expect": {"location": "ayala_center", "property_type": "Apartment", "price_max": 12000, "max_minutes": {"minutes": 15, "mode": "drive"}}},
+ {"q": "10 minutos lakaw gikan sa USC Main, kwarto", "expect": {"location": "usc_main", "max_minutes": {"minutes": 10, "mode": "walk"}}},
+ {"q": "hanap ako ng room malapit sa IT Park", "expect": {"location": "it_park", "max_minutes": null, "avoid": []}},
+ {"q": "near Colon, cheapest bedspace, far from Carbon Market", "expect": {"location": "colon", "property_type": "Bedspace", "sort": "price_asc", "avoid": ["Carbon Market"]}},
+ {"q": "room near IT Park but away from Ayala", "expect": {"location": "it_park", "avoid": ["Ayala Center Cebu"]}}
+]
