@@ -129,7 +129,6 @@ export function aiSearch({ query, interpretUrl, resultsUrl, refineUrl = null, re
         quick: [],
         context: {},
         history: [], // earlier searches of this visit (up to 5), for "Back"
-        refineText: '',
         refining: false,
         feedbackToken: null, // rates THIS search only (AiSearchFeedbackController)
         feedbackGiven: 0, // 1 / -1 once the tenant has answered
@@ -439,11 +438,10 @@ export function aiSearch({ query, interpretUrl, resultsUrl, refineUrl = null, re
             try { await post(feedbackUrl, { token: this.feedbackToken, value }); } catch { /* ignore */ }
         },
 
-        // A follow-up on the search on screen: typed text (one AI call) or a quick chip's ready-made patch (none).
+        // A follow-up on the search on screen: a quick chip's ready-made patch (no AI call).
         // The new search replaces the old one; "Back" restores the last.
         async refine(patch = null) {
-            const text = this.refineText.trim();
-            if (!refineUrl || this.refining || !this.intent || (!patch && !text)) return;
+            if (!refineUrl || this.refining || !this.intent || !patch) return;
 
             this.refining = true;
             this.abort();
@@ -452,12 +450,10 @@ export function aiSearch({ query, interpretUrl, resultsUrl, refineUrl = null, re
             const before = { query: this.query, intent: JSON.parse(JSON.stringify(this.intent)), chips: this.chips };
 
             try {
-                const read = await post(refineUrl, { q: text || null, previous: this.intent, patch, context: this.context }, controller.signal);
+                const read = await post(refineUrl, { q: null, previous: this.intent, patch, context: this.context }, controller.signal);
                 if (id !== runId) return;
                 this.history.push(before);
                 if (this.history.length > 5) this.history.shift();
-                if (text) this.query = text;
-                this.refineText = '';
                 this.apply(read);
                 this.usageToken = read.usage_token ?? null;
                 await this.locate(id);
