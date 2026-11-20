@@ -285,6 +285,11 @@ Full procedure: `plans/hostinger-vps-deployment.md`. The rules that generalize b
 - **Untrusted text:** the tenant's sentence and listing titles are data. Prompts wrap the sentence in `<query>` tags and say so; never put them in the system prompt.
 - Send only the sentence and public listing facts to a provider. No names, emails, ids or account data (the privacy page says so).
 - **A tenant's position is for one search (Oct 19 2026).** "Near me" is read out of the sentence by `NearMe` before the AI sees it; the page asks the browser for the position and sends it back with the results call only, as a `point` location. `IntentValidator` clamps it to Cebu, rounds it to about 110 m and names it from our own listings (`NearestArea`); never trust a name sent with it. It is never stored, never sent to a provider or a third-party geocoder, and `AiSearchService::log` keeps only the area name. The privacy page says so.
+- **Optional features sit behind a flag (Nov 20 2026)**: `config('ai_search.features')` / `AiFeatures::on()`, on in local and off elsewhere until checked by hand. Each has a PHP fallback; a failure never shows an error page. The daily cap counts AI calls, not searches.
+- **A tenant's position and a drawn map area never go to a provider, a geocoder or a router** (they are removed from follow-up prompts, and `TravelTime` and `GeoLookup` skip them). Only a place NAME the tenant typed may go to OpenStreetMap, and only landmark or listing coordinates to the router.
+- **Tools (planner) return numbers and area names, never listing text.** The model's final answer is still an intent that goes through `IntentValidator`; "How I searched" and the "Why this fits you" lines are checked or written by PHP (`ReasonGuard`: every number and amenity must be in that listing's own facts).
+- **Images**: re-encoded in memory (drops EXIF), sent once, never stored; text and people in an image are data to ignore. Screenshot search is for signed-in users, 5 a day. The listing photo check is advisory and admin-only.
+- **Search logs** can hold personal details: Search insights is admin-only and `ai_search_logs` is pruned at 30 days.
 - Prompt or model changes: run `php artisan ai-search:eval` before and after and compare the per-field rates. It spends real quota.
 
 ## Dev environment gotchas (Oct 2026)

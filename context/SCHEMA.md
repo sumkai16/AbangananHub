@@ -1055,7 +1055,50 @@ One row per AI search. No FK on `user_id` because guests search too. Pruned afte
 | used_ai | boolean | NN, = 0 | | False when the keyword fallback answered |
 | fallback_reason | varchar(30) | null | | not_configured / unavailable / busy / rate_limited / network |
 | latency_ms | int unsigned | NN, = 0 | | |
+| ai_calls | tinyint unsigned | NN, = 0 | | AI calls the whole search made (interpret + follow-ups + reasons + planner) |
+| cost_usd | decimal(8,6) | NN, = 0 | | OpenRouter's own `usage.cost`, summed |
+| features | json | null | | Optional features that ran: sort, geo_lookup, refine, planner, reasons, routing, vision_search |
+| feedback | tinyint | null | | Tenant's thumbs: 1 helpful, -1 not helpful |
 | created_at | timestamp | NN, = now | index | No `updated_at` |
+
+### geo_places
+Places a tenant named that are not in `config/landmarks.php`, looked up once on OpenStreetMap by name only. Hits kept 90 days, misses 7 (`model:prune`).
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| id | bigint unsigned | NN | PK | |
+| query_key | varchar(120) | NN | unique | Normalized name as typed |
+| name, city | varchar | null | | What OpenStreetMap called it |
+| lat, lng | decimal(9,6) | null | | Null = looked up and not found in Cebu |
+| osm_ref | varchar(40) | null | | |
+| fetched_at | timestamp | NN, = now | index | |
+
+### listing_photo_checks
+The advisory AI look at a listing's photos (admin only, never blocks). One row per property, replaced by each check.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| id | bigint unsigned | NN | PK | |
+| property_id | bigint unsigned | NN | unique | No FK |
+| photos_checked | tinyint unsigned | NN, = 0 | | At most 8 |
+| amenity_results | json | NN | | Claimed amenity => seen / not_seen / unclear |
+| flags | json | NN | | stock_or_watermarked, different_kind_of_place, repeated_photos |
+| note | varchar(255) | null | | |
+| cost_usd | decimal(8,6) | NN, = 0 | | |
+| created_at | timestamp | NN, = now | | |
+
+### ai_search_reviews
+A real search an admin corrected in Search insights; `ai-search:export-fixtures` turns unexported rows into eval sentences. No FK to the log (it is pruned at 30 days).
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| id | bigint unsigned | NN | PK | |
+| ai_search_log_id | bigint unsigned | null | | |
+| query | varchar(300) | NN | | |
+| intent | json | NN | | What the search should have been |
+| reviewed_by | bigint unsigned | null | | Admin user id |
+| exported_at | timestamp | null | | Set once written to the fixtures |
+| created_at | timestamp | NN, = now | | |
 
 ## 3. Copies kept on purpose
 

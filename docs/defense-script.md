@@ -1,7 +1,7 @@
 # Defense script: data and demo flow
 
 Everything the panel may be shown, with the account to log in as and the page to open. The data comes from
-`DefenseSeeder` (admin queues in `DefenseAdminSeeder`, landlord and tenant states in `DefenseRentalsSeeder`) on top of the
+`DefenseSeeder` (admin queues in `DefenseAdminSeeder`, landlord and tenant states in `DefenseRentalsSeeder`, search results in `DefenseSearchSeeder`) on top of the
 base seed. **The tables below are generated from those seeders' own `SCENARIOS` lists**, so they match the data.
 
 ## 1. Build the data (once, the day before; again to reset after a rehearsal)
@@ -102,6 +102,45 @@ All seeded accounts use the password `password`.
 | 19 | `landlord@abangananhub.com` | /landlord/payouts | Maria's GCash payout account is approved, so online payouts work. |
 | 20 | `landlord@abangananhub.com` | /landlord/payments and /landlord/contracts | Three more payment stories: a part payer (Rico Salazar), one who pays months ahead (Selena Tan) and one who always hands cash (Jun Pascual). |
 | 21 | `tenant.new@abangananhub.com` | the whole site | A tenant with no activity: browse, search, inquire and sign up from nothing. |
+
+### AI search (`DefenseSearchSeeder`)
+
+Type these in the search box on the landing page or Browse Rentals (no login needed). Each returns **three or more exact matches** with the hit chips and a summary in the language typed; the first three are the suggestion chips on the landing page. About 27 listings were added across the seven business landlords, so "places by this business" and "near me" have data too.
+
+| # | Type | Language | What the panel sees |
+|---|---|---|---|
+| 1 | `Bedspace near Lahug, aircon, under 3k` | English | Bedspaces within 2 km of Lahug with aircon under ₱3,000, distance on each card (Lahug is a place with coordinates, not text). |
+| 2 | `Bedspace para sa babae, may aircon` | Tagalog | Women-only bedspaces with aircon, summary in Tagalog with an English toggle. |
+| 3 | `Kwarto duol sa CIT-U, ubos sa 3k` | Bisaya | Rooms near CIT-U under ₱3,000, summary in Bisaya. |
+| 4 | `Dorm near IT Park, max ₱18k` | English | Four dormitories near Cebu IT Park. |
+| 5 | `Apartment sa Mandaue ubos 4k` | Taglish | Three Mandaue apartments under ₱4,000. |
+| 6 | `Room near USC Talamban, Wi-Fi, under ₱5,000. I have a cat.` | English | Rooms that allow pets (a house-rule filter), with Wi-Fi. |
+| 7 | `Bedspace for men near Colon, under 2k` | English | Men-only bedspaces downtown. |
+| 8 | `Boarding house sa Lapu-Lapu, walang curfew` | Tagalog | Boarding houses in Lapu-Lapu with no curfew rule. |
+| 9 | `House sa Talisay na may parking, 10k pababa` | Tagalog | Houses in Talisay with parking under ₱10,000. |
+| 10 | `maria santos` or `properties ni Santos Rentals Cebu` | English | Searches by business name: only that business's listings, with a "By Santos Rentals Cebu" chip. |
+| 11 | `near me` added to any search | English | The browser asks for the location, then the nearest places show first. |
+| 12 | `Dorm near the airport` (nothing fits) | English | Never an empty page: "No exact match, but these could work" with the closest places and what differs on each card. |
+| 23 | `cheapest 2 bedroom apartment sa Banilad, walay deposit` | Taglish + Bisaya | Chips for 2+ bedrooms, No deposit and Cheapest first; the two Banilad flats come first, lowest rent first. |
+| 24 | `family of 6 apartment near Robinsons Galleria` | English | A three-bedroom flat in Mabolo that fits 6 ("Good for 6" now filters). |
+| 25 | `bedspace 10 minutes walk to IT Park` | English | Each card says "about N min walk" (real minutes once an `ORS_API_KEY` is set). |
+| 26 | `bedspace far from Colon, under 3k` | English | A dashed "Away from Colon" circle on the map, no result inside it. |
+| 27 | `room between IT Park and USC Talamban, under 6k` | English | Two "Close to" chips, a distance to each place on every card and a collapsed "How I searched". |
+| 28 | `room near Skyrise, under 6k` | English | A place that is not in our list, found on OpenStreetMap (needs internet). |
+| 29 | After any search: tap **Cheaper**, then type `may aircon` | any | The search changes in place (Refine bar), **Back** returns to the last one. |
+| 30 | Pan the results map, tap **Search this area** | any | Results for exactly what the map shows. |
+| 31 | Signed in: **Screenshot** button, upload a rental post | any | The search is filled in from the image and run. |
+| 32 | Admin: **Search insights**, and a listing under Property Verifications | admin | Searches and cost per day, supply gaps; a "Photo check (AI, advisory)" block (run `php artisan listing-photos:check 1` first). |
+| 13 | `Need ko ng room near IT Park, may wifi and aircon, max 6k` | Taglish | Rooms near IT Park with Wi-Fi and aircon under ₱6,000; the summary is in Tagalog. |
+| 14 | `Female lang na bedspace malapit sa CIT-U, with aircon` | Taglish | Women-only aircon bedspaces near CIT-U. |
+| 15 | `May parking ba yung house sa Talisay? 10k lang budget ko` | Taglish | Talisay houses with parking under ₱10,000. |
+| 16 | `Naa ba'y bedspace near IT Park with aircon? 3k max` | Bisaya + English | Bedspaces near IT Park with aircon, summary in Bisaya. |
+| 17 | `Pet friendly nga house sa Talisay please, up to 12k` | Bisaya + English | Pet-friendly houses in Talisay. |
+| 18 | `Dormitory for boys duol sa UC Main, below 3500` | Bisaya + English | Men-only dormitories near UC Main. |
+| 19 | `Naghahanap ko ug kwarto malapit sa USC Talamban, ubos sa 5k` | Bisaya + Tagalog | Four rooms near USC Talamban under ₱5,000. |
+| 20 | `Pwede ang iro ug pusa, boarding house sa Talisay, hindi molapas 4k` | Bisaya + Tagalog | Pet-friendly Talisay boarding houses; the summary is in English because the sentence mixes both languages evenly. |
+| 21 | `Apartment sa Mandaue na naay parking, hanggang 7k` | Bisaya + Tagalog | Mandaue apartments with parking under ₱7,000. |
+| 22 | `Gusto ko ng bedspace dapit sa Colon, 2k lang, babae ko` | Bisaya + Tagalog | Women-only bedspaces near Colon under ₱2,000. |
 
 ## 4. Suggested order (about 15 minutes)
 

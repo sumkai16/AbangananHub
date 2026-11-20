@@ -47,6 +47,7 @@ class DefenseSeeder extends Seeder
         $this->call([
             DefenseAdminSeeder::class,
             DefenseRentalsSeeder::class,
+            DefenseSearchSeeder::class,
         ]);
 
         $this->secureAdmin();
